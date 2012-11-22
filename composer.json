@@ -1,0 +1,43 @@
+{
+    "name": "mouf/database.tdbm",
+    "description": "The Database Machine is a PHP ORM that requires no configuration. The object model is deduced at runtime from the database model.",
+    "keywords": ["ORM", "mouf", "persistance", "DAO", "bean", "model"],
+    "homepage": "https://github.com/thecodingmachine/database.tdbm",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "David Négrier",
+            "email": "d.negrier@thecodingmachine.com",
+            "homepage": "http://mouf-php.com"
+        }
+    ],
+    "require": {
+    	"php": ">=5.3.0",
+    	"mouf/database.dbconnection": ">=2.0-dev,<3.0",
+    	"mouf/utils.cache.cache-interface": ">=2.0-dev,<3.0",
+    	"mouf/utils.cache.no-cache": ">=2.0-dev,<3.0",
+    	"mouf/utils.common.conditioninterface": ">=2.0-dev,<3.0",
+    	"mouf/utils.log.errorlog_logger": ">=2.0-dev,<3.0",
+    	"mouf/database.dao-interface": ">=2.0-dev,<3.0"
+    },
+    "autoload": {
+        "psr-0": {
+            "Mouf": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "extra": {
+	     "mouf": {
+			"install": [
+			{
+				"type": "url",
+	    		"url": "tdbminstall/"
+			}
+			],
+			"require-admin": [
+    			"src/TdbmAdmin.php"
+    		]
+		}
+    }
+}
