@@ -1,6 +1,14 @@
 <?php
 namespace Mouf\Database\TDBM;
 
+use Mouf\Database\TDBM\Filters\SqlStringFilter;
+
+use Mouf\Database\TDBM\Filters\AndFilter;
+
+use Mouf\Database\DBConnection\CachedConnection;
+
+use Mouf\Utils\Cache\CacheInterface;
+
 use Mouf\Database\TDBM\Filters\FilterInterface;
 use Mouf\Database\DBConnection\ConnectionInterface;
  
@@ -34,7 +42,7 @@ class TDBMService {
 	/**
 	 * The database connection.
 	 *
-	 * @var DB_ConnectionInterface
+	 * @var ConnectionInterface
 	 */
 	public $dbConnection;
 
@@ -140,9 +148,9 @@ class TDBMService {
 	 *
 	 * @Property
 	 * @Compulsory
-	 * @param DB_ConnectionInterface $connection
+	 * @param ConnectionInterface $connection
 	 */
-	public function setConnection(DB_ConnectionInterface $connection) {
+	public function setConnection(ConnectionInterface $connection) {
 		if ($this->cacheService != null && !($connection instanceof DB_CachedConnection)) {
 			$cachedConnection = new Mouf\Database\DBConnection\DB_CachedConnection();
 			$cachedConnection->dbConnection = $connection;
@@ -156,7 +164,7 @@ class TDBMService {
 	/**
 	 * Returns the object used to connect to the database.
 	 *
-	 * @return DB_ConnectionInterface
+	 * @return ConnectionInterface
 	 */
 	public function getConnection() {
 		return $this->dbConnection;
@@ -173,8 +181,8 @@ class TDBMService {
 	 */
 	public function setCacheService(CacheInterface $cacheService) {
 		$this->cacheService = $cacheService;
-		if ($this->dbConnection != null && !($this->dbConnection instanceof DB_CachedConnection)) {
-			$cachedConnection = new Mouf\Database\DBConnection\DB_CachedConnection();
+		if ($this->dbConnection != null && !($this->dbConnection instanceof CachedConnection)) {
+			$cachedConnection = new CachedConnection();
 			$cachedConnection->dbConnection = $this->dbConnection;
 			$cachedConnection->cacheService = $this->cacheService;
 			$this->dbConnection = $cachedConnection;
@@ -559,7 +567,7 @@ class TDBMService {
 				if ($className == null) {
 					$obj = new TDBMObject($this, $table_name, $id);
 				} elseif (is_string($className)) {
-					if (!is_subclass_of($className, "TDBMObject")) {
+					if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
 						throw new TDBMException("Error while calling TDBM: The class ".$className." should extend TDBMObject.");
 					}
 					$obj = new $className($this, $table_name, $id);
@@ -1429,17 +1437,21 @@ class TDBMService {
 	 */
 	public function buildFilterFromFilterBag($filter_bag) {
 		// First filter_bag should be an array, if it is a singleton, let's put it in an array.
-		if (!is_array($filter_bag))
-		$filter_bag = array($filter_bag);
-		elseif (is_a($filter_bag, 'TDBMObjectArray'))
-		$filter_bag = array($filter_bag);
+		if ($filter_bag === null) {
+			$filter_bag = array();
+		} elseif (!is_array($filter_bag)) {
+			$filter_bag = array($filter_bag);
+		}
+		elseif (is_a($filter_bag, 'Mouf\\Database\\TDBM\\TDBMObjectArray')) {
+			$filter_bag = array($filter_bag);
+		}
 
 		// Second, let's take all the objects out of the filter bag, and let's make filters from them
 		$filter_bag2 = array();
 		foreach ($filter_bag as $thing) {
 			if (is_a($thing,'')) {
 				$filter_bag2[] = $thing;
-			} elseif (is_a($thing,'TDBMObject')) {
+			} elseif (is_a($thing,'Mouf\\Database\\TDBM\\TDBMObject')) {
 				$pk_table = $thing->getPrimaryKey();
 				// If there is only one primary key:
 				if (count($pk_table)==1) {
@@ -1460,7 +1472,7 @@ class TDBMService {
 				//$filter_bag2[] = new EqualFilter($thing->_getDbTableName(), $primary_key, $thing->$primary_key);
 			} elseif (is_string($thing)) {
 				$filter_bag2[] = new SqlStringFilter($thing);
-			} elseif (is_a($thing,'TDBMObjectArray') && count($thing)>0) {
+			} elseif (is_a($thing,'Mouf\\Database\\TDBM\\TDBMObjectArray') && count($thing)>0) {
 				// Get table_name and column_name
 				$filter_table_name = $thing[0]->_getDbTableName();
 				$filter_column_names = $thing[0]->getPrimaryKey();
@@ -1489,7 +1501,7 @@ class TDBMService {
 				}
 
 
-			} elseif (!is_a($thing,'TDBMObjectArray') && $thing!==null) {
+			} elseif (!is_a($thing,'Mouf\\Database\\TDBM\\TDBMObjectArray') && $thing!==null) {
 				throw new TDBMException("Error in filter bag in getObjectsByFilter. An object has been passed that is neither a filter, nor a TDBMObject, nor a TDBMObjectArray, nor a string, nor null.");
 			}
 		}
@@ -1517,9 +1529,9 @@ class TDBMService {
 		// 4-2, let's take all the objects out of the orderby bag, and let's make objects from them
 		$orderby_bag2 = array();
 		foreach ($orderby_bag as $thing) {
-			if (is_a($thing,'OrderBySQLString')) {
+			if (is_a($thing,'Mouf\\Database\\TDBM\\Filters\\OrderBySQLString')) {
 				$orderby_bag2[] = $thing;
-			} elseif (is_a($thing,'OrderByColumn')) {
+			} elseif (is_a($thing,'Mouf\\Database\\TDBM\\Filters\\OrderByColumn')) {
 				$orderby_bag2[] = $thing;
 			} elseif (is_string($thing)) {
 				$orderby_bag2[] = new OrderBySQLString($thing);

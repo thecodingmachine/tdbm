@@ -1,7 +1,12 @@
 <?php
 namespace Mouf\Database\TDBM\Controllers;
 
+use Mouf\Actions\InstallUtils;
+
+use Mouf\MoufManager;
+
 use Mouf\Html\HtmlElement\HtmlBlock;
+use Mouf\Mvc\Splash\Controllers\Controller;
 
 /**
  * The controller used in the TDBM install process.
@@ -50,8 +55,8 @@ class TdbmInstallController extends Controller {
 			$this->moufManager = MoufManager::getMoufManagerHiddenInstance();
 		}
 				
-		$this->template->addContentFile(dirname(__FILE__)."/../views/installStep1.php", $this);
-		$this->template->draw();
+		$this->content->addFile(dirname(__FILE__)."/../../../../views/installStep1.php", $this);
+		$this->template->toHtml();
 	}
 
 	/**
@@ -65,8 +70,9 @@ class TdbmInstallController extends Controller {
 		InstallUtils::continueInstall($selfedit == "true");
 	}
 
-	protected $daoDirectory;
-	protected $beanDirectory;
+	protected $daoNamespace;
+	protected $beanNamespace;
+	protected $sourceDirectory;
 	
 	/**
 	 * Displays the second install screen.
@@ -95,17 +101,18 @@ class TdbmInstallController extends Controller {
 			return;
 		}
 		
-		$this->daoDirectory = $this->moufManager->getVariable("tdbmDefaultDaoDirectory");
-		$this->beanDirectory = $this->moufManager->getVariable("tdbmDefaultBeanDirectory");
-		if ($this->daoDirectory == null) {
-			$this->daoDirectory = "dao";
+		$this->sourceDirectory = $this->moufManager->getVariable("tdbmDefaultSourceDirectory");
+		$this->daoNamespace = $this->moufManager->getVariable("tdbmDefaultDaoNamespace");
+		$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace");
+		if ($this->daoNamespace == null) {
+			$this->daoNamespace = "dao";
 		}
-		if ($this->beanDirectory == null) {
-			$this->beanDirectory = "dao/beans";
+		if ($this->beanNamespace == null) {
+			$this->beanNamespace = "dao/beans";
 		}
-						
-		$this->template->addContentFile(dirname(__FILE__)."/../views/installStep2.php", $this);
-		$this->template->draw();
+								
+		$this->content->addFile(dirname(__FILE__)."/../../../../views/installStep2.php", $this);
+		$this->template->toHtml();
 	}
 	
 	/**
@@ -115,7 +122,7 @@ class TdbmInstallController extends Controller {
 	 * @param string $name
 	 * @param bool $selfedit
 	 */
-	public function generate($daodirectory, $beandirectory, $keepSupport = 0, $selfedit="false") {
+	public function generate($sourcedirectory, $daonamespace, $beannamespace, $keepSupport = 0, $selfedit="false") {
 		$this->selfedit = $selfedit;
 		
 		if ($selfedit == "true") {
@@ -125,14 +132,14 @@ class TdbmInstallController extends Controller {
 		}
 		
 		if (!$this->moufManager->instanceExists("tdbmService")) {
-			$this->moufManager->declareComponent("tdbmService", "TDBMService");
+			$this->moufManager->declareComponent("tdbmService", "Mouf\\Database\\TDBM\\TDBMService");
 			$this->moufManager->bindComponentViaSetter("tdbmService", "setConnection", "dbConnection");
 			$this->moufManager->bindComponentViaSetter("tdbmService", "setCacheService", "noCacheService");
 		}
 		
 		$this->moufManager->rewriteMouf();
 		
-		TdbmController::generateDaos($this->moufManager, "tdbmService", $daodirectory, $beandirectory, "DaoFactory", "daoFactory", $selfedit, $keepSupport);
+		TdbmController::generateDaos($this->moufManager, "tdbmService", $sourcedirectory, $daonamespace, $beannamespace, "DaoFactory", "daoFactory", $selfedit, $keepSupport);
 				
 		InstallUtils::continueInstall($selfedit == "true");
 	}
@@ -141,7 +148,7 @@ class TdbmInstallController extends Controller {
 	
 	private function displayErrorMsg($msg) {
 		$this->errorMsg = $msg;
-		$this->template->addContentFile(dirname(__FILE__)."/../views/installError.php", $this);
-		$this->template->draw();
+		$this->content->addFile(dirname(__FILE__)."/../../../../views/installError.php", $this);
+		$this->template->toHtml();
 	}
 }

@@ -30,7 +30,7 @@ namespace Mouf\Database\TDBM;
  * 
  * @author David Negrier
  */
-class TDBMObject implements ArrayAccess, Iterator {
+class TDBMObject implements \ArrayAccess, \Iterator {
 
 	/**
 	 * The service this object is bound to.

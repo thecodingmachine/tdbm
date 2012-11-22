@@ -84,7 +84,7 @@ class LikeFilter implements FilterInterface {
 	 * @param string $columnName
 	 * @param string $value
 	 */
-	public function LikeFilter($tableName=null, $columnName=null, $value=null) {
+	public function __construct($tableName=null, $columnName=null, $value=null) {
 		$this->tableName = $tableName;
 		$this->columnName = $columnName;
 		$this->value = $value;

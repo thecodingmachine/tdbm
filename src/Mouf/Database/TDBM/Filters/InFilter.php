@@ -85,7 +85,7 @@ class InFilter implements FilterInterface {
 	 * @param string $columnName
 	 * @param array<string> $values
 	 */
-	public function InFilter($tableName=null, $columnName=null, $values=array()) {
+	public function __construct($tableName=null, $columnName=null, $values=array()) {
 		$this->tableName = $tableName;
 		$this->columnName = $columnName;
 		$this->values = $values;

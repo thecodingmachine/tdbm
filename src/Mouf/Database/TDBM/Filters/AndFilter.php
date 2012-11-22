@@ -1,6 +1,8 @@
 <?php
 namespace Mouf\Database\TDBM\Filters;
 
+use Mouf\Database\TDBM\TDBMException;
+
 use Mouf\Database\DBConnection\ConnectionInterface;
 
 
@@ -48,7 +50,7 @@ class AndFilter implements FilterInterface {
 	 * 
 	 * @param array<FilterInterface> $filter
 	 */
-	public function AndFilter($filters=null) {
+	public function __construct($filters=null) {
 		$this->filters = $filters;
 	}
 

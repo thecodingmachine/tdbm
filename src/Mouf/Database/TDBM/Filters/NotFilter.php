@@ -59,7 +59,7 @@ class NotFilter implements FilterInterface {
 	 * 
 	 * @param FilterInterface $filter
 	 */
-	public function NotFilter($filter=null) {
+	public function __construct($filter=null) {
 		$this->filter = $filter;
 	}
 

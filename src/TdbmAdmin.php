@@ -9,12 +9,12 @@ MoufUtils::registerChooseInstanceMenuItem('dbTDBMGenereateDAOAdminSubMenu', 'Gen
 
 // Controller declaration
 $moufManager = MoufManager::getMoufManager();
-$moufManager->declareComponent('tdbmadmin', 'Mouf\\Database\\TDBM\\SControllers\\TdbmController', true);
+$moufManager->declareComponent('tdbmadmin', 'Mouf\\Database\\TDBM\\Controllers\\TdbmController', true);
 $moufManager->bindComponents('tdbmadmin', 'template', 'moufTemplate');
 $moufManager->bindComponents('tdbmadmin', 'content', 'block.content');
 
-$moufManager->declareComponent('tdbminstall', 'Mouf\\Database\\TDBM\\SControllers\\TdbmInstallController', true);
-$moufManager->bindComponents('tdbminstall', 'template', 'installTemplate');
+$moufManager->declareComponent('tdbminstall', 'Mouf\\Database\\TDBM\\Controllers\\TdbmInstallController', true);
+$moufManager->bindComponents('tdbminstall', 'template', 'moufInstallTemplate');
 $moufManager->bindComponents('tdbminstall', 'content', 'block.content');
 
 ?>

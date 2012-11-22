@@ -7,10 +7,13 @@
 <input type="hidden" id="selfedit" name="selfedit" value="<?php echo plainstring_to_htmlprotected($this->selfedit) ?>" />
 
 <div>
-<label>Dao directory:</label><input type="text" name="daodirectory" value="<?php echo plainstring_to_htmlprotected($this->daoDirectory) ?>"></input>
+<label>Source directory:</label><input type="text" name="sourcedirectory" value="<?php echo plainstring_to_htmlprotected($this->sourceDirectory) ?>"></input>
 </div>
 <div>
-<label>Bean directory:</label><input type="text" name="beandirectory" value="<?php echo plainstring_to_htmlprotected($this->beanDirectory) ?>"></input>
+<label>Dao namespace:</label><input type="text" name="daonamespace" value="<?php echo plainstring_to_htmlprotected($this->daoNamespace) ?>"></input>
+</div>
+<div>
+<label>Bean namespace:</label><input type="text" name="beannamespace" value="<?php echo plainstring_to_htmlprotected($this->beanNamespace) ?>"></input>
 </div>
 <div>
 <label>Keep support for previous DAOs:</label><input type="checkbox" name="keepSupport" value="1"></input>

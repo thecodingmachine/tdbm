@@ -3,36 +3,33 @@
  * This page generates the DAOS (via direct access)
  * 
  */
+use Mouf\MoufManager;
+
+use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
+
+use Mouf\MoufUtils;
+
 ini_set("display_errors", 1);
 error_reporting(error_reporting() | E_ERROR);
 
-require_once 'utils/dao_generator.php';
-
-if (!isset($_REQUEST["selfedit"]) || $_REQUEST["selfedit"]!="true") {
-	require_once '../../../../Mouf.php';
-} else {
-	require_once '../../../../mouf/MoufManager.php';
-	MoufManager::initMoufManager();
-	require_once '../../../../MoufUniversalParameters.php';
-	require_once '../../../../mouf/MoufAdmin.php';
-}
+require_once '../../../../mouf/Mouf.php';
 
 // Note: checking rights is done after loading the required files because we need to open the session
 // and only after can we check if it was not loaded before loading it ourselves...
-require_once '../../../../mouf/direct/utils/check_rights.php';
-
+MoufUtils::checkRights();
 
 $tdbmServiceInstanceName = $_REQUEST["name"];
 $tdbmService = MoufManager::getMoufManager()->getInstance($tdbmServiceInstanceName);
 
 $daoFactoryClassName = $_REQUEST["daofactoryclassname"];
 
-$daodirectory = $_REQUEST["daodirectory"];
-$beandirectory = $_REQUEST["beandirectory"]; 
+$sourcedirectory = $_REQUEST["sourcedirectory"];
+$daonamespace = $_REQUEST["daonamespace"];
+$beannamespace = $_REQUEST["beannamespace"]; 
 $support = isset($_REQUEST["support"]); 
 
 $dbConnection = $tdbmService->dbConnection;
-$daoGenerator = new TDBMDaoGenerator($dbConnection, $daoFactoryClassName, $daodirectory, $beandirectory, $support);
+$daoGenerator = new TDBMDaoGenerator($dbConnection, $daoFactoryClassName, $sourcedirectory, $daonamespace, $beannamespace, $support);
 $xml = $daoGenerator->generateAllDaosAndBeans();
 echo $xml->asXml();
 

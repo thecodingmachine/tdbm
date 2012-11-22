@@ -59,7 +59,7 @@ class OrFilter implements FilterInterface {
 	 * 
 	 * @param array<FilterInterface> $filter
 	 */
-	public function OrFilter($filters=null) {
+	public function __construct($filters=null) {
 		$this->filters = $filters;
 	}
 

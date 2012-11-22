@@ -98,7 +98,7 @@ class BetweenFilter implements FilterInterface {
 	 * @param string $columnName
 	 * @param string $value
 	 */
-	public function BetweenFilter($tableName=null, $columnName=null, $value1=null, $value2=null) {
+	public function __construct($tableName=null, $columnName=null, $value1=null, $value2=null) {
 		$this->tableName = $tableName;
 		$this->columnName = $columnName;
 		$this->value1 = $value1;

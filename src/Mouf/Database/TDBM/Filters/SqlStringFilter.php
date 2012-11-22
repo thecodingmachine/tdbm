@@ -62,7 +62,7 @@ class SqlStringFilter implements FilterInterface {
 	 * 
 	 * @param string $sqlString
 	 */
-	public function SqlStringFilter($sqlString=null) {
+	public function __construct($sqlString=null) {
 		$this->sqlString = $sqlString;
 	}
 
