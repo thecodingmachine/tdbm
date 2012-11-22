@@ -1,19 +1,6 @@
 <?php
-namespace Mouf\Database\TDBM;
-
-use Mouf\Database\TDBM\Filters\SqlStringFilter;
-
-use Mouf\Database\TDBM\Filters\AndFilter;
-
-use Mouf\Database\DBConnection\CachedConnection;
-
-use Mouf\Utils\Cache\CacheInterface;
-
-use Mouf\Database\TDBM\Filters\FilterInterface;
-use Mouf\Database\DBConnection\ConnectionInterface;
- 
 /*
- Copyright (C) 2006-2009 David Négrier - THE CODING MACHINE
+ Copyright (C) 2006-2012 David Négrier - THE CODING MACHINE
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,6 +16,15 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+namespace Mouf\Database\TDBM;
+
+use Mouf\Database\TDBM\Filters\SqlStringFilter;
+use Mouf\Database\TDBM\Filters\AndFilter;
+use Mouf\Database\DBConnection\CachedConnection;
+use Mouf\Utils\Cache\CacheInterface;
+use Mouf\Database\TDBM\Filters\FilterInterface;
+use Mouf\Database\DBConnection\ConnectionInterface;
 
 /**
  * The TDBMService class is the main TDBM class. It provides methods to retrieve TDBMObject instances
@@ -328,7 +324,7 @@ class TDBMService {
 				if (count($objects) == 0) {
 					return null;
 				} elseif (count($objects) > 1) {
-					throw new TDBM_DuplicateRowException("Error while querying an object for table '$table_name': ".count($objects)." rows have been returned, but we should have received at most one.");
+					throw new DuplicateRowException("Error while querying an object for table '$table_name': ".count($objects)." rows have been returned, but we should have received at most one.");
 				}
 				// Return the first and only object.
 				return $objects[0];
@@ -1433,7 +1429,7 @@ class TDBMService {
 	 * and gives back a proper Filter object.
 	 *
 	 * @param unknown_type $filter_bag
-	 * @return 
+	 * @return FilterInterface
 	 */
 	public function buildFilterFromFilterBag($filter_bag) {
 		// First filter_bag should be an array, if it is a singleton, let's put it in an array.
@@ -1449,7 +1445,7 @@ class TDBMService {
 		// Second, let's take all the objects out of the filter bag, and let's make filters from them
 		$filter_bag2 = array();
 		foreach ($filter_bag as $thing) {
-			if (is_a($thing,'')) {
+			if (is_a($thing,'Mouf\\Database\\TDBM\\Filters\\FilterInterface')) {
 				$filter_bag2[] = $thing;
 			} elseif (is_a($thing,'Mouf\\Database\\TDBM\\TDBMObject')) {
 				$pk_table = $thing->getPrimaryKey();
