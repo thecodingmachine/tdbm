@@ -3,7 +3,7 @@
     "description": "The Database Machine is a PHP ORM that requires no configuration. The object model is deduced at runtime from the database model.",
     "keywords": ["ORM", "mouf", "persistance", "DAO", "bean", "model"],
     "homepage": "https://github.com/thecodingmachine/database.tdbm",
-    "type": "library",
+    "type": "mouf-library",
     "license": "MIT",
     "authors": [
         {
