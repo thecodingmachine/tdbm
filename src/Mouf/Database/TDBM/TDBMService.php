@@ -32,7 +32,7 @@ use Mouf\Database\DBConnection\ConnectionInterface;
  *
  * @author David Negrier
  * @Component
- * @ExtendedAction {"name":"Generate DAOs", "url":"mouf/tdbmadmin/", "default":false}
+ * @ExtendedAction {"name":"Generate DAOs", "url":"tdbmadmin/", "default":false}
  */
 class TDBMService {
 	/**
