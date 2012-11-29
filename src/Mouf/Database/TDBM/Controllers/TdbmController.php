@@ -85,7 +85,7 @@ class TdbmController extends AbstractMoufInstanceController {
 	 * 
 	 */
 	public static function generateDaos(MoufManager $moufManager, $name, $sourcedirectory, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $selfedit="false", $keepSupport = null) {
-		$moufManager->setVariable("tdbmDefaultSourceNamespace", $sourcedirectory);
+		$moufManager->setVariable("tdbmDefaultSourceDirectory", $sourcedirectory);
 		$moufManager->setVariable("tdbmDefaultDaoNamespace", $daonamespace);
 		$moufManager->setVariable("tdbmDefaultBeanNamespace", $beannamespace);
 		$moufManager->setVariable("tdbmDefaultDaoFactoryName", $daofactoryclassname);

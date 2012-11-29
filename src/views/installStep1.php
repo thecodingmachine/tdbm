@@ -9,9 +9,9 @@ caching mechanism for the "tdbmService" instance.</p>
 
 <form action="configure">
 	<input type="hidden" name="selfedit" value="<?php echo $this->selfedit ?>" />
-	<button>Configure TDBM</button>
+	<button class="btn btn-danger">Configure TDBM</button>
 </form>
 <form action="skip">
 	<input type="hidden" name="selfedit" value="<?php echo $this->selfedit ?>" />
-	<button>Skip</button>
+	<button class="btn">Skip</button>
 </form>
