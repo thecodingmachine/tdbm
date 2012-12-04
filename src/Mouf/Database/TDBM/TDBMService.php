@@ -351,7 +351,7 @@ class TDBMService {
 			if ($className == null || is_a($obj, $className)) {
 				return $obj;
 			} else {
-				throw new DB_Exception("Error! The object with ID '$id' for table '$table_name' has already been retrieved. The type for this object is '".get_class($obj)."'' which is not a subtype of '$className'");
+				throw new TDBMException("Error! The object with ID '$id' for table '$table_name' has already been retrieved. The type for this object is '".get_class($obj)."'' which is not a subtype of '$className'");
 			}
 		}
 

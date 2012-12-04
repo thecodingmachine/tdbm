@@ -295,7 +295,7 @@ class $baseClassName extends TDBMObject
 		if ($this->'.$array["col1"].' == null) {
 			return null;
 		}
-		return $this->tdbmService->getObject("'.$array["table2"].'", $this->'.$array["col1"].', "'.$referencedBeanName.'", true);
+		return $this->tdbmService->getObject("'.$array["table2"].'", $this->'.$array["col1"].', "'.str_replace("\\","\\\\",$this->beanNamespace).'\\\\'.$referencedBeanName.'", true);
 	}
 	
 	/**
@@ -348,7 +348,7 @@ class $baseClassName extends TDBMObject
 		if ($this->'.$array["col1"].' == null) {
 			return null;
 		}
-		return $this->tdbmService->getObject("'.$array["table2"].'", $this->'.$array["col1"].', "'.$referencedBeanName.'");
+		return $this->tdbmService->getObject("'.$array["table2"].'", $this->'.$array["col1"].', "'.str_replace("\\","\\\\",$this->beanNamespace).'\\\\'.$referencedBeanName.'");
 	}
 	
 	/**
