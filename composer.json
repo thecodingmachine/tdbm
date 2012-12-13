@@ -32,7 +32,8 @@
 			"install": [
 			{
 				"type": "url",
-	    		"url": "tdbminstall/"
+	    		"url": "tdbminstall/",
+	    		"description": "The install process of TDBM proposes to set up the DAOs and beans for your default DB connection."
 			}
 			],
 			"require-admin": [
