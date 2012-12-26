@@ -356,8 +356,9 @@ class TDBMObject implements \ArrayAccess, \Iterator {
 			// We assume that if one of the value of the PK has been set, the values have not been changed.
 			$pk_set = false;
 			$pk_array = $this->getPrimaryKey();
+			
 			foreach ($pk_array as $pk) {
-				if ($this->db_row[$pk]!==null) {
+				if (isset($this->db_row[$pk]) && $this->db_row[$pk]!==null) {
 					$pk_set=true;
 				}
 			}

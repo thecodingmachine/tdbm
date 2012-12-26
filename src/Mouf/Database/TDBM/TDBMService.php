@@ -1648,7 +1648,7 @@ class TDBMService {
 	}
 
 	/**
-	 * Checks if there is a autoincrement mecanism on the rimary key for the table passed in parameter.
+	 * Checks if there is a autoincrement mecanism on the primary key for the table passed in parameter.
 	 * 
 	 * @param string $table
 	 */
