@@ -7,6 +7,11 @@
 <form action="generate" method="post" class="form-horizontal">
 <input type="hidden" id="selfedit" name="selfedit" value="<?php echo plainstring_to_htmlprotected($this->selfedit) ?>" />
 
+<?php if (!$this->autoloadDetected) { ?>
+<div class="alert">Warning! TDBM could not detect the autoload section of your composer.json file.
+Unless you are developing your own autoload system, you should configure <strong>composer.json</strong> to <a href="http://getcomposer.org/doc/01-basic-usage.md#autoloading" target="_blank">define a source directory and a root namespace using PSR-0</a>.</div>
+<?php } ?>
+
 <div class="control-group">
 	<label class="control-label">Source directory:</label>
 	<div class="controls">

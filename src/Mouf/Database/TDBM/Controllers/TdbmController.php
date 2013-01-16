@@ -32,6 +32,7 @@ class TdbmController extends AbstractMoufInstanceController {
 	protected $beanNamespace;
 	protected $daoFactoryName;
 	protected $daoFactoryInstanceName;
+	protected $autoloadDetected;
 	
 	/**
 	 * Admin page used to display the DAO generation form.
@@ -47,17 +48,22 @@ class TdbmController extends AbstractMoufInstanceController {
 		$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace");
 		$this->daoFactoryName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryName");
 		$this->daoFactoryInstanceName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryInstanceName");
-		if ($this->daoNamespace == null) {
-			$this->daoNamespace = "dao";
-		}
-		if ($this->beanNamespace == null) {
-			$this->beanNamespace = "dao/beans";
-		}
-		if ($this->daoFactoryName == null) {
-			$this->daoFactoryName = "DaoFactory";
-		}
-		if ($this->daoFactoryInstanceName == null) {
-			$this->daoFactoryInstanceName = "daoFactory";
+		
+		if ($this->sourceDirectory == null && $this->daoNamespace == null && $this->beanNamespace == null) {
+			$autoloadNamespaces = MoufUtils::getAutoloadNamespaces();
+			if ($autoloadNamespaces) {
+				$this->autoloadDetected = true;
+				$rootNamespace = $autoloadNamespaces[0]['namespace'].'\\';
+				$this->sourceDirectory = $autoloadNamespaces[0]['directory'];
+				$this->daoNamespace = $rootNamespace."Dao";
+				$this->beanNamespace = $rootNamespace."Dao\\Bean";
+			} else {
+				$this->autoloadDetected = false;
+				$this->sourceDirectory = "src/";
+				$this->daoNamespace = "YourApplication\\Dao";
+				$this->beanNamespace = "YourApplication\\Dao\\Bean";
+			}
+						
 		}
 		
 		$this->content->addFile(dirname(__FILE__)."/../../../../views/tdbmGenerate.php", $this);
