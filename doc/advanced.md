@@ -36,12 +36,13 @@ There are many kind of filters in TDBM: A filter can be:
   The only difference with SQL is that when you specify a column name, it should always be fully qualified with the table name: "country_name='France'" is not valid, while "countries.country_name='France'" is valid (if  		"countries" is a table and "country_name" a column in that table, sure.  		For instance,  				$french_users = DBM_Object::getObjects("users", "countries.country_name='France'");  		will return all the users that are French (based on trhe assumption that TDBM can find a way to connect the users  		table to the country table using foreign keys, see the manual for that point). - A DBM_Object:
   An object can be used as a filter. 
   For instance, we could get the France object and then find any users related to that object using:
-  ```php
-  // In the CountryDao
-  $france = $this-&gt;getCountryListByFilter("countries.country_name='France'");
-  // In the UserDao
-  $french_users = $this-&gt;getUserListByFilter($france);
-  ```
+
+```php
+// In the CountryDao
+$france = $this-&gt;getCountryListByFilter("countries.country_name='France'");
+// In the UserDao
+$french_users = $this-&gt;getUserListByFilter($france);
+```
 
 - A DBM_ObjectArray can be used as a filter too.
 <pre class="brush:php">$french_groups = $this-&gt;getGroupListByFilter("groups", $french_users);</pre>
@@ -88,6 +89,7 @@ About ambiguity
 ---------------
 
 In the samples of the quick start guide, everything happens to be fine because the object model is quite simple. In 80% of the cases you will encounter, you will be able to stick to the access model presented in the quick start guide. There are, however, cases where there could be several ways to join two tables, as shown below.
+
 <img src="images/schema2.png" alt="database schema"/>
 
 In the example above, we added a company table. A company is attached to a country. A user is attached to a company, and still, a user is attached to a country (for instance, its birth place). Therefore, a user can be attached to a country that is different from the country of its company.
@@ -109,28 +111,29 @@ In this schema, a user is linked to 2 countries. One is its birth country and on
 
 <code>$country = $userBean-&gt;getCountry();</code>
 there is no way to know if it more likely that he wanted the birth country or the work country. So TDBM will throw an ambiguity exception. This exception will inform the user that its request is ambiguous and that he should solve it. Below is the exception the user will get:
-<code>
-Uncaught exception 'DB_AmbiguityException' with message 'An ambiguity has been found during the search. Please catch this exception and execute the $exception-&gt;explainAmbiguity() to get a nice graphical view of what you should do to solve this ambiguity.The table 'users' can be reached using several different ways from the table 'countries'.
 
-Solution 1:
-Table 'countries' is pointed by 'users' through its foreign key 'birth_country_id'
+	Uncaught exception 'DB_AmbiguityException' with message 'An ambiguity has been found during the search. Please catch this exception and execute the $exception-&gt;explainAmbiguity() to get a nice graphical view of what you should do to solve this ambiguity.The table 'users' can be reached using several different ways from the table 'countries'.
+	
+	Solution 1:
+	Table 'countries' is pointed by 'users' through its foreign key 'birth_country_id'
+	
+	Solution 2:
+	Table 'countries' is pointed by 'users' through its foreign key 'work_country_id'
 
-Solution 2:
-Table 'countries' is pointed by 'users' through its foreign key 'work_country_id'
-</code>
 This exception message is quite clear on the ambiguity. However, on big data models, the message might get long enough, with a lot of possible ambiguities. TDBM offers you a nice graphical view of ambiguities (if you are in an HTML page, which is likely since we are using PHP). For this, just follow the steps in the exception message. It informs us that we should catch the exception and use the <code>$exception-&gt;explainAmbiguity();</code> function. Let's do that.
 
 
-<code>
-$user = TDBM_Object::getObject('users',1);
-try {
-	$country = $user-&gt;get_countries();
-} catch (DB_AmbiguityException $ex) {
-	$ex-&gt;explainAmbiguity();
-}
-</code>
+	$user = TDBM_Object::getObject('users',1);
+	try {
+		$country = $user-&gt;get_countries();
+	} catch (DB_AmbiguityException $ex) {
+		$ex-&gt;explainAmbiguity();
+	}
+
 
 
 By running the code, we get this display in our browser:
+
 <img src="images/ambiguity_screenshot.png" />
+
 We get a graphical view of the ambiguity. TDBM also proposes you a way of sorting this ambiguity.
