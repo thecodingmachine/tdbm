@@ -38,7 +38,21 @@
 			],
 			"require-admin": [
     			"src/TdbmAdmin.php"
-    		]
+    		],
+    		"doc": [
+                {
+                    "title": "Getting started",
+                    "url": "doc/quickstart.md"
+                },
+                {
+                    "title": "About DAOs",
+                    "url": "doc/generating_daos.md"
+                },
+                {
+                    "title": "Advanced filtering",
+                    "url": "doc/advanced.md"
+                }
+            ]
 		}
     }
 }
