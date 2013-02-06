@@ -62,8 +62,9 @@ class TdbmController extends AbstractMoufInstanceController {
 				$this->sourceDirectory = "src/";
 				$this->daoNamespace = "YourApplication\\Dao";
 				$this->beanNamespace = "YourApplication\\Dao\\Bean";
-			}
-						
+			}				
+		} else {
+			$this->autoloadDetected = true;
 		}
 		
 		$this->content->addFile(dirname(__FILE__)."/../../../../views/tdbmGenerate.php", $this);
