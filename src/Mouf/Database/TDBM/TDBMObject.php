@@ -320,10 +320,8 @@ class TDBMObject implements \ArrayAccess, \Iterator {
 		if (!$this->db_connection->checkType($value, $type)) {
 			throw new TDBMException("Error! Invalid value passed for attribute '$var' of table '$this->db_table_name'. Passed '$value', but expecting '$type'");
 		}
-		
-		// TODO: we should be able to set the primary key if the object is new....
 
-		if (isset($this->db_row[$var])) {
+		if (isset($this->db_row[$var]) && $this->TDBMObject_state != 'new') {
 			foreach ($this->getPrimaryKey() as $pk) {
 				if ($pk == $var) {
 					throw new TDBMException("Error! Changing primary key value is forbidden.");
