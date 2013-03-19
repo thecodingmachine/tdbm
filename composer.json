@@ -39,7 +39,7 @@
 			"require-admin": [
     			"src/TdbmAdmin.php"
     			],
-			"logo": "logo.png",
+			"logo": "icon.png",
     		"doc": [
                 {
                     "title": "Getting started",
