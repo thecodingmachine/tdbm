@@ -38,7 +38,8 @@
 			],
 			"require-admin": [
     			"src/TdbmAdmin.php"
-    		]
+    			],
+			"logo": "logo.png"
 		}
     }
 }
