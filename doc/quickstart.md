@@ -1,32 +1,32 @@
 <h1>Quick start guide</h1>
 
-<p>In this quick start guide, we will see how you can use TDBM to query, read and write data to your database</p>
-<p>We will assume that you succesfully installed TDBM using Mouf, and therefore, that TDBM is connected
+In this quick start guide, we will see how you can use TDBM to query, read and write data to your database
+We will assume that you succesfully installed TDBM using Mouf, and therefore, that TDBM is connected
 to your database and that the TDBM DAOs have been generated. You can learn more about DAO generation in the
-<a href="generating_daos.html">Generating DAOs guide</a>.</p>
+<a href="generating_daos.html">Generating DAOs guide</a>.
 
 <h2>Our playground data model</h2>
-<p>For this tutorial, let's assume a very classic database schema for handling users.<br/>
+For this tutorial, let's assume a very classic database schema for handling users.<br/>
 We have users. Users can be part of several groups, and obviously, a group can contain several users.<br/>
 A group has a name.<br/>
 A user has a name and is part of a country.<br/>
-</p>
+
 
 <img src="images/schema1.png" alt="database schema" />
 
 <h2>Connecting to the database</h2>
 
-<p>When you install TDBM in Mouf, you will be asked the connection to your database. This connection will be represented by a
+When you install TDBM in Mouf, you will be asked the connection to your database. This connection will be represented by a
 "dbConnection" instance. This instance represents a pointer to your database and can be used to execute SQL queries.
-But we won't be using the "dbConnection" instance. Indeed, the whole point of TDBM is to avoid writing SQL.</p>
+But we won't be using the "dbConnection" instance. Indeed, the whole point of TDBM is to avoid writing SQL.
 
-<p>Upon installation, TDBM will propose you to generate the DAOs (Data Access Objects). DAOs are classes that will help you access
+Upon installation, TDBM will propose you to generate the DAOs (Data Access Objects). DAOs are classes that will help you access
 the objects in your database. There is one DAO per table in your database. Each DAO will return "beans". Each row in your database
-will be represented by one instance of a bean.</p>
+will be represented by one instance of a bean.
 
 <h2>Usage sample</h2>
 
-<p>Let's now review a few samples:</p>
+Let's now review a few samples:
 
 <h3>Creating a new row in the "users" table:</h3>
 <pre class="brush:php">
@@ -44,12 +44,12 @@ $userBean-&gt;setMail("myMail");
 $userBean-&gt;setCreateDate(time());
 </pre>
 
-<p>In the first line, <code>Mouf::getUserDao()</code> will return the DAO object. Since we have a "users" table, TDBM generated
+In the first line, <code>Mouf::getUserDao()</code> will return the DAO object. Since we have a "users" table, TDBM generated
 a "UserDao" class, and a "userDao" instance of that class. We will be using this instance to create/update/delete/search any
-user.</p>
+user.
 
-<p>You can also notice that the "save()" method is not called. Yet, the bean will be automatically saved by TDBM
-before the script ends. TDBM will choose the best moment to perform the save. You can explicitly call the save method using:</p>
+You can also notice that the "save()" method is not called. Yet, the bean will be automatically saved by TDBM
+before the script ends. TDBM will choose the best moment to perform the save. You can explicitly call the save method using:
 
 <pre>
 $userDao-&gt;saveUser(time());
@@ -69,16 +69,16 @@ $userBean = $userDao-&gt;getUserById(42);
 echo $userBean-&gt;getName();
 </pre>
 
-<p>TDBM will automatically detect the primary key of your table (of course, your table must have a primary key). There is
-no name convention to respect, your primary key column can be named anything ('id', 'userid', 'isuser', ...)</p>
+TDBM will automatically detect the primary key of your table (of course, your table must have a primary key). There is
+no name convention to respect, your primary key column can be named anything ('id', 'userid', 'isuser', ...)
 
-<p>To use this method, the primary key must be on a single column. If your primary key is on several columns, you can still use the
-search method (see below)</p>
+To use this method, the primary key must be on a single column. If your primary key is on several columns, you can still use the
+search method (see below)
 
 
 <h3>Querying the database</h3>
 
-<p>Now, what about getting the list of all users and displaying their name?<br/>
+Now, what about getting the list of all users and displaying their name?<br/>
 Ok, that's easy, just use the <code>getUserList()</code> method!<br/>
 
 <pre class="brush:php">
@@ -95,40 +95,40 @@ foreach ($userList as $userBean) {
 }
 </pre>
 
-<p>In our exemple, we would see</p>
-<p><code>John Doe<br/>
+In our exemple, we would see
+<code>John Doe<br/>
 Jean Dupont<br/>
 Robert Marley<br/>
-Bill Shakespeare</code></p>
+Bill Shakespeare</code>
 
 
-<p>The <code>getXXXList</code> method will return the list of beans.</p>
-<p>Of course, most of the time, you don't want all the rows in a database.
-You want to perform a query with filters.</p>
+The <code>getXXXList</code> method will return the list of beans.
+Of course, most of the time, you don't want all the rows in a database.
+You want to perform a query with filters.
 
 
 <h3>Querying the database with filters</h3>
-<p>Now, what if I want to get something more difficult, like the list of users with name starting with a 'J'?<br/>
-To do this, I need to call the <code>getUserListByFilter</code> method and pass the filter in parameter.</p>
+Now, what if I want to get something more difficult, like the list of users with name starting with a 'J'?<br/>
+To do this, I need to call the <code>getUserListByFilter</code> method and pass the filter in parameter.
 
-<p>At this point, it might be a good idea to have a look at the code TDBM did generate. For the "User" table, TDBM
-generated 4 classes:</p>
-<ul>
-	<li><code>UserDaoBase</code>: the base class that contains methods to access the "users" table. It is generated by TDBM. You should
-	never modify this class.</li>
-	<li><code>UserDao</code>: this class extends UserDaoBase. If you have some custom requests, you should perform them in this class. You can
-	edit it as TDBM will never overwrite it.</li>
-	<li><code>UserBaseBean</code>: the bean mapping the columns of the "users" table. This class contains getters and setters for each and every
-	column of the "users" table. It is generated by TDBM and you should
-	never modify this class.</li>
-	<li><code>UserBean</code>: this class extends UserBaseBean. If you have some custom getters and setters, you should implement them in this class. You can
-	edit it as TDBM will never overwrite it.</li>
-</ul>
+At this point, it might be a good idea to have a look at the code TDBM did generate. For the "User" table, TDBM
+generated 4 classes:
 
-<p>In our example, we are trying to perform a new query to retrieve any name starting with a J. This is a new
-kind of query. Since any request should be part of a DAO, we will add this request to the UserDao.</p>
+- <code>UserDaoBase</code>: the base class that contains methods to access the "users" table. It is generated by TDBM. You should
+  never modify this class.
+- <code>UserDao</code>: this class extends UserDaoBase. If you have some custom requests, you should perform them in this class. You can
+  edit it as TDBM will never overwrite it.
+- <code>UserBaseBean</code>: the bean mapping the columns of the "users" table. This class contains getters and setters for each and every
+  column of the "users" table. It is generated by TDBM and you should
+  never modify this class.
+- <code>UserBean</code>: this class extends UserBaseBean. If you have some custom getters and setters, you should implement them in this class. You can
+  edit it as TDBM will never overwrite it.
+
+
+In our example, we are trying to perform a new query to retrieve any name starting with a J. This is a new
+kind of query. Since any request should be part of a DAO, we will add this request to the UserDao.
  
-<p>Therefore, our code will be:</p>
+Therefore, our code will be:
 <pre class="brush:php">
 class UserDao extends UserDaoBase {
 
@@ -146,7 +146,7 @@ class UserDao extends UserDaoBase {
 }
 </pre>
 
-<p>And you can simply use it like this:</p> 
+And you can simply use it like this: 
 
 <pre class="brush:php">
 $userDao = Mouf::getUserDao();
@@ -159,12 +159,12 @@ foreach ($users as $userBean)
 }
 </pre>
 
-<p>You can learn much more about filters in the <a href="advanced.html">"avanced section"</a> of this documentation.</p>
+You can learn much more about filters in the <a href="advanced.html">"avanced section"</a> of this documentation.
 
-<p>So far, so good, we have had enough play with the <code>Users</code> table. But the users table is not alone and it would be good to get some more information.</p>
+So far, so good, we have had enough play with the <code>Users</code> table. But the users table is not alone and it would be good to get some more information.
 
 <h2>Navigating the object model</h2>
-<p>So what if I want to get the name of the country in which the first user is located?<br/>
+So what if I want to get the name of the country in which the first user is located?<br/>
 <br/>
 <pre class="brush:php">
 // Let's get the DAO
@@ -180,12 +180,12 @@ $countryBean = $userBean-&gt;getCountryBean();
 echo $countryBean-&gt;getName();
 </pre>
 
-<p>Notice how you can jump from the <b>userBean</b> to the <b>countryBean</b> using the <code>getCountryBean</code> method.
+Notice how you can jump from the _userBean_ to the _countryBean_ using the <code>getCountryBean</code> method.
 The user table is linked to the country table, so it has a <code>getCountryBean</code> method!<br/>
 How is this possible?<br/>
 I want some data from the country table. 
 So I want to get the countries associated to user 42. 
-In the data model, there is a constraint between column <b>country_id</b> of the users table and the column <b>country_id</b> of the country table.
+In the data model, there is a constraint between column _country_id_ of the users table and the column _country_id_ of the country table.
 Behind the scene, TDBM finds this relationship.
 This is a "1*" relationship, so there is only one country per user. Therefore, the country object will be directly returned.<br/>
 <br/>
@@ -210,13 +210,13 @@ class UserDao extends UserDaoBase {
 }
 </pre>
 
-<p>Here, we called the getUserListByFilter method passing a filter on the country table.<br/>
+Here, we called the getUserListByFilter method passing a filter on the country table.<br/>
 TDBM is smart enough to automatically detect the link between the users and the country table. You just need
 to tell TDBM what filter you want on any column in any table in your database model and TDBM will find
-the right qury for you.<p>
+the right qury for you.
 
-<p>Most of the time, of course, you will not pass the name of the country but the ID of the country. Actually,
-using TDBM you can just pass the object. Have a look!</p>
+Most of the time, of course, you will not pass the name of the country but the ID of the country. Actually,
+using TDBM you can just pass the object. Have a look!
 
 <pre class="brush:php">
 class UserDao extends UserDaoBase {
@@ -233,7 +233,7 @@ class UserDao extends UserDaoBase {
 }
 </pre>
 
-<p>You would use this method like this:</p>
+You would use this method like this:
 
 <pre class="brush:php">
 // Let's get the DAO
@@ -254,9 +254,9 @@ foreach ($userList as $userBean)
 }
 </pre>
 
-<p>So now, what if I want to find out what groups robert marley belongs to.<br/>
+So now, what if I want to find out what groups robert marley belongs to.<br/>
 We saw how to access a "1*" and "*1" relationship, therefore, we could do it by getting "robert marley" from users, then accessing the "pivot_users_groups" objects, then accessing the "groups" objects associated to that group. But this would be definitely tedious, and the use of a pivot table to generate "**" relationships is definitely common.<br/>
-Hopefully, TDBM can help here too:</p>
+Hopefully, TDBM can help here too:
 
 <pre class="brush:php">
 // Since we are accessing groups, we will modify the GroupDao class
@@ -274,7 +274,7 @@ class GroupDao extends GroupDaoBase {
 }
 </pre>
 
-<p>Powerful, isn't it? TDBM automatically detected the pivot table and performed the SQL double join to retrieve the groups our user belongs too.<br/>
+Powerful, isn't it? TDBM automatically detected the pivot table and performed the SQL double join to retrieve the groups our user belongs too.<br/>
 <br/>
 Actually, TDBM is much more powerful. It can perform any kind of joins between 2 tables as long as they can be related by a constraint. Let's admit that I want to find the countries of all the writers in database. Well, I can do it in one single line of code:<br/>
 <br/>
@@ -283,4 +283,4 @@ Actually, TDBM is much more powerful. It can perform any kind of joins between 2
 return $this-&gt;getCountryListByFilter(new TDBM_EqualFilter("groups", "name", "writers"));
 </pre>
 
-<p>Let's now learn how to <a href="generating_daos.html">regenerate DAOs</a> when your data model changes.</p>
+Let's now learn how to <a href="generating_daos.md">regenerate DAOs</a> when your data model changes.

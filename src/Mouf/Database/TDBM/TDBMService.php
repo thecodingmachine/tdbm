@@ -761,7 +761,7 @@ class TDBMService {
 				$msg .= 'Table "'.$constraint['table1'].'" points to "'.$constraint['table2'].'" through its foreign key "'.$constraint['col1'].'"\n';
 			}
 			elseif ($constraint['type']=='*1') {
-				$msg .= 'Table "'.$constraint['table2'].'" is pointed by "'.$constraint['table1'].'" through its foreign key "'.$constraint['col1'].'"\n';
+				$msg .= 'Table "'.$constraint['table1'].'" is pointed by "'.$constraint['table2'].'" through its foreign key "'.$constraint['col2'].'"\n';
 			}
 		}
 		return $msg;
