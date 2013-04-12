@@ -1306,7 +1306,7 @@ class TDBMService {
 			$constraint = $flat_path[0];
 
 			//$table_number=1;
-			$sql = $constraint['table2'];
+			$sql = $this->dbConnection->escapeDBItem($constraint['table2']);
 
 			foreach ($flat_path as $constraint) {
 				//$previous_table_number = $table_number;
