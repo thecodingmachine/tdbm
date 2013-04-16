@@ -52,7 +52,7 @@ class TDBMObject implements \ArrayAccess, \Iterator {
 	 * TODO: hide this with getters and setters
 	 * @var array
 	 */
-	public $db_row;
+	public $db_row = array();
 
 	/**
 	 * One of "new", "not loaded", "loaded", "deleted".
@@ -434,7 +434,7 @@ class TDBMObject implements \ArrayAccess, \Iterator {
 			
 			$this->TDBMObject_state = "not loaded";
 			$this->db_modified_state = false;
-			$this->db_row = null;
+			$this->db_row = array();
 			
 			// Let's add this object to the list of objects in cache.
 			$this->tdbmService->_addToCache($this);
