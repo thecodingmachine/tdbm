@@ -1277,7 +1277,7 @@ class TDBMService {
 		if (count($needed_table_array)==0)
 		{
 			$table_number = 1;
-			$sql = $table_name;
+			$sql = $this->dbConnection->escapeDBItem($table_name); //Make by Pierre PIV (add escapeDBItem)
 
 			if ($mode == 'explainTree')
 			throw new TDBMException("TODO: explainTree not implemented for only one table.");
