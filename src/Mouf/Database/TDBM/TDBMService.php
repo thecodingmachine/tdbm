@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace Mouf\Database\TDBM;
 
 use Mouf\Database\TDBM\Filters\OrderBySQLString;
-
+use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\SqlStringFilter;
 use Mouf\Database\TDBM\Filters\AndFilter;
 use Mouf\Database\DBConnection\CachedConnection;
@@ -1277,7 +1277,7 @@ class TDBMService {
 		if (count($needed_table_array)==0)
 		{
 			$table_number = 1;
-			$sql = $table_name;
+			$sql = $this->dbConnection->escapeDBItem($table_name); //Make by Pierre PIV (add escapeDBItem)
 
 			if ($mode == 'explainTree')
 			throw new TDBMException("TODO: explainTree not implemented for only one table.");

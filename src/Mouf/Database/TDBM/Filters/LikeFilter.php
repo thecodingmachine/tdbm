@@ -1,6 +1,8 @@
 <?php
 namespace Mouf\Database\TDBM\Filters;
 
+use Mouf\Database\TDBM\TDBMException;
+
 use Mouf\Database\DBConnection\ConnectionInterface;
 
 /*
