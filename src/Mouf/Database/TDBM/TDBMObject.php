@@ -409,6 +409,8 @@ class TDBMObject implements \ArrayAccess, \Iterator {
 			// If there is only one column for the primary key, and if it has not been filled, let's find it.
 			// We assume this is the biggest ID in the database
 			if (count($pk_array)==1 && !$pk_set) {
+				// FIXME: for PostgreSQL or MSSQL, the getInsertId call is not thread safe
+				// We should start a transaction before the insert
 				$this->TDBMObject_id = $this->db_connection->getInsertId($this->db_table_name,$pk_array[0]);
 				$this->db_row[$pk_array[0]] = $this->TDBMObject_id;
 			} elseif (count($pk_array)==1 && $pk_set) {
