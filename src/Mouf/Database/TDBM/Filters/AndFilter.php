@@ -38,7 +38,7 @@ class AndFilter implements FilterInterface {
 	 * 
 	 * @Property
 	 * @Compulsory
-	 * @param array<FilterInterface> $filter
+	 * @param array<FilterInterface> $filters
 	 */
 	public function setFilters($filters) {
 		$this->filters = $filters;
