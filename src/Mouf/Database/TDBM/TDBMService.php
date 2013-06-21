@@ -149,8 +149,8 @@ class TDBMService {
 	 * @param ConnectionInterface $connection
 	 */
 	public function setConnection(ConnectionInterface $connection) {
-		if ($this->cacheService != null && !($connection instanceof DB_CachedConnection)) {
-			$cachedConnection = new Mouf\Database\DBConnection\DB_CachedConnection();
+		if ($this->cacheService != null && !($connection instanceof CachedConnection)) {
+			$cachedConnection = new CachedConnection();
 			$cachedConnection->dbConnection = $connection;
 			$cachedConnection->cacheService = $this->cacheService;
 			$this->dbConnection = $cachedConnection;
