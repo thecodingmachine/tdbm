@@ -107,6 +107,7 @@ class TdbmInstallController extends Controller {
 		$this->sourceDirectory = $this->moufManager->getVariable("tdbmDefaultSourceDirectory");
 		$this->daoNamespace = $this->moufManager->getVariable("tdbmDefaultDaoNamespace");
 		$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace");
+		
 		if ($this->sourceDirectory == null && $this->daoNamespace == null && $this->beanNamespace == null) {
 			$autoloadNamespaces = MoufUtils::getAutoloadNamespaces();
 			if ($autoloadNamespaces) {
@@ -120,8 +121,9 @@ class TdbmInstallController extends Controller {
 				$this->sourceDirectory = "src/";
 				$this->daoNamespace = "YourApplication\\Dao";
 				$this->beanNamespace = "YourApplication\\Dao\\Bean";
-			}
-						
+			}			
+		} else {
+			$this->autoloadDetected = true;
 		}
 								
 		$this->content->addFile(dirname(__FILE__)."/../../../../views/installStep2.php", $this);
