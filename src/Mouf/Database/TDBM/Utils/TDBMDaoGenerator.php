@@ -77,7 +77,6 @@ class TDBMDaoGenerator {
 	 */
 	public function generateAllDaosAndBeans() {
 		// TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
-		
 		if (!file_exists($this->daoDirectory)) {
 			$result = mkdir($this->daoDirectory, 0777, true);
 			if ($result == false) {
@@ -402,8 +401,21 @@ class $className extends $baseClassName
 	 * @param string $tableName The name of the table
 	 */
 	public function generateDao($fileName, $baseFileName, $beanFileName, $className, $baseClassName, $beanClassName, $tableName) {
-
-		
+		$info = $this->dbConnection->getTableInfo($tableName);
+		$defaultSort = null;
+		foreach ($info as $index => $data) {
+			$comments = $data['column_comment'];
+			$matches = array();
+			if (preg_match('/@defaultSort(\((desc|asc)\))*/', $comments, $matches) != 0){
+				$defaultSort = $data['column_name'];
+				if (count($matches == 3)){
+					$defaultSortDirection = $matches[2];
+				}else{
+					$defaultSortDirection = 'ASC';
+				}
+			}
+		}
+				
 		$tableCamel = self::toSingular(self::toCamelCase($tableName));
 		
 		$beanClassName = $this->beanNamespace."\\".$beanClassName;
@@ -418,6 +430,7 @@ namespace {$this->daoNamespace};
 
 use Mouf\\Database\\DAOInterface;
 use Mouf\\Database\\TDBM\\TDBMService; 
+use Mouf\\Database\\TDBM\\Filters\\OrderByColumn;
 
 /**
  * The $baseClassName class will maintain the persistance of $beanClassName class into the $tableName table.
@@ -430,6 +443,18 @@ class $baseClassName implements DAOInterface
 	 * @var TDBMService
 	 */
 	protected \$tdbmService;
+	
+	/**
+	 * The default Sort column
+	 * @var string
+	 */
+	private \$defaultSort = ".($defaultSort ? "'$defaultSort'" : 'null').";
+	
+	/**
+	 * The default Sort direction
+	 * @var string
+	 */
+	private \$defaultDirection = ".($defaultSort && $defaultSortDirection ? "'$defaultSortDirection'" : "'asc'").";
 	
 	/**
 	 * Sets the TDBM service used by this DAO.
@@ -465,7 +490,12 @@ class $baseClassName implements DAOInterface
 	 * @return array<$beanClassName>
 	 */
 	public function getList() {
-		return \$this->tdbmService->getObjects('$tableName', null, null, null, null, '$beanClassName');
+		if (\$this->defaultSort){
+			\$orderBy = new OrderByColumn('$tableName', \$this->defaultSort, \$this->defaultDirection);
+		}else{
+			\$orderBy = null;
+		}
+		return \$this->tdbmService->getObjects('$tableName',  null, \$orderBy, null, null, '$beanClassName');
 	}
 	
 	/**
@@ -500,6 +530,9 @@ class $baseClassName implements DAOInterface
 	 * @return array<$beanClassName>
 	 */
 	protected function getListByFilter(\$filterBag=null, \$orderbyBag=null, \$from=null, \$limit=null) {
+		if (\$this->defaultSort && \$orderbyBag == null){
+			\$orderbyBag = new OrderByColumn('$tableName', \$this->defaultSort, \$this->defaultDirection);
+		}
 		return \$this->tdbmService->getObjects('$tableName', \$filterBag, \$orderbyBag, \$from, \$limit, '$beanClassName');
 	}
 
@@ -511,6 +544,14 @@ class $baseClassName implements DAOInterface
 	 */
 	protected function getByFilter(\$filterBag=null) {
 		return \$this->tdbmService->getObject('$tableName', \$filterBag, '$beanClassName');
+	}
+	
+	/**
+	 * Sets the default column for default sorting
+	 *
+	 */
+	public function setDefaultSort(\$defaultSort){
+		\$this->defaultSort = \$defaultSort;
 	}
 	";
 // If we want compatibility with TDBM < 2.3
