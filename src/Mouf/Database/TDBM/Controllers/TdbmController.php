@@ -43,12 +43,21 @@ class TdbmController extends AbstractMoufInstanceController {
 	public function defaultAction($name, $selfedit="false") {
 		$this->initController($name, $selfedit);
 		
-		$this->sourceDirectory = $this->moufManager->getVariable("tdbmDefaultSourceDirectory");
-		$this->daoNamespace = $this->moufManager->getVariable("tdbmDefaultDaoNamespace");
-		$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace");
-		$this->daoFactoryName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryName");
-		$this->daoFactoryInstanceName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryInstanceName");
-		
+		// Fill variables
+		if ($this->moufManager->getVariable("tdbmDefaultSourceDirectory_".$name) != null) {
+			$this->sourceDirectory = $this->moufManager->getVariable("tdbmDefaultSourceDirectory_".$name);
+			$this->daoNamespace = $this->moufManager->getVariable("tdbmDefaultDaoNamespace_".$name);
+			$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace_".$name);
+			$this->daoFactoryName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryName_".$name);
+			$this->daoFactoryInstanceName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryInstanceName_".$name);
+		} else {
+			$this->sourceDirectory = $this->moufManager->getVariable("tdbmDefaultSourceDirectory");
+			$this->daoNamespace = $this->moufManager->getVariable("tdbmDefaultDaoNamespace");
+			$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace");
+			$this->daoFactoryName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryName");
+			$this->daoFactoryInstanceName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryInstanceName");
+		}
+				
 		if ($this->sourceDirectory == null && $this->daoNamespace == null && $this->beanNamespace == null) {
 			$autoloadNamespaces = MoufUtils::getAutoloadNamespaces();
 			if ($autoloadNamespaces) {
@@ -92,6 +101,13 @@ class TdbmController extends AbstractMoufInstanceController {
 	 * 
 	 */
 	public static function generateDaos(MoufManager $moufManager, $name, $sourcedirectory, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $selfedit="false", $keepSupport = null) {
+		$moufManager->setVariable("tdbmDefaultSourceDirectory_".$name, $sourcedirectory);
+		$moufManager->setVariable("tdbmDefaultDaoNamespace_".$name, $daonamespace);
+		$moufManager->setVariable("tdbmDefaultBeanNamespace_".$name, $beannamespace);
+		$moufManager->setVariable("tdbmDefaultDaoFactoryName_".$name, $daofactoryclassname);
+		$moufManager->setVariable("tdbmDefaultDaoFactoryInstanceName_".$name, $daofactoryinstancename);
+		
+		// In case of instance renaming, let's use the last used settings
 		$moufManager->setVariable("tdbmDefaultSourceDirectory", $sourcedirectory);
 		$moufManager->setVariable("tdbmDefaultDaoNamespace", $daonamespace);
 		$moufManager->setVariable("tdbmDefaultBeanNamespace", $beannamespace);

@@ -104,9 +104,9 @@ class TdbmInstallController extends Controller {
 			return;
 		}
 		
-		$this->sourceDirectory = $this->moufManager->getVariable("tdbmDefaultSourceDirectory");
-		$this->daoNamespace = $this->moufManager->getVariable("tdbmDefaultDaoNamespace");
-		$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace");
+		$this->sourceDirectory = $this->moufManager->getVariable("tdbmDefaultSourceDirectory_tdbmService");
+		$this->daoNamespace = $this->moufManager->getVariable("tdbmDefaultDaoNamespace_tdbmService");
+		$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace_tdbmService");
 		
 		if ($this->sourceDirectory == null && $this->daoNamespace == null && $this->beanNamespace == null) {
 			$autoloadNamespaces = MoufUtils::getAutoloadNamespaces();
