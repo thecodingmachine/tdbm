@@ -12,6 +12,7 @@ use Mouf\Mvc\Splash\Controllers\Controller;
 use Mouf\Reflection\MoufReflectionProxy;
 
 use Mouf\Html\HtmlElement\HtmlBlock;
+use Mouf\MoufUtils;
 
 /**
  * The controller to generate automatically the Beans, Daos, etc...
