@@ -33,6 +33,7 @@ class TdbmController extends AbstractMoufInstanceController {
 	protected $daoFactoryName;
 	protected $daoFactoryInstanceName;
 	protected $autoloadDetected;
+	protected $keepSupport;
 	
 	/**
 	 * Admin page used to display the DAO generation form.
@@ -50,12 +51,14 @@ class TdbmController extends AbstractMoufInstanceController {
 			$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace_".$name);
 			$this->daoFactoryName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryName_".$name);
 			$this->daoFactoryInstanceName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryInstanceName_".$name);
+			$this->keepSupport = $this->moufManager->getVariable("tdbmDefaultKeepSupport_".$name);
 		} else {
 			$this->sourceDirectory = $this->moufManager->getVariable("tdbmDefaultSourceDirectory");
 			$this->daoNamespace = $this->moufManager->getVariable("tdbmDefaultDaoNamespace");
 			$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace");
 			$this->daoFactoryName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryName");
 			$this->daoFactoryInstanceName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryInstanceName");
+			$this->keepSupport = $this->moufManager->getVariable("tdbmDefaultKeepSupport");
 		}
 				
 		if ($this->sourceDirectory == null && $this->daoNamespace == null && $this->beanNamespace == null) {
@@ -106,6 +109,7 @@ class TdbmController extends AbstractMoufInstanceController {
 		$moufManager->setVariable("tdbmDefaultBeanNamespace_".$name, $beannamespace);
 		$moufManager->setVariable("tdbmDefaultDaoFactoryName_".$name, $daofactoryclassname);
 		$moufManager->setVariable("tdbmDefaultDaoFactoryInstanceName_".$name, $daofactoryinstancename);
+		$moufManager->setVariable("tdbmDefaultKeepSupport_".$name, $keepSupport);
 		
 		// In case of instance renaming, let's use the last used settings
 		$moufManager->setVariable("tdbmDefaultSourceDirectory", $sourcedirectory);
@@ -113,6 +117,7 @@ class TdbmController extends AbstractMoufInstanceController {
 		$moufManager->setVariable("tdbmDefaultBeanNamespace", $beannamespace);
 		$moufManager->setVariable("tdbmDefaultDaoFactoryName", $daofactoryclassname);
 		$moufManager->setVariable("tdbmDefaultDaoFactoryInstanceName", $daofactoryinstancename);
+		$moufManager->setVariable("tdbmDefaultKeepSupport", $keepSupport);
 		
 		// Remove first and last slash in namespace.
 		if (strpos($daonamespace, "\\") === 0) {

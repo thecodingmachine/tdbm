@@ -52,7 +52,7 @@ Unless you are developing your own autoload system, you should configure <strong
 <div class="control-group">
 	<label class="control-label">Keep support for previous DAOs:</label>
 	<div class="controls">
-		<input type="checkbox" name="keepSupport"></input>
+		<input type="checkbox" name="keepSupport" <?php echo $this->keepSupport?'checked="checked"':"" ?>></input>
 		<span class="help-block">DAOs generated before TDBM 2.3 had a different method signature. This will ensure this signature
 		is respected. Use this only if you are migrating legacy code.</span>
 	</div>
