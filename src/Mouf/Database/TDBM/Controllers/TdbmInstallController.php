@@ -76,6 +76,7 @@ class TdbmInstallController extends Controller {
 	protected $beanNamespace;
 	protected $sourceDirectory;
 	protected $autoloadDetected;
+	protected $keepSupport;
 	
 	/**
 	 * Displays the second install screen.
