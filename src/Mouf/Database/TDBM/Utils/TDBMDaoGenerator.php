@@ -55,11 +55,17 @@ class TDBMDaoGenerator {
 	private $support;
 	
 	/**
+	 * If the generated daos should store the date in UTC timezone instead of user's timezone.
+	 * @var boolean
+	 */
+	private $storeInUtc;
+	
+	/**
 	 * Constructor.
 	 *
 	 * @param ConnectionInterface $dbConnection The connection to the database.
 	 */
-	public function __construct(ConnectionInterface $dbConnection, $daoFactoryClassName, $sourcedirectory, $daonamespace, $beannamespace, $support) {
+	public function __construct(ConnectionInterface $dbConnection, $daoFactoryClassName, $sourcedirectory, $daonamespace, $beannamespace, $support, $storeInUtc) {
 		$this->dbConnection = $dbConnection;
 		$this->daoFactoryClassName = $daoFactoryClassName;
 		//$this->daodirectory = $daodirectory;
@@ -70,6 +76,7 @@ class TDBMDaoGenerator {
 		$this->beanDirectory = dirname(__FILE__)."/../../../../../../../../".$sourcedirectory."/".str_replace("\\", "/", $beannamespace)."/";
 		$this->daoDirectory = dirname(__FILE__)."/../../../../../../../../".$sourcedirectory."/".str_replace("\\", "/", $daonamespace)."/";
 		$this->support = $support;
+		$this->storeInUtc = $storeInUtc;
 	}
 	
 	/**
@@ -78,14 +85,18 @@ class TDBMDaoGenerator {
 	public function generateAllDaosAndBeans() {
 		// TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
 		if (!file_exists($this->daoDirectory)) {
-			$result = mkdir($this->daoDirectory, 0777, true);
+			$old = umask(0);
+			$result = mkdir($this->daoDirectory, 0775, true);
+			umask($old);
 			if ($result == false) {
 				echo "Unable to create directory: ".$this->daoDirectory.".";
 				exit;
 			}
 		}
 		if (!file_exists($this->beanDirectory)) {
-			$result = mkdir($this->beanDirectory, 0777, true);
+			$old = umask(0);
+			$result = mkdir($this->beanDirectory, 0775, true);
+			umask($old);
 			if ($result == false) {
 				echo "Unable to create directory: ".$this->beanDirectory.".";
 				exit;
@@ -210,12 +221,12 @@ class $baseClassName extends TDBMObject
 	 * @dbColumn '.$column->name.'
 	 * @return timestamp
 	 */
-	public function '.$columnGetterName.'(){
+	public function '.$columnGetterName.'() {
 		$date = $this->__get(\''.$column->name.'\');
 		if($date === null)
 			return null;
 		else
-			return strtotime($date);
+			return strtotime($date'.($this->storeInUtc?'.\' UTC\'':'').');
 	}
 	
 	/**
@@ -226,10 +237,21 @@ class $baseClassName extends TDBMObject
 	 * @param timestamp $'.$column->name.'
 	 */
 	public function '.$columnSetterName.'($'.$column->name.') {
-		if($'.$column->name.' === null)
+		if($'.$column->name.' === null) {
 			$this->__set(\''.$column->name.'\', null);
-		else
+		} else {';
+			if ($this->storeInUtc) {
+				$str .= '
+			$date = new \DateTime(\'@\'.$'.$column->name.');
+			$this->__set(\''.$column->name.'\', $date->format("Y-m-d H:i:s"));
+						';
+			} else {
+				$str .= '
 			$this->__set(\''.$column->name.'\', date("Y-m-d H:i:s", $'.$column->name.'));
+						';
+			}
+					$str .= '
+		}
 	}
 	
 ';
@@ -369,7 +391,7 @@ class $baseClassName extends TDBMObject
 ?>";
 		
 		file_put_contents($this->beanDirectory.$baseFileName, $str);
-		
+		@chmod($this->beanDirectory.$baseFileName, 0664);
 
 		if (!file_exists($this->beanDirectory.$fileName)) {
 			$str = "<?php
@@ -390,6 +412,7 @@ class $className extends $baseClassName
 
 }";
 			file_put_contents($this->beanDirectory.$fileName ,$str);
+			@chmod($this->beanDirectory.$fileName, 0664);
 		}
 	}
 
@@ -638,6 +661,7 @@ $str .= "
 		
 
 		file_put_contents($this->daoDirectory.$baseFileName ,$str);
+		@chmod($this->daoDirectory.$baseFileName, 0664);
 		
 		// Now, let's generate the "editable" class
 		if (!file_exists($this->daoDirectory.$fileName)) {
@@ -659,6 +683,7 @@ class $className extends $baseClassName
 
 }";
 			file_put_contents($this->daoDirectory.$fileName ,$str);
+			@chmod($this->daoDirectory.$fileName, 0664);
 		}
 	}
 	

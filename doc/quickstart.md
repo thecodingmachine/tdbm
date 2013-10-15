@@ -3,7 +3,7 @@
 In this quick start guide, we will see how you can use TDBM to query, read and write data to your database
 We will assume that you succesfully installed TDBM using Mouf, and therefore, that TDBM is connected
 to your database and that the TDBM DAOs have been generated. You can learn more about DAO generation in the
-<a href="generating_daos.html">Generating DAOs guide</a>.
+<a href="generating_daos.md">Generating DAOs guide</a>.
 
 <h2>Our playground data model</h2>
 For this tutorial, let's assume a very classic database schema for handling users.<br/>
@@ -159,7 +159,7 @@ foreach ($users as $userBean)
 }
 </pre>
 
-You can learn much more about filters in the <a href="advanced.html">"avanced section"</a> of this documentation.
+You can learn much more about filters in the <a href="advanced.md">"avanced section"</a> of this documentation.
 
 So far, so good, we have had enough play with the <code>Users</code> table. But the users table is not alone and it would be good to get some more information.
 
@@ -205,7 +205,7 @@ class UserDao extends UserDaoBase {
 	 */
 	public function getUsersByCountryName($countryName) {
 		// Behold the magic!
-		return $this-&gt;getUserListByFilter(new TDBM_EqualFilter("country", "name", $countryName));
+		return $this-&gt;getUserListByFilter(new EqualFilter("country", "name", $countryName));
 	}
 }
 </pre>
@@ -280,7 +280,7 @@ Actually, TDBM is much more powerful. It can perform any kind of joins between 2
 <br/>
 
 <pre class="brush:php">
-return $this-&gt;getCountryListByFilter(new TDBM_EqualFilter("groups", "name", "writers"));
+return $this-&gt;getCountryListByFilter(new EqualFilter("groups", "name", "writers"));
 </pre>
 
 Let's now learn how to <a href="generating_daos.md">regenerate DAOs</a> when your data model changes.

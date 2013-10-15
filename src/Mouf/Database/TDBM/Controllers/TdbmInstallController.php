@@ -77,6 +77,7 @@ class TdbmInstallController extends Controller {
 	protected $sourceDirectory;
 	protected $autoloadDetected;
 	protected $keepSupport;
+	protected $storeInUtc;
 	
 	/**
 	 * Displays the second install screen.
@@ -138,7 +139,7 @@ class TdbmInstallController extends Controller {
 	 * @param string $name
 	 * @param bool $selfedit
 	 */
-	public function generate($sourcedirectory, $daonamespace, $beannamespace, $keepSupport = 0, $selfedit="false") {
+	public function generate($sourcedirectory, $daonamespace, $beannamespace, $keepSupport = 0, $storeInUtc = 0, $selfedit="false") {
 		$this->selfedit = $selfedit;
 		
 		if ($selfedit == "true") {
@@ -155,7 +156,7 @@ class TdbmInstallController extends Controller {
 		
 		$this->moufManager->rewriteMouf();
 		
-		TdbmController::generateDaos($this->moufManager, "tdbmService", $sourcedirectory, $daonamespace, $beannamespace, "DaoFactory", "daoFactory", $selfedit, $keepSupport);
+		TdbmController::generateDaos($this->moufManager, "tdbmService", $sourcedirectory, $daonamespace, $beannamespace, "DaoFactory", "daoFactory", $selfedit, $keepSupport, $storeInUtc);
 				
 		InstallUtils::continueInstall($selfedit == "true");
 	}

@@ -59,6 +59,16 @@ Unless you are developing your own autoload system, you should configure <strong
 </div>
 
 <div class="control-group">
+	<label class="control-label">Store dates / timestamps in UTC:</label>
+	<div class="controls">
+		<input type="checkbox" name="storeInUtc" value="1" <?php echo $this->storeInUtc?'checked="checked"':"" ?>></input>
+		<span class="help-block">Select this option if you want timestamps to be stored in UTC.
+		If your application supports several time zones, you should select this option to store all dates in
+		the same time zone.</span>
+	</div>
+</div>
+
+<div class="control-group">
 	<div class="controls">
 		<button name="action" value="generate" type="submit" class="btn btn-danger">Generate DAOs</button>
 	</div>
