@@ -361,7 +361,11 @@ class TDBMService {
 			$obj = new TDBMObject($this, $table_name, $id);
 		} else {
 			if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
-				throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." should extend TDBMObject.");
+				if (!class_exists($className)) {
+					throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." does not exist.");
+				} else {
+					throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." should extend TDBMObject.");
+				}
 			}
 			$obj = new $className($this, $table_name, $id);
 		}
