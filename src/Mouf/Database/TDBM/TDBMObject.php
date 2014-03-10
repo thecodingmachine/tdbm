@@ -494,7 +494,7 @@ class TDBMObject implements \ArrayAccess, \Iterator {
 			{
 				$this->save();
 			}
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			//echo($e->getMessage());
 			trigger_error($e->getMessage(), E_USER_ERROR);
 		}
