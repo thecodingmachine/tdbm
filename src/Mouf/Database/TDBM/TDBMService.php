@@ -888,7 +888,7 @@ class TDBMService {
 		$tables_paths = array_merge($tables_paths, $cached_tables_paths);
 
 		if ($ambiguity) {
-			throw new AmbiguityException($msg, $tables_paths);
+			throw new AmbiguityException($msg, $tables_paths, $this);
 		}
 
 		//var_dump($tables_paths);
