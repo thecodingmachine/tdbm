@@ -8,10 +8,12 @@ namespace Mouf\Database\TDBM;
  */
 class AmbiguityException extends TDBMException {
 	private $paths;
+	private $tdbmService;
 
-	public function __construct($msg, $paths) {
+	public function __construct($msg, $paths, TDBMService $tdbmService) {
 		parent::__construct($msg);
 		$this->paths = $paths;
+		$this->tdbmService = $tdbmService;
 	}
 
 	public function explainAmbiguity() {
@@ -26,8 +28,8 @@ class AmbiguityException extends TDBMException {
 		$height_px = 0;
 		$global_height_px = 0;
 		foreach ($all_paths as $paths) {
-			$tree = DBM_object::getTablePathsTree($paths);
-			echo DBM_object::drawTree($tree, 0, $global_height_px, $width_px, $height_px);
+			$tree = $this->tdbmService->getTablePathsTree($paths);
+			echo $this->tdbmService->drawTree($tree, 0, $global_height_px, $width_px, $height_px);
 
 			echo "<div style='position:absolute; left:".$width_px."px; top:".$global_height_px."px; width:600px; height:".$height_px."; background-color:#EEEEEE; color: black; text-align:left;'>If you want to use this schema, use the code below:<br/><br/><code>";
 
