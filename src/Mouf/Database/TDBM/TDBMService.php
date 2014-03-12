@@ -808,7 +808,21 @@ class TDBMService {
 				$cached_path = array();
 				$cached_path['name'] = $tablename;
 				$cached_path['founddepth'] = count($this->cache['paths'][$tablename][$table]);
-				$cached_path['paths'][] = $this->cache['paths'][$tablename][$table];
+				// Let's revert the path!
+				$toRevertPath = $this->cache['paths'][$tablename][$table];
+				$invertedDependencies = array_map(function($depArr) {
+					return array(
+						'table1' => $depArr['table2'],
+						'table2' => $depArr['table1'],
+						'col1' => $depArr['col2'],
+						'col2' => $depArr['col1'],
+						'type' => (($depArr['type'] == '1*')?'*1':'1*')
+					);
+				}, $toRevertPath); 
+				$revertedPath = array_reverse($invertedDependencies);
+				
+				$cached_path['paths'][] = $revertedPath;
+				//$cached_path['paths'][] = $this->cache['paths'][$tablename][$table];
 				$cached_tables_paths[] = $cached_path;
 			}
 			else
