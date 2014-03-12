@@ -30,7 +30,7 @@ namespace Mouf\Database\TDBM;
  * 
  * @author David Negrier
  */
-class TDBMObject implements \ArrayAccess, \Iterator {
+class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 
 	/**
 	 * The service this object is bound to.
@@ -635,6 +635,16 @@ class TDBMObject implements \ArrayAccess, \Iterator {
 	public function valid() {
 		return $this->_validIterator;
 	}	
+	
+	/**
+	 * Implement the unique JsonSerializable method
+	 * @return array
+	 */
+	public function jsonSerialize(){
+		$this->_dbLoadIfNotLoaded();
+		return $this->db_row;
+	}
+	
 }
 
 

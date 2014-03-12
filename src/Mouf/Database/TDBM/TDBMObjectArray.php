@@ -25,7 +25,7 @@ namespace Mouf\Database\TDBM;
  * If there is only one object in it, it can be accessed just like an object.
  *
  */
-class TDBMObjectArray extends \ArrayObject {
+class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 	public function __get($var) {
 		$cnt = count($this);
 		if ($cnt==1)
@@ -97,7 +97,11 @@ class TDBMObjectArray extends \ArrayObject {
 			$object->__set($column, $value);
 		}
 	}
-
+	
+	public function jsonSerialize(){
+		return (array) $this;
+	}
+	
 
 }
 
