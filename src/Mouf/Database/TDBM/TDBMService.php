@@ -795,38 +795,16 @@ class TDBMService {
 		// Let's fill the $tables_paths that will contain the name of the tables needed (and the paths soon).
 		// Also, let's use this moment to check if the tables we are looking for are not in cache.
 		foreach ($tables as $tablename) {
-			if (isset($this->cache['paths'][$table][$tablename]))
-			{
-				$cached_path = array();
-				$cached_path['name'] = $tablename;
-				$cached_path['founddepth'] = count($this->cache['paths'][$table][$tablename]);
-				$cached_path['paths'][] = $this->cache['paths'][$table][$tablename];
-				$cached_tables_paths[] = $cached_path;
+			$cached_path = $this->getPathFromCache($table, $tablename);
+			if ($cached_path === null) {
+				$tables_paths[]['name'] = $tablename;
+			} else {
+				$cached_path_array = array();
+				$cached_path_array['name'] = $tablename;
+				$cached_path_array['founddepth'] = count($cached_path);
+				$cached_path_array['paths'][] = $cached_path;
+				$cached_tables_paths[] = $cached_path_array;
 			}
-			elseif (isset($this->cache['paths'][$tablename][$table]))
-			{
-				$cached_path = array();
-				$cached_path['name'] = $tablename;
-				$cached_path['founddepth'] = count($this->cache['paths'][$tablename][$table]);
-				// Let's revert the path!
-				$toRevertPath = $this->cache['paths'][$tablename][$table];
-				$invertedDependencies = array_map(function($depArr) {
-					return array(
-						'table1' => $depArr['table2'],
-						'table2' => $depArr['table1'],
-						'col1' => $depArr['col2'],
-						'col2' => $depArr['col1'],
-						'type' => (($depArr['type'] == '1*')?'*1':'1*')
-					);
-				}, $toRevertPath); 
-				$revertedPath = array_reverse($invertedDependencies);
-				
-				$cached_path['paths'][] = $revertedPath;
-				//$cached_path['paths'][] = $this->cache['paths'][$tablename][$table];
-				$cached_tables_paths[] = $cached_path;
-			}
-			else
-			$tables_paths[]['name'] = $tablename;
 		}
 
 		if (count($tables_paths)>0) {
@@ -910,6 +888,36 @@ class TDBMService {
 
 	}
 
+	/**
+	 * Get the path between 2 tables from the local cache
+	 * 
+	 * @param string $table1
+	 * @param string $table2
+	 * @return array|null
+	 */
+	private function getPathFromCache($table1, $table2) {
+		if (isset($this->cache['paths'][$table1][$table2]))
+		{
+			return $this->cache['paths'][$table1][$table2];
+		}
+		elseif (isset($this->cache['paths'][$table2][$table1]))
+		{
+			// Let's revert the path!
+			$toRevertPath = $this->cache['paths'][$table2][$table1];
+			$invertedDependencies = array_map(function($depArr) {
+				return array(
+						'table1' => $depArr['table2'],
+						'table2' => $depArr['table1'],
+						'col1' => $depArr['col2'],
+						'col2' => $depArr['col1'],
+						'type' => (($depArr['type'] == '1*')?'*1':'1*')
+				);
+			}, $toRevertPath);
+			return array_reverse($invertedDependencies);
+		}
+		return null;
+	}
+	
 	/**
 	 * This function takes an array of paths in parameter and flatten the paths into only one
 	 * path while eliminating doublons.
@@ -1347,7 +1355,8 @@ class TDBMService {
 			// TODO! Pas bon!!!! Faut le quÃ©rir, hÃ©las!
 			// Mais comment gÃ©rer Ã§a sans plomber les perfs et en utilisant le path fourni?????
 
-			$path = $this->cache['paths'][$table_name][$target_table_table];
+			$path = $this->getPathFromCache($table_name, $target_table_table);
+			
 			/*
 			 echo 'beuuuh';
 			var_dump($needed_table_array_for_orderby);
