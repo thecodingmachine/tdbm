@@ -552,14 +552,14 @@ class TDBMService {
 			$pk_table = $this->primary_keys[$table_name];
 			if (count($pk_table)==1)
 			{
-				$id = $row[$pk_table[0]];
+				$id = $row[$keysStandardCased[$pk_table[0]]];
 			}
 			else
 			{
 				// Let's generate the serialized primary key from the columns!
 				$ids = array();
 				foreach ($pk_table as $pk) {
-					$ids[] = $row[$pk];
+					$ids[] = $row[$keysStandardCased[$pk]];
 				}
 				$id = serialize($ids);
 			}
