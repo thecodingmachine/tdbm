@@ -552,6 +552,9 @@ class TDBMService {
 			$pk_table = $this->primary_keys[$table_name];
 			if (count($pk_table)==1)
 			{
+				if (!isset($keysStandardCased[$pk_table[0]])) {
+					throw new TDBMException("Bad SQL request passed to getObjectsFromSQL. The SQL request should return all the rows from the '$table_name' table. Could not find primary key in this set of rows. SQL request passed: ".$sql);
+				}
 				$id = $row[$keysStandardCased[$pk_table[0]]];
 			}
 			else
