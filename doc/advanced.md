@@ -81,9 +81,9 @@ The clause is specified without the "ORDER BY" keyword. For instance:
 The only difference with SQL is that when you specify a column name, it should always be fully qualified with the table name: <code>"country_name ASC"</code> is not valid, while <code>"countries.country_name ASC"</code> is valid (if "countries" is a table and "country_name" a column in that table, sure.
 <pre class="brush:php">$users = $this-&gt;getUserListByFilter(null, "countries.country_name ASC");</pre>
 This will return all the users sorted by country.
-- A TDBM_OrderByColumn object.
+- A OrderByColumn object.
 This object models a single column in a database.
-<pre class="brush:php">$users = $this-&gt;getUserListByFilter(null, new TDBM_OrderByColumn("country", "country_name", "ASC");</pre>
+<pre class="brush:php">$users = $this-&gt;getUserListByFilter(null, new OrderByColumn("country", "country_name", "ASC");</pre>
 	
 About ambiguity
 ---------------
