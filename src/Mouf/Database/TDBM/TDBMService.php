@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
+use Mouf\Database\TDBM\Filters\InFilter;
 use Mouf\Database\TDBM\Filters\OrderBySQLString;
 use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\SqlStringFilter;
@@ -529,7 +530,6 @@ class TDBMService {
 		$this->getPrimaryKeyStatic($table_name);
 
 		$result = $this->dbConnection->query($sql, $from, $limit);
-
 		$returned_objects = new TDBMObjectArray();
 		$keysStandardCased = array();
 		$firstLine = true;
