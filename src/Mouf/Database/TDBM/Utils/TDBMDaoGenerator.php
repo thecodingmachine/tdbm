@@ -1,6 +1,7 @@
 <?php
 namespace Mouf\Database\TDBM\Utils;
 
+use Mouf\Database\DBConnection\CachedConnection;
 use Mouf\Database\DBConnection\ConnectionInterface;
 
 
@@ -130,6 +131,11 @@ class TDBMDaoGenerator {
 		$daoName = $this->getDaoNameFromTableName($tableName);
 		$beanName = $this->getBeanNameFromTableName($tableName);
 		$baseBeanName = $this->getBaseBeanNameFromTableName($tableName);
+
+        $connection = $this->dbConnection;
+        if ($connection instanceof CachedConnection){
+            $connection->cacheService->purgeAll();
+        }
 		
 		$this->generateBean($beanName.".php", $beanName, $baseBeanName.".php", $baseBeanName, $tableName);
 		$this->generateDao($daoName.".php", $daoName."Base.php", $beanName.".php", $daoName, $daoName."Base", $beanName, $tableName);
@@ -202,7 +208,6 @@ class $baseClassName extends TDBMObject
 		
 		
 		foreach ($table->columns as $column) {
-
 			$type = $column->type;
 			$normalizedType = $this->dbConnection->getUnderlyingType($type);
 
