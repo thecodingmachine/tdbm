@@ -592,6 +592,7 @@ class TDBMService {
 			} else {
 				// Check that the object fetched from cache is from the requested class.
 				if ($className != null) {
+					$className = ltrim($className, '\\');
 					if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) &&  get_class($this->objects[$table_name][$id]) != $className) {
 						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
 					}
