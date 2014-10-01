@@ -446,6 +446,7 @@ class $className extends $baseClassName
 				
 		$tableCamel = self::toSingular(self::toCamelCase($tableName));
 		
+		$beanClassWithoutNameSpace = $beanClassName;
 		$beanClassName = $this->beanNamespace."\\".$beanClassName;
 		
 		$str = "<?php
@@ -459,9 +460,10 @@ namespace {$this->daoNamespace};
 use Mouf\\Database\\DAOInterface;
 use Mouf\\Database\\TDBM\\TDBMService; 
 use Mouf\\Database\\TDBM\\Filters\\OrderByColumn;
+use $beanClassName;
 
 /**
- * The $baseClassName class will maintain the persistance of $beanClassName class into the $tableName table.
+ * The $baseClassName class will maintain the persistance of $beanClassWithoutNameSpace class into the $tableName table.
  * 
  */
 class $baseClassName implements DAOInterface
@@ -496,16 +498,16 @@ class $baseClassName implements DAOInterface
 	}
 
 	/**
-	 * Return a new instance of $beanClassName object, that will be persisted in database.
+	 * Return a new instance of $beanClassWithoutNameSpace object, that will be persisted in database.
 	 *
-	 * @return $beanClassName
+	 * @return $beanClassWithoutNameSpace
 	 */
 	public function create() {
 		return \$this->tdbmService->getNewObject('$tableName', true, '$beanClassName');
 	}
 	
 	/**
-	 * Persist the $beanClassName instance
+	 * Persist the $beanClassWithoutNameSpace instance
 	 *
 	 */
 	public function save(\$obj) {
@@ -515,7 +517,7 @@ class $baseClassName implements DAOInterface
 	/**
 	 * Get all $tableCamel records. 
 	 *
-	 * @return array<$beanClassName>
+	 * @return array<$beanClassWithoutNameSpace>
 	 */
 	public function getList() {
 		if (\$this->defaultSort){
@@ -527,12 +529,12 @@ class $baseClassName implements DAOInterface
 	}
 	
 	/**
-	 * Get $beanClassName specified by its ID (its primary key)
+	 * Get $beanClassWithoutNameSpace specified by its ID (its primary key)
 	 * If the primary key does not exist, an exception is thrown.
 	 *
 	 * @param string \$id
 	 * @param boolean \$lazyLoading If set to true, the object will not be loaded right away. Instead, it will be loaded when you first try to access a method of the object.
-	 * @return $beanClassName
+	 * @return $beanClassWithoutNameSpace
 	 * @throws TDBMException
 	 */
 	public function getById(\$id, \$lazyLoading = false) {
@@ -540,22 +542,22 @@ class $baseClassName implements DAOInterface
 	}
 	
 	/**
-	 * Deletes the $beanClassName passed in parameter.
+	 * Deletes the $beanClassWithoutNameSpace passed in parameter.
 	 *
-	 * @param $beanClassName \$obj
+	 * @param $beanClassWithoutNameSpace \$obj
 	 */
 	public function delete(\$obj) {
 		\$this->tdbmService->deleteObject(\$obj);
 	}
 	
 	/**
-	 * Get a list of $beanClassName specified by its filters.
+	 * Get a list of $beanClassWithoutNameSpace specified by its filters.
 	 *
 	 * @param mixed \$filterBag The filter bag (see TDBMService::getObjects for complete description)
 	 * @param mixed \$orderbyBag The order bag (see TDBMService::getObjects for complete description)
 	 * @param integer \$from The offset
 	 * @param integer \$limit The maximum number of rows returned
-	 * @return array<$beanClassName>
+	 * @return array<$beanClassWithoutNameSpace>
 	 */
 	protected function getListByFilter(\$filterBag=null, \$orderbyBag=null, \$from=null, \$limit=null) {
 		if (\$this->defaultSort && \$orderbyBag == null){
@@ -565,10 +567,10 @@ class $baseClassName implements DAOInterface
 	}
 
 	/**
-	 * Get a single $beanClassName specified by its filters.
+	 * Get a single $beanClassWithoutNameSpace specified by its filters.
 	 *
 	 * @param mixed \$filterBag The filter bag (see TDBMService::getObjects for complete description)
-	 * @return $beanClassName
+	 * @return $beanClassWithoutNameSpace
 	 */
 	protected function getByFilter(\$filterBag=null) {
 		return \$this->tdbmService->getObject('$tableName', \$filterBag, '$beanClassName');
@@ -587,16 +589,16 @@ if ($this->support) {
 $str .= "
 
 	/**
-	 * Return a new instance of $beanClassName object, that will be persisted in database.
+	 * Return a new instance of $beanClassWithoutNameSpace object, that will be persisted in database.
 	 *
-	 * @return $beanClassName
+	 * @return $beanClassWithoutNameSpace
 	 */
 	public function getNew$tableCamel() {
 		return \$this->create();
 	}
 
 	/**
-	 * Persist the $beanClassName instance
+	 * Persist the $beanClassWithoutNameSpace instance
 	 * (old function to keep compatibility with TDBM < 2.3)
 	 *
 	 */
@@ -607,19 +609,19 @@ $str .= "
 	/**
 	 * Get all $tableCamel records. 
 	 *
-	 * @return array<$beanClassName>
+	 * @return array<$beanClassWithoutNameSpace>
 	 */
 	public function get".$tableCamel."List() {
 		return \$this->getList();
 	}
 	
 	/**
-	 * Get $beanClassName specified by its ID (its primary key)
+	 * Get $beanClassWithoutNameSpace specified by its ID (its primary key)
 	 * If the primary key does not exist, an exception is thrown.
 	 *
 	 * @param string \$id
 	 * @param boolean \$lazyLoading If set to true, the object will not be loaded right away. Instead, it will be loaded when you first try to access a method of the object.
-	 * @return $beanClassName
+	 * @return $beanClassWithoutNameSpace
 	 * @throws TDBMException
 	 */
 	public function get".$tableCamel."ById(\$id, \$lazyLoading = false) {
@@ -627,32 +629,32 @@ $str .= "
 	}
 	
 	/**
-	 * Deletes the $beanClassName passed in parameter.
+	 * Deletes the $beanClassWithoutNameSpace passed in parameter.
 	 *
-	 * @param $beanClassName \$obj
+	 * @param $beanClassWithoutNameSpace \$obj
 	 */
 	public function delete".$tableCamel."(\$obj) {
 		\$this->delete(\$obj);
 	}
 	
 	/**
-	 * Get a list of $beanClassName specified by its filters.
+	 * Get a list of $beanClassWithoutNameSpace specified by its filters.
 	 *
 	 * @param mixed \$filterBag The filter bag (see TDBMService::getObjects for complete description)
 	 * @param mixed \$orderbyBag The order bag (see TDBMService::getObjects for complete description)
 	 * @param integer \$from The offset
 	 * @param integer \$limit The maximum number of rows returned
-	 * @return array<$beanClassName>
+	 * @return array<$beanClassWithoutNameSpace>
 	 */
 	protected function get".$tableCamel."ListByFilter(\$filterBag=null, \$orderbyBag=null, \$from=null, \$limit=null) {
 		return \$this->getListByFilter(\$filterBag, \$orderbyBag, \$from, \$limit);
 	}
 
 	/**
-	 * Get a single $beanClassName specified by its filters.
+	 * Get a single $beanClassWithoutNameSpace specified by its filters.
 	 *
 	 * @param mixed \$filterBag The filter bag (see TDBMService::getObjects for complete description)
-	 * @return $beanClassName
+	 * @return $beanClassWithoutNameSpace
 	 */
 	protected function get".$tableCamel."ByFilter(\$filterBag=null) {
 		return \$this->getByFilter(\$filterBag);
@@ -678,7 +680,7 @@ $str .= "
 namespace {$this->daoNamespace};
 
 /**
- * The $className class will maintain the persistance of $beanClassName class into the $tableName table.
+ * The $className class will maintain the persistance of $beanClassWithoutNameSpace class into the $tableName table.
  *
  * @Component
  * @dbTable $tableName
