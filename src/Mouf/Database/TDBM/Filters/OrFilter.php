@@ -38,7 +38,7 @@ class OrFilter implements FilterInterface {
 	 * @param array<FilterInterface> $filters
 	 */
 	public function setFilters($filters) {
-		$this->filter = $filter;
+		$this->filters = $filters;
 	}
 	
 	private $enableCondition;
