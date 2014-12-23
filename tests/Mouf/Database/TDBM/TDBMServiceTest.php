@@ -25,7 +25,7 @@ use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\OrderByColumn;
 
 // Require needed if we run this class directly
-require_once __DIR__.'/../../../../vendor/autoload.php';
+require_once __DIR__.'/../../../../../../autoload.php';
 
 /**
  */
@@ -93,6 +93,36 @@ class TDBMServiceTest extends \PHPUnit_Framework_TestCase {
 				new OrderByColumn('departements', 'id', 'ASC')
 				]
 		);
+	}
+	
+	public function testTDBMObjectArrayMultipleForeach() {
+		$results = $this->tdbmService->getObjects('departements');
+		$count = 0;
+		foreach ($results as $result) {
+			$count++;
+		}
+		$this->assertEquals(95, $count);
+
+		$count = 0;
+		foreach ($results as $result) {
+			$count++;
+		}
+		$this->assertEquals(95, $count);
+		
+	}
+	
+	public function testTDBMObjectArrayCount() {
+		$results = $this->tdbmService->getObjects('departements');
+		$this->assertEquals(95, count($results));
+		$this->assertEquals(95, count($results));
+	
+	}
+	
+	
+	public function testTDBMObjectArrayAccessByKey() {
+		$results = $this->tdbmService->getObjects('departements');
+		
+		$this->assertEquals("Alpes Maritimes", $results[5]->nom);
 	}
 	
 	static function main() {

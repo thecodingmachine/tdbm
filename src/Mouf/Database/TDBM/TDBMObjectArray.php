@@ -92,6 +92,9 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 	}
 	
 	private function fetchObject() {
+		if (!$this->statement) {
+			return null;
+		}
 		$fullCaseRow = $this->statement->fetch(\PDO::FETCH_ASSOC);
 		if (!$fullCaseRow) {
 			$this->statement->closeCursor();
@@ -133,7 +136,7 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 		if ($obj === null)
 		{
 			if ($this->className == null) {
-				$obj = new TDBMObject($this, $this->table_name, $id);
+				$obj = new TDBMObject($this->tdbmService, $this->table_name, $id);
 			} elseif (is_string($this->className)) {
 				if (!is_subclass_of($this->className, "Mouf\\Database\\TDBM\\TDBMObject")) {
 					if (class_exists($this->className)) {
