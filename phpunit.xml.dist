@@ -16,4 +16,13 @@
             <directory>./tests/Mouf/Database/TDBM/</directory>
         </testsuite>
     </testsuites>
+    
+    <filter>
+  		<whitelist processUncoveredFilesFromWhitelist="true">
+    		<directory suffix=".php">src/Mouf</directory>
+    		<exclude>
+      			<directory suffix=".php">src/Mouf/Database/TDBM/Controllers</directory>
+    		</exclude>
+  		</whitelist>
+	</filter>
 </phpunit>

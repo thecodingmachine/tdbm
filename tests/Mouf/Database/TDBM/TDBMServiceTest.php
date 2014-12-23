@@ -111,6 +111,25 @@ class TDBMServiceTest extends \PHPUnit_Framework_TestCase {
 		
 	}
 	
+	public function testTDBMObjectCursorMode() {
+		$results = $this->tdbmService->getObjects('departements');
+		$results->setMode(TDBMObjectArray::MODE_CURSOR);
+
+		$count = 0;
+		foreach ($results as $result) {
+			$count++;
+		}
+		$this->assertEquals(95, $count);
+	}
+
+	public function testTDBMObjectCursorModeCount() {
+		$results = $this->tdbmService->getObjects('departements');
+		$results->setMode(TDBMObjectArray::MODE_CURSOR);
+	
+		$this->assertEquals(95, count($results));
+	}
+	
+	
 	public function testTDBMObjectArrayCount() {
 		$results = $this->tdbmService->getObjects('departements');
 		$this->assertEquals(95, count($results));
