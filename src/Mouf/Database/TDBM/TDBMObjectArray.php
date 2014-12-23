@@ -136,7 +136,11 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 				$obj = new TDBMObject($this, $this->table_name, $id);
 			} elseif (is_string($this->className)) {
 				if (!is_subclass_of($this->className, "Mouf\\Database\\TDBM\\TDBMObject")) {
-					throw new TDBMException("Error while calling TDBM: The class ".$this->className." should extend TDBMObject.");
+					if (class_exists($this->className)) {
+						throw new TDBMException("Error while calling TDBM: The class ".$this->className." should extend TDBMObject.");
+					} else {
+						throw new TDBMException("Error while calling TDBM: The class ".$this->className." does not exist or could not be loaded.");
+					}
 				}
 				$obj = new $this->className($this->tdbmService, $this->table_name, $id);
 			} else {
