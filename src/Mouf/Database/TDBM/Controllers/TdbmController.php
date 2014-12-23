@@ -7,11 +7,8 @@ use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 
 use Mouf\MoufManager;
 
-use Mouf\Mvc\Splash\Controllers\Controller;
-
 use Mouf\Reflection\MoufReflectionProxy;
 
-use Mouf\Html\HtmlElement\HtmlBlock;
 use Mouf\MoufUtils;
 
 /**
@@ -183,7 +180,7 @@ class TdbmController extends AbstractMoufInstanceController {
 		curl_setopt( $ch, CURLOPT_POST, FALSE );
 		
 		if( curl_error($ch) ) { 
-			throw new Exception("TODO: texte de l'erreur curl");
+			throw new \Exception("TODO: texte de l'erreur curl");
 		} else {
 			$response = curl_exec( $ch );
 		}

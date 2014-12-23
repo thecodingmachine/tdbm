@@ -1,6 +1,6 @@
 <?php
 /*
- Copyright (C) 2006-2012 David Négrier - THE CODING MACHINE
+ Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -28,13 +28,14 @@ use Mouf\Database\DBConnection\CachedConnection;
 use Mouf\Utils\Cache\CacheInterface;
 use Mouf\Database\TDBM\Filters\FilterInterface;
 use Mouf\Database\DBConnection\ConnectionInterface;
+use Mouf\Database\DBConnection\DBConnectionException;
+use Mouf\Database\TDBM\Filters\OrFilter;
 
 /**
  * The TDBMService class is the main TDBM class. It provides methods to retrieve TDBMObject instances
  * from the database.
  *
  * @author David Negrier
- * @Component
  * @ExtendedAction {"name":"Generate DAOs", "url":"tdbmadmin/", "default":false}
  */
 class TDBMService {
@@ -93,13 +94,13 @@ class TDBMService {
 	private $trackExecutionTime = true;
 
 	/**
-	 * Table of objects that are cached in memory.
+	 * Service storing objects in memory.
 	 * Access is done by table name and then by primary key.
 	 * If the primary key is split on several columns, access is done by an array of columns, serialized.
-	 *
-	 * eg: $objects['my_table'][12]
+	 * 
+	 * @var StandardObjectStorage|WeakrefObjectStorage
 	 */
-	private $objects;
+	private $objectStorage;
 
 	/// Table of new objects not yet inserted in database or objects modified that must be saved.
 	private $tosave_objects;
@@ -121,9 +122,14 @@ class TDBMService {
 	private $cache;
 
 	private $cacheKey = "__TDBM_Cache__";
-
+	
 	public function __construct() {
 		register_shutdown_function(array($this,"completeSaveOnExit"));
+		if (extension_loaded('weakref')) {
+			$this->objectStorage = new WeakrefObjectStorage();
+		} else {
+			$this->objectStorage = new StandardObjectStorage();
+		}
 	}
 
 	/**
@@ -349,8 +355,8 @@ class TDBMService {
 			$id = serialize($id);
 		}
 
-		if (isset($this->objects[$table_name][$id])) {
-			$obj =  $this->objects[$table_name][$id];
+		if ($this->objectStorage->has($table_name, $id)) {
+			$obj = $this->objectStorage->get($table_name, $id);
 			if ($className == null || is_a($obj, $className)) {
 				return $obj;
 			} else {
@@ -376,7 +382,7 @@ class TDBMService {
 			$obj->_dbLoadIfNotLoaded();
 		}
 
-		$this->objects[$table_name][$id] = $obj;
+		$this->objectStorage->set($table_name, $id, $obj);
 
 		return $obj;
 	}
@@ -403,7 +409,7 @@ class TDBMService {
 
 		// Ok, let's verify that the table does exist:
 		try {
-			$data = $this->dbConnection->getTableInfo($table_name);
+			/*$data =*/ $this->dbConnection->getTableInfo($table_name);
 		} catch (TDBMException $exception) {
 			$probable_table_name = $this->dbConnection->checkTableExist($table_name);
 			if ($probable_table_name == null)
@@ -487,7 +493,7 @@ class TDBMService {
 			if ($result != 1)
 			throw new TDBMException("Error while deleting object from table ".$object->_getDbTableName().": ".$result." have been affected.");
 
-			unset ($this->objects[$object->_getDbTableName()][$object_id]);
+			$this->objectStorage->remove($object->_getDbTableName(), $object_id);
 			$object->setTDBMObjectState("deleted");
 		}
 	}
@@ -530,79 +536,8 @@ class TDBMService {
 		$this->getPrimaryKeyStatic($table_name);
 
 		$result = $this->dbConnection->query($sql, $from, $limit);
-		$returned_objects = new TDBMObjectArray();
-		$keysStandardCased = array();
-		$firstLine = true;
-
-		while ($fullCaseRow = $result->fetch(\PDO::FETCH_ASSOC))
-		{
-			$row = array();
-			
-			if ($firstLine) {
-				// $keysStandardCased is an optimization to avoid calling toStandardCaseColumn on every cell of every row.
-				foreach ($fullCaseRow as $key=>$value)  {
-					$keysStandardCased[$key] = $this->dbConnection->toStandardCaseColumn($key);
-				}
-				$firstLine = false;
-			}
-			foreach ($fullCaseRow as $key=>$value)  {
-				$row[$keysStandardCased[$key]]=$value;
-			}
-				
-			$pk_table = $this->primary_keys[$table_name];
-			if (count($pk_table)==1)
-			{
-				if (!isset($keysStandardCased[$pk_table[0]])) {
-					throw new TDBMException("Bad SQL request passed to getObjectsFromSQL. The SQL request should return all the rows from the '$table_name' table. Could not find primary key in this set of rows. SQL request passed: ".$sql);
-				}
-				$id = $row[$keysStandardCased[$pk_table[0]]];
-			}
-			else
-			{
-				// Let's generate the serialized primary key from the columns!
-				$ids = array();
-				foreach ($pk_table as $pk) {
-					$ids[] = $row[$keysStandardCased[$pk]];
-				}
-				$id = serialize($ids);
-			}
-
-			if (!isset($this->objects[$table_name][$id]))
-			{
-				if ($className == null) {
-					$obj = new TDBMObject($this, $table_name, $id);
-				} elseif (is_string($className)) {
-					if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
-						throw new TDBMException("Error while calling TDBM: The class ".$className." should extend TDBMObject.");
-					}
-					$obj = new $className($this, $table_name, $id);
-				} else {
-					throw new DB_Exception("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
-				}
-				$this->objects[$table_name][$id] = $obj;
-				$this->objects[$table_name][$id]->loadFromRow($row);
-			} elseif ($this->objects[$table_name][$id]->_getStatus() == "not loaded") {
-				$this->objects[$table_name][$id]->loadFromRow($row);
-				// Check that the object fetched from cache is from the requested class.
-				if ($className != null) {
-					if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) &&  get_class($this->objects[$table_name][$id]) != $className) {
-						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
-					}
-				}
-			} else {
-				// Check that the object fetched from cache is from the requested class.
-				if ($className != null) {
-					$className = ltrim($className, '\\');
-					if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) &&  get_class($this->objects[$table_name][$id]) != $className) {
-						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
-					}
-				}
-			}
-			$returned_objects[] = $this->objects[$table_name][$id];
-		}
-
-		$result->closeCursor();
-		$result = null;
+		$returned_objects = new TDBMObjectArray($result, $this->dbConnection, $this->primary_keys[$table_name], $table_name, $this->objectStorage, $className, $this, $sql);
+		
 			
 		return $returned_objects;
 	}
@@ -625,7 +560,7 @@ class TDBMService {
 
 		if (is_array($this->tosave_objects))
 		{
-			foreach ($this->tosave_objects as $key=>$object)
+			foreach ($this->tosave_objects as $object)
 			{
 				if (!$object->db_onerror && $object->db_autosave)
 				{
@@ -633,34 +568,6 @@ class TDBMService {
 				}
 			}
 		}
-
-		/*if (is_array($this->objects))
-		{
-			foreach ($this->objects as $table)
-			{
-				if (is_array($table))
-				{
-					foreach ($table as $object)
-					{
-						if (!$object->db_onerror && $object->db_autosave)
-						{
-							$object->save();
-						}
-					}
-				}
-			}
-				
-			// Now, all the new objects should be added to the list of existing objects.
-			// FIXME: We need to put the newobject into the object table.
-			// To do this, we need the ID!!!!!!
-// 			foreach ($saved_tosave_objects as $object) {
-// 			if (!is_array($this->objects[$object->_getDbTableName()])) {
-// 			$this->objects[$object->_getDbTableName()] = array();
-// 			}
-// 			$this->objects[$object->_getDbTableName()][$object->]
-// 			}
-				
-		}*/
 
 	}
 
@@ -712,23 +619,13 @@ class TDBMService {
 	function completeSaveAndFlush() {
 		$this->completeSave();
 
-		if (is_array($this->objects))
-		{
-			foreach ($this->objects as $table)
+		$this->objectStorage->apply(function(TDBMObject $object) {
+			/* @var $object TDBMObject */
+			if (!$object->db_onerror && $object->getTDBMObjectState() == "loaded")
 			{
-				if (is_array($table))
-				{
-					foreach ($table as $object)
-					{
-						/* @var $object TDBMObject */
-						if (!$object->db_onerror && $object->getTDBMObjectState() == "loaded")
-						{
-							$object->setTDBMObjectState("not loaded");
-						}
-					}
-				}
+				$object->setTDBMObjectState("not loaded");
 			}
-		}
+		});
 	}
 
 
@@ -1306,7 +1203,7 @@ class TDBMService {
 
 		if (count($needed_table_array)==0)
 		{
-			$table_number = 1;
+			//$table_number = 1;
 			$sql = $this->dbConnection->escapeDBItem($table_name); //Make by Pierre PIV (add escapeDBItem)
 
 			if ($mode == 'explainTree')
@@ -1726,7 +1623,7 @@ class TDBMService {
 	 * @param TDBMObject $object
 	 */
 	public function _addToCache(TDBMObject $object) {
-		$this->objects[$object->_getDbTableName()][$object->TDBMObject_id] = $object;
+		$this->objectStorage->set($object->_getDbTableName(), $object->TDBMObject_id, $object);
 	}
 
 	/**
@@ -1760,5 +1657,3 @@ class TDBMService {
 }
 
 TDBMService::$script_start_up_time = microtime(true);
-
-?>
