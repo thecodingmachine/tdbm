@@ -169,48 +169,6 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 	protected $position = 0;
 	protected $current;
 	
-	/*public function rewind() {
-		if ($this->mode == self::MODE_CURSOR) {
-			throw new TDBMException("Cannot rewind a TDBMObjectArray in CURSOR mode.");
-		} else {
-			parent::rewind();
-		}
-	}
-	
-	public function current() {
-		if ($this->mode == self::MODE_CURSOR) {
-			return $this->fetchObject();
-		} else {
-			$this->offsetGet($this->key());
-			return parent::current();
-		}
-	}
-	
-	public function key() {
-		if ($this->mode == self::MODE_CURSOR) {
-			return $this->position;
-		} else {
-			return parent::key();
-		}
-	}
-	
-	public function next() {
-		if ($this->mode == self::MODE_CURSOR) {
-			++$this->position;
-		} else {
-			parent::next();
-		}
-	}
-	
-	public function valid() {
-		if ($this->mode == self::MODE_CURSOR) {
-			return ($this->count() > 0) && (($this->position + 1) < $this->count());
-		} else {
-			$this->offsetGet($this->key());
-			parent::valid();
-		}
-	}*/
-	
 	public function getIterator() {
 		if ($this->mode == self::MODE_CURSOR) {
 			return new TDBMObjectArrayCursorIterator($this->statement, $this->dbConnection, 
@@ -303,6 +261,14 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 	
 	public function jsonSerialize(){
 		return (array) $this;
+	}
+	
+	/**
+	 * (non-PHPdoc)
+	 * @see ArrayObject::count()
+	 */
+	public function count(){
+		return $this->statement->rowCount();
 	}
 	
 
