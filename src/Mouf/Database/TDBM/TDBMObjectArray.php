@@ -182,16 +182,19 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 					$this->primary_keys, $this->table_name, $this->objectStorage, $this->className, 
 					$this->tdbmService, $this->sql);
 		} else {
-			// On first call, let's fill the complete array.
-			while ($this->fetchObject()) {
-				// Loop until all objects are fetched.
-			}
-			
+			$this->loadAll();			
 			return parent::getIterator();
 		}
 	}
 	
-	
+	/**
+	 * Fills the array with TDBMObjects.
+	 */
+	private function loadAll() {
+		while ($this->fetchObject()) {
+			// Loop until all objects are fetched.
+		}
+	}	
 	
 	
 	public function __get($var) {
@@ -267,6 +270,7 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 	}
 	
 	public function jsonSerialize(){
+		$this->loadAll();
 		return (array) $this;
 	}
 	

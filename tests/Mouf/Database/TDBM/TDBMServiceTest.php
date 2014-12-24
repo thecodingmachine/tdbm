@@ -144,6 +144,22 @@ class TDBMServiceTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals("Alpes Maritimes", $results[5]->nom);
 	}
 	
+	public function testTDBMObjectArrayJsonEncode() {
+		$jsonEncoded = json_encode($this->tdbmService->getObjects('departements'));
+		$count = count(json_decode($jsonEncoded));
+		
+		$this->assertEquals(95, $count);
+	}
+	
+	public function testTDBMObjectArrayCursorJsonEncode() {
+		$results = $this->tdbmService->getObjects('departements');
+		$results->setMode(TDBMObjectArray::MODE_CURSOR);
+		$jsonEncoded = json_encode($results);
+		$count = count(json_decode($jsonEncoded));
+		
+		$this->assertEquals(95, $count);
+	}
+	
 	static function main() {
 	
 		$suite = new \PHPUnit_Framework_TestSuite( __CLASS__);
