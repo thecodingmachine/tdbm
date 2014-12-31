@@ -7,66 +7,149 @@ If you are new to TDBM, you should start with the <a href="quickstart.html">quic
 Making complex queries: the getObjects method
 ---------------------------------------------
 
-Complex queries with filters and ordering is achieved in TDBM through the <code>xxxDao::getXxxListByFilter</code> protected method.
+Complex queries with filters and ordering is achieved in TDBM through the `xxxDao::getListByFilter` protected method.
 
 ```php
-protected function getXxxListByFilter($filterBag=null, $orderbyBag=null, $from=null, $limit=null);
+protected function getListByFilter($filterBag=null, $orderbyBag=null, $from=null, $limit=null);
 ```
 
-The getXxxListByFilter method should be the preferred way to perform queries in TDBM.  (Note: if you want to query the database for an object by its primary key, use the getXxxById method).
-The getXxxListByFilter method takes in parameter: 
-- filter_bag (optionnal): The filter bag is anything that you can use to filter your request. It can be a SQL Where clause,	a series of DBM_Filter objects, or even DBM_Objects or DBM_ObjectArrays that you will use as filters.
-- order_bag (optionnal): The order bag is what you use to order the results of your request. It can be a SQL OrderBy clause,	a series of DBM_OrderByColumn objects or an array containing both.
-- from (optionnal): The offset from which the query should be performed. For instance, if $from=5, the getObjects method will return objects from the 6th row.
-- limit (optionnal): The maximum number of objects returned. Together with the <code>from</code> parameter, this can be used to implement paging.
+The `getListByFilter` method should be the preferred way to perform queries in TDBM.  (Note: if you want to query the database for an object by its primary key, use the `getById` method).
+The `getListByFilter` method takes in parameter: 
+
+- filter_bag (optionnal): The filter bag is anything that you can use to filter your request. It can be a SQL Where clause,	a series of `xxxFilter` objects, or even `TDBMObjects` or `TDBMObjectArrays` that you will use as filters.
+- order_bag (optionnal): The order bag is what you use to order the results of your request. It can be a SQL OrderBy clause, a series of `OrderByColumn` objects or an array containing both.
+- from (optionnal): The offset from which the query should be performed. For instance, if `$from = 5`, the `getListByFilter` method will return objects from the 6th row.
+- limit (optionnal): The maximum number of objects returned. Together with the `from` parameter, this can be used to implement paging.
 
 
-The getXxxListByFilter method will return a TDBMObjectArray. A TDBMObjectArray is an array of XxxBean that does behave as 
-a single XxxBean if the array has only one member. Refer to the documentation of TDBMObjectArray and TDBMObject to learn more.
+The `getListByFilter` method will return a `TDBMObjectArray`. A `TDBMObjectArray` is an array of XxxBean that does behave as 
+a single XxxBean if the array has only one member. Refer to the documentation of `TDBMObjectArray` and `TDBMObject` to learn more.
 
 ###More about the filter bag
 
-A filter is anything that can change the set of objects returned by getXxxListByFilter. 
+A filter is anything that can change the set of objects returned by `getListByFilter`. 
 There are many kind of filters in TDBM: A filter can be: 
 
 - A SQL WHERE clause:
-  The clause is specified without the "WHERE" keyword. For instance:  
-  <pre class="brush:php">$filter = "users.first_name LIKE 'J%'";</pre>
+
+  The clause is specified without the "WHERE" keyword. For instance:
+    
+  ```php
+  $filter = "users.first_name LIKE 'J%'";
+  ```
+  
   is a valid filter. 
-  The only difference with SQL is that when you specify a column name, it should always be fully qualified with the table name: "country_name='France'" is not valid, while "countries.country_name='France'" is valid (if  		"countries" is a table and "country_name" a column in that table, sure.  		For instance,  				$french_users = DBM_Object::getObjects("users", "countries.country_name='France'");  		will return all the users that are French (based on trhe assumption that TDBM can find a way to connect the users  		table to the country table using foreign keys, see the manual for that point). - A DBM_Object:
+  
+  The only difference with SQL is that when you specify a column name, it should always be fully qualified with the table 
+  name: `country_name='France'` is not valid, while `countries.country_name='France'` is valid 
+  (if `countries` is a table and `country_name` a column in that table, sure.  
+  
+  For instance,
+  
+  ```php
+  class UserDao extends UserBaseDao {
+      public function getUsersByCountryName($countryName) {
+          return $this->getListByFilter("countries.country_name='".addslashes($countryName)."'");
+      }
+  }
+  ```
+  
+  will return all the users that are French (based on trhe assumption that TDBM can find a way to connect the users 
+  table to the country table using foreign keys, see the manual for that point). 
+  
+- Any bean (extending the `TDBMObject` class):
+
   An object can be used as a filter. 
   For instance, we could get the France object and then find any users related to that object using:
 
-```php
-// In the CountryDao
-$france = $this-&gt;getCountryListByFilter("countries.country_name='France'");
-// In the UserDao
-$french_users = $this-&gt;getUserListByFilter($france);
-```
+  ```php
+  class UserDao extends UserBaseDao {
+      public function getUsersByCountry(CountryBean $countryBean) {
+          return $this->getListByFilter($countryBean);
+      }
+  }
+  ```
 
-- A DBM_ObjectArray can be used as a filter too.
-<pre class="brush:php">$french_groups = $this-&gt;getGroupListByFilter("groups", $french_users);</pre>
-This sample will return all the groups in which french users can be found.
+- A `DBM_ObjectArray` can be used as a filter too.
+  
+  ```php
+  class UserDao extends UserBaseDao {
+      /**
+       * @param CountryBean[] $countryBean
+       * @return UserBean[]
+       */
+      public function getUsersByCountries(array $countries) {
+          return $this->getListByFilter($countries);
+      }
+  }
+  ```
+  
+  This sample will return all the groups in which french users can be found.
 
-- Finally, xxxFilter instances can be used.
-TDBM provides the developer a set of xxxFilters that can be used to model a SQL Where query. Using the appropriate filter object, you can model the operations =,&lt;,&lt;=,&gt;,&gt;=,IN,LIKE,AND,OR, IS NULL and NOT.
-For instance:
-<pre class="brush:php">$french_users = $this-&gt;getUserListByFilter(new EqualFilter('countries','country_name','France'));</pre>
-Refer to the documentation of the appropriate filters for more information.
+- Finally,` xxxFilter` instances can be used.
+  TDBM provides the developer a set of xxxFilters that can be used to model a SQL Where query. 
+  Using the appropriate filter object, you can model the operations:
+  - **=** using `EqualFilter`
+  - **<** using `LessFilter`
+  - **<=** using `LessOrEqualFilter`
+  - **>** using `GreaterFilter`
+  - **>=** using `GreaterOrEqualFilter`
+  - **IN** using `InFilter`
+  - **LIKE** using `LikeFilter`
+  - **AND** using `AndFilter`
+  - **OR** using `OrFilter`
+  - **IS NULL** using `EqualFilter` passing `null` as the value
+  - **NOT** using `NotFilter`.
+
+  For instance:
+  ```php
+  use Mouf\Database\TDBM\Filters\EqualFilter;
+  use Mouf\Database\TDBM\Filters\GreaterFilter;
+  use Mouf\Database\TDBM\Filters\OrFilter;
+  use Mouf\Database\TDBM\Filters\LikeFilter;
+  
+  class UserDao extends UserBaseDao {
+      public function getUsersByCountryName($countryName) {
+          // Let's search users based on country name.
+          // Notice how we do can refer to a column of the 'countries' table without
+          // specifying the joins
+          // TDBM will use the most obvious ones (i.e. the shortest route)
+          return $this->getListByFilter(new EqualFilter('countries','country_name',$countryName));
+      }
+
+      public function getUsersCreatedThisYear() {
+          return $this->getListByFilter(new GreaterFilter('users','create_date',date('Y-m-d'));
+      }
+
+      public function getUsersByName($name) {
+          // Let's search on the first name or last name:
+          return $this->getListByFilter(new OrFilter(
+              new LikeFilter('users', 'first_name', '%'.$name.'%'),
+              new LikeFilter('users', 'last_name', '%'.$name.'%')
+          ));
+      }
+  }
+  ```
+  
+  Refer to the documentation of the appropriate filters for more information.
 
 
-The nice thing about a filter bag is that it can be any filter, or any array of filters.
-In that case, filters are  'ANDed' together.  So a request like this is valid:
-<pre class="brush:php">
-// In the country Dao
-$france = $this-&gt;getCountryByFilter("countries.country_name='France'");
-// In the users Dao
-$french_administrators = $this-&gt;getUserListByFilter(array($france,"role.role_name='Administrators'"));
-</pre>
+  The nice thing about a filter bag is that it can be any filter, or any array of filters.
+  In that case, filters are  'ANDed' together.  So a request like this is valid:
 
-This requests would return the users that are both French and administrators.
+  ```php
+  class UserDao extends UserBaseDao {
+      public function getAdministratorsByCountry(CountryBean $countryBean) {
+          // Returns the users who have a administrator role and are linked to $countryBean
+      	  return $this->getListByFilter(array(
+      	      $countryBean,
+      	      new EqualFilter('role', 'role_name', 'Administrator')
+      	  ));
+      }
+  }
+  ```
 
-Finally, if filter_bag is null, the whole table is returned.
+Finally, if `$filter_bag` is null, the whole table is returned.
 
 
 ###More about the order bag
@@ -74,16 +157,31 @@ Finally, if filter_bag is null, the whole table is returned.
 The order bag contains anything that can be used to order the data that is passed back to you. 
 The order bag can contain two kinds of objects: 
 
-
 - A SQL ORDER BY clause:
-The clause is specified without the "ORDER BY" keyword. For instance:
-<pre class="brush:php">$orderby = "users.last_name ASC, users.first_name ASC";</pre>
-The only difference with SQL is that when you specify a column name, it should always be fully qualified with the table name: <code>"country_name ASC"</code> is not valid, while <code>"countries.country_name ASC"</code> is valid (if "countries" is a table and "country_name" a column in that table, sure.
-<pre class="brush:php">$users = $this-&gt;getUserListByFilter(null, "countries.country_name ASC");</pre>
-This will return all the users sorted by country.
-- A OrderByColumn object.
-This object models a single column in a database.
-<pre class="brush:php">$users = $this-&gt;getUserListByFilter(null, new OrderByColumn("country", "country_name", "ASC");</pre>
+  The clause is specified without the "ORDER BY" keyword. For instance:
+  
+  ```php
+  $orderby = "users.last_name ASC, users.first_name ASC";
+  ```
+  
+  The only difference with SQL is that when you specify a column name, it should always be fully qualified with the table name: <code>"country_name ASC"</code> is not valid, while `"countries.country_name ASC"` is valid (if "countries" is a table and "country_name" a column in that table, sure).
+  
+  ```php
+  $users = $this->getListByFilter(null, "countries.country_name ASC");
+  ```
+  
+  This will return all the users sorted by country.
+  
+- A `OrderByColumn` object.
+  This object models a single column in a database.
+
+  ```php
+  class CountryDao extends CountryBaseDao {
+      public function getListByAlphabeticalOrder() {
+          return $this->getListByFilter(null, new OrderByColumn("country", "country_name", "ASC");
+      }
+  }
+  ```
 	
 About ambiguity
 ---------------
@@ -112,13 +210,15 @@ In this schema, a user is linked to 2 countries. One is its birth country and on
 <code>$country = $userBean-&gt;getCountry();</code>
 there is no way to know if it more likely that he wanted the birth country or the work country. So TDBM will throw an ambiguity exception. This exception will inform the user that its request is ambiguous and that he should solve it. Below is the exception the user will get:
 
-	Uncaught exception 'AmbiguityException' with message 'An ambiguity has been found during the search. Please catch this exception and execute the $exception-&gt;explainAmbiguity() to get a nice graphical view of what you should do to solve this ambiguity.The table 'users' can be reached using several different ways from the table 'countries'.
+```
+Uncaught exception 'AmbiguityException' with message 'An ambiguity has been found during the search. Please catch this exception and execute the $exception-&gt;explainAmbiguity() to get a nice graphical view of what you should do to solve this ambiguity.The table 'users' can be reached using several different ways from the table 'countries'.
 	
-	Solution 1:
-	Table 'countries' is pointed by 'users' through its foreign key 'birth_country_id'
+Solution 1:
+Table 'countries' is pointed by 'users' through its foreign key 'birth_country_id'
 	
-	Solution 2:
-	Table 'countries' is pointed by 'users' through its foreign key 'work_country_id'
+Solution 2:
+Table 'countries' is pointed by 'users' through its foreign key 'work_country_id'
+```
 
 This exception message is quite clear on the ambiguity. However, on big data models, the message might get long enough, with a lot of possible ambiguities. TDBM offers you a nice graphical view of ambiguities (if you are in an HTML page, which is likely since we are using PHP). For this, just follow the steps in the exception message. It informs us that we should catch the exception and use the <code>$exception-&gt;explainAmbiguity();</code> function. Let's do that.
 
