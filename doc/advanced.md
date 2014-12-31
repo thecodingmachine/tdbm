@@ -21,8 +21,8 @@ The getXxxListByFilter method takes in parameter:
 - limit (optionnal): The maximum number of objects returned. Together with the <code>from</code> parameter, this can be used to implement paging.
 
 
-The getXxxListByFilter method will return a TDBM_ObjectArray. A TDBM_ObjectArray is an array of XxxBean that does behave as 
-a single XxxBean if the array has only one member. Refer to the documentation of TDBM_ObjectArray and TDBM_Object to learn more.
+The getXxxListByFilter method will return a TDBMObjectArray. A TDBMObjectArray is an array of XxxBean that does behave as 
+a single XxxBean if the array has only one member. Refer to the documentation of TDBMObjectArray and TDBMObject to learn more.
 
 ###More about the filter bag
 
@@ -48,10 +48,10 @@ $french_users = $this-&gt;getUserListByFilter($france);
 <pre class="brush:php">$french_groups = $this-&gt;getGroupListByFilter("groups", $french_users);</pre>
 This sample will return all the groups in which french users can be found.
 
-- Finally, TDBM_xxxFilter instances can be used.
-TDBM provides the developer a set of TDBM_xxxFilters that can be used to model a SQL Where query. Using the appropriate filter object, you can model the operations =,&lt;,&lt;=,&gt;,&gt;=,IN,LIKE,AND,OR, IS NULL and NOT.
+- Finally, xxxFilter instances can be used.
+TDBM provides the developer a set of xxxFilters that can be used to model a SQL Where query. Using the appropriate filter object, you can model the operations =,&lt;,&lt;=,&gt;,&gt;=,IN,LIKE,AND,OR, IS NULL and NOT.
 For instance:
-<pre class="brush:php">$french_users = $this-&gt;getUserListByFilter(new TDBM_EqualFilter('countries','country_name','France'));</pre>
+<pre class="brush:php">$french_users = $this-&gt;getUserListByFilter(new EqualFilter('countries','country_name','France'));</pre>
 Refer to the documentation of the appropriate filters for more information.
 
 
@@ -112,7 +112,7 @@ In this schema, a user is linked to 2 countries. One is its birth country and on
 <code>$country = $userBean-&gt;getCountry();</code>
 there is no way to know if it more likely that he wanted the birth country or the work country. So TDBM will throw an ambiguity exception. This exception will inform the user that its request is ambiguous and that he should solve it. Below is the exception the user will get:
 
-	Uncaught exception 'DB_AmbiguityException' with message 'An ambiguity has been found during the search. Please catch this exception and execute the $exception-&gt;explainAmbiguity() to get a nice graphical view of what you should do to solve this ambiguity.The table 'users' can be reached using several different ways from the table 'countries'.
+	Uncaught exception 'AmbiguityException' with message 'An ambiguity has been found during the search. Please catch this exception and execute the $exception-&gt;explainAmbiguity() to get a nice graphical view of what you should do to solve this ambiguity.The table 'users' can be reached using several different ways from the table 'countries'.
 	
 	Solution 1:
 	Table 'countries' is pointed by 'users' through its foreign key 'birth_country_id'
@@ -122,14 +122,14 @@ there is no way to know if it more likely that he wanted the birth country or th
 
 This exception message is quite clear on the ambiguity. However, on big data models, the message might get long enough, with a lot of possible ambiguities. TDBM offers you a nice graphical view of ambiguities (if you are in an HTML page, which is likely since we are using PHP). For this, just follow the steps in the exception message. It informs us that we should catch the exception and use the <code>$exception-&gt;explainAmbiguity();</code> function. Let's do that.
 
-
-	$user = TDBM_Object::getObject('users',1);
-	try {
-		$country = $user-&gt;get_countries();
-	} catch (DB_AmbiguityException $ex) {
-		$ex-&gt;explainAmbiguity();
-	}
-
+```php
+$user = $tdbmService->getObject('users',1);
+try {
+	$country = $user->get_countries();
+} catch (AmbiguityException $ex) {
+	$ex->explainAmbiguity();
+}
+```
 
 
 By running the code, we get this display in our browser:
