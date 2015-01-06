@@ -41,6 +41,7 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 	private $primary_keys;
 	private $tdbmService;
 	private $sql;
+    private $count;
 	private $mode = self::MODE_ARRAY;
 	
 	public function __construct(\PDOStatement $statement, ConnectionInterface $dbConnection, $primary_keys, $table_name, $objectStorage, $className, TDBMService $tdbmService, $sql) {
@@ -97,6 +98,9 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 		}
 		$fullCaseRow = $this->statement->fetch(\PDO::FETCH_ASSOC);
 		if (!$fullCaseRow) {
+            if ($this->count === null) {
+                $this->count = $this->statement->rowCount();
+            }
 			$this->statement->closeCursor();
 			$this->statement = null;
 			return null;
@@ -279,7 +283,10 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 	 * @see ArrayObject::count()
 	 */
 	public function count(){
-		return $this->statement->rowCount();
+        if ($this->count === null) {
+            $this->count = $this->statement->rowCount();
+        }
+		return $this->count;
 	}
 	
 

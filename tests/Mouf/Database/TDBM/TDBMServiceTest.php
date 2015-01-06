@@ -159,6 +159,14 @@ class TDBMServiceTest extends \PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(95, $count);
 	}
+
+    public function testTDBMObjectArrayCountAfterForeach() {
+        $results = $this->tdbmService->getObjects('departements');
+        foreach ($results as $result) {
+            // Do nothing
+        }
+        $this->assertEquals(95, count($results));
+    }
 	
 	static function main() {
 	
