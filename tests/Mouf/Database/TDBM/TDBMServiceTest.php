@@ -25,7 +25,11 @@ use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\OrderByColumn;
 
 // Require needed if we run this class directly
-require_once __DIR__.'/../../../../../../autoload.php';
+if (file_exists(__DIR__.'/../../../../../../autoload.php')) {
+	require_once __DIR__.'/../../../../../../autoload.php';
+} else {
+	require_once __DIR__.'/../../../../vendor/autoload.php';
+}
 
 /**
  */
@@ -150,6 +154,15 @@ class TDBMServiceTest extends \PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(95, $count);
 	}
+
+	public function testTDBMObjectArrayInnerJsonEncode() {
+		$departements = $this->tdbmService->getObjects('departements');
+		$jsonEncoded = json_encode(['departements'=>$departements]);
+		$count = count(json_decode($jsonEncoded));
+		
+		$this->assertEquals(95, $count);
+	}
+
 	
 	public function testTDBMObjectArrayCursorJsonEncode() {
 		$results = $this->tdbmService->getObjects('departements');
