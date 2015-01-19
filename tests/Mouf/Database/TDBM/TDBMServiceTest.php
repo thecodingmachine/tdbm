@@ -101,6 +101,7 @@ class TDBMServiceTest extends \PHPUnit_Framework_TestCase {
 	
 	public function testTDBMObjectArrayMultipleForeach() {
 		$results = $this->tdbmService->getObjects('departements');
+		$this->assertTrue(is_array($results));
 		$count = 0;
 		foreach ($results as $result) {
 			$count++;
@@ -116,8 +117,8 @@ class TDBMServiceTest extends \PHPUnit_Framework_TestCase {
 	}
 	
 	public function testTDBMObjectCursorMode() {
+		$this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
 		$results = $this->tdbmService->getObjects('departements');
-		$results->setMode(TDBMObjectArray::MODE_CURSOR);
 
 		$count = 0;
 		foreach ($results as $result) {
@@ -126,13 +127,6 @@ class TDBMServiceTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals(95, $count);
 	}
 
-	public function testTDBMObjectCursorModeCount() {
-		$results = $this->tdbmService->getObjects('departements');
-		$results->setMode(TDBMObjectArray::MODE_CURSOR);
-	
-		$this->assertEquals(95, count($results));
-	}
-	
 	
 	public function testTDBMObjectArrayCount() {
 		$results = $this->tdbmService->getObjects('departements');
@@ -149,28 +143,33 @@ class TDBMServiceTest extends \PHPUnit_Framework_TestCase {
 	}
 	
 	public function testTDBMObjectArrayJsonEncode() {
+		$this->tdbmService->setFetchMode(TDBMService::MODE_COMPATIBLE_ARRAY);
 		$jsonEncoded = json_encode($this->tdbmService->getObjects('departements'));
 		$count = count(json_decode($jsonEncoded));
 		
 		$this->assertEquals(95, $count);
 	}
 
-	public function testTDBMObjectArrayInnerJsonEncode() {
+	public function testInnerJsonEncode() {
+		$this->tdbmService->setFetchMode(TDBMService::MODE_COMPATIBLE_ARRAY);
 		$departements = $this->tdbmService->getObjects('departements');
 		$jsonEncoded = json_encode(['departements'=>$departements]);
-		$count = count(json_decode($jsonEncoded));
+		$count = count(json_decode($jsonEncoded, true)['departements']);
 		
 		$this->assertEquals(95, $count);
 	}
 
 	
-	public function testTDBMObjectArrayCursorJsonEncode() {
+	public function testCursorJsonEncode() {
+		// COMMENTING THE WHOLE SCRIPT.
+		// If we are in CURSOR mode, there is probably no point in json_encoding the result.
+		/*$this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
 		$results = $this->tdbmService->getObjects('departements');
-		$results->setMode(TDBMObjectArray::MODE_CURSOR);
 		$jsonEncoded = json_encode($results);
-		$count = count(json_decode($jsonEncoded));
+		$count = count(json_decode($jsonEncoded, true));
 		
 		$this->assertEquals(95, $count);
+		*/
 	}
 
     public function testTDBMObjectArrayCountAfterForeach() {

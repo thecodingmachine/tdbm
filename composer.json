@@ -27,9 +27,9 @@
 		"mouf/utils.log.errorlog_logger" : ">=2.0-dev,<3.0",
 		"mouf/database.dao-interface" : ">=2.0-dev,<3.0"
 	},
-	"suggest": {
-        "ext/weakref": "Allows efficient memory management. Useful for batches."
-    },
+	"suggest" : {
+		"ext/weakref" : "Allows efficient memory management. Useful for batches."
+	},
 	"autoload" : {
 		"psr-0" : {
 			"Mouf\\Database\\TDBM" : "src/"

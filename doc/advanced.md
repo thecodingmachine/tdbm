@@ -22,8 +22,7 @@ The `getListByFilter` method takes in parameter:
 - limit (optionnal): The maximum number of objects returned. Together with the `from` parameter, this can be used to implement paging.
 
 
-The `getListByFilter` method will return a `TDBMObjectArray`. A `TDBMObjectArray` is an array of XxxBean that does behave as 
-a single XxxBean if the array has only one member. Refer to the documentation of `TDBMObjectArray` and `TDBMObject` to learn more.
+The `getListByFilter` method will return an array (or a generator dependenging on the fetch mode used).
 
 ###More about the filter bag
 

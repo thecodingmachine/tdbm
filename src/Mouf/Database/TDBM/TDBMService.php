@@ -39,6 +39,11 @@ use Mouf\Database\TDBM\Filters\OrFilter;
  * @ExtendedAction {"name":"Generate DAOs", "url":"tdbmadmin/", "default":false}
  */
 class TDBMService {
+	
+	const MODE_CURSOR = 1;
+	const MODE_ARRAY = 2;
+	const MODE_COMPATIBLE_ARRAY = 3;
+	
 	/**
 	 * The database connection.
 	 *
@@ -101,6 +106,20 @@ class TDBMService {
 	 * @var StandardObjectStorage|WeakrefObjectStorage
 	 */
 	private $objectStorage;
+	
+	/**
+	 * The fetch mode of the result sets returned by `getObjects`.
+	 * Can be one of: TDBMObjectArray::MODE_CURSOR or TDBMObjectArray::MODE_ARRAY or TDBMObjectArray::MODE_COMPATIBLE_ARRAY
+	 *
+	 * In 'MODE_ARRAY' mode (default), the result is an array. Use this mode by default (unless the list returned is very big).
+	 * In 'MODE_CURSOR' mode, the result is a Generator which is an iterable collection that can be scanned only once (only one "foreach") on it,
+	 * and it cannot be accessed via key. Use this mode for large datasets processed by batch.
+	 * In 'MODE_COMPATIBLE_ARRAY' mode, the result is an old TDBMObjectArray (used up to TDBM 3.2). 
+	 * You can access the array by key, or using foreach, several times.
+	 *
+	 * @var int
+	 */
+	private $mode = self::MODE_ARRAY;
 
 	/// Table of new objects not yet inserted in database or objects modified that must be saved.
 	private $tosave_objects;
@@ -151,7 +170,6 @@ class TDBMService {
 	 *       hostspec is the IP of your database server (very likely, it will be 'localhost' for you)
 	 *       database is the name of your database
 	 *
-	 * @Property
 	 * @Compulsory
 	 * @param ConnectionInterface $connection
 	 */
@@ -180,7 +198,6 @@ class TDBMService {
 	 * The cache service is used to store the structure of the database in cache, which will dramatically improve performances.
 	 * The cache service will also wrap the database connection into a cached connection.
 	 *
-	 * @Property
 	 * @Compulsory
 	 * @param CacheInterface $cacheService
 	 */
@@ -211,7 +228,6 @@ class TDBMService {
 	 * true if the object will save automatically,
 	 * false if an explicit call to save() is required.
 	 *
-	 * @Property
 	 * @Compulsory
 	 * @param boolean $autoSave
 	 */
@@ -228,19 +244,34 @@ class TDBMService {
 	 * This is a dangerous parameter. Indeed, in case of error, it might commit data that would have otherwised been roll-back.
 	 * Use it sparesly.
 	 *
-	 * @Property
 	 * @Compulsory
 	 * @param boolean $commitOnQuit
 	 */
 	public function setCommitOnQuit($commitOnQuit) {
 		$this->commitOnQuit = $commitOnQuit;
 	}
+	
+	/**
+	 * Sets the fetch mode of the result sets returned by `getObjects`.
+	 * Can be one of: TDBMObjectArray::MODE_CURSOR or TDBMObjectArray::MODE_ARRAY or TDBMObjectArray::MODE_COMPATIBLE_ARRAY
+	 *
+	 * In 'MODE_ARRAY' mode (default), the result is an array. Use this mode by default (unless the list returned is very big).
+	 * In 'MODE_CURSOR' mode, the result is an iterable collection that can be scanned only once (only one "foreach") on it,
+	 * and it cannot be accessed via key. Use this mode for large datasets processed by batch.
+	 * In 'MODE_COMPATIBLE_ARRAY' mode, the result is an old TDBMObjectArray (used up to TDBM 3.2). 
+	 * You can access the array by key, or using foreach, several times.
+	 *
+	 * @param int $mode
+	 */
+	public function setFetchMode($mode) {
+		$this->mode = $mode;
+		return $this;
+	}
 
 	/**
 	 * Whether we should track execution time or not.
 	 * If true, if the execution time reaches 90% of the allowed execution time, the request will stop with an exception.
 	 *
-	 * @Property
 	 * @param boolean $trackExecutionTime
 	 */
 	public function setTrackExecutionTime($trackExecutionTime = true) {
@@ -524,7 +555,7 @@ class TDBMService {
 	 * @param integer $from The offset
 	 * @param integer $limit The maximum number of objects returned
 	 * @param string $className Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-	 * @return TDBMObjectArray The result set of the query as a TDBMObjectArray (an array of TDBMObjects with special properties)
+	 * @return array|Generator|TDBMObjectArray The result set of the query as a TDBMObjectArray (an array of TDBMObjects with special properties)
 	 */
 	public function getObjectsFromSQL($table_name, $sql, $from=null, $limit=null, $className=null) {
 		if ($this->dbConnection == null) {
@@ -536,10 +567,163 @@ class TDBMService {
 		$this->getPrimaryKeyStatic($table_name);
 
 		$result = $this->dbConnection->query($sql, $from, $limit);
-		$returned_objects = new TDBMObjectArray($result, $this->dbConnection, $this->primary_keys[$table_name], $table_name, $this->objectStorage, $className, $this, $sql);
 		
-			
-		return $returned_objects;
+		if ($this->mode == self::MODE_COMPATIBLE_ARRAY || $this->mode == self::MODE_ARRAY) {
+			if ($this->mode == self::MODE_COMPATIBLE_ARRAY) {
+				$returned_objects = new TDBMObjectArray();
+			} else {
+				$returned_objects = [];
+			}
+			$keysStandardCased = array();
+			$firstLine = true;
+			while ($fullCaseRow = $result->fetch(\PDO::FETCH_ASSOC))
+			{
+				$row = array();
+				if ($firstLine) {
+					// $keysStandardCased is an optimization to avoid calling toStandardCaseColumn on every cell of every row.
+					foreach ($fullCaseRow as $key=>$value) {
+						$keysStandardCased[$key] = $this->dbConnection->toStandardCaseColumn($key);
+					}
+					$firstLine = false;
+				}
+				foreach ($fullCaseRow as $key=>$value) {
+					$row[$keysStandardCased[$key]]=$value;
+				}
+				$pk_table = $this->primary_keys[$table_name];
+				if (count($pk_table)==1)
+				{
+					if (!isset($keysStandardCased[$pk_table[0]])) {
+						throw new TDBMException("Bad SQL request passed to getObjectsFromSQL. The SQL request should return all the rows from the '$table_name' table. Could not find primary key in this set of rows. SQL request passed: ".$sql);
+					}
+					$id = $row[$keysStandardCased[$pk_table[0]]];
+				}
+				else
+				{
+					// Let's generate the serialized primary key from the columns!
+					$ids = array();
+					foreach ($pk_table as $pk) {
+						$ids[] = $row[$keysStandardCased[$pk]];
+					}
+					$id = serialize($ids);
+				}
+				if (!isset($this->objects[$table_name][$id]))
+				{
+					if ($className == null) {
+						$obj = new TDBMObject($this, $table_name, $id);
+					} elseif (is_string($className)) {
+						if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
+							throw new TDBMException("Error while calling TDBM: The class ".$className." should extend TDBMObject.");
+						}
+						$obj = new $className($this, $table_name, $id);
+					} else {
+						throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
+					}
+					$this->objects[$table_name][$id] = $obj;
+					$this->objects[$table_name][$id]->loadFromRow($row);
+				} elseif ($this->objects[$table_name][$id]->_getStatus() == "not loaded") {
+					$this->objects[$table_name][$id]->loadFromRow($row);
+					// Check that the object fetched from cache is from the requested class.
+					if ($className != null) {
+						if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) && get_class($this->objects[$table_name][$id]) != $className) {
+							throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
+						}
+					}
+				} else {
+					// Check that the object fetched from cache is from the requested class.
+					if ($className != null) {
+						$className = ltrim($className, '\\');
+						if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) && get_class($this->objects[$table_name][$id]) != $className) {
+							throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
+						}
+					}
+				}
+				$returned_objects[] = $this->objects[$table_name][$id];
+			}
+			$result->closeCursor();
+			$result = null;
+			return $returned_objects;
+		} elseif ($this->mode == self::MODE_CURSOR) {
+			return $this->getObjectsFromSQLGenerator($result, $table_name, $className, $sql);
+		} else {
+			throw new TDBMException("Unknown mode: ".$this->mode);
+		}
+	}
+	
+	/**
+	 * Returns a generator for the database.
+	 * @param unknown $result
+	 * @param unknown $table_name
+	 * @param unknown $className
+	 * @param unknown $sql
+	 */
+	private function getObjectsFromSQLGenerator($result, $table_name, $className, $sql) {
+		$keysStandardCased = array();
+		$firstLine = true;
+		while ($fullCaseRow = $result->fetch(\PDO::FETCH_ASSOC))
+		{
+			$row = array();
+			if ($firstLine) {
+				// $keysStandardCased is an optimization to avoid calling toStandardCaseColumn on every cell of every row.
+				foreach ($fullCaseRow as $key=>$value) {
+					$keysStandardCased[$key] = $this->dbConnection->toStandardCaseColumn($key);
+				}
+				$firstLine = false;
+			}
+			foreach ($fullCaseRow as $key=>$value) {
+				$row[$keysStandardCased[$key]]=$value;
+			}
+			$pk_table = $this->primary_keys[$table_name];
+			if (count($pk_table)==1)
+			{
+				if (!isset($keysStandardCased[$pk_table[0]])) {
+					throw new TDBMException("Bad SQL request passed to getObjectsFromSQL. The SQL request should return all the rows from the '$table_name' table. Could not find primary key in this set of rows. SQL request passed: ".$sql);
+				}
+				$id = $row[$keysStandardCased[$pk_table[0]]];
+			}
+			else
+			{
+				// Let's generate the serialized primary key from the columns!
+				$ids = array();
+				foreach ($pk_table as $pk) {
+					$ids[] = $row[$keysStandardCased[$pk]];
+				}
+				$id = serialize($ids);
+			}
+			if (!isset($this->objects[$table_name][$id]))
+			{
+				if ($className == null) {
+					$obj = new TDBMObject($this, $table_name, $id);
+				} elseif (is_string($className)) {
+					if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
+						throw new TDBMException("Error while calling TDBM: The class ".$className." should extend TDBMObject.");
+					}
+					$obj = new $className($this, $table_name, $id);
+				} else {
+					throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
+				}
+				$this->objects[$table_name][$id] = $obj;
+				$this->objects[$table_name][$id]->loadFromRow($row);
+			} elseif ($this->objects[$table_name][$id]->_getStatus() == "not loaded") {
+				$this->objects[$table_name][$id]->loadFromRow($row);
+				// Check that the object fetched from cache is from the requested class.
+				if ($className != null) {
+					if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) && get_class($this->objects[$table_name][$id]) != $className) {
+						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
+					}
+				}
+			} else {
+				// Check that the object fetched from cache is from the requested class.
+				if ($className != null) {
+					$className = ltrim($className, '\\');
+					if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) && get_class($this->objects[$table_name][$id]) != $className) {
+						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
+					}
+				}
+			}
+			yield $this->objects[$table_name][$id];
+		}
+		$result->closeCursor();
+		$result = null;
 	}
 
 	/**
@@ -1160,7 +1344,7 @@ class TDBMService {
 	 * @param integer $limit The maximum number of rows returned
 	 * @param string $className Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
 	 * @param unknown_type $hint_path Hints to get the path for the query (expert parameter, you should leave it to null).
-	 * @return TDBMObjectArray A TDBMObjectArray containing the resulting objects of the query.
+	 * @return array|Generator|TDBMObjectArray An array or object containing the resulting objects of the query.
 	 */
 	public function getObjectsByMode($mode, $table_name, $filter_bag=null, $orderby_bag=null, $from=null, $limit=null, $className=null, $hint_path=null) {
 		$this->completeSave();

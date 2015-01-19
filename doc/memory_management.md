@@ -17,23 +17,23 @@ foreach ($users as $user) {
 
 If your dataset is big enough, you are almost sure to get an *out of memory* error.
 
-Why? The `$users` object is a `TDBMObjectArray`. This objects keeps a reference of all `UserBean` objects
+Why? The `$users` array keeps a reference of all `UserBean` objects
 that have been fetched from the database. Therefore, as the array fills, the memory gets low.
 
-What you want to do is to instruct the `TDBMObjectArray` not to keep a reference of records that have already
-been processed in the `foreach` loop.
+What you want to do is to get a **cursor** instead of an array of results. As you iterate the
+cursor, it will not keep a reference of records that have already been processed in the `foreach` loop.
 
 To do this, you simply need to use the **cursor** mode:
 
 ```php
+Mouf::getUserService()->setMode(TDBMService::MODE_CURSOR);
 $users = Mouf::getUserDao->getList();
-$users->setMode(TDBMObjectArray::MODE_CURSOR);
 foreach ($users as $user) {
 	// Do stuff
 }
 ```
 
-In **cursor** mode, the `TDBMObjectArray` will not keep track of previously processed records.
+In **cursor** mode, the `$users` variable is no more an array, but a PHP 5.5 [Generator](http://php.net/manual/fr/language.generators.syntax.php).
 
 <div class="alert alert-info">Using the cursor mode has a number of drawbacks. In particular,
 the cursor cannot be rewinded. This means you will not be able to perform 2 successive "foreach"
