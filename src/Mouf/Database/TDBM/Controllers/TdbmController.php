@@ -10,6 +10,7 @@ use Mouf\MoufManager;
 use Mouf\Reflection\MoufReflectionProxy;
 
 use Mouf\MoufUtils;
+use Mouf\InstanceProxy;
 
 /**
  * The controller to generate automatically the Beans, Daos, etc...
@@ -95,7 +96,7 @@ class TdbmController extends AbstractMoufInstanceController {
 		$this->initController($name, $selfedit);
 
 		self::generateDaos($this->moufManager, $name, $sourcedirectory, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $selfedit, $keepSupport, $storeInUtc);
-				
+
 		// TODO: better: we should redirect to a screen that list the number of DAOs generated, etc...
 		header("Location: ".ROOT_URL."ajaxinstance/?name=".urlencode($name)."&selfedit=".$selfedit);
 	}
@@ -136,27 +137,15 @@ class TdbmController extends AbstractMoufInstanceController {
 			$beannamespace = substr($beannamespace, 0, strlen($beannamespace)-1);
 		}
 		
+		$tdbmService = new InstanceProxy($name);
+		/* @var $tdbmService TDBMService */
+		$tables = $tdbmService->generateAllDaosAndBeans($daofactoryclassname, $sourcedirectory, $daonamespace, $beannamespace, $keepSupport, $storeInUtc);
 		
-		
-		$url = MoufReflectionProxy::getLocalUrlToProject()."../database.tdbm/src/generateDaos.php?name=".urlencode($name)."&selfedit=".$selfedit."&sourcedirectory=".urlencode($sourcedirectory)."&daofactoryclassname=".urlencode($daofactoryclassname)."&daonamespace=".urlencode($daonamespace)."&beannamespace=".urlencode($beannamespace)."&support=".urlencode($keepSupport)."&storeInUtc=".urlencode($storeInUtc);
-		$response = self::performRequest($url);
-		
-		/*if (trim($response) != "") {
-			throw new Exception($response);
-		}*/
-		
-		$xmlRoot = simplexml_load_string($response);
-		
-		if ($xmlRoot == null) {
-			throw new \Exception("An error occured while retrieving message: ".$response);
-		}
-
 		$moufManager->declareComponent($daofactoryinstancename, $daonamespace."\\".$daofactoryclassname, false, MoufManager::DECLARE_ON_EXIST_KEEP_INCOMING_LINKS);
 		
-		foreach ($xmlRoot->table as $table) {
+		foreach ($tables as $table) {
 			$daoName = TDBMDaoGenerator::getDaoNameFromTableName($table);
-			//$moufManager->addRegisteredComponentFile($daodirectory."/".$daoName.".php");
-
+		
 			$instanceName = TDBMDaoGenerator::toVariableName($daoName);
 			if (!$moufManager->instanceExists($instanceName)) {
 				$moufManager->declareComponent($instanceName, $daonamespace."\\".$daoName);
@@ -165,28 +154,7 @@ class TdbmController extends AbstractMoufInstanceController {
 			$moufManager->bindComponentViaSetter($daofactoryinstancename, "set".$daoName, $instanceName);
 		}
 		
-		//$moufManager->addRegisteredComponentFile($daodirectory."/".$daofactoryclassname.".php");
-		
 		$moufManager->rewriteMouf();
 	}
-	
-	private static function performRequest($url) {
-		// preparation de l'envoi
-		$ch = curl_init();
-				
-		curl_setopt( $ch, CURLOPT_URL, $url);
 		
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, TRUE );
-		curl_setopt( $ch, CURLOPT_POST, FALSE );
-		
-		if( curl_error($ch) ) { 
-			throw new \Exception("TODO: texte de l'erreur curl");
-		} else {
-			$response = curl_exec( $ch );
-		}
-		curl_close( $ch );
-		
-		return $response;
-	}
-	
 }
