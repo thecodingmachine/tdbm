@@ -57,7 +57,7 @@ class OrFilter implements FilterInterface {
 	 * Default constructor to build the filter.
 	 * All parameters are optional and can later be set using the setters.
 	 * 
-	 * @param array<FilterInterface> $filter
+	 * @param array<FilterInterface> $filters
 	 */
 	public function __construct($filters=null) {
 		$this->filters = $filters;
@@ -68,8 +68,9 @@ class OrFilter implements FilterInterface {
 	 *
 	 * @param ConnectionInterface $dbConnection
 	 * @return string
+     * @throws TDBMException
 	 */
-	public function toSql(ConnectionInterface $dbConnection) {
+    public function toSql(ConnectionInterface $dbConnection) {
 		if ($this->enableCondition != null && !$this->enableCondition->isOk()) {
 			return "";
 		}
