@@ -132,14 +132,18 @@ class TdbmInstallController extends Controller {
 		$this->template->toHtml();
 	}
 	
-	/**
-	 * This action generates the TDBM instance, then the DAOs and Beans. 
-	 * 
-	 * @Action
-	 * @param string $name
-	 * @param bool $selfedit
-	 */
-	public function generate($sourcedirectory, $daonamespace, $beannamespace, $keepSupport = 0, $storeInUtc = 0, $selfedit="false") {
+    /**
+     * This action generates the TDBM instance, then the DAOs and Beans.
+     *
+     * @Action
+     * @param string $sourcedirectory
+     * @param string $daonamespace
+     * @param string $beannamespace
+     * @param int $keepSupport
+     * @param int $storeInUtc
+     * @param string $selfedit
+     */
+    public function generate($sourcedirectory, $daonamespace, $beannamespace, $keepSupport = 0, $storeInUtc = 0, $selfedit="false") {
 		$this->selfedit = $selfedit;
 		
 		if ($selfedit == "true") {
