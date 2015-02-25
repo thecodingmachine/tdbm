@@ -70,4 +70,3 @@ class AmbiguityException extends TDBMException {
 		return $return_table_paths;
 	}
 }
-?>

@@ -147,4 +147,3 @@ class DisplayNode {
 		return $str;
 	}
 }
-?>
