@@ -549,7 +549,16 @@ class $baseClassName implements DAOInterface
 	public function delete(\$obj) {
 		\$this->tdbmService->deleteObject(\$obj);
 	}
-	
+
+    /**
+	 * Deletes the $beanClassWithoutNameSpace passed in parameter and all object that are linked to it.
+	 *
+	 * @param $beanClassWithoutNameSpace \$obj
+	 */
+	public function deleteCascade(\$obj) {
+		\$this->tdbmService->deleteCascade(\$obj);
+	}
+
 	/**
 	 * Get a list of $beanClassWithoutNameSpace specified by its filters.
 	 *

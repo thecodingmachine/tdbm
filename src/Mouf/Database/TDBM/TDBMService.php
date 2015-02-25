@@ -530,6 +530,39 @@ class TDBMService {
 		}
 	}
 
+    /**
+     * This function removes the given object from the database. It will also remove all objects relied to the one given
+     * by parameter before all.
+     *
+     * Notice: if the object has a multiple primary key, the function will not work.
+     *
+     * @param TDBMObject $objToDelete
+     */
+    public function deleteCascade(TDBMObject $objToDelete) {
+        $this->deleteAllConstraintWithThisObject($objToDelete);
+        $this->deleteObject($objToDelete);
+    }
+
+    /**
+     * This function is used only in TDBMService (private function)
+     * It will call deleteCascade function foreach object relied with a foreign key to the object given by parameter
+     *
+     * @param TDBMObject $obj
+     * @return TDBMObjectArray
+     */
+    private function deleteAllConstraintWithThisObject(TDBMObject $obj) {
+        $table = $obj->_getDbTableName();
+        $constraints = $this->dbConnection->getConstraintsFromTable($table);
+        foreach ($constraints as $constraint) {
+            $sql = "SELECT DISTINCT ".$constraint["table1"].".* FROM ".$table." LEFT JOIN ".$constraint["table1"]." ON ".$table.".".$constraint["col2"]." = ".$constraint["table1"].".".$constraint["col1"]
+                ." WHERE ".$table.".". $this->dbConnection->escapeDBItem($obj->getPrimaryKey()[0])."=".$this->dbConnection->quoteSmart($obj->TDBMObject_id);
+            $result = $this->getObjectsFromSQL($constraint["table1"], $sql);
+            foreach ($result as $tdbmObj) {
+                $this->deleteCascade($tdbmObj);
+            }
+        }
+    }
+
 	/**
 	 * The getObjectsFromSQL is used to retrieve objects from the database using a full SQL query.
 	 * The TDBM library is designed to make the SQL query instead of you.
