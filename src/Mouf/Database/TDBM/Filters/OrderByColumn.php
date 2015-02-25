@@ -84,7 +84,7 @@ class OrderByColumn implements OrderByInterface {
 	 * 
 	 * @param string $tableName
 	 * @param string $columnName
-	 * @param string $value
+	 * @param string $order
 	 */
 	public function __construct($tableName=null, $columnName=null, $order=null) {
 		$this->tableName = $tableName;
