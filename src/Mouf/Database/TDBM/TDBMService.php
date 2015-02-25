@@ -551,11 +551,18 @@ class TDBMService {
      * @return TDBMObjectArray
      */
     private function deleteAllConstraintWithThisObject(TDBMObject $obj) {
-        $table = $obj->_getDbTableName();
-        $constraints = $this->dbConnection->getConstraintsFromTable($table);
+        $tableFrom = $this->dbConnection->escapeDBItem($obj->_getDbTableName());
+        $constraints = $this->dbConnection->getConstraintsFromTable($tableFrom);
         foreach ($constraints as $constraint) {
-            $sql = "SELECT DISTINCT ".$constraint["table1"].".* FROM ".$table." LEFT JOIN ".$constraint["table1"]." ON ".$table.".".$constraint["col2"]." = ".$constraint["table1"].".".$constraint["col1"]
-                ." WHERE ".$table.".". $this->dbConnection->escapeDBItem($obj->getPrimaryKey()[0])."=".$this->dbConnection->quoteSmart($obj->TDBMObject_id);
+            $tableTo = $this->dbConnection->escapeDBItem($constraint["table1"]);
+            $colFrom = $this->dbConnection->escapeDBItem($constraint["col2"]);
+            $colTo = $this->dbConnection->escapeDBItem($constraint["col1"]);
+            $idVarName = $this->dbConnection->escapeDBItem($obj->getPrimaryKey()[0]);
+            $idValue = $this->dbConnection->quoteSmart($obj->TDBMObject_id);
+            $sql = "SELECT DISTINCT ".$tableTo.".*"
+                    ." FROM ".$tableFrom
+                    ." LEFT JOIN ".$tableTo." ON ".$tableFrom.".".$colFrom." = ".$tableTo.".".$colTo
+                    ." WHERE ".$tableFrom.".".$idVarName."=".$idValue;
             $result = $this->getObjectsFromSQL($constraint["table1"], $sql);
             foreach ($result as $tdbmObj) {
                 $this->deleteCascade($tdbmObj);
