@@ -17,10 +17,6 @@ class AmbiguityException extends TDBMException {
 	}
 
 	public function explainAmbiguity() {
-		//var_dump($this->paths);
-		//echo 'Yop<br>';
-		//var_dump($this->getAllPossiblePathsRec($this->paths));
-		//var_dump($this->getAllPossiblePaths());
 		$all_paths = $this->getAllPossiblePaths();
 
 		$i=0;
@@ -49,19 +45,7 @@ class AmbiguityException extends TDBMException {
 	}
 
 	private function getAllPossiblePaths() {
-		/*$demultiplied_paths = array();
-		 foreach (AmbiguityException::getAllPossiblePathsRec($this->paths) as $path)
-		 {
-			$temp_path = array();
-			$temp_path['name']=$this->paths[0]['name'];
-			$temp_path = array_merge($temp_path, $path);
-			$demultiplied_paths[] = $temp_path;
-			}*/
-		//foreach ($this->paths as $path) {
-			
-		//}
-		//return $demultiplied_paths;
-		return AmbiguityException::getAllPossiblePathsRec($this->paths);
+        return AmbiguityException::getAllPossiblePathsRec($this->paths);
 	}
 
 	private static function getAllPossiblePathsRec($sub_table_paths)

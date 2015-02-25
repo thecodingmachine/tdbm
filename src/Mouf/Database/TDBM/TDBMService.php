@@ -1774,7 +1774,13 @@ class TDBMService {
 	/**
 	 * This function returns the HTML to draw a tree of DisplayNode.
 	 *
-	 * @param unknown_type $tree
+	 * @param DisplayNode $tree
+     * @param int $x
+     * @param int $y
+     * @param int $ret_width
+     * @param int $ret_height
+     *
+     * @return string
 	 */
 	public function drawTree($tree, $x, $y, &$ret_width=0, &$ret_height=0) {
 
@@ -1790,7 +1796,6 @@ class TDBMService {
 		$str .= $tree->draw(0,0, $x, $y);
 
 		return $str;
-
 	}
 
 	/**
