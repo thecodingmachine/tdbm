@@ -2,6 +2,7 @@
 namespace Mouf\Database\TDBM;
 
 use Mouf\Database\DBConnection\ConnectionInterface;
+
 /*
  Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE
 
@@ -26,9 +27,7 @@ use Mouf\Database\DBConnection\ConnectionInterface;
  *
  */
 class TDBMObjectArrayCursorIterator implements \Iterator, \Countable {
-	
-	
-	
+
 	/**
 	 *
 	 * @var PDOStatement
@@ -70,10 +69,11 @@ class TDBMObjectArrayCursorIterator implements \Iterator, \Countable {
 	
 	/**
 	 * Casts a document to a new instance specified in the $recordClass
-	 * @param array $item
+	 * @param array $fullCaseRow
 	 * @return Record_Abstract|false
+     * @throws TDBMException
 	 */
-	protected function cast($fullCaseRow)
+    protected function cast($fullCaseRow)
 	{
 		if (!is_array($fullCaseRow)) {
 			return false;
@@ -250,7 +250,7 @@ class TDBMObjectArrayCursorIterator implements \Iterator, \Countable {
 	/**
 	 * Fetches all records (this could impact into your site performance) and rewinds the cursor
 	 * @param boolean $asRecords Bind into record class?
-	 * @return array[Record_PDO|array] Array of records or arrays (depends on $asRecords)
+	 * @return array[Record_PDO]|array[array] Array of records or arrays (depends on $asRecords)
 	 */
 	public function getAll($asRecords = true)
 	{
@@ -265,14 +265,10 @@ class TDBMObjectArrayCursorIterator implements \Iterator, \Countable {
 		return $all;
 	}
 	/**
-	 *
 	 * @return PDOStatement
 	 */
 	public function getPDOStatement()
 	{
 		return $this->pdoStatement;
 	}
-	
-	
-
 }

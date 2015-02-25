@@ -118,9 +118,7 @@ class DisplayNode {
 		$my_y_px = $top_px + DisplayNode::$top_start + $y*(DisplayNode::$box_height + DisplayNode::$interspace_height);
 
 		// White background first
-		/*$str = "<div style='position:absolute; left:".$my_x_px."px; top:".$my_y_px."px; width:".($mybox_width_px+$interspace_width)."px; height:".($box_height+$interspace_height)."; background-color:white;'></div>";
-		*/
-		$str .= "<div style='position:absolute; left:".$my_x_px."px; top:".$my_y_px."px; width:".$mybox_width_px."px; height:".DisplayNode::$box_height."; background-color:gray; color: white; text-align:center; border:".DisplayNode::$border."px solid black'>\n<b>".$this->table_name."</b></div>";
+		$str = "<div style='position:absolute; left:".$my_x_px."px; top:".$my_y_px."px; width:".$mybox_width_px."px; height:".DisplayNode::$box_height."; background-color:gray; color: white; text-align:center; border:".DisplayNode::$border."px solid black'>\n<b>".$this->table_name."</b></div>";
 
 		if ($this->keyParent != null) {
 			$my_x_px_line = $my_x_px + DisplayNode::$box_width/2;
@@ -149,4 +147,3 @@ class DisplayNode {
 		return $str;
 	}
 }
-?>

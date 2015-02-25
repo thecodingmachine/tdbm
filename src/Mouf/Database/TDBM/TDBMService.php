@@ -80,8 +80,6 @@ class TDBMService {
 	 */
 	private $commitOnQuit = false;
 
-	private $table_descs;
-
 	/**
 	 * Cache of table of primary keys.
 	 * Primary keys are stored by tables, as an array of column.
@@ -500,7 +498,6 @@ class TDBMService {
 	public function deleteObject(TDBMObject $object) {
 		if ($object->getTDBMObjectState() != "new" && $object->getTDBMObjectState() != "deleted")
 		{
-			//$primary_key = $object->getPrimaryKey();
 			$pk_table = $object->getPrimaryKey();
 			// Now for the object_id
 			$object_id = $object->TDBMObject_id;
@@ -519,7 +516,7 @@ class TDBMService {
 			}
 
 
-			$sql = 'DELETE FROM '.$this->dbConnection->escapeDBItem($object->_getDbTableName()).' WHERE '.$sql_where/*.$primary_key."='".plainstring_to_dbprotected($object->TDBMObject_id)."'"*/;
+			$sql = 'DELETE FROM '.$this->dbConnection->escapeDBItem($object->_getDbTableName()).' WHERE '.$sql_where;
 			$result = $this->dbConnection->exec($sql);
 
 			if ($result != 1)
@@ -529,6 +526,46 @@ class TDBMService {
 			$object->setTDBMObjectState("deleted");
 		}
 	}
+
+    /**
+     * This function removes the given object from the database. It will also remove all objects relied to the one given
+     * by parameter before all.
+     *
+     * Notice: if the object has a multiple primary key, the function will not work.
+     *
+     * @param TDBMObject $objToDelete
+     */
+    public function deleteCascade(TDBMObject $objToDelete) {
+        $this->deleteAllConstraintWithThisObject($objToDelete);
+        $this->deleteObject($objToDelete);
+    }
+
+    /**
+     * This function is used only in TDBMService (private function)
+     * It will call deleteCascade function foreach object relied with a foreign key to the object given by parameter
+     *
+     * @param TDBMObject $obj
+     * @return TDBMObjectArray
+     */
+    private function deleteAllConstraintWithThisObject(TDBMObject $obj) {
+        $tableFrom = $this->dbConnection->escapeDBItem($obj->_getDbTableName());
+        $constraints = $this->dbConnection->getConstraintsFromTable($tableFrom);
+        foreach ($constraints as $constraint) {
+            $tableTo = $this->dbConnection->escapeDBItem($constraint["table1"]);
+            $colFrom = $this->dbConnection->escapeDBItem($constraint["col2"]);
+            $colTo = $this->dbConnection->escapeDBItem($constraint["col1"]);
+            $idVarName = $this->dbConnection->escapeDBItem($obj->getPrimaryKey()[0]);
+            $idValue = $this->dbConnection->quoteSmart($obj->TDBMObject_id);
+            $sql = "SELECT DISTINCT ".$tableTo.".*"
+                    ." FROM ".$tableFrom
+                    ." LEFT JOIN ".$tableTo." ON ".$tableFrom.".".$colFrom." = ".$tableTo.".".$colTo
+                    ." WHERE ".$tableFrom.".".$idVarName."=".$idValue;
+            $result = $this->getObjectsFromSQL($constraint["table1"], $sql);
+            foreach ($result as $tdbmObj) {
+                $this->deleteCascade($tdbmObj);
+            }
+        }
+    }
 
 	/**
 	 * The getObjectsFromSQL is used to retrieve objects from the database using a full SQL query.
@@ -641,7 +678,6 @@ class TDBMService {
 				$returned_objects[] = $this->objects[$table_name][$id];
 			}
 			$result->closeCursor();
-			$result = null;
 			return $returned_objects;
 		} elseif ($this->mode == self::MODE_CURSOR) {
 			return $this->getObjectsFromSQLGenerator($result, $table_name, $className, $sql);
@@ -741,7 +777,7 @@ class TDBMService {
 	 * }
 	 *
 	 */
-	function completeSave() {
+	public function completeSave() {
 
 		if (is_array($this->tosave_objects))
 		{
@@ -801,7 +837,7 @@ class TDBMService {
 	 * the changes will be retrieved when we access the object again.
 	 *
 	 */
-	function completeSaveAndFlush() {
+	public function completeSaveAndFlush() {
 		$this->completeSave();
 
 		$this->objectStorage->apply(function(TDBMObject $object) {
@@ -871,7 +907,6 @@ class TDBMService {
 		$path = array();
 		$queue = array(array($table,array()));
 
-		//$found_paths=array();
 		$found = false;
 		$found_depth = 0;
 
@@ -907,7 +942,6 @@ class TDBMService {
 				}
 				if ($ret==true)
 				{
-
 					// Ok, we got one, we will continue a bit more until we reach the next level in the tree,
 					// just to see if there is no ambiguity
 					//$found_paths[] = $path;
@@ -952,9 +986,6 @@ class TDBMService {
 				}
 
 				$ambiguity = true;
-
-				//throw new TDBMException($msg);
-				//throw new AmbiguityException($msg, $tables_paths);
 			}
 
 			if (!$ambiguity) {
@@ -1052,8 +1083,6 @@ class TDBMService {
 		$current_table = $current_vars[0];
 		$path = $current_vars[1];
 
-		//echo '-'.$current_table.'-';
-		//echo '.';
 		foreach ($target_tables as $id=>$target_table) {
 			if ($target_table['name'] == $current_table && (!isset($target_table['founddepth']) || $target_table['founddepth']==null || $target_table['founddepth']==count($path))) {
 				// When a path is found to a table, we mark the table as found with its depth.
@@ -1061,7 +1090,6 @@ class TDBMService {
 
 				// Then we add the path to table to the target_tables array
 				$target_tables[$id]['paths'][] = $path;
-				//echo "found: ".$target_table;
 				// If all tables have been found, return true!
 				$found = true;
 				foreach ($target_tables as $test_table) {
@@ -1076,10 +1104,6 @@ class TDBMService {
 
 		}
 
-		/*if ($target_table == $current_table) {
-			return true;
-		}*/
-
 		// Let's start with 1*
 		$constraints = $this->dbConnection->getConstraintsFromTable($current_table);
 
@@ -1089,10 +1113,6 @@ class TDBMService {
 			$col1 = $constraint['col1'];
 			$col2 = $constraint['col2'];
 
-			/*if ($visited[$table1][$col1]==true)
-				continue;
-			else
-			$visited[$table1][$col1]=true;*/
 			// Go through the path to see if we ever have gone through this link
 			$already_done = false;
 			foreach ($path as $previous_constraint)
@@ -1128,23 +1148,17 @@ class TDBMService {
 			$table2 = $constraint['table2'];
 			$col2 = $constraint['col2'];
 			$col1 = $constraint['col1'];
-			/*if ($visited[$table2][$col2]==true)
-				continue;
-			else
-			$visited[$table2][$col2]=true;*/
+
 			$already_done = false;
 			foreach ($path as $previous_constraint)
 			{
-				//echo "TTTT".$table2." ".$col2."AAAA".$previous_constraint["table1"]." ".$previous_constraint["col1"]."YYYY".$previous_constraint["type"]."PPP";
 				if ($previous_constraint['type']=='1*' && $table2 == $previous_constraint["table2"] && $col2 == $previous_constraint["col2"])
 				{
-					//echo  "YOUHOU3! $table2 $col2";
 					$already_done = true;
 					break;
 				}
 				elseif ($previous_constraint['type']=='*1' && $table2 == $previous_constraint["table1"] && $col2 == $previous_constraint["col1"])
 				{
-					//echo "YOUHOU4! $table2 $col2";
 					$already_done = true;
 					break;
 				}
@@ -1388,7 +1402,6 @@ class TDBMService {
 
 		if (count($needed_table_array)==0)
 		{
-			//$table_number = 1;
 			$sql = $this->dbConnection->escapeDBItem($table_name); //Make by Pierre PIV (add escapeDBItem)
 
 			if ($mode == 'explainTree')
@@ -1421,8 +1434,6 @@ class TDBMService {
 			$sql = $this->dbConnection->escapeDBItem($constraint['table2']);
 
 			foreach ($flat_path as $constraint) {
-				//$previous_table_number = $table_number;
-				//$table_number++;
 				$table1 = $constraint['table2'];
 				$table2 = $constraint['table1'];
 				$col2 = $constraint['col1'];
@@ -1442,13 +1453,7 @@ class TDBMService {
 			// Mais comment gÃ©rer Ã§a sans plomber les perfs et en utilisant le path fourni?????
 
 			$path = $this->getPathFromCache($table_name, $target_table_table);
-			
-			/*
-			 echo 'beuuuh';
-			var_dump($needed_table_array_for_orderby);
-			var_dump($path);
-			var_dump($target_table_table);
-			*/
+
 			/**********************************
 			 * Modifier par Marc de *1 vers 1*
 			* (sur les conseils de David !)
@@ -1566,21 +1571,14 @@ class TDBMService {
 				$pk_table = $thing->getPrimaryKey();
 				// If there is only one primary key:
 				if (count($pk_table)==1) {
-					//$sql_where = "t1".$pk_table[0]."=".$this->db_connection->quoteSmart($this->TDBMObject_id);
 					$filter_bag2[] = new EqualFilter($thing->_getDbTableName(), $pk_table[0], $thing->$pk_table[0]);
 				} else {
-					//$ids = unserialize($this->TDBMObject_id);
-					//$i=0;
 					$filter_bag_temp_and=array();
 					foreach ($pk_table as $pk) {
 						$filter_bag_temp_and[] = new EqualFilter($thing->_getDbTableName(), $pk, $thing->$pk);
 					}
 					$filter_bag2[] = new AndFilter($filter_bag_temp_and);
-					//$sql_where = implode(" AND ",$sql_where_array);
 				}
-				//$primary_key = $thing->getPrimaryKey();
-
-				//$filter_bag2[] = new EqualFilter($thing->_getDbTableName(), $primary_key, $thing->$primary_key);
 			} elseif (is_string($thing)) {
 				$filter_bag2[] = new SqlStringFilter($thing);
 			} elseif (is_a($thing,'Mouf\\Database\\TDBM\\TDBMObjectArray') && count($thing)>0) {
@@ -1657,9 +1655,10 @@ class TDBMService {
 	 * Takes in entry an array of table names.
 	 * Throws a TDBMException if one of those table does not exist.
 	 *
-	 * @param unknown_type $tables
+	 * @param array $tables
+     * @throws TDBMException
 	 */
-	private function checkTablesExist($tables) {
+    private function checkTablesExist($tables) {
 		foreach ($tables as $table) {
 			$possible_tables = $this->dbConnection->checkTableExist($table);
 			if ($possible_tables !== true)
@@ -1680,13 +1679,7 @@ class TDBMService {
 	 * @param unknown_type $table_paths
 	 */
 	public function getTablePathsTree($table_paths) {
-		//var_dump($table_paths);
 		$tree = new DisplayNode($table_paths[0]['paths'][0][0]['table2']);
-
-		/*if ($table_paths[0]['paths'][0][0]['link']=='*1')
-			$tree = new DisplayNode($table_paths[0]['paths'][0][0]['table2']);
-		else
-		$tree = new DisplayNode($table_paths[0]['paths'][0][0]['table1']);*/
 
 		foreach ($table_paths as $table_path) {
 			$path = $table_path['paths'][0];
@@ -1723,10 +1716,6 @@ class TDBMService {
 				if ($found==false)
 				{
 					$current_node = new DisplayNode($link['table1'], $current_node, $link['type'], $link['col2'], $link['col1']);
-					/*if ($link['type']=='*1')
-						$current_node = new DisplayNode($link['table1'], $current_node, $link['type'], $link['col2'], $link['col1']);
-					else
-					$current_node = new DisplayNode($link['table2'], $current_node, $link['type'], $link['col1'], $link['col2']);*/
 				}
 			}
 
@@ -1741,7 +1730,13 @@ class TDBMService {
 	/**
 	 * This function returns the HTML to draw a tree of DisplayNode.
 	 *
-	 * @param unknown_type $tree
+	 * @param DisplayNode $tree
+     * @param int $x
+     * @param int $y
+     * @param int $ret_width
+     * @param int $ret_height
+     *
+     * @return string
 	 */
 	public function drawTree($tree, $x, $y, &$ret_width=0, &$ret_height=0) {
 
@@ -1757,7 +1752,6 @@ class TDBMService {
 		$str .= $tree->draw(0,0, $x, $y);
 
 		return $str;
-
 	}
 
 	/**

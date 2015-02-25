@@ -4,7 +4,6 @@ namespace Mouf\Database\TDBM\Utils;
 use Mouf\Database\DBConnection\CachedConnection;
 use Mouf\Database\DBConnection\ConnectionInterface;
 
-
 /**
  * This class generates automatically DAOs and Beans for TDBM.
  *
@@ -76,10 +75,6 @@ class TDBMDaoGenerator {
 	 * @return string[] the list of tables
 	 */
 	public function generateAllDaosAndBeans($daoFactoryClassName, $sourcedirectory, $daonamespace, $beannamespace, $support, $storeInUtc) {
-		
-		//$this->daodirectory = $daodirectory;
-		//$this->beandirectory = $beandirectory;
-		
 		// TODO: migrate $this->daoNamespace to $daonamespace that is passed in parameter!
 		$this->daoNamespace = $daonamespace;
 		$this->beanNamespace = $beannamespace;
@@ -127,7 +122,6 @@ class TDBMDaoGenerator {
 	 * @param $tableName
 	 */
 	public function generateDaoAndBean($tableName) {
-		//$baseClassName = TDBMDaoGenerator::toSingular(TDBMDaoGenerator::toCamelCase($tableName));
 		$daoName = $this->getDaoNameFromTableName($tableName);
 		$beanName = $this->getBeanNameFromTableName($tableName);
 		$baseBeanName = $this->getBaseBeanNameFromTableName($tableName);
@@ -181,7 +175,6 @@ class TDBMDaoGenerator {
 	 * @param string $tableName The name of the table
 	 */	
 	public function generateBean($fileName, $className, $baseFileName, $baseClassName, $tableName) {
-		//$tableInfo = $this->dbConnection->getTableInfo($tableName);
 		$table = $this->dbConnection->getTableFromDbModel($tableName);
 
 		// List of methods already written.
@@ -549,7 +542,16 @@ class $baseClassName implements DAOInterface
 	public function delete(\$obj) {
 		\$this->tdbmService->deleteObject(\$obj);
 	}
-	
+
+    /**
+	 * Deletes the $beanClassWithoutNameSpace passed in parameter and all object that are linked to it.
+	 *
+	 * @param $beanClassWithoutNameSpace \$obj
+	 */
+	public function deleteCascade(\$obj) {
+		\$this->tdbmService->deleteCascade(\$obj);
+	}
+
 	/**
 	 * Get a list of $beanClassWithoutNameSpace specified by its filters.
 	 *
@@ -753,8 +755,7 @@ class $daoFactoryClassName
 		$str .= '
 }
 ?>';
-		
-		//$daoDirectory = dirname(__FILE__)."/../../../../../dao/";
+
 		file_put_contents($this->daoDirectory.$daoFactoryClassName.'.php' ,$str);
 	}
 	
@@ -870,4 +871,3 @@ class $daoFactoryClassName
 		return strtolower(substr($str, 0, 1)).substr($str, 1);
 	}
 }
-?>

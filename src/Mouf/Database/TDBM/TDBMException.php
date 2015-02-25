@@ -9,4 +9,3 @@ namespace Mouf\Database\TDBM;
 class TDBMException extends \Exception {
 
 }
-?>

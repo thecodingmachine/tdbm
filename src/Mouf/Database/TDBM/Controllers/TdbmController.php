@@ -156,5 +156,4 @@ class TdbmController extends AbstractMoufInstanceController {
 		
 		$moufManager->rewriteMouf();
 	}
-		
 }
