@@ -5,7 +5,6 @@ use Mouf\Database\TDBM\TDBMException;
 
 use Mouf\Database\DBConnection\ConnectionInterface;
 
-
 /*
  Copyright (C) 2006-2011 David Négrier - THE CODING MACHINE
 
@@ -48,7 +47,7 @@ class AndFilter implements FilterInterface {
 	 * Default constructor to build the filter.
 	 * All parameters are optional and can later be set using the setters.
 	 * 
-	 * @param array<FilterInterface> $filter
+	 * @param array<FilterInterface> $filters
 	 */
 	public function __construct($filters=null) {
 		$this->filters = $filters;
