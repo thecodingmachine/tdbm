@@ -74,9 +74,7 @@ class OrderBySQLString implements OrderByInterface {
 		if ($this->enableCondition != null && !$this->enableCondition->isOk()) {
 			return array();
 		}
-		
-		
-		
+
 		// First, let's implode the SQL string from the commas
 		$comma_array = explode(',', $this->sqlString);
 
@@ -104,7 +102,6 @@ class OrderBySQLString implements OrderByInterface {
 				else
 				{
 					$valid_result = true;
-					//echo '-'.$phrase{$result-1}.'-';
 					if ($result>0 && $phrase{$result-1}=='\\') {
 						$valid_result = false;
 					}
@@ -114,8 +111,6 @@ class OrderBySQLString implements OrderByInterface {
 			}
 
 		}
-
-		
 		return $comma_array_2;
 	}
 
@@ -137,20 +132,20 @@ class OrderBySQLString implements OrderByInterface {
 		// Now, let's split the string using '
 		$work_table = explode("'", $work_str);
 
-		if (count($work_table)==0)
-		return '';
+		if (count($work_table) == 0)
+		    return '';
 
 		// if we start with a ', let's remove the first text
-		if (strstr($work_str,"'")===0)
-		array_shift($work_table);
+		if (strstr($work_str,"'") === 0)
+		    array_shift($work_table);
 			
-		if (count($work_table)==0)
-		return '';
+		if (count($work_table) == 0)
+		    return '';
 
 		// Now, let's take only the stuff outside the quotes.
 		$work_str2 = '';
 
-		$i=0;
+		$i = 0;
 		foreach ($work_table as $str_fragment) {
 			if (($i % 2) == 0)
 			$work_str2 .= $str_fragment.' ';
@@ -158,7 +153,6 @@ class OrderBySQLString implements OrderByInterface {
 		}
 
 		// Now, let's run a regexp to find all the strings matching the pattern xxx.yyy
-		//preg_match_all('/(\w+)\.(?:\w+)/', $work_str2,$capture_result);
 		preg_match_all('/([a-zA-Z_](?:[a-zA-Z0-9_]*))\.(?:[a-zA-Z_](?:[a-zA-Z0-9_]*))/', $work_str2,$capture_result);
 
 		$tables_used = $capture_result[1];
