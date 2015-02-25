@@ -98,7 +98,8 @@ class BetweenFilter implements FilterInterface {
 	 * 
 	 * @param string $tableName
 	 * @param string $columnName
-	 * @param string $value
+     * @param string $value1
+     * @param string $value2
 	 */
 	public function __construct($tableName=null, $columnName=null, $value1=null, $value2=null) {
 		$this->tableName = $tableName;
@@ -112,8 +113,9 @@ class BetweenFilter implements FilterInterface {
 	 *
 	 * @param ConnectionInterface $dbConnection
 	 * @return string
+     * @throws \Mouf\Database\TDBM\TDBMException
 	 */
-	public function toSql(ConnectionInterface $dbConnection) {
+    public function toSql(ConnectionInterface $dbConnection) {
 		if ($this->enableCondition != null && !$this->enableCondition->isOk()) {
 			return "";
 		}
