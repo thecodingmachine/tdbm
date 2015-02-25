@@ -1,5 +1,6 @@
 <?php
 namespace Mouf\Database\TDBM;
+
 /*
  Copyright (C) 2006-2009 David Négrier - THE CODING MACHINE
 
@@ -144,8 +145,7 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 	 * true if the object will save automatically,
 	 * false if an explicit call to save() is required.
 	 *
-	 * @param unknown_type $autoSave
-	 * @return boolean
+	 * @param boolean $autoSave
 	 */
 	public function setAutoSaveMode($autoSave) {
 		$this->db_autosave = $autoSave;
@@ -244,7 +244,6 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 			$fullCaseRow = $result->fetchAll(\PDO::FETCH_ASSOC);
 			
 			$result->closeCursor();
-			$result = null;
 				
 			$this->db_row = array();
 			foreach ($fullCaseRow[0] as $key=>$value)  {
@@ -486,7 +485,7 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 		}
 	}
 
-	function __destruct() {
+	public function __destruct() {
 		// In a destructor, no exception can be thrown (PHP 5 limitation)
 		// So we print the error instead
 		try {
@@ -495,7 +494,6 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 				$this->save();
 			}
 		} catch (\Exception $e) {
-			//echo($e->getMessage());
 			trigger_error($e->getMessage(), E_USER_ERROR);
 		}
 	}
@@ -523,11 +521,12 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 	/**
 	 * Used to implement the get_XXX functions where XXX is a table name.
 	 *
-	 * @param unknown_type $func_name
-	 * @param unknown_type $values
-	 * @return unknown
+	 * @param string $func_name
+	 * @param $values
+     * @return TDBMObjectArray A TDBMObjectArray containing the resulting objects of the query.
+     * @throws TDBMException
 	 */
-	public function __call($func_name, $values) {
+    public function __call($func_name, $values) {
 
 		if (strpos($func_name,"get_") === 0) {
 			$table = substr($func_name,4);
@@ -535,7 +534,6 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 			throw new TDBMException("Method ".$func_name." not found");
 		}
 
-		//return $this->cleverget($table, $values[0]);
 		return $this->tdbmService->getObjects($table, $this, null, null, null, $values[0]);
 	}
 
@@ -575,6 +573,7 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 	 * Implements array behaviour for our object.
 	 * 
 	 * @param string $offset
+     * @return bool
 	 */
     public function offsetExists($offset) {
     	$this->_dbLoadIfNotLoaded();
@@ -592,6 +591,7 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 	 * Implements array behaviour for our object.
 	 * 
 	 * @param string $offset
+     * @return mixed|null
 	 */
     public function offsetGet($offset) {
         return $this->__get($offset);
@@ -644,8 +644,4 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 		$this->_dbLoadIfNotLoaded();
 		return $this->db_row;
 	}
-	
 }
-
-
-?>
