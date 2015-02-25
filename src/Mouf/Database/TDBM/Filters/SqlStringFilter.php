@@ -120,7 +120,6 @@ class SqlStringFilter implements FilterInterface {
 		}
 
 		// Now, let's run a regexp to find all the strings matching the pattern xxx.yyy
-		//preg_match_all('/(\w+)\.(?:\w+)/', $work_str2,$capture_result);
 		preg_match_all('/([a-zA-Z_](?:[a-zA-Z0-9_]*))\.(?:[a-zA-Z_](?:[a-zA-Z0-9_]*))/', $work_str2,$capture_result);
 
 		$tables_used = $capture_result[1];
