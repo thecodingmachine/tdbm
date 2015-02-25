@@ -27,9 +27,7 @@ use Mouf\Database\DBConnection\ConnectionInterface;
  *
  */
 class TDBMObjectArrayCursorIterator implements \Iterator, \Countable {
-	
-	
-	
+
 	/**
 	 *
 	 * @var PDOStatement
