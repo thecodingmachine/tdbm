@@ -62,11 +62,12 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 	 * getarray_column_name returns an array containing the values of the column of the given objects.
 	 * setarray_column_name sets the value of the given column for all the objects.
 	 *
-	 * @param unknown_type $func_name
-	 * @param unknown_type $values
-	 * @return unknown
+	 * @param string $func_name
+	 * @param $values
+	 * @return array|void
+     * @throws TDBMException
 	 */
-	public function __call($func_name, $values) {
+    public function __call($func_name, $values) {
 
 		if (strpos($func_name,"getarray_") === 0) {
 			$column = substr($func_name, 9);
@@ -101,6 +102,4 @@ class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
 	public function jsonSerialize(){
 		return (array) $this;
 	}
-	
-
 }
