@@ -503,7 +503,7 @@ class $baseClassName implements DAOInterface
 	 * Persist the $beanClassWithoutNameSpace instance
 	 *
 	 */
-	public function save($beanClassWithoutNameSpace \$obj) {
+	public function save(\$obj) {
 		\$obj->save();
 	}
 
@@ -540,7 +540,7 @@ class $baseClassName implements DAOInterface
 	 * @param $beanClassWithoutNameSpace \$obj object to delete
 	 * @param boolean \$cascade if true, it will delete all object linked to \$obj
 	 */
-	public function delete($beanClassWithoutNameSpace \$obj, \$cascade=false) {
+	public function delete(\$obj, \$cascade=false) {
 	    if (\$cascade === true)
 		    \$this->tdbmService->deleteObject(\$obj);
         else
