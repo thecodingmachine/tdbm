@@ -13,13 +13,6 @@ Unless you are developing your own autoload system, you should configure <strong
 <?php } ?>
 
 <div class="control-group">
-	<label class="control-label">Source directory:</label>
-	<div class="controls">
-		<input type="text" name="sourcedirectory" value="<?php echo plainstring_to_htmlprotected($this->sourceDirectory) ?>"></input>
-		<span class="help-block">This is the directory containing your source code (it should be configured in your the "autoload" section of your <em>composer.json</em> file.</span>
-	</div>
-</div>
-<div class="control-group">
 	<label class="control-label">Dao namespace:</label>
 	<div class="controls">
 		<input type="text" name="daonamespace" value="<?php echo plainstring_to_htmlprotected($this->daoNamespace) ?>"></input>
@@ -38,7 +31,7 @@ Unless you are developing your own autoload system, you should configure <strong
 	<label class="control-label">DaoFactory class name:</label>
 	<div class="controls">
 		<input type="text" name="daofactoryclassname" value="<?php echo plainstring_to_htmlprotected($this->daoFactoryName) ?>"></input>
-		<span class="help-block">Do not specify a package, just the class name here. The package for the DaoFactory will be the DAOs namespace.</span>
+		<span class="help-block">Do not specify a namespace, just the class name here. The namespace for the DaoFactory will be the DAOs namespace.</span>
 	</div>
 </div>
 

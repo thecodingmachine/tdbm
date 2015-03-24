@@ -74,7 +74,6 @@ class TdbmInstallController extends Controller {
 
 	protected $daoNamespace;
 	protected $beanNamespace;
-	protected $sourceDirectory;
 	protected $autoloadDetected;
 	protected $keepSupport;
 	protected $storeInUtc;
@@ -106,21 +105,20 @@ class TdbmInstallController extends Controller {
 			return;
 		}
 		
-		$this->sourceDirectory = $this->moufManager->getVariable("tdbmDefaultSourceDirectory_tdbmService");
 		$this->daoNamespace = $this->moufManager->getVariable("tdbmDefaultDaoNamespace_tdbmService");
 		$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace_tdbmService");
 		
-		if ($this->sourceDirectory == null && $this->daoNamespace == null && $this->beanNamespace == null) {
-			$autoloadNamespaces = MoufUtils::getAutoloadNamespaces();
+		if ($this->daoNamespace == null && $this->beanNamespace == null) {
+            $classNameMapper = ClassNameMapper::createFromComposerFile(__DIR__.'/../../../../../../../../composer.json');
+
+            $autoloadNamespaces = $classNameMapper->getManagedNamespaces();
 			if ($autoloadNamespaces) {
 				$this->autoloadDetected = true;
-				$rootNamespace = $autoloadNamespaces[0]['namespace'].'\\';
-				$this->sourceDirectory = $autoloadNamespaces[0]['directory'];
+                $rootNamespace = $autoloadNamespaces[0];
 				$this->daoNamespace = $rootNamespace."Dao";
 				$this->beanNamespace = $rootNamespace."Dao\\Bean";
 			} else {
 				$this->autoloadDetected = false;
-				$this->sourceDirectory = "src/";
 				$this->daoNamespace = "YourApplication\\Dao";
 				$this->beanNamespace = "YourApplication\\Dao\\Bean";
 			}			
@@ -136,14 +134,13 @@ class TdbmInstallController extends Controller {
      * This action generates the TDBM instance, then the DAOs and Beans.
      *
      * @Action
-     * @param string $sourcedirectory
      * @param string $daonamespace
      * @param string $beannamespace
      * @param int $keepSupport
      * @param int $storeInUtc
      * @param string $selfedit
      */
-    public function generate($sourcedirectory, $daonamespace, $beannamespace, $keepSupport = 0, $storeInUtc = 0, $selfedit="false") {
+    public function generate($daonamespace, $beannamespace, $keepSupport = 0, $storeInUtc = 0, $selfedit="false") {
 		$this->selfedit = $selfedit;
 		
 		if ($selfedit == "true") {
@@ -160,7 +157,7 @@ class TdbmInstallController extends Controller {
 		
 		$this->moufManager->rewriteMouf();
 		
-		TdbmController::generateDaos($this->moufManager, "tdbmService", $sourcedirectory, $daonamespace, $beannamespace, "DaoFactory", "daoFactory", $selfedit, $keepSupport, $storeInUtc);
+		TdbmController::generateDaos($this->moufManager, "tdbmService", $daonamespace, $beannamespace, "DaoFactory", "daoFactory", $selfedit, $keepSupport, $storeInUtc);
 				
 		InstallUtils::continueInstall($selfedit == "true");
 	}
