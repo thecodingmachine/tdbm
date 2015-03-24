@@ -1,8 +1,10 @@
 <?php
 namespace Mouf\Database\TDBM\Utils;
 
+use Mouf\Composer\ClassNameMapper;
 use Mouf\Database\DBConnection\CachedConnection;
 use Mouf\Database\DBConnection\ConnectionInterface;
+use Mouf\Database\TDBM\TDBMException;
 
 /**
  * This class generates automatically DAOs and Beans for TDBM.
@@ -30,18 +32,6 @@ class TDBMDaoGenerator {
 	private $beanNamespace;
 
 	/**
-	 * The directory for the DAOs, full path with ending /
-	 * @var string
-	 */
-	private $daoDirectory;
-	
-	/**
-	 * The directory for the beans, full path with ending /
-	 * @var string
-	 */
-	private $beanDirectory;
-	
-	/**
 	 * If the generated daos should keep support for old functions (eg : getUserList and getList)
 	 * @var boolean
 	 */
@@ -67,48 +57,30 @@ class TDBMDaoGenerator {
 	 * Generates all the daos and beans.
 	 * 
 	 * @param string $daoFactoryClassName The classe name of the DAO factory
-	 * @param string $sourcedirectory The source directory for the files (root of the PSR-0), relative to ROOT_PATH, with no trailing or ending /
 	 * @param string $daonamespace The namespace for the DAOs, without trailing \
 	 * @param string $beannamespace The Namespace for the beans, without trailing \
 	 * @param bool $support If the generated daos should keep support for old functions (eg : getUserList and getList)
 	 * @param bool $storeInUtc If the generated daos should store the date in UTC timezone instead of user's timezone.
 	 * @return string[] the list of tables
 	 */
-	public function generateAllDaosAndBeans($daoFactoryClassName, $sourcedirectory, $daonamespace, $beannamespace, $support, $storeInUtc) {
+	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc) {
 		// TODO: migrate $this->daoNamespace to $daonamespace that is passed in parameter!
+
+        $classNameMapper = ClassNameMapper::createFromComposerFile(__DIR__.'/../../../../../../../../composer.json');
+
 		$this->daoNamespace = $daonamespace;
 		$this->beanNamespace = $beannamespace;
-		$this->beanDirectory = dirname(__FILE__)."/../../../../../../../../".$sourcedirectory."/".str_replace("\\", "/", $beannamespace)."/";
-		$this->daoDirectory = dirname(__FILE__)."/../../../../../../../../".$sourcedirectory."/".str_replace("\\", "/", $daonamespace)."/";
 		$this->support = $support;
 		$this->storeInUtc = $storeInUtc;
 		
 		// TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
-		if (!file_exists($this->daoDirectory)) {
-			$old = umask(0);
-			$result = mkdir($this->daoDirectory, 0775, true);
-			umask($old);
-			if ($result == false) {
-				echo "Unable to create directory: ".$this->daoDirectory.".";
-				exit;
-			}
-		}
-		if (!file_exists($this->beanDirectory)) {
-			$old = umask(0);
-			$result = mkdir($this->beanDirectory, 0775, true);
-			umask($old);
-			if ($result == false) {
-				echo "Unable to create directory: ".$this->beanDirectory.".";
-				exit;
-			}
-		}
-		
+
 		$tableList = $this->dbConnection->getListOfTables();
 		foreach ($tableList as $table) {
-			$this->generateDaoAndBean($table);
+			$this->generateDaoAndBean($table, $daonamespace, $beannamespace, $classNameMapper);
 		}
 		
-		$this->generateFactory($tableList, $daoFactoryClassName);
+		$this->generateFactory($tableList, $daoFactoryClassName, $daonamespace, $classNameMapper);
 
 		// Ok, let's return the list of all tables.
 		// These will be used by the calling script to create Mouf instances.
@@ -121,7 +93,7 @@ class TDBMDaoGenerator {
 	 * 
 	 * @param $tableName
 	 */
-	public function generateDaoAndBean($tableName) {
+	public function generateDaoAndBean($tableName, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper) {
 		$daoName = $this->getDaoNameFromTableName($tableName);
 		$beanName = $this->getBeanNameFromTableName($tableName);
 		$baseBeanName = $this->getBaseBeanNameFromTableName($tableName);
@@ -131,8 +103,8 @@ class TDBMDaoGenerator {
             $connection->cacheService->purgeAll();
         }
 		
-		$this->generateBean($beanName.".php", $beanName, $baseBeanName.".php", $baseBeanName, $tableName);
-		$this->generateDao($daoName.".php", $daoName."Base.php", $beanName.".php", $daoName, $daoName."Base", $beanName, $tableName);
+		$this->generateBean($beanName, $baseBeanName, $tableName, $beannamespace, $classNameMapper);
+		$this->generateDao($daoName, $daoName."Base", $beanName, $tableName, $classNameMapper);
 	}
 	
 	/**
@@ -164,24 +136,25 @@ class TDBMDaoGenerator {
 	public static function getBaseBeanNameFromTableName($tableName) {
 		return TDBMDaoGenerator::toSingular(TDBMDaoGenerator::toCamelCase($tableName))."BaseBean";
 	}
-	
-	/**
-	 * Writes the PHP bean file with all getters and setters from the table passed in parameter.
-	 *
-	 * @param string $fileName The file that will be written (name only, no directory)
-	 * @param string $className The name of the class
-	 * @param string $baseFileName The name of the base class file which contains the base file which will be extended (name only, no directory)
-	 * @param string $baseClassName The name of the base class which will be extended (name only, no directory)
-	 * @param string $tableName The name of the table
-	 */	
-	public function generateBean($fileName, $className, $baseFileName, $baseClassName, $tableName) {
+
+    /**
+     * Writes the PHP bean file with all getters and setters from the table passed in parameter.
+     *
+     * @param string $className The name of the class
+     * @param string $baseClassName The name of the base class which will be extended (name only, no directory)
+     * @param string $tableName The name of the table
+     * @param string $beannamespace The namespace of the bean
+     * @param ClassNameMapper $classNameMapper
+     * @throws TDBMException
+     */
+	public function generateBean($className, $baseClassName, $tableName, $beannamespace, ClassNameMapper $classNameMapper) {
 		$table = $this->dbConnection->getTableFromDbModel($tableName);
 
 		// List of methods already written.
 		$methodsList = array();
 		
 		$str = "<?php
-namespace {$this->beanNamespace};
+namespace {$beannamespace};
 
 use Mouf\\Database\\TDBM\\TDBMObject;
 
@@ -387,18 +360,33 @@ class $baseClassName extends TDBMObject
 		
 		$str .= "}
 ?>";
-		
-		file_put_contents($this->beanDirectory.$baseFileName, $str);
-		@chmod($this->beanDirectory.$baseFileName, 0664);
 
-		if (!file_exists($this->beanDirectory.$fileName)) {
+        $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($beannamespace."\\".$baseClassName);
+        if (!$possibleBaseFileNames) {
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace."\\".$baseClassName.'" is not autoloadable.');
+        }
+        $possibleBaseFileName = $possibleBaseFileNames[0];
+
+        $this->ensureDirectoryExist($possibleBaseFileName);
+		file_put_contents($possibleBaseFileName, $str);
+		@chmod($possibleBaseFileName, 0664);
+
+
+
+        $possibleFileNames = $classNameMapper->getPossibleFileNames($beannamespace."\\".$className);
+        if (!$possibleFileNames) {
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace."\\".$className.'" is not autoloadable.');
+        }
+        $possibleFileName = $possibleFileNames[0];
+
+        if (!file_exists($possibleFileName)) {
 			$str = "<?php
 /*
  * This file has been automatically generated by TDBM.
  * You can edit this file as it will not be overwritten.
  */
 
-namespace {$this->beanNamespace};
+namespace {$beannamespace};
  
 /**
  * The $className class maps the '$tableName' table in database.
@@ -409,8 +397,9 @@ class $className extends $baseClassName
 {
 
 }";
-			file_put_contents($this->beanDirectory.$fileName ,$str);
-			@chmod($this->beanDirectory.$fileName, 0664);
+            $this->ensureDirectoryExist($possibleFileName);
+			file_put_contents($possibleFileName ,$str);
+			@chmod($possibleFileName, 0664);
 		}
 	}
 
@@ -421,7 +410,7 @@ class $className extends $baseClassName
 	 * @param string $className The name of the class
 	 * @param string $tableName The name of the table
 	 */
-	public function generateDao($fileName, $baseFileName, $beanFileName, $className, $baseClassName, $beanClassName, $tableName) {
+	public function generateDao($className, $baseClassName, $beanClassName, $tableName, ClassNameMapper $classNameMapper) {
 		$info = $this->dbConnection->getTableInfo($tableName);
 		$defaultSort = null;
 		foreach ($info as $index => $data) {
@@ -663,13 +652,24 @@ $str .= "
 }
 ?>";
 
-		
+        $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($this->daoNamespace."\\".$baseClassName);
+        if (!$possibleBaseFileNames) {
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$baseClassName.'" is not autoloadable.');
+        }
+        $possibleBaseFileName = $possibleBaseFileNames[0];
 
-		file_put_contents($this->daoDirectory.$baseFileName ,$str);
-		@chmod($this->daoDirectory.$baseFileName, 0664);
+        $this->ensureDirectoryExist($possibleBaseFileName);
+		file_put_contents($possibleBaseFileName ,$str);
+		@chmod($possibleBaseFileName, 0664);
+
+        $possibleFileNames = $classNameMapper->getPossibleFileNames($this->daoNamespace."\\".$className);
+        if (!$possibleFileNames) {
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$className.'" is not autoloadable.');
+        }
+        $possibleFileName = $possibleFileNames[0];
 		
 		// Now, let's generate the "editable" class
-		if (!file_exists($this->daoDirectory.$fileName)) {
+		if (!file_exists($possibleFileName)) {
 			$str = "<?php
 /*
  * This file has been automatically generated by TDBM.
@@ -686,8 +686,9 @@ class $className extends $baseClassName
 {
 
 }";
-			file_put_contents($this->daoDirectory.$fileName ,$str);
-			@chmod($this->daoDirectory.$fileName, 0664);
+            $this->ensureDirectoryExist($possibleFileName);
+			file_put_contents($possibleFileName ,$str);
+			@chmod($possibleFileName, 0664);
 		}
 	}
 	
@@ -696,7 +697,7 @@ class $className extends $baseClassName
 	 * 
 	 * @param $tableList
 	 */
-	private function generateFactory($tableList, $daoFactoryClassName) {
+	private function generateFactory($tableList, $daoFactoryClassName, $daoNamespace, ClassNameMapper $classNameMapper) {
 		// For each table, let's write a property.
 		
 		$str = "<?php
@@ -704,7 +705,7 @@ class $className extends $baseClassName
  * This file has been automatically generated by TDBM.
  * DO NOT edit this file, as it might be overwritten.
  */
-namespace {$this->daoNamespace};
+namespace {$daoNamespace};
 		
 /**
  * The $daoFactoryClassName provides an easy access to all DAOs generated by TDBM.
@@ -752,7 +753,14 @@ class $daoFactoryClassName
 }
 ?>';
 
-		file_put_contents($this->daoDirectory.$daoFactoryClassName.'.php' ,$str);
+        $possibleFileNames = $classNameMapper->getPossibleFileNames($daoNamespace."\\".$daoFactoryClassName);
+        if (!$possibleFileNames) {
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$daoNamespace."\\".$daoFactoryClassName.'" is not autoloadable.');
+        }
+        $possibleFileName = $possibleFileNames[0];
+
+        $this->ensureDirectoryExist($possibleFileName);
+		file_put_contents($possibleFileName ,$str);
 	}
 	
 	/**
@@ -866,4 +874,21 @@ class $daoFactoryClassName
 	public static function toVariableName($str) {
 		return strtolower(substr($str, 0, 1)).substr($str, 1);
 	}
+
+    /**
+     * Ensures the file passed in parameter can be written in its directory.
+     * @param string $fileName
+     */
+    private function ensureDirectoryExist($fileName) {
+        $dirName = dirname($fileName);
+        if (!file_exists($dirName)) {
+            $old = umask(0);
+            $result = mkdir($dirName, 0775, true);
+            umask($old);
+            if ($result == false) {
+                echo "Unable to create directory: ".$dirName.".";
+                exit;
+            }
+        }
+    }
 }
