@@ -26,7 +26,7 @@ cursor, it will not keep a reference of records that have already been processed
 To do this, you simply need to use the **cursor** mode:
 
 ```php
-Mouf::getUserService()->setMode(TDBMService::MODE_CURSOR);
+Mouf::getTdbmService()->setFetchMode(TDBMService::MODE_CURSOR);
 $users = Mouf::getUserDao->getList();
 foreach ($users as $user) {
 	// Do stuff
