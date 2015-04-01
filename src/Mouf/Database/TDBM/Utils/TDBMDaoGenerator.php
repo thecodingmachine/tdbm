@@ -365,7 +365,7 @@ class $baseClassName extends TDBMObject
         if (!$possibleBaseFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace."\\".$baseClassName.'" is not autoloadable.');
         }
-        $possibleBaseFileName = $possibleBaseFileNames[0];
+        $possibleBaseFileName = __DIR__.'/../../../../../../../../'.$possibleBaseFileNames[0];
 
         $this->ensureDirectoryExist($possibleBaseFileName);
 		file_put_contents($possibleBaseFileName, $str);
@@ -377,7 +377,7 @@ class $baseClassName extends TDBMObject
         if (!$possibleFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace."\\".$className.'" is not autoloadable.');
         }
-        $possibleFileName = $possibleFileNames[0];
+        $possibleFileName = __DIR__.'/../../../../../../../../'.$possibleFileNames[0];
 
         if (!file_exists($possibleFileName)) {
 			$str = "<?php
@@ -656,7 +656,7 @@ $str .= "
         if (!$possibleBaseFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$baseClassName.'" is not autoloadable.');
         }
-        $possibleBaseFileName = $possibleBaseFileNames[0];
+        $possibleBaseFileName = __DIR__.'/../../../../../../../../'.$possibleBaseFileNames[0];
 
         $this->ensureDirectoryExist($possibleBaseFileName);
 		file_put_contents($possibleBaseFileName ,$str);
@@ -666,7 +666,7 @@ $str .= "
         if (!$possibleFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$className.'" is not autoloadable.');
         }
-        $possibleFileName = $possibleFileNames[0];
+        $possibleFileName = __DIR__.'/../../../../../../../../'.$possibleFileNames[0];
 		
 		// Now, let's generate the "editable" class
 		if (!file_exists($possibleFileName)) {
@@ -757,7 +757,7 @@ class $daoFactoryClassName
         if (!$possibleFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$daoNamespace."\\".$daoFactoryClassName.'" is not autoloadable.');
         }
-        $possibleFileName = $possibleFileNames[0];
+        $possibleFileName = __DIR__.'/../../../../../../../../'.$possibleFileNames[0];
 
         $this->ensureDirectoryExist($possibleFileName);
 		file_put_contents($possibleFileName ,$str);
