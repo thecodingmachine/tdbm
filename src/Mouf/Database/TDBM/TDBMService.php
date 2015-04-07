@@ -66,7 +66,7 @@ class TDBMService {
 	 *
 	 * @var boolean
 	 */
-	private $autosave_default = true;
+	private $autosave_default = false;
 
 	/**
 	 * If TDBM objects are modified, and if they are not saved, they will automatically be saved at the end of the script.
