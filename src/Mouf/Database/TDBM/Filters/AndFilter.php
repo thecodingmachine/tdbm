@@ -39,7 +39,7 @@ class AndFilter implements FilterInterface {
 	 * @Compulsory
 	 * @param array<FilterInterface> $filters
 	 */
-	public function setFilters($filters) {
+	public function setFilters(array $filters) {
 		$this->filters = $filters;
 	}
 	
@@ -49,7 +49,7 @@ class AndFilter implements FilterInterface {
 	 * 
 	 * @param array<FilterInterface> $filters
 	 */
-	public function __construct($filters=null) {
+	public function __construct(array $filters=array()) {
 		$this->filters = $filters;
 	}
 
