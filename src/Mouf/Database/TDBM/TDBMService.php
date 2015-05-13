@@ -644,7 +644,9 @@ class TDBMService {
 					}
 					$id = serialize($ids);
 				}
-				if (!isset($this->objects[$table_name][$id]))
+
+                $obj = $this->objectStorage->get($table_name,$id);
+				if ($obj === null)
 				{
 					if ($className == null) {
 						$obj = new TDBMObject($this, $table_name, $id);
@@ -656,26 +658,26 @@ class TDBMService {
 					} else {
 						throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
 					}
-					$this->objects[$table_name][$id] = $obj;
-					$this->objects[$table_name][$id]->loadFromRow($row);
-				} elseif ($this->objects[$table_name][$id]->_getStatus() == "not loaded") {
-					$this->objects[$table_name][$id]->loadFromRow($row);
+                    $obj->loadFromRow($row);
+                    $this->objectStorage->set($table_name, $id, $obj);
+				} elseif ($obj->_getStatus() == "not loaded") {
+                    $obj->loadFromRow($row);
 					// Check that the object fetched from cache is from the requested class.
 					if ($className != null) {
-						if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) && get_class($this->objects[$table_name][$id]) != $className) {
-							throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
+						if (!is_subclass_of(get_class($obj), $className) && get_class($obj) != $className) {
+							throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($obj).".");
 						}
 					}
 				} else {
 					// Check that the object fetched from cache is from the requested class.
 					if ($className != null) {
 						$className = ltrim($className, '\\');
-						if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) && get_class($this->objects[$table_name][$id]) != $className) {
-							throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
+						if (!is_subclass_of(get_class($obj), $className) && get_class($obj) != $className) {
+							throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($obj).".");
 						}
 					}
 				}
-				$returned_objects[] = $this->objects[$table_name][$id];
+				$returned_objects[] = $obj;
 			}
 			$result->closeCursor();
 			return $returned_objects;
@@ -726,7 +728,8 @@ class TDBMService {
 				}
 				$id = serialize($ids);
 			}
-			if (!isset($this->objects[$table_name][$id]))
+            $obj = $this->objectStorage->get($table_name, $id);
+			if ($obj === null)
 			{
 				if ($className == null) {
 					$obj = new TDBMObject($this, $table_name, $id);
@@ -738,26 +741,26 @@ class TDBMService {
 				} else {
 					throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
 				}
-				$this->objects[$table_name][$id] = $obj;
-				$this->objects[$table_name][$id]->loadFromRow($row);
-			} elseif ($this->objects[$table_name][$id]->_getStatus() == "not loaded") {
-				$this->objects[$table_name][$id]->loadFromRow($row);
+                $obj->loadFromRow($row);
+                $this->objectStorage->set($table_name, $id, $obj);
+			} elseif ($obj->_getStatus() == "not loaded") {
+                $obj->loadFromRow($row);
 				// Check that the object fetched from cache is from the requested class.
 				if ($className != null) {
-					if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) && get_class($this->objects[$table_name][$id]) != $className) {
-						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
+					if (!is_subclass_of(get_class($obj), $className) && get_class($obj) != $className) {
+						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($obj).".");
 					}
 				}
 			} else {
 				// Check that the object fetched from cache is from the requested class.
 				if ($className != null) {
 					$className = ltrim($className, '\\');
-					if (!is_subclass_of(get_class($this->objects[$table_name][$id]), $className) && get_class($this->objects[$table_name][$id]) != $className) {
-						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($this->objects[$table_name][$id]).".");
+					if (!is_subclass_of(get_class($obj), $className) && get_class($obj) != $className) {
+						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($obj).".");
 					}
 				}
 			}
-			yield $this->objects[$table_name][$id];
+			yield $obj;
 		}
 		$result->closeCursor();
 		$result = null;

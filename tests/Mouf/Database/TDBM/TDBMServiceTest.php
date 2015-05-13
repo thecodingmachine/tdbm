@@ -152,6 +152,14 @@ class TDBMServiceTest extends TDBMAbsctractServiceTest {
         $this->assertEquals(95, count($results));
     }
 
+    public function testStorage() {
+        $results = $this->tdbmService->getObjects('departements');
+
+        $result = $this->tdbmService->getObject('departements', 1);
+
+        $this->assertTrue($results[0] === $result);
+    }
+
 }
 
 ?>
