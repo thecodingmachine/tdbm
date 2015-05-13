@@ -41,20 +41,24 @@ class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
     protected function setUp() {
 
         $dbConnectionAdmin = new MySqlConnection();
-        $dbConnectionAdmin->host = 'localhost';
-        $dbConnectionAdmin->user = 'root';
+        $dbConnectionAdmin->host = $GLOBALS['db_host'];
+        $dbConnectionAdmin->user = $GLOBALS['db_username'];
+        $dbConnectionAdmin->password = $GLOBALS['db_password'];
+        $dbConnectionAdmin->port = $GLOBALS['db_port'];
 
         try {
-            $dbConnectionAdmin->dropDatabase('tdbm_testcase');
+            $dbConnectionAdmin->dropDatabase($GLOBALS['db_name']);
         } catch (\Exception $e) {
             // We don't care if the database does not exist.
         }
-        $dbConnectionAdmin->createDatabase('tdbm_testcase');
+        $dbConnectionAdmin->createDatabase($GLOBALS['db_name']);
 
         $this->dbConnection = new MySqlConnection();
-        $this->dbConnection->host = 'localhost';
-        $this->dbConnection->user = 'root';
-        $this->dbConnection->dbname = 'tdbm_testcase';
+        $this->dbConnection->host = $GLOBALS['db_host'];
+        $this->dbConnection->user = $GLOBALS['db_username'];
+        $this->dbConnection->dbname = $GLOBALS['db_name'];
+        $this->dbConnection->password = $GLOBALS['db_password'];
+        $this->dbConnection->port = $GLOBALS['db_port'];
 
         $this->dbConnection->executeSqlFile(__DIR__.'/../../../sql/tdbmunittest2.sql');
 
