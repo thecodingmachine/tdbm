@@ -351,6 +351,7 @@ class TDBMService {
 					if (is_array($filter) || $filter instanceof FilterInterface) {
 						$isFilterBag = true;
 					}
+
 					break;
 				}
 			} else {
