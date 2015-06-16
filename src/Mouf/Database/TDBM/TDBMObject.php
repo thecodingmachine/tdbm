@@ -18,6 +18,8 @@ namespace Mouf\Database\TDBM;
  along with this program; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+use Mouf\Database\TDBM\Filters\FilterInterface;
+use Mouf\Database\DBConnection\ConnectionInterface;
 
 
 /**
@@ -31,7 +33,7 @@ namespace Mouf\Database\TDBM;
  * 
  * @author David Negrier
  */
-class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
+class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable, FilterInterface {
 
 	/**
 	 * The service this object is bound to.
@@ -214,23 +216,7 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 	public function _dbLoadIfNotLoaded() {
 		if ($this->TDBMObject_state == "not loaded")
 		{
-			// Let's first get the primary keys
-			$pk_table = $this->getPrimaryKey();
-			// Now for the object_id
-			$object_id = $this->TDBMObject_id;
-			// If there is only one primary key:
-			if (count($pk_table)==1) {
-				$sql_where = $this->db_connection->escapeDBItem($pk_table[0])."=".$this->db_connection->quoteSmart($this->TDBMObject_id);
-			} else {
-				$ids = unserialize($object_id);
-				$i=0;
-				$sql_where_array = array();
-				foreach ($pk_table as $pk) {
-					$sql_where_array[] = $this->db_connection->escapeDBItem($pk)."=".$this->db_connection->quoteSmart($ids[$i]);
-					$i++;
-				}
-				$sql_where = implode(" AND ",$sql_where_array);
-			}
+			$sql_where = $this->getPrimaryKeyWhereStatement();
 
 			$sql = "SELECT * FROM ".$this->db_connection->escapeDBItem($this->db_table_name)." WHERE ".$sql_where;
 			$result = $this->db_connection->query($sql);
@@ -643,5 +629,50 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable {
 	public function jsonSerialize(){
 		$this->_dbLoadIfNotLoaded();
 		return $this->db_row;
+	}
+
+	/**
+	 * Returns the SQL of the filter (the SQL WHERE clause).
+	 *
+	 * @param ConnectionInterface $dbConnection
+	 * @return string
+	 */
+	public function toSql(ConnectionInterface $dbConnection) {
+		return $this->getPrimaryKeyWhereStatement();
+	}
+
+	/**
+	 * Returns the tables used in the filter in an array.
+	 *
+	 * @return array<string>
+	 */
+	public function getUsedTables() {
+		return array($this->db_table_name);
+	}
+
+	/**
+	 * Returns Where statement to query this object
+	 *
+	 * @return string
+	 */
+	private function getPrimaryKeyWhereStatement () {
+		// Let's first get the primary keys
+		$pk_table = $this->getPrimaryKey();
+		// Now for the object_id
+		$object_id = $this->TDBMObject_id;
+		// If there is only one primary key:
+		if (count($pk_table)==1) {
+			$sql_where = $this->db_connection->escapeDBItem($this->db_table_name).'.'.$this->db_connection->escapeDBItem($pk_table[0])."=".$this->db_connection->quoteSmart($this->TDBMObject_id);
+		} else {
+			$ids = unserialize($object_id);
+			$i=0;
+			$sql_where_array = array();
+			foreach ($pk_table as $pk) {
+				$sql_where_array[] = $this->db_connection->escapeDBItem($this->db_table_name).'.'.$this->db_connection->escapeDBItem($pk)."=".$this->db_connection->quoteSmart($ids[$i]);
+				$i++;
+			}
+			$sql_where = implode(" AND ",$sql_where_array);
+		}
+		return $sql_where;
 	}
 }

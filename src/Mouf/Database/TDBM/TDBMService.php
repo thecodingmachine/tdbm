@@ -1570,18 +1570,6 @@ class TDBMService {
 		foreach ($filter_bag as $thing) {
 			if (is_a($thing,'Mouf\\Database\\TDBM\\Filters\\FilterInterface')) {
 				$filter_bag2[] = $thing;
-			} elseif (is_a($thing,'Mouf\\Database\\TDBM\\TDBMObject')) {
-				$pk_table = $thing->getPrimaryKey();
-				// If there is only one primary key:
-				if (count($pk_table)==1) {
-					$filter_bag2[] = new EqualFilter($thing->_getDbTableName(), $pk_table[0], $thing->$pk_table[0]);
-				} else {
-					$filter_bag_temp_and=array();
-					foreach ($pk_table as $pk) {
-						$filter_bag_temp_and[] = new EqualFilter($thing->_getDbTableName(), $pk, $thing->$pk);
-					}
-					$filter_bag2[] = new AndFilter($filter_bag_temp_and);
-				}
 			} elseif (is_string($thing)) {
 				$filter_bag2[] = new SqlStringFilter($thing);
 			} elseif (is_a($thing,'Mouf\\Database\\TDBM\\TDBMObjectArray') && count($thing)>0) {
