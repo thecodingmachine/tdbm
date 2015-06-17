@@ -152,6 +152,29 @@ class TDBMServiceTest extends TDBMAbsctractServiceTest {
         $this->assertEquals(95, count($results));
     }
 
+    public function testCloneTDBMObject(){
+        // Create a new object
+        $object = $this->tdbmService->getNewObject('departements');
+        $object->id_region = 22;
+        $object->numero = '100';
+        $object->nom = 'test';
+        $object->nom_web = 'test';
+        // Save the object
+        $object->save();
+
+        // Try to clone the object
+        $cloneObject = clone $object;
+        // Save the cloned object
+        $cloneObject->save();
+
+        $this->assertNotEquals($object->id, $cloneObject->id);
+        $this->assertEquals($object->nom, $cloneObject->nom);
+
+        $this->tdbmService->deleteObject($object);
+        $this->tdbmService->deleteObject($cloneObject);
+
+    }
+
 }
 
 ?>

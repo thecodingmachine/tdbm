@@ -36,13 +36,20 @@ if (file_exists(__DIR__.'/../../../../../../autoload.php')) {
 class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
 
     protected $dbConnection;
+    /**
+     * @var TDBMService
+     */
     protected $tdbmService;
 
     protected function setUp() {
 
+        global $db_user;
+        global $db_password;
+
         $dbConnectionAdmin = new MySqlConnection();
         $dbConnectionAdmin->host = 'localhost';
-        $dbConnectionAdmin->user = 'root';
+        $dbConnectionAdmin->user = $db_user;
+        $dbConnectionAdmin->password = $db_password;
 
         try {
             $dbConnectionAdmin->dropDatabase('tdbm_testcase');
@@ -53,7 +60,8 @@ class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
 
         $this->dbConnection = new MySqlConnection();
         $this->dbConnection->host = 'localhost';
-        $this->dbConnection->user = 'root';
+        $this->dbConnection->user = $db_user;
+        $this->dbConnection->password = $db_password;
         $this->dbConnection->dbname = 'tdbm_testcase';
 
         $this->dbConnection->executeSqlFile(__DIR__.'/../../../sql/tdbmunittest2.sql');

@@ -16,6 +16,12 @@
             <directory>./tests/Mouf/Database/TDBM/</directory>
         </testsuite>
     </testsuites>
+
+    <php>
+        <!-- PLEASE CONFIGURE DB CREDENTIALS -->
+        <var name="db_user" value="root"/>
+        <var name="db_password" value=""/>
+    </php>
     
     <filter>
   		<whitelist processUncoveredFilesFromWhitelist="true">
