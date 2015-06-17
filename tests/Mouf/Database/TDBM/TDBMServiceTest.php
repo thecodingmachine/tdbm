@@ -35,6 +35,12 @@ if (file_exists(__DIR__.'/../../../../../../autoload.php')) {
  */
 class TDBMServiceTest extends TDBMAbsctractServiceTest {
 
+	public function testObjectAsFilter() {
+		$dpt = $this->tdbmService->getObject('departements', 1);
+		$dpt2 =  $this->tdbmService->getObject('departements', $dpt);
+		$this->assertEquals($dpt, $dpt2);
+	}
+
 	public function testOneWayAndTheOpposite() {
 		$this->tdbmService->getObjects('utilisateur_entite', new EqualFilter('entites', 'appellation', 'foo'));
 		$this->tdbmService->getObjects('entites', new EqualFilter('utilisateur_entite', 'id_utilisateur', '1'));
@@ -152,7 +158,16 @@ class TDBMServiceTest extends TDBMAbsctractServiceTest {
         $this->assertEquals(95, count($results));
     }
 
-    public function testCloneTDBMObject(){
+    public function testStorage() {
+        $results = $this->tdbmService->getObjects('departements');
+
+        $result = $this->tdbmService->getObject('departements', 1);
+
+        $this->assertTrue($results[0] === $result);
+    }
+
+    public function testCloneTDBMObject()
+    {
         // Create a new object
         $object = $this->tdbmService->getNewObject('departements');
         $object->id_region = 22;
@@ -172,9 +187,7 @@ class TDBMServiceTest extends TDBMAbsctractServiceTest {
 
         $this->tdbmService->deleteObject($object);
         $this->tdbmService->deleteObject($cloneObject);
-
     }
-
 }
 
 ?>

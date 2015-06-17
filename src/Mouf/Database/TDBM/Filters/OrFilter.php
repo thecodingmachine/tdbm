@@ -37,7 +37,7 @@ class OrFilter implements FilterInterface {
 	 * @Compulsory
 	 * @param array<FilterInterface> $filters
 	 */
-	public function setFilters($filters) {
+	public function setFilters(array $filters) {
 		$this->filters = $filters;
 	}
 	
@@ -59,7 +59,7 @@ class OrFilter implements FilterInterface {
 	 * 
 	 * @param array<FilterInterface> $filters
 	 */
-	public function __construct($filters=null) {
+	public function __construct(array $filters=array()) {
 		$this->filters = $filters;
 	}
 
@@ -102,16 +102,22 @@ class OrFilter implements FilterInterface {
 	 *
 	 * @return array<string>
 	 */
-	public function getUsedTables() {
-		if ($this->enableCondition != null && !$this->enableCondition->isOk()) {
-			return array();
-		}
-		$tables = array();
-		foreach ($this->filters as $filter) {
-			$tables = array_merge($tables,$filter->getUsedTables());
-		}
-		// Remove tables in double.
-		$tables = array_flip(array_flip($tables));
-		return $tables;
-	}
+    public function getUsedTables() {
+        if ($this->enableCondition != null && !$this->enableCondition->isOk()) {
+            return array();
+        }
+
+        $tables = array();
+        foreach ($this->filters as $filter) {
+
+            if (!$filter instanceof FilterInterface) {
+                throw new TDBMException("Error in OrFilter: One of the parameters is not a filter.");
+            }
+
+            $tables = array_merge($tables,$filter->getUsedTables());
+        }
+        // Remove tables in double.
+        $tables = array_flip(array_flip($tables));
+        return $tables;
+    }
 }

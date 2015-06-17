@@ -18,9 +18,12 @@
     </testsuites>
 
     <php>
-        <!-- PLEASE CONFIGURE DB CREDENTIALS -->
-        <var name="db_user" value="root"/>
-        <var name="db_password" value=""/>
+        <!-- "Real" test database -->
+        <var name="db_host" value="localhost" />
+        <var name="db_username" value="root" />
+        <var name="db_password" value="" />
+        <var name="db_name" value="tdbm_testcase" />
+        <var name="db_port" value="3306"/>
     </php>
     
     <filter>

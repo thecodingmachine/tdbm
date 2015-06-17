@@ -40,6 +40,7 @@ class TDBMDaoGeneratorTest extends TDBMAbsctractServiceTest {
     protected $tdbmDaoGenerator;
 
     protected function setUp() {
+        parent::setUp();
         $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->dbConnection);
     }
 
