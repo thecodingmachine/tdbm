@@ -675,4 +675,22 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable, FilterIn
 		}
 		return $sql_where;
 	}
+
+    /**
+     * Override the native php clone function for TDBMObjects
+     */
+    public function __clone(){
+        $this->_dbLoadIfNotLoaded();
+        //First lets set the status to new (to enter the save function)
+        $this->TDBMObject_state = "new";
+
+        // Add the current TDBMObject to the save object list
+        $this->tdbmService->_addToToSaveObjectList($this);
+
+        //Now unset the PK from the row
+        $pk_array = $this->getPrimaryKey();
+        foreach ($pk_array as $pk) {
+            $this->db_row[$pk] = null;
+        }
+    }
 }

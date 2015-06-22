@@ -36,6 +36,9 @@ if (file_exists(__DIR__.'/../../../../../../autoload.php')) {
 class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
 
     protected $dbConnection;
+    /**
+     * @var TDBMService
+     */
     protected $tdbmService;
 
     protected function setUp() {
