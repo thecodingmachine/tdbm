@@ -1,6 +1,7 @@
 <?php
 namespace Mouf\Database\TDBM\Controllers;
 
+use Mouf\Composer\ClassNameMapper;
 use Mouf\MoufUtils;
 
 use Mouf\Actions\InstallUtils;
