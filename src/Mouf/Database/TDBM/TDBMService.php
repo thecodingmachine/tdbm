@@ -366,7 +366,11 @@ class TDBMService {
 					throw new DuplicateRowException("Error while querying an object for table '$table_name': ".count($objects)." rows have been returned, but we should have received at most one.");
 				}
 				// Return the first and only object.
-				return $objects[0];
+				if ($objects instanceof \Generator) {
+					return $objects->current();
+				} else {
+					return $objects[0];
+				}
 			}
 		}
 		$id = $filters;

@@ -94,7 +94,7 @@ class TDBMServiceTest extends TDBMAbsctractServiceTest {
 
 	}
 
-	public function testTDBMObjectCursorMode() {
+	public function testTDBMObjectsCursorMode() {
 		$this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
 		$results = $this->tdbmService->getObjects('departements');
 
@@ -103,6 +103,13 @@ class TDBMServiceTest extends TDBMAbsctractServiceTest {
 			$count++;
 		}
 		$this->assertEquals(95, $count);
+	}
+
+	public function testTDBMObjectCursorMode() {
+		$this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
+		$result = $this->tdbmService->getObject('departements', array(new EqualFilter('departements', 'id', 1)));
+
+		$this->assertEquals("Ain", $result->nom);
 	}
 
 
