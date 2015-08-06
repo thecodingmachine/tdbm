@@ -176,22 +176,27 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable, FilterIn
 	public function setTDBMObjectState($state){
 		$this->TDBMObject_state = $state;	
 	}
-	
-	/**
-	 * Internal TDBM method, you should not use this.
-	 * Loads the db_row property of the object from the $row array.
-	 * Any row having a key starting with 'tdbm_reserved_col_' is ignored.
-	 *
-	 * @param array $row
-	 */
-	public function loadFromRow($row) {
-		foreach ($row as $key=>$value) {
-			if (strpos($key, 'tdbm_reserved_col_')!==0) {
-				$this->db_row[$key]=$value;
-			}
-		}
 
-		$this->TDBMObject_state = "loaded";
+    /**
+     * Internal TDBM method, you should not use this.
+     * Loads the db_row property of the object from the $row array.
+     * Any row having a key starting with 'tdbm_reserved_col_' is ignored.
+     *
+     * @param array $row
+     * @param array|null $colsArray A big optimization to avoid calling strpos to many times. This array should
+     *                              contain as keys the list of interesting columns. If null, this list will be initialized.
+     */
+	public function loadFromRow($row, &$colsArray) {
+        if ($colsArray === null) {
+            foreach ($row as $key=>$value) {
+                if (strpos($key, 'tdbm_reserved_col_')!==0) {
+                    $colsArray[$key] = true;
+                }
+            }
+        }
+
+        $this->db_row = array_intersect_key($row, $colsArray);
+        $this->TDBMObject_state = "loaded";
 	}
 
 	/**

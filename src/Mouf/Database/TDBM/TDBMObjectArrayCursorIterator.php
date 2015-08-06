@@ -54,6 +54,8 @@ class TDBMObjectArrayCursorIterator implements \Iterator, \Countable {
 	 * @var array
 	 */
 	protected $current = false;
+
+    private $colsArray = null;
 	
 	public function __construct(\PDOStatement $pdoStatement, ConnectionInterface $dbConnection, $primary_keys, $table_name, $objectStorage, $className, TDBMService $tdbmService, $sql)
 	{
@@ -124,9 +126,9 @@ class TDBMObjectArrayCursorIterator implements \Iterator, \Countable {
 				throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$this->className);
 			}
 			$this->objectStorage->set($this->table_name, $id, $obj);
-			$obj->loadFromRow($row);
+			$obj->loadFromRow($row, $this->colsArray);
 		} elseif ($obj->_getStatus() == "not loaded") {
-			$obj->loadFromRow($row);
+			$obj->loadFromRow($row, $this->colsArray);
 			// Check that the object fetched from cache is from the requested class.
 			if ($this->className != null) {
 				if (!is_subclass_of(get_class($obj), $this->className) &&  get_class($obj) != $this->className) {
