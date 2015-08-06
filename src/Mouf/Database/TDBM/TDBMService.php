@@ -618,6 +618,7 @@ class TDBMService {
 			}
 			$keysStandardCased = array();
 			$firstLine = true;
+            $colsArray = null;
 			while ($fullCaseRow = $result->fetch(\PDO::FETCH_ASSOC))
 			{
 				$row = array();
@@ -662,10 +663,10 @@ class TDBMService {
 					} else {
 						throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
 					}
-                    $obj->loadFromRow($row);
+                    $obj->loadFromRow($row, $colsArray);
                     $this->objectStorage->set($table_name, $id, $obj);
 				} elseif ($obj->_getStatus() == "not loaded") {
-                    $obj->loadFromRow($row);
+                    $obj->loadFromRow($row, $colsArray);
 					// Check that the object fetched from cache is from the requested class.
 					if ($className != null) {
 						if (!is_subclass_of(get_class($obj), $className) && get_class($obj) != $className) {
@@ -702,6 +703,7 @@ class TDBMService {
 	private function getObjectsFromSQLGenerator($result, $table_name, $className, $sql) {
 		$keysStandardCased = array();
 		$firstLine = true;
+        $colsArray = null;
 		while ($fullCaseRow = $result->fetch(\PDO::FETCH_ASSOC))
 		{
 			$row = array();
@@ -745,10 +747,10 @@ class TDBMService {
 				} else {
 					throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
 				}
-                $obj->loadFromRow($row);
+                $obj->loadFromRow($row, $colsArray);
                 $this->objectStorage->set($table_name, $id, $obj);
 			} elseif ($obj->_getStatus() == "not loaded") {
-                $obj->loadFromRow($row);
+                $obj->loadFromRow($row, $colsArray);
 				// Check that the object fetched from cache is from the requested class.
 				if ($className != null) {
 					if (!is_subclass_of(get_class($obj), $className) && get_class($obj) != $className) {
