@@ -20,21 +20,27 @@
 	],
 	"require" : {
 		"php" : ">=5.5.0",
-		"mouf/database.dbconnection" : ">=2.0-dev,<3.0",
-		"mouf/utils.cache.cache-interface" : ">=2.0-dev,<3.0",
-		"mouf/utils.cache.no-cache" : ">=2.0-dev,<3.0",
-		"mouf/utils.common.conditioninterface" : ">=2.0-dev,<3.0",
-		"mouf/utils.log.errorlog_logger" : ">=2.0-dev,<3.0",
-		"mouf/database.dao-interface" : ">=2.0-dev,<3.0"
+		"mouf/database.dbconnection" : "~2.0",
+		"mouf/utils.cache.cache-interface" : "~2.0",
+		"mouf/utils.cache.no-cache" : "~2.0",
+		"mouf/utils.common.conditioninterface" : "~2.0",
+		"mouf/utils.log.errorlog_logger" : "~2.0",
+		"mouf/database.dao-interface" : "~2.0",
+	    "mouf/mouf": "~2.0.0"
 	},
 	"suggest" : {
 		"ext/weakref" : "Allows efficient memory management. Useful for batches."
 	},
 	"autoload" : {
-		"psr-0" : {
-			"Mouf\\Database\\TDBM" : "src/"
+		"psr-4" : {
+			"Mouf\\Database\\TDBM\\" : "src/Mouf/Database/TDBM"
 		}
 	},
+    "autoload-dev" : {
+  	  "psr-4" : {
+  	    "Test\\" : "src/Test"
+  	  }
+    },
 	"minimum-stability" : "dev",
 	"extra" : {
 		"mouf" : {

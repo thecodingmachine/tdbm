@@ -32,6 +32,11 @@ class TDBMDaoGenerator {
 	private $beanNamespace;
 
 	/**
+	 * @var string
+	 */
+	private $rootPath = __DIR__.'/../../../../../../../../';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ConnectionInterface $dbConnection The connection to the database.
@@ -56,7 +61,7 @@ class TDBMDaoGenerator {
 	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime) {
 		// TODO: migrate $this->daoNamespace to $daonamespace that is passed in parameter!
 
-        $classNameMapper = ClassNameMapper::createFromComposerFile(__DIR__.'/../../../../../../../../composer.json');
+        $classNameMapper = ClassNameMapper::createFromComposerFile($this->rootPath.'composer.json');
 
 		$this->daoNamespace = $daonamespace;
 		$this->beanNamespace = $beannamespace;
@@ -366,7 +371,7 @@ class $baseClassName extends TDBMObject
         if (!$possibleBaseFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace."\\".$baseClassName.'" is not autoloadable.');
         }
-        $possibleBaseFileName = __DIR__.'/../../../../../../../../'.$possibleBaseFileNames[0];
+        $possibleBaseFileName = $this->rootPath.$possibleBaseFileNames[0];
 
         $this->ensureDirectoryExist($possibleBaseFileName);
 		file_put_contents($possibleBaseFileName, $str);
@@ -378,7 +383,7 @@ class $baseClassName extends TDBMObject
         if (!$possibleFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace."\\".$className.'" is not autoloadable.');
         }
-        $possibleFileName = __DIR__.'/../../../../../../../../'.$possibleFileNames[0];
+        $possibleFileName = $this->rootPath.$possibleFileNames[0];
 
         if (!file_exists($possibleFileName)) {
 			$str = "<?php
@@ -658,7 +663,7 @@ $str .= "
         if (!$possibleBaseFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$baseClassName.'" is not autoloadable.');
         }
-        $possibleBaseFileName = __DIR__.'/../../../../../../../../'.$possibleBaseFileNames[0];
+        $possibleBaseFileName = $this->rootPath.$possibleBaseFileNames[0];
 
         $this->ensureDirectoryExist($possibleBaseFileName);
 		file_put_contents($possibleBaseFileName ,$str);
@@ -668,7 +673,7 @@ $str .= "
         if (!$possibleFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$className.'" is not autoloadable.');
         }
-        $possibleFileName = __DIR__.'/../../../../../../../../'.$possibleFileNames[0];
+        $possibleFileName = $this->rootPath.$possibleFileNames[0];
 		
 		// Now, let's generate the "editable" class
 		if (!file_exists($possibleFileName)) {
@@ -759,7 +764,7 @@ class $daoFactoryClassName
         if (!$possibleFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$daoNamespace."\\".$daoFactoryClassName.'" is not autoloadable.');
         }
-        $possibleFileName = __DIR__.'/../../../../../../../../'.$possibleFileNames[0];
+        $possibleFileName = $this->rootPath.$possibleFileNames[0];
 
         $this->ensureDirectoryExist($possibleFileName);
 		file_put_contents($possibleFileName ,$str);
@@ -893,4 +898,12 @@ class $daoFactoryClassName
             }
         }
     }
+
+	/**
+	 * @param string $rootPath
+	 */
+	public function setRootPath($rootPath)
+	{
+		$this->rootPath = $rootPath;
+	}
 }

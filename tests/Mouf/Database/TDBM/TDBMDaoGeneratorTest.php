@@ -31,26 +31,37 @@ class TDBMDaoGeneratorTest extends TDBMAbsctractServiceTest {
     /** @var TDBMDaoGenerator $tdbmDaoGenerator */
     protected $tdbmDaoGenerator;
 
+    private $rootPath = __DIR__.'/../../../../';
+
     protected function setUp() {
         parent::setUp();
         $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->dbConnection);
+        $this->tdbmDaoGenerator->setRootPath($this->rootPath);
     }
 
-    /**
-     * @depends testFake
-     */
 	public function testDaoGeneration() {
-        $daoFactoryClassName = "daoFactory";
-        $sourcedirectory = "Mouf/Database/TDBM/Dao";
-        $daonamespace = "Mouf/Database/TDBM/Dao/";
-        $beannamespace = "Mouf/Database/TDBM/Dao/Bean/";
+        $daoFactoryClassName = "DaoFactory";
+        $daonamespace = "Mouf\\Database\\TDBM\\Test\\Dao";
+        $beannamespace = "Mouf\\Database\\TDBM\\Test\\Dao\\Bean";
         $support = false;
         $storeInUtc = false;
         $castDatesToDateTime = true;
 
-		return $this->tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $sourcedirectory, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime);
+        $tables = $this->tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime);
+
+        // Test the daoFactory
+        require_once($this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/DaoFactory.php');
+        // Test the others
+        foreach ($tables as $table) {
+            $daoName = $this->tdbmDaoGenerator->getDaoNameFromTableName($table);
+            $daoBaseName = $daoName."Base";
+            $beanName = $this->tdbmDaoGenerator->getBeanNameFromTableName($table);
+            $baseBeanName = $this->tdbmDaoGenerator->getBaseBeanNameFromTableName($table);
+            // DaoDirectory and BeanDirectory are private
+            require_once($this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/'.$baseBeanName.".php");
+            require_once($this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/'.$beanName.".php");
+            require_once($this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/'.$daoBaseName.".php");
+            require_once($this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/'.$daoName.".php");
+        }
     }
-
 }
-
-?>

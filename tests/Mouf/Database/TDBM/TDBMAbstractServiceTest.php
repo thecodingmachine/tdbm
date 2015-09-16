@@ -36,11 +36,6 @@ abstract class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
      */
     protected $tdbmService;
 
-    /**
-     * @var TDBMDaoGenerator $tdbmDaoGenerator
-     */
-    protected $tdbmDaoGenerator;
-
     protected function setUp() {
 
         $dbConnectionAdmin = new MySqlConnection();
@@ -68,7 +63,5 @@ abstract class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
         $this->tdbmService = new TDBMService();
         $this->tdbmService->dbConnection = $this->dbConnection;
         $this->tdbmService->cacheService = new NoCache();
-
-        $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->dbConnection);
     }
 }
