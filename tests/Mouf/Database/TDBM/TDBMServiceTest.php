@@ -24,13 +24,6 @@ use Mouf\Utils\Cache\NoCache;
 use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\OrderByColumn;
 
-// Require needed if we run this class directly
-if (file_exists(__DIR__.'/../../../../../../autoload.php')) {
-	require_once __DIR__.'/../../../../../../autoload.php';
-} else {
-	require_once __DIR__.'/../../../../vendor/autoload.php';
-}
-
 /**
  */
 class TDBMServiceTest extends TDBMAbsctractServiceTest {
