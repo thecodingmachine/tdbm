@@ -1838,11 +1838,12 @@ class TDBMService {
 	 * @param string $beannamespace The Namespace for the beans, without trailing \
 	 * @param bool $support If the generated daos should keep support for old functions (eg : getUserList and getList)
 	 * @param bool $storeInUtc If the generated daos should store the date in UTC timezone instead of user's timezone.
-	 * @return string[] the list of tables
+	 * @param bool $castDatesToDateTime
+	 * @return \string[] the list of tables
 	 */
-	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc) {
+	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime) {
 		$tdbmDaoGenerator = new TDBMDaoGenerator($this->dbConnection);
-		return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc);
+		return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime);
 	}
 }
 

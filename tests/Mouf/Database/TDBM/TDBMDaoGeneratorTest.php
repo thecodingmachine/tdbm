@@ -54,8 +54,9 @@ class TDBMDaoGeneratorTest extends TDBMAbsctractServiceTest {
         $beannamespace = "Mouf/Database/TDBM/Dao/Bean/";
         $support = false;
         $storeInUtc = false;
+        $castDatesToDateTime = true;
 
-		return $this->tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $sourcedirectory, $daonamespace, $beannamespace, $support, $storeInUtc);
+		return $this->tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $sourcedirectory, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime);
     }
 
 }

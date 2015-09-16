@@ -32,18 +32,6 @@ class TDBMDaoGenerator {
 	private $beanNamespace;
 
 	/**
-	 * If the generated daos should keep support for old functions (eg : getUserList and getList)
-	 * @var boolean
-	 */
-	private $support;
-	
-	/**
-	 * If the generated daos should store the date in UTC timezone instead of user's timezone.
-	 * @var boolean
-	 */
-	private $storeInUtc;
-	
-	/**
 	 * Constructor.
 	 *
 	 * @param ConnectionInterface $dbConnection The connection to the database.
@@ -52,32 +40,32 @@ class TDBMDaoGenerator {
 		$this->dbConnection = $dbConnection;
 		
 	}
-	
+
 	/**
 	 * Generates all the daos and beans.
-	 * 
+	 *
 	 * @param string $daoFactoryClassName The classe name of the DAO factory
 	 * @param string $daonamespace The namespace for the DAOs, without trailing \
 	 * @param string $beannamespace The Namespace for the beans, without trailing \
 	 * @param bool $support If the generated daos should keep support for old functions (eg : getUserList and getList)
 	 * @param bool $storeInUtc If the generated daos should store the date in UTC timezone instead of user's timezone.
-	 * @return string[] the list of tables
+	 * @param bool $castDatesToDateTime Whether dates are converted to DateTimeImmutable or to timestamp
+	 * @return \string[] the list of tables
+	 * @throws TDBMException
 	 */
-	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc) {
+	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime) {
 		// TODO: migrate $this->daoNamespace to $daonamespace that is passed in parameter!
 
         $classNameMapper = ClassNameMapper::createFromComposerFile(__DIR__.'/../../../../../../../../composer.json');
 
 		$this->daoNamespace = $daonamespace;
 		$this->beanNamespace = $beannamespace;
-		$this->support = $support;
-		$this->storeInUtc = $storeInUtc;
 		
 		// TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
 
 		$tableList = $this->dbConnection->getListOfTables();
 		foreach ($tableList as $table) {
-			$this->generateDaoAndBean($table, $daonamespace, $beannamespace, $classNameMapper);
+			$this->generateDaoAndBean($table, $daonamespace, $beannamespace, $classNameMapper, $support, $storeInUtc, $castDatesToDateTime);
 		}
 		
 		$this->generateFactory($tableList, $daoFactoryClassName, $daonamespace, $classNameMapper);
@@ -93,7 +81,7 @@ class TDBMDaoGenerator {
 	 * 
 	 * @param $tableName
 	 */
-	public function generateDaoAndBean($tableName, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper) {
+	public function generateDaoAndBean($tableName, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper, $support, $storeInUtc, $castDatesToDateTime) {
 		$daoName = $this->getDaoNameFromTableName($tableName);
 		$beanName = $this->getBeanNameFromTableName($tableName);
 		$baseBeanName = $this->getBaseBeanNameFromTableName($tableName);
@@ -103,8 +91,8 @@ class TDBMDaoGenerator {
             $connection->cacheService->purgeAll();
         }
 		
-		$this->generateBean($beanName, $baseBeanName, $tableName, $beannamespace, $classNameMapper);
-		$this->generateDao($daoName, $daoName."Base", $beanName, $tableName, $classNameMapper);
+		$this->generateBean($beanName, $baseBeanName, $tableName, $beannamespace, $classNameMapper, $support, $storeInUtc, $castDatesToDateTime);
+		$this->generateDao($daoName, $daoName."Base", $beanName, $tableName, $classNameMapper, $support, $storeInUtc, $castDatesToDateTime);
 	}
 	
 	/**
@@ -147,7 +135,7 @@ class TDBMDaoGenerator {
      * @param ClassNameMapper $classNameMapper
      * @throws TDBMException
      */
-	public function generateBean($className, $baseClassName, $tableName, $beannamespace, ClassNameMapper $classNameMapper) {
+	public function generateBean($className, $baseClassName, $tableName, $beannamespace, ClassNameMapper $classNameMapper, $support, $storeInUtc, $castDatesToDateTime) {
 		$table = $this->dbConnection->getTableFromDbModel($tableName);
 
 		// List of methods already written.
@@ -190,14 +178,15 @@ class $baseClassName extends TDBMObject
 	 *
 	 * @dbType '.$normalizedType.'
 	 * @dbColumn '.$column->name.'
-	 * @return timestamp
+	 * @return '.($castDatesToDateTime?'\\DateTimeImmutable|null':'timestamp|null').'
 	 */
 	public function '.$columnGetterName.'() {
 		$date = $this->__get(\''.$column->name.'\');
-		if($date === null)
+		if($date === null) {
 			return null;
-		else
-			return strtotime($date'.($this->storeInUtc?'.\' UTC\'':'').');
+		} else {
+			return '.($castDatesToDateTime?'new \\DateTimeImmutable':'strtotime').'($date'.($storeInUtc?'.\' UTC\'':'').');
+		}
 	}
 	
 	/**
@@ -205,21 +194,33 @@ class $baseClassName extends TDBMObject
 	 * It must be provided as a PHP timestamp.
 	 *
 	 * @dbColumn '.$column->name.'
-	 * @param timestamp $'.$column->name.'
+	 * @param '.($castDatesToDateTime?'\\DateTimeImmutable|null':'timestamp|null').' $'.$column->name.'
 	 */
-	public function '.$columnSetterName.'($'.$column->name.') {
+	public function '.$columnSetterName.'('.($castDatesToDateTime?'\\DateTimeImmutable ':'').'$'.$column->name.') {
 		if($'.$column->name.' === null) {
 			$this->__set(\''.$column->name.'\', null);
 		} else {';
-			if ($this->storeInUtc) {
-				$str .= '
-			$date = new \DateTime(\'@\'.$'.$column->name.');
+			if ($castDatesToDateTime) {
+				if ($storeInUtc) {
+					$str .= '
+			$this->__set(\''.$column->name.'\', $'.$column->name.'->setTimeZone(\\DateTimeZone::UTC)->format("Y-m-d H:i:s"));
+						';
+				} else {
+					$str .= '
+			$this->__set(\''.$column->name.'\', $'.$column->name.'->format("Y-m-d H:i:s"));
+						';
+				}
+			} else {
+				if ($storeInUtc) {
+					$str .= '
+			$date = new \DateTimeImmutable(\'@\'.$'.$column->name.');
 			$this->__set(\''.$column->name.'\', $date->format("Y-m-d H:i:s"));
 						';
-			} else {
-				$str .= '
+				} else {
+					$str .= '
 			$this->__set(\''.$column->name.'\', date("Y-m-d H:i:s", $'.$column->name.'));
 						';
+				}
 			}
 					$str .= '
 		}
@@ -410,7 +411,7 @@ class $className extends $baseClassName
 	 * @param string $className The name of the class
 	 * @param string $tableName The name of the table
 	 */
-	public function generateDao($className, $baseClassName, $beanClassName, $tableName, ClassNameMapper $classNameMapper) {
+	public function generateDao($className, $baseClassName, $beanClassName, $tableName, ClassNameMapper $classNameMapper, $support, $storeInUtc, $castDatesToDateTime) {
 		$info = $this->dbConnection->getTableInfo($tableName);
 		$defaultSort = null;
 		foreach ($info as $index => $data) {
@@ -572,7 +573,7 @@ class $baseClassName implements DAOInterface
 	}
 	";
 // If we want compatibility with TDBM < 2.3
-if ($this->support) {
+if ($support) {
 $str .= "
 
 	/**
