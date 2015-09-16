@@ -440,7 +440,8 @@ class $className extends $baseClassName
 namespace {$this->daoNamespace};
 
 use Mouf\\Database\\DAOInterface;
-use Mouf\\Database\\TDBM\\TDBMService; 
+use Mouf\\Database\\TDBM\\TDBMService;
+use Mouf\\Database\\TDBM\\TDBMObjectArray;
 use Mouf\\Database\\TDBM\\Filters\\OrderByColumn;
 use $beanClassName;
 
@@ -499,7 +500,7 @@ class $baseClassName implements DAOInterface
 	/**
 	 * Get all $tableCamel records. 
 	 *
-	 * @return array<$beanClassWithoutNameSpace>
+	 * @return {$beanClassWithoutNameSpace}[]|\\Generator|TDBMObjectArray
 	 */
 	public function getList() {
 		if (\$this->defaultSort){
@@ -544,7 +545,7 @@ class $baseClassName implements DAOInterface
 	 * @param mixed \$orderbyBag The order bag (see TDBMService::getObjects for complete description)
 	 * @param integer \$from The offset
 	 * @param integer \$limit The maximum number of rows returned
-	 * @return array<$beanClassWithoutNameSpace>
+	 * @return {$beanClassWithoutNameSpace}[]|\\Generator|TDBMObjectArray
 	 */
 	protected function getListByFilter(\$filterBag=null, \$orderbyBag=null, \$from=null, \$limit=null) {
 		if (\$this->defaultSort && \$orderbyBag == null){
@@ -596,7 +597,7 @@ $str .= "
 	/**
 	 * Get all $tableCamel records. 
 	 *
-	 * @return array<$beanClassWithoutNameSpace>
+	 * @return {$beanClassWithoutNameSpace}[]|\\Generator|TDBMObjectArray
 	 */
 	public function get".$tableCamel."List() {
 		return \$this->getList();
@@ -631,7 +632,7 @@ $str .= "
 	 * @param mixed \$orderbyBag The order bag (see TDBMService::getObjects for complete description)
 	 * @param integer \$from The offset
 	 * @param integer \$limit The maximum number of rows returned
-	 * @return array<$beanClassWithoutNameSpace>
+	 * @return {$beanClassWithoutNameSpace}[]|\\Generator|TDBMObjectArray
 	 */
 	protected function get".$tableCamel."ListByFilter(\$filterBag=null, \$orderbyBag=null, \$from=null, \$limit=null) {
 		return \$this->getListByFilter(\$filterBag, \$orderbyBag, \$from, \$limit);
