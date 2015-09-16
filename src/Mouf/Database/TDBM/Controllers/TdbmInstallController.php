@@ -77,6 +77,7 @@ class TdbmInstallController extends Controller {
 	protected $beanNamespace;
 	protected $autoloadDetected;
 	protected $keepSupport;
+	protected $castDatesToDateTime;
 	protected $storeInUtc;
 	
 	/**
@@ -130,18 +131,20 @@ class TdbmInstallController extends Controller {
 		$this->content->addFile(dirname(__FILE__)."/../../../../views/installStep2.php", $this);
 		$this->template->toHtml();
 	}
-	
-    /**
-     * This action generates the TDBM instance, then the DAOs and Beans.
-     *
-     * @Action
-     * @param string $daonamespace
-     * @param string $beannamespace
-     * @param int $keepSupport
-     * @param int $storeInUtc
-     * @param string $selfedit
-     */
-    public function generate($daonamespace, $beannamespace, $keepSupport = 0, $storeInUtc = 0, $selfedit="false") {
+
+	/**
+	 * This action generates the TDBM instance, then the DAOs and Beans.
+	 *
+	 * @Action
+	 * @param string $daonamespace
+	 * @param string $beannamespace
+	 * @param int $keepSupport
+	 * @param int $storeInUtc
+	 * @param int $castDatesToDateTime
+	 * @param string $selfedit
+	 * @throws \Mouf\MoufException
+	 */
+    public function generate($daonamespace, $beannamespace, $keepSupport = 0, $storeInUtc = 0, $castDatesToDateTime = 1, $selfedit="false") {
 		$this->selfedit = $selfedit;
 		
 		if ($selfedit == "true") {
@@ -158,7 +161,7 @@ class TdbmInstallController extends Controller {
 		
 		$this->moufManager->rewriteMouf();
 		
-		TdbmController::generateDaos($this->moufManager, "tdbmService", $daonamespace, $beannamespace, "DaoFactory", "daoFactory", $selfedit, $keepSupport, $storeInUtc);
+		TdbmController::generateDaos($this->moufManager, "tdbmService", $daonamespace, $beannamespace, "DaoFactory", "daoFactory", $selfedit, $keepSupport, $storeInUtc, $castDatesToDateTime);
 				
 		InstallUtils::continueInstall($selfedit == "true");
 	}

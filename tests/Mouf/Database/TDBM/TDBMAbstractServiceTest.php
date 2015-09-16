@@ -26,7 +26,7 @@ use Mouf\Database\TDBM\Filters\OrderByColumn;
 
 /**
  */
-class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
+abstract class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
 
     protected $dbConnection;
     /**
@@ -62,23 +62,4 @@ class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
         $this->tdbmService->dbConnection = $this->dbConnection;
         $this->tdbmService->cacheService = new NoCache();
     }
-
-    static function main() {
-        $suite = new \PHPUnit_Framework_TestSuite( __CLASS__);
-        \PHPUnit_TextUI_TestRunner::run( $suite);
-    }
-
-    /**
-     * Without this only test for the abscract class, PhP Unit will raise a warning:
-     * No tests found in class "Mouf\Database\TDBM\TDBMAbsctractServiceTest"
-     */
-    public function testFake() {
-        // do nothing
-    }
 }
-
-if (!defined('PHPUnit_MAIN_METHOD')) {
-	require_once __DIR__.'/../../../../vendor/autoload.php';
-    TDBMAbsctractServiceTest::main();
-}
-?>
