@@ -21,14 +21,16 @@ namespace Mouf\Database\TDBM;
 
 use Mouf\Database\DBConnection\MySqlConnection;
 use Mouf\Utils\Cache\NoCache;
-use Mouf\Database\TDBM\Filters\EqualFilter;
-use Mouf\Database\TDBM\Filters\OrderByColumn;
 
 /**
  */
-abstract class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
+abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase {
 
+    /**
+     * @var MySqlConnection $dbConnection
+     */
     protected $dbConnection;
+
     /**
      * @var TDBMService
      */

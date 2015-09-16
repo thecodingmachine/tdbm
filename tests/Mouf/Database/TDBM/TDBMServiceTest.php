@@ -26,7 +26,7 @@ use Mouf\Database\TDBM\Filters\OrderByColumn;
 
 /**
  */
-class TDBMServiceTest extends TDBMAbsctractServiceTest {
+class TDBMServiceTest extends TDBMAbstractServiceTest {
 
 	public function testObjectAsFilter() {
 		$dpt = $this->tdbmService->getObject('departements', 1);
@@ -189,5 +189,3 @@ class TDBMServiceTest extends TDBMAbsctractServiceTest {
         $this->tdbmService->deleteObject($cloneObject);
     }
 }
-
-?>
