@@ -154,7 +154,9 @@ class TdbmController extends AbstractMoufInstanceController {
 
 
 		$moufManager->declareComponent($daofactoryinstancename, $daonamespace."\\".$daofactoryclassname, false, MoufManager::DECLARE_ON_EXIST_KEEP_INCOMING_LINKS);
-		
+
+		$tableToBeanMap = [];
+
 		foreach ($tables as $table) {
 			$daoName = TDBMDaoGenerator::getDaoNameFromTableName($table);
 		
@@ -164,8 +166,11 @@ class TdbmController extends AbstractMoufInstanceController {
 			}
 			$moufManager->bindComponentViaSetter($instanceName, "setTdbmService", $name);
 			$moufManager->bindComponentViaSetter($daofactoryinstancename, "set".$daoName, $instanceName);
+
+			$tableToBeanMap[$table] = $beannamespace . "\\" . TDBMDaoGenerator::getBeanNameFromTableName($table);
 		}
-		
+		$tdbmServiceDescriptor = $moufManager->getInstanceDescriptor($name);
+		$tdbmServiceDescriptor->getSetterProperty("setTableToBeanMap")->setValue($tableToBeanMap);
 		$moufManager->rewriteMouf();
 	}
 }

@@ -288,7 +288,7 @@ class $baseClassName extends TDBMObject
 		if ($this->'.$array["col1"].' == null) {
 			return null;
 		}
-		return $this->tdbmService->getObject("'.$array["table2"].'", $this->'.$array["col1"].', "'.str_replace("\\","\\\\",$this->beanNamespace).'\\\\'.$referencedBeanName.'", true);
+		return $this->tdbmService->getObject("'.$array["table2"].'", $this->'.$array["col1"].', null, true);
 	}
 	
 	/**
@@ -341,7 +341,7 @@ class $baseClassName extends TDBMObject
 		if ($this->'.$array["col1"].' == null) {
 			return null;
 		}
-		return $this->tdbmService->getObject("'.$array["table2"].'", $this->'.$array["col1"].', "'.str_replace("\\","\\\\",$this->beanNamespace).'\\\\'.$referencedBeanName.'");
+		return $this->tdbmService->getObject("'.$array["table2"].'", $this->'.$array["col1"].');
 	}
 	
 	/**
@@ -487,7 +487,7 @@ class $baseClassName implements DAOInterface
 	 * @return $beanClassWithoutNameSpace
 	 */
 	public function create() {
-		return \$this->tdbmService->getNewObject('$tableName', true, '$beanClassName');
+		return \$this->tdbmService->getNewObject('$tableName', true);
 	}
 	
 	/**
@@ -509,7 +509,7 @@ class $baseClassName implements DAOInterface
 		}else{
 			\$orderBy = null;
 		}
-		return \$this->tdbmService->getObjects('$tableName',  null, \$orderBy, null, null, '$beanClassName');
+		return \$this->tdbmService->getObjects('$tableName',  null, \$orderBy);
 	}
 	
 	/**
@@ -522,7 +522,7 @@ class $baseClassName implements DAOInterface
 	 * @throws TDBMException
 	 */
 	public function getById(\$id, \$lazyLoading = false) {
-		return \$this->tdbmService->getObject('$tableName', \$id, '$beanClassName', \$lazyLoading);
+		return \$this->tdbmService->getObject('$tableName', \$id, null, \$lazyLoading);
 	}
 	
 	/**
@@ -552,7 +552,7 @@ class $baseClassName implements DAOInterface
 		if (\$this->defaultSort && \$orderbyBag == null){
 			\$orderbyBag = new OrderByColumn('$tableName', \$this->defaultSort, \$this->defaultDirection);
 		}
-		return \$this->tdbmService->getObjects('$tableName', \$filterBag, \$orderbyBag, \$from, \$limit, '$beanClassName');
+		return \$this->tdbmService->getObjects('$tableName', \$filterBag, \$orderbyBag, \$from, \$limit);
 	}
 
 	/**
@@ -562,7 +562,7 @@ class $baseClassName implements DAOInterface
 	 * @return $beanClassWithoutNameSpace
 	 */
 	protected function getByFilter(\$filterBag=null) {
-		return \$this->tdbmService->getObject('$tableName', \$filterBag, '$beanClassName');
+		return \$this->tdbmService->getObject('$tableName', \$filterBag);
 	}
 	
 	/**

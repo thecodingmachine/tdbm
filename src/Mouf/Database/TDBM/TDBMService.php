@@ -140,6 +140,12 @@ class TDBMService {
 	private $cache;
 
 	private $cacheKey = "__TDBM_Cache__";
+
+	/**
+	 * Map associating a table name to a fully qualified Bean class name
+	 * @var array
+	 */
+	private $tableToBeanMap = [];
 	
 	public function __construct() {
 		register_shutdown_function(array($this,"completeSaveOnExit"));
@@ -389,27 +395,31 @@ class TDBMService {
 			$id = serialize($id);
 		}
 
+		if ($className === null) {
+			if (isset($this->tableToBeanMap[$table_name])) {
+				$className = $this->tableToBeanMap[$table_name];
+			} else {
+				$className = "Mouf\\Database\\TDBM\\TDBMObject";
+			}
+		}
+
 		if ($this->objectStorage->has($table_name, $id)) {
 			$obj = $this->objectStorage->get($table_name, $id);
-			if ($className == null || is_a($obj, $className)) {
+			if (is_a($obj, $className)) {
 				return $obj;
 			} else {
 				throw new TDBMException("Error! The object with ID '$id' for table '$table_name' has already been retrieved. The type for this object is '".get_class($obj)."'' which is not a subtype of '$className'");
 			}
 		}
 
-		if ($className == null) {
-			$obj = new TDBMObject($this, $table_name, $id);
-		} else {
-			if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
-				if (!class_exists($className)) {
-					throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." does not exist.");
-				} else {
-					throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." should extend TDBMObject.");
-				}
+		if ($className != "Mouf\\Database\\TDBM\\TDBMObject" && !is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
+			if (!class_exists($className)) {
+				throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." does not exist.");
+			} else {
+				throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." should extend TDBMObject.");
 			}
-			$obj = new $className($this, $table_name, $id);
 		}
+		$obj = new $className($this, $table_name, $id);
 
 		if ($lazy_loading == false) {
 			// If we are not doing lazy loading, let's load the object:
@@ -452,17 +462,21 @@ class TDBMService {
 			throw new TDBMException("Error while calling TDBMObject::getNewObject(): The table named '$table_name' does not exist. Maybe you meant the table '$probable_table_name'.");
 		}
 
-		if ($className == null) {
-			$object = new TDBMObject($this, $table_name);
-		} else {
-			if (!is_string($className)) {
-				throw new TDBMException("Error while calling TDBMObject::getNewObject(): The third parameter should be a string representing a class name to instantiate.");
+		if ($className === null) {
+			if (isset($this->tableToBeanMap[$table_name])) {
+				$className = $this->tableToBeanMap[$table_name];
+			} else {
+				$className = "Mouf\\Database\\TDBM\\TDBMObject";
 			}
-			if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
-				throw new TDBMException("Error while calling TDBMObject::getNewObject(): The class ".$className." should extend TDBMObject.");
-			}
-			$object = new $className($this, $table_name);
 		}
+
+		if (!is_string($className)) {
+			throw new TDBMException("Error while calling TDBMObject::getNewObject(): The third parameter should be a string representing a class name to instantiate.");
+		}
+		if (!is_a($className, "Mouf\\Database\\TDBM\\TDBMObject", true)) {
+			throw new TDBMException("Error while calling TDBMObject::getNewObject(): The class ".$className." should extend TDBMObject.");
+		}
+		$object = new $className($this, $table_name);
 
 		if ($auto_assign_id && !$this->isPrimaryKeyAutoIncrement($table_name)) {
 			$pk_table =  $this->getPrimaryKeyStatic($table_name);
@@ -650,36 +664,38 @@ class TDBMService {
 					$id = serialize($ids);
 				}
 
+				if ($className === null) {
+					if (isset($this->tableToBeanMap[$table_name])) {
+						$className = $this->tableToBeanMap[$table_name];
+					} else {
+						$className = "Mouf\\Database\\TDBM\\TDBMObject";
+					}
+				}
+
+				if (!is_string($className)) {
+					throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
+				}
+
                 $obj = $this->objectStorage->get($table_name,$id);
 				if ($obj === null)
 				{
-					if ($className == null) {
-						$obj = new TDBMObject($this, $table_name, $id);
-					} elseif (is_string($className)) {
-						if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
-							throw new TDBMException("Error while calling TDBM: The class ".$className." should extend TDBMObject.");
-						}
-						$obj = new $className($this, $table_name, $id);
-					} else {
-						throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
+					if (!is_a($className, "Mouf\\Database\\TDBM\\TDBMObject", true)) {
+						throw new TDBMException("Error while calling TDBM: The class ".$className." should extend TDBMObject.");
 					}
+					$obj = new $className($this, $table_name, $id);
                     $obj->loadFromRow($row, $colsArray);
                     $this->objectStorage->set($table_name, $id, $obj);
 				} elseif ($obj->_getStatus() == "not loaded") {
                     $obj->loadFromRow($row, $colsArray);
 					// Check that the object fetched from cache is from the requested class.
-					if ($className != null) {
-						if (!is_subclass_of(get_class($obj), $className) && get_class($obj) != $className) {
-							throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($obj).".");
-						}
+					if (!is_a($obj, $className)) {
+						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($obj).".");
 					}
 				} else {
 					// Check that the object fetched from cache is from the requested class.
-					if ($className != null) {
-						$className = ltrim($className, '\\');
-						if (!is_subclass_of(get_class($obj), $className) && get_class($obj) != $className) {
-							throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($obj).".");
-						}
+					$className = ltrim($className, '\\');
+					if (!is_a($obj, $className)) {
+						throw new TDBMException("Error while calling TDBM: An object fetched from database is already present in TDBM cache and they do not share the same class. You requested the object to be of the class ".$className." but the object available locally is of the class ".get_class($obj).".");
 					}
 				}
 				$returned_objects[] = $obj;
@@ -1128,13 +1144,11 @@ class TDBMService {
 			{
 				if ($previous_constraint['type']=='1*' && $current_table == $previous_constraint["table2"] && $col2 == $previous_constraint["col2"] && $table1 == $previous_constraint["table1"] && $col1 == $previous_constraint["col1"])
 				{
-					//echo "YOUHOU1! $current_table $col2";
 					$already_done = true;
 					break;
 				}
 				elseif ($previous_constraint['type']=='*1' && $current_table == $previous_constraint["table1"] && $col2 == $previous_constraint["col1"] && $table1 == $previous_constraint["table2"] && $col1 == $previous_constraint["col2"])
 				{
-					//echo "YOUHOU2! $current_table $col2";
 					$already_done = true;
 					break;
 				}
@@ -1435,11 +1449,9 @@ class TDBMService {
 
 			// Now, let's generate the SQL and let's call getObjectsBySQL.
 
-			//print_r($flat_path);
 
 			$constraint = $flat_path[0];
 
-			//$table_number=1;
 			$sql = $this->dbConnection->escapeDBItem($constraint['table2']);
 
 			foreach ($flat_path as $constraint) {
@@ -1845,6 +1857,15 @@ class TDBMService {
 		$tdbmDaoGenerator = new TDBMDaoGenerator($this->dbConnection);
 		return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime);
 	}
+
+	/**
+ 	* @param array<string, string> $tableToBeanMap
+ 	*/
+	public function setTableToBeanMap(array $tableToBeanMap) {
+		$this->tableToBeanMap = $tableToBeanMap;
+	}
+
+
 }
 
 TDBMService::$script_start_up_time = microtime(true);
