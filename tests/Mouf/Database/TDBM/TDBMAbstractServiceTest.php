@@ -21,18 +21,25 @@ namespace Mouf\Database\TDBM;
 
 use Mouf\Database\DBConnection\MySqlConnection;
 use Mouf\Utils\Cache\NoCache;
-use Mouf\Database\TDBM\Filters\EqualFilter;
-use Mouf\Database\TDBM\Filters\OrderByColumn;
 
 /**
  */
 abstract class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
 
+    /**
+     * @var MySqlConnection $dbConnection
+     */
     protected $dbConnection;
+
     /**
      * @var TDBMService
      */
     protected $tdbmService;
+
+    /**
+     * @var TDBMDaoGenerator $tdbmDaoGenerator
+     */
+    protected $tdbmDaoGenerator;
 
     protected function setUp() {
 
@@ -61,5 +68,7 @@ abstract class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
         $this->tdbmService = new TDBMService();
         $this->tdbmService->dbConnection = $this->dbConnection;
         $this->tdbmService->cacheService = new NoCache();
+
+        $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->dbConnection);
     }
 }

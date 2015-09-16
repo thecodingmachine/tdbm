@@ -22,8 +22,6 @@ namespace Mouf\Database\TDBM;
 use Mouf\Database\DBConnection\MySqlConnection;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Mouf\Utils\Cache\NoCache;
-use Mouf\Database\TDBM\Filters\EqualFilter;
-use Mouf\Database\TDBM\Filters\OrderByColumn;
 
 
 /**
