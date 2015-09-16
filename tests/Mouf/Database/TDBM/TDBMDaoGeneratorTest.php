@@ -26,7 +26,7 @@ use Mouf\Utils\Cache\NoCache;
 
 /**
  */
-class TDBMDaoGeneratorTest extends TDBMAbsctractServiceTest {
+class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
 
     /** @var TDBMDaoGenerator $tdbmDaoGenerator */
     protected $tdbmDaoGenerator;

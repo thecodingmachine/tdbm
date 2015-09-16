@@ -24,7 +24,7 @@ use Mouf\Utils\Cache\NoCache;
 
 /**
  */
-abstract class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
+abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * @var MySqlConnection $dbConnection
