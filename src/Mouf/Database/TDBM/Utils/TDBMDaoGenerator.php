@@ -96,8 +96,8 @@ class TDBMDaoGenerator {
             $connection->cacheService->purgeAll();
         }
 		
-		$this->generateBean($beanName, $baseBeanName, $tableName, $beannamespace, $classNameMapper, $support, $storeInUtc, $castDatesToDateTime);
-		$this->generateDao($daoName, $daoName."Base", $beanName, $tableName, $classNameMapper, $support, $storeInUtc, $castDatesToDateTime);
+		$this->generateBean($beanName, $baseBeanName, $tableName, $beannamespace, $classNameMapper, $storeInUtc, $castDatesToDateTime);
+		$this->generateDao($daoName, $daoName."Base", $beanName, $tableName, $classNameMapper, $support);
 	}
 	
 	/**
@@ -140,7 +140,7 @@ class TDBMDaoGenerator {
      * @param ClassNameMapper $classNameMapper
      * @throws TDBMException
      */
-	public function generateBean($className, $baseClassName, $tableName, $beannamespace, ClassNameMapper $classNameMapper, $support, $storeInUtc, $castDatesToDateTime) {
+	public function generateBean($className, $baseClassName, $tableName, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc, $castDatesToDateTime) {
 		$table = $this->dbConnection->getTableFromDbModel($tableName);
 
 		// List of methods already written.
@@ -416,7 +416,7 @@ class $className extends $baseClassName
 	 * @param string $className The name of the class
 	 * @param string $tableName The name of the table
 	 */
-	public function generateDao($className, $baseClassName, $beanClassName, $tableName, ClassNameMapper $classNameMapper, $support, $storeInUtc, $castDatesToDateTime) {
+	public function generateDao($className, $baseClassName, $beanClassName, $tableName, ClassNameMapper $classNameMapper, $support) {
 		$info = $this->dbConnection->getTableInfo($tableName);
 		$defaultSort = null;
 		foreach ($info as $index => $data) {
