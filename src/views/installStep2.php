@@ -13,13 +13,6 @@ Unless you are developing your own autoload system, you should configure <strong
 <?php } ?>
 
 <div class="control-group">
-	<label class="control-label" for="sourcedirectory">Source directory:</label>
-	<div class="controls">
-		<input type="text" id="sourcedirectory" name="sourcedirectory" value="<?php echo plainstring_to_htmlprotected($this->sourceDirectory) ?>"></input>
-		<span class="help-block">This is the directory containing your source code (it should be configured in the "autoload" section of your <em>composer.json</em> file.)</span>
-	</div>
-</div>
-<div class="control-group">
 	<label class="control-label">Dao namespace:</label>
 	<div class="controls">
 		<input type="text" name="daonamespace" value="<?php echo plainstring_to_htmlprotected($this->daoNamespace) ?>"></input>
