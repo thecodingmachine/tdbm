@@ -25,12 +25,15 @@ use Mouf\Utils\Cache\NoCache;
 
 /**
  */
-class InFilterTest extends TDBMAbstractServiceTest {
+class SqlStringFilterTest extends TDBMAbstractServiceTest {
 
     public function testToSql() {
-        $inFilter = new InFilter("foo", "bar", [1, null, new \DateTimeImmutable("1978-05-05 20:27:00")]);
+        $sqlStringFilter = new SqlStringFilter("foo.bar = LOWER(baz.bar) AND foo.id = zap.id");
 
-        $this->assertEquals("foo.bar IN ('1',NULL,'1978-05-05 20:27:00')", $inFilter->toSql($this->tdbmService->dbConnection));
-        $this->assertEquals(['foo'], $inFilter->getUsedTables());
+        $this->assertEquals("foo.bar = LOWER(baz.bar) AND foo.id = zap.id", $sqlStringFilter->toSql($this->tdbmService->dbConnection));
+        $this->assertContains('foo', $sqlStringFilter->getUsedTables());
+        $this->assertContains('baz', $sqlStringFilter->getUsedTables());
+        $this->assertContains('zap', $sqlStringFilter->getUsedTables());
+        $this->assertCount(3, $sqlStringFilter->getUsedTables());
     }
 }
