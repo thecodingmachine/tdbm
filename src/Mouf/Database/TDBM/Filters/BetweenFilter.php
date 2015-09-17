@@ -125,7 +125,7 @@ class BetweenFilter implements FilterInterface {
 			throw new TDBMException('Error in BetweenFilter: one of the value passed is NULL.');
 		}
 
-		return $this->tableName.'.'.$this->columnName.' BETWEEN '.$dbConnection->quoteSmart($this->value1)." AND ".$dbConnection->quoteSmart($this->value2);
+		return $this->tableName.'.'.$this->columnName.' BETWEEN '.FilterUtils::valueToSql($this->value1, $dbConnection)." AND ".FilterUtils::valueToSql($this->value2, $dbConnection);
 	}
 	
 	/**

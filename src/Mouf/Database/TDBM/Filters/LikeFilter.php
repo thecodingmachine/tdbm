@@ -108,7 +108,7 @@ class LikeFilter implements FilterInterface {
 			throw new TDBMException("Error in LikeFilter: trying to compare $this->tableName.$this->columnName with NULL.");
 		}
 
-		return $this->tableName.'.'.$this->columnName." LIKE ".$dbConnection->quoteSmart($this->value);
+		return $this->tableName.'.'.$this->columnName." LIKE ".FilterUtils::valueToSql($this->value, $dbConnection);
 	}
 
 	/**

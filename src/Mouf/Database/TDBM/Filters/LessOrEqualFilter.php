@@ -106,7 +106,7 @@ class LessOrEqualFilter implements FilterInterface {
 			throw new TDBMException("Error in LessOrEqualFilter: trying to compare $this->tableName.$this->columnName with NULL.");
 		}
 
-		return $this->tableName.'.'.$this->columnName."<=".$dbConnection->quoteSmart($this->value);
+		return $this->tableName.'.'.$this->columnName."<=".FilterUtils::valueToSql($this->value, $dbConnection);
 	}
 
 	/**

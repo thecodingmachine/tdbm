@@ -105,7 +105,7 @@ class EqualFilter implements FilterInterface {
 		if ($this->value === null) {
 			$str_value = ' IS NULL';
 		} else {
-			$str_value = "=".$dbConnection->quoteSmart($this->value);
+			$str_value = "=".FilterUtils::valueToSql($this->value, $dbConnection);
 		}
 
 		return $this->tableName.'.'.$this->columnName.$str_value;
