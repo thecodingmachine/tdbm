@@ -127,6 +127,8 @@ class TdbmInstallController extends Controller {
 		} else {
 			$this->autoloadDetected = true;
 		}
+
+		$this->castDatesToDateTime = true;
 								
 		$this->content->addFile(dirname(__FILE__)."/../../../../views/installStep2.php", $this);
 		$this->template->toHtml();

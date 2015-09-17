@@ -93,7 +93,7 @@ class TdbmController extends AbstractMoufInstanceController {
 	 * @param string $name
 	 * @param bool $selfedit
 	 */
-	public function generate($name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $keepSupport = 0, $storeInUtc = 0, $castDatesToDateTime = 1, $selfedit="false") {
+	public function generate($name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $keepSupport = 0, $storeInUtc = 0, $castDatesToDateTime = 0, $selfedit="false") {
 		$this->initController($name, $selfedit);
 
 		self::generateDaos($this->moufManager, $name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $selfedit, $keepSupport, $storeInUtc, $castDatesToDateTime);
