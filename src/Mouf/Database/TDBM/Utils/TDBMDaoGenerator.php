@@ -34,7 +34,7 @@ class TDBMDaoGenerator {
 	/**
 	 * @var string
 	 */
-	private $rootPath = __DIR__.'/../../../../../../../../';
+	private $rootPath;
 
 	/**
 	 * Constructor.
@@ -43,6 +43,7 @@ class TDBMDaoGenerator {
 	 */
 	public function __construct(ConnectionInterface $dbConnection) {
 		$this->dbConnection = $dbConnection;
+		$this->rootPath = __DIR__."/../../../../../../../../";
 		
 	}
 
@@ -60,7 +61,6 @@ class TDBMDaoGenerator {
 	 */
 	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime) {
 		// TODO: migrate $this->daoNamespace to $daonamespace that is passed in parameter!
-
         $classNameMapper = ClassNameMapper::createFromComposerFile($this->rootPath.'composer.json');
 
 		$this->daoNamespace = $daonamespace;
