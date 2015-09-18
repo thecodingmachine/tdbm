@@ -113,7 +113,7 @@ class InFilter implements FilterInterface {
 			if ($value === null) {
 				$values_sql[] = 'NULL';
 			} else {
-				$values_sql[] = $dbConnection->quoteSmart($value);
+				$values_sql[] = FilterUtils::valueToSql($value, $dbConnection);
 			}
 		}
 

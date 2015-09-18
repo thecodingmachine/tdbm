@@ -85,13 +85,6 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable, FilterIn
 	// TODO: make this private again.
 	public $TDBMObject_id;
 
-	/**
-	 * dependency between columns of objects and linked objects in the form: $this->dependency[$row] = $object
-	 *
-	 * Used in setonestar... TODO
-	 */
-	private $db_dependency;
-
 	private $db_connection;
 	
 	/**

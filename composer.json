@@ -42,7 +42,8 @@
 	},
     "autoload-dev" : {
   	  "psr-4" : {
-  	    "Test\\" : "src/Test"
+  	    "Test\\" : "src/Test",
+		"Mouf\\Database\\TDBM\\" : "tests/Mouf/Database/TDBM"
   	  }
     },
 	"minimum-stability" : "dev",

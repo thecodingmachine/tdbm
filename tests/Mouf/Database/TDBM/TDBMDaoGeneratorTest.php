@@ -31,12 +31,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
     /** @var TDBMDaoGenerator $tdbmDaoGenerator */
     protected $tdbmDaoGenerator;
 
-    private $rootPath = __DIR__.'/../../../../';
+    private $rootPath;
 
     protected function setUp() {
         parent::setUp();
         $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->dbConnection);
         $this->tdbmDaoGenerator->setRootPath($this->rootPath);
+        $this->rootPath = __DIR__.'/../../../../';
     }
 
 	public function testDaoGeneration() {

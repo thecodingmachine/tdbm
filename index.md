@@ -1,3 +1,8 @@
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/thecodingmachine/database.tdbm/badges/quality-score.png?b=3.4)](https://scrutinizer-ci.com/g/thecodingmachine/database.tdbm/?branch=3.4)
+[![Build Status](https://travis-ci.org/thecodingmachine/database.tdbm.svg?branch=3.4)](https://travis-ci.org/thecodingmachine/database.tdbm)
+[![Coverage Status](https://coveralls.io/repos/thecodingmachine/database.tdbm/badge.svg?branch=3.4&service=github)](https://coveralls.io/github/thecodingmachine/database.tdbm?branch=3.4)
+
+
 About TDBM (The DataBase Machine)
 =================================
 
