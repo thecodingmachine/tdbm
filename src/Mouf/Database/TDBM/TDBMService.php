@@ -19,6 +19,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
+use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\Cache\VoidCache;
+use Doctrine\DBAL\Driver\Connection;
 use Mouf\Database\TDBM\Filters\InFilter;
 use Mouf\Database\TDBM\Filters\OrderBySQLString;
 use Mouf\Database\TDBM\Filters\EqualFilter;
@@ -50,14 +53,14 @@ class TDBMService {
 	 *
 	 * @var ConnectionInterface
 	 */
-	public $dbConnection;
+	private $dbConnection;
 
 	/**
 	 * The cache service to cache data.
 	 *
 	 * @var CacheInterface
 	 */
-	public $cacheService;
+	private $cacheService;
 
 	/**
 	 * The default autosave mode for the objects
@@ -146,48 +149,30 @@ class TDBMService {
 	 * @var array
 	 */
 	private $tableToBeanMap = [];
-	
-	public function __construct() {
+
+	/**
+	 * @param Connection $dbConnection The DBAL DB connection to use
+	 * @param Cache|null $cache A cache service to be used
+	 */
+	public function __construct(Connection $dbConnection, Cache $cache = null) {
 		register_shutdown_function(array($this,"completeSaveOnExit"));
 		if (extension_loaded('weakref')) {
 			$this->objectStorage = new WeakrefObjectStorage();
 		} else {
 			$this->objectStorage = new StandardObjectStorage();
 		}
-	}
-
-	/**
-	 * Sets up the default connection to the database.
-	 * The parameters of TDBMService::setConnection are similar to the parameters used by PEAR DB (since TDBMObject relies on PEAR DB).
-	 * TODO: CORRECT THE DOC!!!!
-	 * For instance:
-	 * TDBMObject::setConnection(array(
-	 *    'phptype'  => 'pgsql',
-	 *    'username' => 'my_user',
-	 *    'password' => 'my_password',
-	 *    'hostspec' => 'ip_of_my_database_server',
-	 *    'database' => 'name_of_my_base'
-	 * ));
-	 *
-	 * where phptype is the type of database supported (currently can be only 'pgsql' for PostGreSQL)
-	 *       username is the name of your database user
-	 *       password is the password of your rdatabase user
-	 *       hostspec is the IP of your database server (very likely, it will be 'localhost' for you)
-	 *       database is the name of your database
-	 *
-	 * @Compulsory
-	 * @param ConnectionInterface $connection
-	 */
-	public function setConnection(ConnectionInterface $connection) {
-		if ($this->cacheService != null && !($connection instanceof CachedConnection)) {
-			$cachedConnection = new CachedConnection();
-			$cachedConnection->dbConnection = $connection;
-			$cachedConnection->cacheService = $this->cacheService;
-			$this->dbConnection = $cachedConnection;
+		$this->dbConnection = $dbConnection;
+		if ($this->cache !== null) {
+			$this->cache = $cache;
 		} else {
-			$this->dbConnection = $connection;
+			$this->cache = new VoidCache();
+		}
+
+		if (self::$script_start_up_time === null) {
+			self::$script_start_up_time = microtime(true);
 		}
 	}
+
 
 	/**
 	 * Returns the object used to connect to the database.
@@ -1868,4 +1853,3 @@ class TDBMService {
 
 }
 
-TDBMService::$script_start_up_time = microtime(true);
