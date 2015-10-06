@@ -1382,7 +1382,7 @@ class TDBMService {
 	 * @param integer $limit The maximum number of rows returned
 	 * @param string $className Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
 	 * @param unknown_type $hint_path Hints to get the path for the query (expert parameter, you should leave it to null).
-	 * @return array|Generator|TDBMObjectArray An array or object containing the resulting objects of the query.
+	 * @return array|Generator|TDBMObjectArray|int An array or object containing the resulting objects of the query.
 	 */
 	public function getObjectsByMode($mode, $table_name, $filter_bag=null, $orderby_bag=null, $from=null, $limit=null, $className=null, $hint_path=null) {
 		$this->completeSave();
