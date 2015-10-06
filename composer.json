@@ -20,12 +20,11 @@
 	],
 	"require" : {
 		"php" : ">=5.5.0",
-		"mouf/database.dbconnection" : "~2.0",
-		"mouf/utils.cache.cache-interface" : "~2.0",
-		"mouf/utils.cache.no-cache" : "~2.0",
+	    "mouf/magic-query" : "~1.0",
+	    "doctrine/dbal": "~2.5",
+	    "mouf/database.doctrine-dbal-wrapper": "~1.1",
 		"mouf/utils.common.conditioninterface" : "~2.0",
-		"mouf/utils.log.errorlog_logger" : "~2.0",
-		"mouf/database.dao-interface" : "~2.0",
+	    "psr/log": "~1.0",
 	    "mouf/mouf": "~2.0.0"
 	},
     "require-dev" : {
