@@ -623,6 +623,18 @@ class TDBMService {
 		$this->getPrimaryKeyStatic($table_name);
 
 		$result = $this->dbConnection->query($sql, $from, $limit);
+
+		if ($className === null) {
+			if (isset($this->tableToBeanMap[$table_name])) {
+				$className = $this->tableToBeanMap[$table_name];
+			} else {
+				$className = "Mouf\\Database\\TDBM\\TDBMObject";
+			}
+		}
+
+		if (!is_string($className)) {
+			throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
+		}
 		
 		if ($this->mode == self::MODE_COMPATIBLE_ARRAY || $this->mode == self::MODE_ARRAY) {
 			if ($this->mode == self::MODE_COMPATIBLE_ARRAY) {
@@ -662,18 +674,6 @@ class TDBMService {
 						$ids[] = $row[$keysStandardCased[$pk]];
 					}
 					$id = serialize($ids);
-				}
-
-				if ($className === null) {
-					if (isset($this->tableToBeanMap[$table_name])) {
-						$className = $this->tableToBeanMap[$table_name];
-					} else {
-						$className = "Mouf\\Database\\TDBM\\TDBMObject";
-					}
-				}
-
-				if (!is_string($className)) {
-					throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
 				}
 
                 $obj = $this->objectStorage->get($table_name,$id);
