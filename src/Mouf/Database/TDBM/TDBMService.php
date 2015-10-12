@@ -21,17 +21,19 @@ namespace Mouf\Database\TDBM;
 
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\VoidCache;
-use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\Schema;
+use Mouf\Database\MagicQuery;
+use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Filters\InFilter;
 use Mouf\Database\TDBM\Filters\OrderBySQLString;
 use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\SqlStringFilter;
 use Mouf\Database\TDBM\Filters\AndFilter;
-use Mouf\Database\DBConnection\CachedConnection;
 use Mouf\Utils\Cache\CacheInterface;
 use Mouf\Database\TDBM\Filters\FilterInterface;
-use Mouf\Database\DBConnection\ConnectionInterface;
-use Mouf\Database\DBConnection\DBConnectionException;
 use Mouf\Database\TDBM\Filters\OrFilter;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 
@@ -53,7 +55,7 @@ class TDBMService {
 	 *
 	 * @var ConnectionInterface
 	 */
-	private $dbConnection;
+	private $connection;
 
 	/**
 	 * The cache service to cache data.
@@ -61,6 +63,26 @@ class TDBMService {
 	 * @var CacheInterface
 	 */
 	private $cacheService;
+
+	/**
+	 * @var SchemaAnalyzer
+	 */
+	private $schemaAnalyzer;
+
+	/**
+	 * @var MagicQuery
+	 */
+	private $magicQuery;
+
+	/**
+	 * @var Schema
+	 */
+	private $schema;
+
+	/**
+	 * @var string
+	 */
+	private $cachePrefix;
 
 	/**
 	 * The default autosave mode for the objects
@@ -151,22 +173,25 @@ class TDBMService {
 	private $tableToBeanMap = [];
 
 	/**
-	 * @param Connection $dbConnection The DBAL DB connection to use
+	 * @param Connection $connection The DBAL DB connection to use
 	 * @param Cache|null $cache A cache service to be used
+	 * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
+	 * 										 Will be automatically created if not passed.
 	 */
-	public function __construct(Connection $dbConnection, Cache $cache = null) {
+	public function __construct(Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null) {
 		register_shutdown_function(array($this,"completeSaveOnExit"));
 		if (extension_loaded('weakref')) {
 			$this->objectStorage = new WeakrefObjectStorage();
 		} else {
 			$this->objectStorage = new StandardObjectStorage();
 		}
-		$this->dbConnection = $dbConnection;
+		$this->connection = $connection;
 		if ($this->cache !== null) {
 			$this->cache = $cache;
 		} else {
 			$this->cache = new VoidCache();
 		}
+		$this->schemaAnalyzer = $schemaAnalyzer;
 
 		if (self::$script_start_up_time === null) {
 			self::$script_start_up_time = microtime(true);
@@ -180,25 +205,29 @@ class TDBMService {
 	 * @return ConnectionInterface
 	 */
 	public function getConnection() {
-		return $this->dbConnection;
+		return $this->connection;
 	}
 
 	/**
-	 * Sets the cache service.
-	 * The cache service is used to store the structure of the database in cache, which will dramatically improve performances.
-	 * The cache service will also wrap the database connection into a cached connection.
-	 *
-	 * @Compulsory
-	 * @param CacheInterface $cacheService
+	 * @return SchemaAnalyzer
 	 */
-	public function setCacheService(CacheInterface $cacheService) {
-		$this->cacheService = $cacheService;
-		if ($this->dbConnection != null && !($this->dbConnection instanceof CachedConnection)) {
-			$cachedConnection = new CachedConnection();
-			$cachedConnection->dbConnection = $this->dbConnection;
-			$cachedConnection->cacheService = $this->cacheService;
-			$this->dbConnection = $cachedConnection;
+	private function getSchemaAnalyzer() {
+		if ($this->schemaAnalyzer === null) {
+			if (!$this->connection) {
+				throw new MagicQueryMissingConnectionException('In order to use MagicJoin, you need to configure a DBAL connection.');
+			}
+
+			$this->schemaAnalyzer = new SchemaAnalyzer($this->connection->getSchemaManager(), $this->cache, $this->getConnectionUniqueId());
 		}
+		return $this->schemaAnalyzer;
+	}
+
+	/**
+	 * Creates a unique cache key for the current connection.
+	 * @return string
+	 */
+	private function getConnectionUniqueId() {
+		return hash('md4', $this->connection->getHost()."-".$this->connection->getPort()."-".$this->connection->getDatabase()."-".$this->connection->getDriver()->getName());
 	}
 
 	/**
@@ -224,7 +253,6 @@ class TDBMService {
 	public function setDefaultAutoSaveMode($autoSave = true) {
 		$this->autosave_default = $autoSave;
 	}
-
 
 	/**
 	 * If TDBM objects are modified, and if they are not saved, they will automatically be saved at the end of the script.
@@ -274,6 +302,7 @@ class TDBMService {
 	 * Note: the cache is not returned. It is stored in the $cache instance variable.
 	 */
 	private function loadCache() {
+		// TODO: evaluate for 4.0
 		if ($this->cache == null) {
 			if ($this->cacheService == null) {
 				throw new TDBMException("A cache service must be explicitly bound to the TDBM Service. Please configure your instance of TDBM Service.");
@@ -287,6 +316,7 @@ class TDBMService {
 	 *
 	 */
 	private function saveCache() {
+		// TODO: evaluate for 4.0
 		$this->cacheService->set($this->cacheKey, $this->cache);
 	}
 
@@ -365,10 +395,10 @@ class TDBMService {
 			}
 		}
 		$id = $filters;
-		if ($this->dbConnection == null) {
+		if ($this->connection == null) {
 			throw new TDBMException("Error while calling TdbmService->getObject(): No connection has been established on the database!");
 		}
-		$table_name = $this->dbConnection->toStandardcase($table_name);
+		$table_name = $this->connection->toStandardcase($table_name);
 
 		// If the ID is null, let's throw an exception
 		if ($id === null) {
@@ -431,16 +461,16 @@ class TDBMService {
 	 * @return TDBMObject
 	 */
 	public function getNewObject($table_name, $auto_assign_id=true, $className = null) {
-		if ($this->dbConnection == null) {
+		if ($this->connection == null) {
 			throw new TDBMException("Error while calling TDBMObject::getNewObject(): No connection has been established on the database!");
 		}
-		$table_name = $this->dbConnection->toStandardcase($table_name);
+		$table_name = $this->connection->toStandardcase($table_name);
 
 		// Ok, let's verify that the table does exist:
 		try {
-			/*$data =*/ $this->dbConnection->getTableInfo($table_name);
+			/*$data =*/ $this->connection->getTableInfo($table_name);
 		} catch (TDBMException $exception) {
-			$probable_table_name = $this->dbConnection->checkTableExist($table_name);
+			$probable_table_name = $this->connection->checkTableExist($table_name);
 			if ($probable_table_name == null)
 			throw new TDBMException("Error while calling TDBMObject::getNewObject(): The table named '$table_name' does not exist.");
 			else
@@ -467,19 +497,19 @@ class TDBMService {
 			$pk_table =  $this->getPrimaryKeyStatic($table_name);
 			if (count($pk_table)==1)
 			{
-				$root_table = $this->dbConnection->findRootSequenceTable($table_name);
-				$id = $this->dbConnection->nextId($root_table);
+				$root_table = $this->connection->findRootSequenceTable($table_name);
+				$id = $this->connection->nextId($root_table);
 				// If $id == 1, it is likely that the sequence was just created.
 				// However, there might be already some data in the database. We will check the biggest ID in the table.
 				if ($id == 1) {
-					$sql = "SELECT MAX(".$this->dbConnection->escapeDBItem($pk_table[0]).") AS maxkey FROM ".$root_table;
-					$res = $this->dbConnection->getAll($sql);
+					$sql = "SELECT MAX(".$this->connection->escapeDBItem($pk_table[0]).") AS maxkey FROM ".$root_table;
+					$res = $this->connection->getAll($sql);
 					// NOTE: this will work only if the ID is an integer!
 					$newid = $res[0]['maxkey'] + 1;
 					if ($newid>$id) {
 						$id = $newid;
 					}
-					$this->dbConnection->setSequenceId($root_table, $id);
+					$this->connection->setSequenceId($root_table, $id);
 				}
 
 				$object->TDBMObject_id = $id;
@@ -499,34 +529,35 @@ class TDBMService {
 	 * @param TDBMObject $object the object to delete.
 	 */
 	public function deleteObject(TDBMObject $object) {
-		if ($object->getTDBMObjectState() != "new" && $object->getTDBMObjectState() != "deleted")
+		if ($object->getTDBMObjectState() != TDBMObjectStateEnum::STATE_NEW && $object->getTDBMObjectState() != TDBMObjectStateEnum::STATE_DELETED)
 		{
 			$pk_table = $object->getPrimaryKey();
 			// Now for the object_id
 			$object_id = $object->TDBMObject_id;
 			// If there is only one primary key:
 			if (count($pk_table)==1) {
-				$sql_where = $this->dbConnection->escapeDBItem($pk_table[0])."=".$this->dbConnection->quoteSmart($object->TDBMObject_id);
+				$sql_where = $this->connection->escapeDBItem($pk_table[0])."=".$this->connection->quoteSmart($object->TDBMObject_id);
 			} else {
 				$ids = unserialize($object_id);
 				$i=0;
 				$sql_where_array = array();
 				foreach ($pk_table as $pk) {
-					$sql_where_array[] = $this->dbConnection->escapeDBItem($pk)."=".$this->dbConnection->quoteSmart($ids[$i]);
+					$sql_where_array[] = $this->connection->escapeDBItem($pk)."=".$this->connection->quoteSmart($ids[$i]);
 					$i++;
 				}
 				$sql_where = implode(" AND ",$sql_where_array);
 			}
 
 
-			$sql = 'DELETE FROM '.$this->dbConnection->escapeDBItem($object->_getDbTableName()).' WHERE '.$sql_where;
-			$result = $this->dbConnection->exec($sql);
+			$sql = 'DELETE FROM '.$this->connection->escapeDBItem($object->_getDbTableName()).' WHERE '.$sql_where;
+			$result = $this->connection->exec($sql);
 
-			if ($result != 1)
-			throw new TDBMException("Error while deleting object from table ".$object->_getDbTableName().": ".$result." have been affected.");
+			if ($result != 1) {
+				throw new TDBMException("Error while deleting object from table ".$object->_getDbTableName().": ".$result." have been affected.");
+			}
 
 			$this->objectStorage->remove($object->_getDbTableName(), $object_id);
-			$object->setTDBMObjectState("deleted");
+			$object->setTDBMObjectState(TDBMObjectStateEnum::STATE_DELETED);
 		}
 	}
 
@@ -551,14 +582,14 @@ class TDBMService {
      * @return TDBMObjectArray
      */
     private function deleteAllConstraintWithThisObject(TDBMObject $obj) {
-        $tableFrom = $this->dbConnection->escapeDBItem($obj->_getDbTableName());
-        $constraints = $this->dbConnection->getConstraintsFromTable($tableFrom);
+        $tableFrom = $this->connection->escapeDBItem($obj->_getDbTableName());
+        $constraints = $this->connection->getConstraintsFromTable($tableFrom);
         foreach ($constraints as $constraint) {
-            $tableTo = $this->dbConnection->escapeDBItem($constraint["table1"]);
-            $colFrom = $this->dbConnection->escapeDBItem($constraint["col2"]);
-            $colTo = $this->dbConnection->escapeDBItem($constraint["col1"]);
-            $idVarName = $this->dbConnection->escapeDBItem($obj->getPrimaryKey()[0]);
-            $idValue = $this->dbConnection->quoteSmart($obj->TDBMObject_id);
+            $tableTo = $this->connection->escapeDBItem($constraint["table1"]);
+            $colFrom = $this->connection->escapeDBItem($constraint["col2"]);
+            $colTo = $this->connection->escapeDBItem($constraint["col1"]);
+            $idVarName = $this->connection->escapeDBItem($obj->getPrimaryKey()[0]);
+            $idValue = $this->connection->quoteSmart($obj->TDBMObject_id);
             $sql = "SELECT DISTINCT ".$tableTo.".*"
                     ." FROM ".$tableFrom
                     ." LEFT JOIN ".$tableTo." ON ".$tableFrom.".".$colFrom." = ".$tableTo.".".$colTo
@@ -599,15 +630,15 @@ class TDBMService {
 	 * @return array|Generator|TDBMObjectArray The result set of the query as a TDBMObjectArray (an array of TDBMObjects with special properties)
 	 */
 	public function getObjectsFromSQL($table_name, $sql, $from=null, $limit=null, $className=null) {
-		if ($this->dbConnection == null) {
+		if ($this->connection == null) {
 			throw new TDBMException("Error while calling TDBMObject::getObject(): No connection has been established on the database!");
 		}
 
-		$table_name = $this->dbConnection->toStandardcase($table_name);
+		$table_name = $this->connection->toStandardcase($table_name);
 
 		$this->getPrimaryKeyStatic($table_name);
 
-		$result = $this->dbConnection->query($sql, $from, $limit);
+		$result = $this->connection->query($sql, $from, $limit);
 		
 		if ($this->mode == self::MODE_COMPATIBLE_ARRAY || $this->mode == self::MODE_ARRAY) {
 			if ($this->mode == self::MODE_COMPATIBLE_ARRAY) {
@@ -624,7 +655,7 @@ class TDBMService {
 				if ($firstLine) {
 					// $keysStandardCased is an optimization to avoid calling toStandardCaseColumn on every cell of every row.
 					foreach ($fullCaseRow as $key=>$value) {
-						$keysStandardCased[$key] = $this->dbConnection->toStandardCaseColumn($key);
+						$keysStandardCased[$key] = $this->connection->toStandardCaseColumn($key);
 					}
 					$firstLine = false;
 				}
@@ -670,7 +701,7 @@ class TDBMService {
 					$obj = new $className($this, $table_name, $id);
                     $obj->loadFromRow($row, $colsArray);
                     $this->objectStorage->set($table_name, $id, $obj);
-				} elseif ($obj->_getStatus() == "not loaded") {
+				} elseif ($obj->_getStatus() == TDBMObjectStateEnum::STATE_NOT_LOADED) {
                     $obj->loadFromRow($row, $colsArray);
 					// Check that the object fetched from cache is from the requested class.
 					if (!is_a($obj, $className)) {
@@ -711,7 +742,7 @@ class TDBMService {
 			if ($firstLine) {
 				// $keysStandardCased is an optimization to avoid calling toStandardCaseColumn on every cell of every row.
 				foreach ($fullCaseRow as $key=>$value) {
-					$keysStandardCased[$key] = $this->dbConnection->toStandardCaseColumn($key);
+					$keysStandardCased[$key] = $this->connection->toStandardCaseColumn($key);
 				}
 				$firstLine = false;
 			}
@@ -750,7 +781,7 @@ class TDBMService {
 				}
                 $obj->loadFromRow($row, $colsArray);
                 $this->objectStorage->set($table_name, $id, $obj);
-			} elseif ($obj->_getStatus() == "not loaded") {
+			} elseif ($obj->_getStatus() == TDBMObjectStateEnum::STATE_NOT_LOADED) {
                 $obj->loadFromRow($row, $colsArray);
 				// Check that the object fetched from cache is from the requested class.
 				if ($className != null) {
@@ -812,17 +843,17 @@ class TDBMService {
 		$this->completeSave();
 
 		// Now, let's commit or rollback if needed.
-		if ($this->dbConnection != null && $this->dbConnection->hasActiveTransaction()) {
+		if ($this->connection != null && $this->connection->hasActiveTransaction()) {
 			if ($this->commitOnQuit) {
 				try  {
-					$this->dbConnection->commit();
+					$this->connection->commit();
 				} catch (Exception $e) {
 					echo $e->getMessage()."<br/>";
 					echo $e->getTraceAsString();
 				}
 			} else {
 				try  {
-					$this->dbConnection->rollback();
+					$this->connection->rollback();
 				} catch (Exception $e) {
 					echo $e->getMessage()."<br/>";
 					echo $e->getTraceAsString();
@@ -852,9 +883,9 @@ class TDBMService {
 
 		$this->objectStorage->apply(function(TDBMObject $object) {
 			/* @var $object TDBMObject */
-			if (!$object->db_onerror && $object->getTDBMObjectState() == "loaded")
+			if (!$object->db_onerror && $object->getTDBMObjectState() == TDBMObjectStateEnum::STATE_LOADED)
 			{
-				$object->setTDBMObjectState("not loaded");
+				$object->setTDBMObjectState(TDBMObjectStateEnum::STATE_NOT_LOADED);
 			}
 		});
 	}
@@ -883,10 +914,10 @@ class TDBMService {
 	 * @return array the result of your query
 	 */
 	public function getTransientObjectsFromSQL($sql,$classname=null) {
-		if ($this->dbConnection == null) {
+		if ($this->connection == null) {
 			throw new TDBMException("Error while calling TDBMObject::getObject(): No connection has been established on the database!");
 		}
-		return $this->dbConnection->getAll($sql, \PDO::FETCH_CLASS,$classname);
+		return $this->connection->getAll($sql, \PDO::FETCH_CLASS,$classname);
 	}
 
 
@@ -1115,7 +1146,7 @@ class TDBMService {
 		}
 
 		// Let's start with 1*
-		$constraints = $this->dbConnection->getConstraintsFromTable($current_table);
+		$constraints = $this->connection->getConstraintsFromTable($current_table);
 
 		foreach ($constraints as $constraint) {
 
@@ -1150,7 +1181,7 @@ class TDBMService {
 		}
 
 		// Let's continue with *1
-		$constraints = $this->dbConnection->getConstraintsOnTable($current_table);
+		$constraints = $this->connection->getConstraintsOnTable($current_table);
 
 		foreach ($constraints as $constraint) {
 			$table2 = $constraint['table2'];
@@ -1275,7 +1306,7 @@ class TDBMService {
 	 * @return TDBMObjectArray A TDBMObjectArray containing the resulting objects of the query.
 	 */
 	public function getObjects($table_name, $filter_bag=null, $orderby_bag=null, $from=null, $limit=null, $className=null, $hint_path=null) {
-		if ($this->dbConnection == null) {
+		if ($this->connection == null) {
 			throw new TDBMException("Error while calling TDBMObject::getObject(): No connection has been established on the database!");
 		}
 		return $this->getObjectsByMode('getObjects', $table_name, $filter_bag, $orderby_bag, $from, $limit, $className, $hint_path);
@@ -1291,7 +1322,7 @@ class TDBMService {
 	 * @return integer
 	 */
 	public function getCount($table_name, $filter_bag=null, $hint_path=null) {
-		if ($this->dbConnection == null) {
+		if ($this->connection == null) {
 			throw new TDBMException("Error while calling TDBMObject::getObject(): No connection has been established on the database!");
 		}
 		return $this->getObjectsByMode('getCount', $table_name, $filter_bag, null, null, null, null, $hint_path);
@@ -1309,7 +1340,7 @@ class TDBMService {
 	 * @return string The SQL that would be executed.
 	 */
 	public function explainSQLGetObjects($table_name, $filter_bag=null, $orderby_bag=null, $from=null, $limit=null, $hint_path=null) 	{
-		if ($this->dbConnection == null) {
+		if ($this->connection == null) {
 			throw new TDBMException("Error while calling TDBMObject::getObject(): No connection has been established on the database!");
 		}
 		return $this->getObjectsByMode('explainSQL', $table_name, $filter_bag, $orderby_bag, $from, $limit, $hint_path);
@@ -1327,7 +1358,7 @@ class TDBMService {
 	 * @return string The SQL that would be executed.
 	 */
 	public function explainRequestAsTextGetObjects($table_name, $filter_bag=null, $orderby_bag=null, $from=null, $limit=null, $hint_path=null) 	{
-		if ($this->dbConnection == null) {
+		if ($this->connection == null) {
 			throw new TDBMException("Error while calling TDBMObject::getObject(): No connection has been established on the database!");
 		}
 		$tree = $this->getObjectsByMode('explainTree', $table_name, $filter_bag, $orderby_bag, $from, $limit, $hint_path);
@@ -1348,7 +1379,7 @@ class TDBMService {
 	 * @return string The SQL that would be executed.
 	 */
 	public function explainRequestAsHTMLGetObjects($table_name, $filter_bag=null, $orderby_bag=null, $from=null, $limit=null, $hint_path=null, $x=10, $y=10) 	{
-		if ($this->dbConnection == null) {
+		if ($this->connection == null) {
 			throw new TDBMException("Error while calling TDBMObject::getObject(): No connection has been established on the database!");
 		}
 		$tree = $this->getObjectsByMode('explainTree', $table_name, $filter_bag, $orderby_bag, $from, $limit, $hint_path);
@@ -1410,7 +1441,7 @@ class TDBMService {
 
 		if (count($needed_table_array)==0)
 		{
-			$sql = $this->dbConnection->escapeDBItem($table_name); //Make by Pierre PIV (add escapeDBItem)
+			$sql = $this->connection->escapeDBItem($table_name); //Make by Pierre PIV (add escapeDBItem)
 
 			if ($mode == 'explainTree')
 			throw new TDBMException("TODO: explainTree not implemented for only one table.");
@@ -1437,7 +1468,7 @@ class TDBMService {
 
 			$constraint = $flat_path[0];
 
-			$sql = $this->dbConnection->escapeDBItem($constraint['table2']);
+			$sql = $this->connection->escapeDBItem($constraint['table2']);
 
 			foreach ($flat_path as $constraint) {
 				$table1 = $constraint['table2'];
@@ -1445,8 +1476,8 @@ class TDBMService {
 				$col2 = $constraint['col1'];
 				$col1 = $constraint['col2'];
 					
-				$sql = "($sql LEFT JOIN ".$this->dbConnection->escapeDBItem($table2)." ON
-				".$this->dbConnection->escapeDBItem($table1).".".$this->dbConnection->escapeDBItem($col1)."=".$this->dbConnection->escapeDBItem($table2).".".$this->dbConnection->escapeDBItem($col2).")";
+				$sql = "($sql LEFT JOIN ".$this->connection->escapeDBItem($table2)." ON
+				".$this->connection->escapeDBItem($table1).".".$this->connection->escapeDBItem($col1)."=".$this->connection->escapeDBItem($table2).".".$this->connection->escapeDBItem($col2).")";
 			}
 		}
 
@@ -1524,19 +1555,19 @@ class TDBMService {
 				
 			$sql = "SELECT COUNT(DISTINCT $pk_str) FROM $sql";
 
-			$where_clause = $filter->toSql($this->dbConnection);
+			$where_clause = $filter->toSql($this->connection);
 			if ($where_clause != '')
 			$sql .= ' WHERE '.$where_clause;
 
 			// Now, let's perform the request:
-			$result = $this->dbConnection->getOne($sql, array());
+			$result = $this->connection->getOne($sql, array());
 
 			return $result;
 		}
 
-		$sql = "SELECT DISTINCT ".$this->dbConnection->escapeDBItem($table_name).".* $orderby_column_statement FROM $sql";
+		$sql = "SELECT DISTINCT ".$this->connection->escapeDBItem($table_name).".* $orderby_column_statement FROM $sql";
 
-		$where_clause = $filter->toSql($this->dbConnection);
+		$where_clause = $filter->toSql($this->connection);
 		if ($where_clause != '')
 		$sql .= ' WHERE '.$where_clause;
 
@@ -1654,7 +1685,7 @@ class TDBMService {
 	 */
     private function checkTablesExist($tables) {
 		foreach ($tables as $table) {
-			$possible_tables = $this->dbConnection->checkTableExist($table);
+			$possible_tables = $this->connection->checkTableExist($table);
 			if ($possible_tables !== true)
 			{
 				if (count($possible_tables)==1)
@@ -1754,7 +1785,7 @@ class TDBMService {
 	 * @param string $table
 	 */
 	private function isPrimaryKeyAutoIncrement($table) {
-		$cols = $this->dbConnection->getPrimaryKey($table);
+		$cols = $this->connection->getPrimaryKey($table);
 		if (count($cols) != 1) {
 			return false;
 		}
@@ -1765,7 +1796,7 @@ class TDBMService {
 		if (!isset($this->primary_keys[$table]))
 		{
 			$arr = array();
-			foreach ($this->dbConnection->getPrimaryKey($table) as $col) {
+			foreach ($this->connection->getPrimaryKey($table) as $col) {
 				$arr[] = $col->name;
 			}
 			// The primary_keys contains only the column's name, not the DB_Column object.
@@ -1774,7 +1805,7 @@ class TDBMService {
 			{
 				// Unable to find primary key.... this is an error
 				// Let's try to be precise in error reporting. Let's try to find the table.
-				$tables = $this->dbConnection->checkTableExist($table);
+				$tables = $this->connection->checkTableExist($table);
 				if ($tables === true)
 				throw new TDBMException("Could not find table primary key for table '$table'. Please define a primary key for this table.");
 				elseif ($tables !== null) {
@@ -1806,7 +1837,7 @@ class TDBMService {
 	 *
 	 * @param TDBMObject $myObject
 	 */
-	public function _removeFromToSaveObjectList(TDBMObject $myObject) {
+	private function removeFromToSaveObjectList(TDBMObject $myObject) {
 		foreach ($this->tosave_objects as $id=>$object) {
 			if ($object == $myObject)
 			{
@@ -1839,7 +1870,7 @@ class TDBMService {
 	 * @return \string[] the list of tables
 	 */
 	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime) {
-		$tdbmDaoGenerator = new TDBMDaoGenerator($this->dbConnection);
+		$tdbmDaoGenerator = new TDBMDaoGenerator($this->connection);
 		return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime);
 	}
 
@@ -1850,6 +1881,209 @@ class TDBMService {
 		$this->tableToBeanMap = $tableToBeanMap;
 	}
 
+	/**
+	 * Returns a unique ID for the current collection. Useful for prepending cache instances.
+	 * @return string
+	 */
+	private function getCachePrefix() {
+		if ($this->cachePrefix === null) {
+			$this->cachePrefix = hash('md4', $this->connection->getHost()."-".$this->connection->getPort()."-".$this->connection->getDatabase()."-".$this->connection->getDriver()->getName());
+		}
+		return $this->cachePrefix;
+	}
 
+	/**
+	 * Returns the (cached) schema.
+	 *
+	 * @return Schema
+	 */
+	public function getSchema() {
+		if ($this->schema === null) {
+			$cacheKey = $this->getCachePrefix().'_schema';
+			if ($this->cache->contains($cacheKey)) {
+				$this->schema = $this->cache->fetch($cacheKey);
+			} else {
+				$this->schema = $this->connection->getSchemaManager()->getSchema();
+				$this->cache->save($cacheKey, $this->schema);
+			}
+		}
+		return $this->schema;
+	}
+
+	/**
+	 * Saves $object by INSERTing or UPDAT(E)ing it in the database.
+	 *
+	 * @param AbstractTDBMObject $object
+	 * @throws TDBMException
+	 * @throws \Exception
+	 */
+	public function save(AbstractTDBMObject $object) {
+		$status = $object->_getStatus();
+
+		// Let's attach this object if it is in detached state.
+		if ($status === TDBMObjectStateEnum::STATE_DETACHED) {
+			$object->attach($this);
+			$status = $object->_getStatus();
+		}
+
+		if ($status === TDBMObjectStateEnum::STATE_NEW) {
+
+			$tableName = $object->_getDbTableName();
+			$dbRow = $this->_getDbRow();
+
+			$schema = $this->getSchema();
+			$tableDescriptor = $schema->getTable($tableName);
+			$primaryKeys = $tableDescriptor->getPrimaryKeyColumns();
+
+			// Let's see if the columns for primary key have been set before inserting.
+			// We assume that if one of the value of the PK has been set, the values have not been changed.
+			$pk_set = false;
+			$pk_array = $this->getPrimaryKey();
+			$isAutoIncrement = true;
+
+			foreach ($primaryKeys as $pkColumn) {
+				if (isset($dbRow[$pkColumn])) {
+					$pk_set=true;
+				}
+				if (!$pkColumn->getAutoincrement()) {
+					$isAutoIncrement = false;
+				}
+			}
+
+			// if there is no autoincrement and no pk set, let's go in error.
+			if (!$isAutoIncrement && !$pk_set) {
+				$msg = "Error! You did not set the primary key(s) for the new object of type '$tableName'. The primary key is not set to 'autoincrement' so you must either set the primary key in the object or modify the DB model to create an primary key with auto-increment.";
+
+				if (!$this->isProgramExiting())
+					throw new TDBMException($msg);
+				else
+					trigger_error($msg, E_USER_ERROR);
+			}
+
+			$types = [];
+
+			foreach ($dbRow as $columnName => $value) {
+				$columnDescriptor = $tableDescriptor->getColumn($columnName);
+				$types[] = $columnDescriptor->getType();
+			}
+
+			$this->connection->insert($tableName, $dbRow, $types);
+
+			if ($pk_set && count($primaryKeys) == 1) {
+				$id = $this->connection->lastInsertId();
+				// TODO: change this to some private magic accessor in future
+				$object->set($primaryKeys[0], $id);
+			}
+
+			// TODO: set the ID!
+			// IDs are saved in the object in the primaryKeys column.
+			// Ids can be updated. Objects attached must update themselves when a primary key changes.(????)
+			// TODO: store multikeys as hashes:
+			// ksort($keys);
+			// $hash = md5(json_encode($keys));
+			/*
+			 * Ok, we keep storing the ID in the object
+			 * When attached, on "save", we check if the column updated is part of a primary key
+			 * If this is part of a primary key, we call the _update_id method that updates the id in the list of known objects.
+			 * This method should first verify that the id is not already used (and is not auto-incremented)
+			 *
+			 * In the object, the key is stored in an array of  (column => value), that can be directly used to update the record.
+			 *
+			 *
+			 */
+
+
+			/*try {
+				$this->db_connection->exec($sql);
+			} catch (TDBMException $e) {
+				$this->db_onerror = true;
+
+				// Strange..... if we do not have the line below, bad inserts are not catched.
+				// It seems that destructors are called before the registered shutdown function (PHP >=5.0.5)
+				//if ($this->tdbmService->isProgramExiting())
+				//	trigger_error("program exiting");
+				trigger_error($e->getMessage(), E_USER_ERROR);
+
+				if (!$this->tdbmService->isProgramExiting())
+					throw $e;
+				else
+				{
+					trigger_error($e->getMessage(), E_USER_ERROR);
+				}
+			}*/
+
+			// Let's remove this object from the $new_objects static table.
+			$this->removeFromToSaveObjectList($object);
+
+
+			// Ok, now let's get the primary key
+			/*$primary_key = $this->getPrimaryKey();
+
+			if (!isset($dbRow[$primary_key])) {
+			$this->TDBMObject_id = $this->db_connection->getInsertId($this->dbTableName,$primary_key);
+			$dbRow[$primary_key] = $this->TDBMObject_id;
+			}*/
+
+			// Maybe some default values have been set.
+			// Therefore, we must reload the object if required.
+			/*$new_db_row = array();
+			foreach ($pk_array as $pk) {
+				$new_db_row[$pk] = $dbRow[$pk];
+			}
+			var_dump($pk_array);
+			var_dump($new_db_row);*/
+
+			$this->tdbmObjectState = TDBMObjectStateEnum::STATE_NOT_LOADED;
+			$this->db_modified_state = false;
+			$dbRow = array();
+
+			// Let's add this object to the list of objects in cache.
+			$this->tdbmService->_addToCache($this);
+		} elseif ($status == TDBMObjectStateEnum::STATE_LOADED && $this->db_modified_state==true) {
+			//$primary_key = $this->getPrimaryKey();
+			// Let's first get the primary keys
+			$pk_table = $this->getPrimaryKey();
+			// Now for the object_id
+			$object_id = $this->TDBMObject_id;
+			// If there is only one primary key:
+			if (count($pk_table)==1) {
+				$sql_where = $this->db_connection->escapeDBItem($pk_table[0])."=".$this->db_connection->quoteSmart($this->TDBMObject_id);
+			} else {
+				$ids = unserialize($object_id);
+				$i=0;
+				$sql_where_array = array();
+				foreach ($pk_table as $pk) {
+					$sql_where_array[] = $this->db_connection->escapeDBItem($pk)."=".$this->db_connection->quoteSmart($ids[$i]);
+					$i++;
+				}
+				$sql_where = implode(" AND ",$sql_where_array);
+			}
+
+			$sql = 'UPDATE '.$this->db_connection->escapeDBItem($this->dbTableName).' SET ';
+
+			$first = true;
+			foreach ($dbRow as $key=>$value) {
+				if (!$first)
+					$sql .= ',';
+				$sql .= $this->db_connection->escapeDBItem($key)." = ".$this->db_connection->quoteSmart($value);
+				$first=false;
+			}
+			$sql .= ' WHERE '.$sql_where/*$primary_key."='".$dbRow[$primary_key]."'"*/;
+			try {
+				$this->db_connection->exec($sql);
+			} catch (TDBMException $e) {
+				if (!$this->tdbmService->isProgramExiting())
+					throw $e;
+				else
+					trigger_error($e->getMessage(), E_USER_ERROR);
+			}
+
+			// Let's remove this object from the $new_objects static table.
+			$this->tdbmService->removeFromToSaveObjectList($this);
+
+			$this->db_modified_state = false;
+		} elseif ($status === TDBMObjectStateEnum::STATE_DELETED) {
+			throw new TDBMException("This object has been deleted. It cannot be saved.");
+		}
+	}
 }
-

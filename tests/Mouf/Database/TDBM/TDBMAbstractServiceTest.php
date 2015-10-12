@@ -61,7 +61,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase {
         $this->dbConnection->executeSqlFile(__DIR__.'/../../../sql/tdbmunittest2.sql');
 
         $this->tdbmService = new TDBMService();
-        $this->tdbmService->dbConnection = $this->dbConnection;
+        $this->tdbmService->connection = $this->dbConnection;
         $this->tdbmService->cacheService = new NoCache();
     }
 }

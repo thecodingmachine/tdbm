@@ -30,7 +30,7 @@ class InFilterTest extends TDBMAbstractServiceTest {
     public function testToSql() {
         $inFilter = new InFilter("foo", "bar", [1, null, new \DateTimeImmutable("1978-05-05 20:27:00")]);
 
-        $this->assertEquals("foo.bar IN ('1',NULL,'1978-05-05 20:27:00')", $inFilter->toSql($this->tdbmService->dbConnection));
+        $this->assertEquals("foo.bar IN ('1',NULL,'1978-05-05 20:27:00')", $inFilter->toSql($this->tdbmService->connection));
         $this->assertEquals(['foo'], $inFilter->getUsedTables());
     }
 }

@@ -2,9 +2,9 @@
 namespace Mouf\Database\TDBM\Utils;
 
 use Mouf\Composer\ClassNameMapper;
-use Mouf\Database\DBConnection\CachedConnection;
-use Mouf\Database\DBConnection\ConnectionInterface;
 use Mouf\Database\TDBM\TDBMException;
+
+
 
 /**
  * This class generates automatically DAOs and Beans for TDBM.
@@ -852,23 +852,13 @@ class $daoFactoryClassName
 	
 	/**
 	 * Tries to put string to the singular form (if it is plural).
-	 * Obviously, this can't be perfect, be we do the best we can.
-	 * 
+	 * We assume the table names are in english.
+	 *
 	 * @param $str string
 	 * @return string
 	 */
 	public static function toSingular($str) {
-		// First, ignore "ss" words (like access).
-		if (strpos($str, "ss", strlen($str)-2) !== false) {
-			return $str;
-		}
-		
-		// Now, let's see if the string ends with s:
-		if (strpos($str, "s", strlen($str)-1) !== false) {
-			// Yes? Let's remove the s.
-			return substr($str, 0, strlen($str)-1);
-		}
-		return $str;
+		return \ICanBoogie\singularize($str, "en");
 	}
 	
 	/**

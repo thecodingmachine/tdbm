@@ -30,7 +30,7 @@ class SqlStringFilterTest extends TDBMAbstractServiceTest {
     public function testToSql() {
         $sqlStringFilter = new SqlStringFilter("foo.bar = LOWER(baz.bar) AND foo.id = zap.id");
 
-        $this->assertEquals("foo.bar = LOWER(baz.bar) AND foo.id = zap.id", $sqlStringFilter->toSql($this->tdbmService->dbConnection));
+        $this->assertEquals("foo.bar = LOWER(baz.bar) AND foo.id = zap.id", $sqlStringFilter->toSql($this->tdbmService->connection));
         $this->assertContains('foo', $sqlStringFilter->getUsedTables());
         $this->assertContains('baz', $sqlStringFilter->getUsedTables());
         $this->assertContains('zap', $sqlStringFilter->getUsedTables());

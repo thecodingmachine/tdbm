@@ -127,7 +127,7 @@ class TDBMObjectArrayCursorIterator implements \Iterator, \Countable {
 			}
 			$this->objectStorage->set($this->table_name, $id, $obj);
 			$obj->loadFromRow($row, $this->colsArray);
-		} elseif ($obj->_getStatus() == "not loaded") {
+		} elseif ($obj->_getStatus() == TDBMObjectStateEnum::STATE_NOT_LOADED) {
 			$obj->loadFromRow($row, $this->colsArray);
 			// Check that the object fetched from cache is from the requested class.
 			if ($this->className != null) {

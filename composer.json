@@ -25,7 +25,8 @@
 	    "mouf/database.doctrine-dbal-wrapper": "~1.1",
 		"mouf/utils.common.conditioninterface" : "~2.0",
 	    "psr/log": "~1.0",
-	    "mouf/mouf": "~2.0.0"
+	    "mouf/mouf": "~2.0.0",
+	  	"icanboogie/inflector": "~1.3"
 	},
     "require-dev" : {
 	    "phpunit/phpunit": "~4.0",
@@ -46,6 +47,7 @@
   	  }
     },
 	"minimum-stability" : "dev",
+    "prefer-stable": true,
 	"extra" : {
 		"mouf" : {
 			"install" : [{
