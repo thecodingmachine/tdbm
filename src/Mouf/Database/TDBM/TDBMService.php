@@ -756,7 +756,7 @@ class TDBMService {
 				if ($className == null) {
 					$obj = new TDBMObject($this, $table_name, $id);
 				} elseif (is_string($className)) {
-					if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
+					if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject") && $className != "Mouf\\Database\\TDBM\\TDBMObject") {
 						throw new TDBMException("Error while calling TDBM: The class ".$className." should extend TDBMObject.");
 					}
 					$obj = new $className($this, $table_name, $id);
