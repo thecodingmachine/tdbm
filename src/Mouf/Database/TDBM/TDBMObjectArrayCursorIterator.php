@@ -1,7 +1,7 @@
 <?php
 namespace Mouf\Database\TDBM;
 
-use Mouf\Database\DBConnection\ConnectionInterface;
+use Doctrine\DBAL\Driver\Connection;
 
 /*
  Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE
@@ -57,7 +57,7 @@ class TDBMObjectArrayCursorIterator implements \Iterator, \Countable {
 
     private $colsArray = null;
 	
-	public function __construct(\PDOStatement $pdoStatement, ConnectionInterface $dbConnection, $primary_keys, $table_name, $objectStorage, $className, TDBMService $tdbmService, $sql)
+	public function __construct(\PDOStatement $pdoStatement, Connection $dbConnection, $primary_keys, $table_name, $objectStorage, $className, TDBMService $tdbmService, $sql)
 	{
 		$this->pdoStatement = $pdoStatement;
 		$this->dbConnection = $dbConnection;

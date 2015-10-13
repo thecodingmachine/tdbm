@@ -19,7 +19,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
-use Mouf\Database\DBConnection\MySqlConnection;
+use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\DriverManager;
 use Mouf\Utils\Cache\NoCache;
 
 /**
@@ -27,7 +28,7 @@ use Mouf\Utils\Cache\NoCache;
 abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase {
 
     /**
-     * @var MySqlConnection $dbConnection
+     * @var Connection $dbConnection
      */
     protected $dbConnection;
 
@@ -36,32 +37,54 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase {
      */
     protected $tdbmService;
 
+    public static function setUpBeforeClass() {
+
+        $config = new \Doctrine\DBAL\Configuration();
+
+        $connectionParams = array(
+            'user' => $GLOBALS['db_username'],
+            'password' => $GLOBALS['db_password'],
+            'host' => $GLOBALS['db_host'],
+            'port' => $GLOBALS['db_port'],
+            'driver' => $GLOBALS['db_driver']
+        );
+
+        $adminConn = DriverManager::getConnection($connectionParams, $config);
+        $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
+
+        $connectionParams['dbname'] = $GLOBALS['db_name'];
+
+        $dbConnection = DriverManager::getConnection($connectionParams, $config);
+
+        self::loadSqlFile($dbConnection, __DIR__.'/../../../sql/tdbmunittest.sql');
+    }
+
     protected function setUp() {
 
-        $dbConnectionAdmin = new MySqlConnection();
-        $dbConnectionAdmin->host = $GLOBALS['db_host'];
-        $dbConnectionAdmin->user = $GLOBALS['db_username'];
-        $dbConnectionAdmin->password = $GLOBALS['db_password'];
-        $dbConnectionAdmin->port = $GLOBALS['db_port'];
+        $config = new \Doctrine\DBAL\Configuration();
 
-        try {
-            $dbConnectionAdmin->dropDatabase($GLOBALS['db_name']);
-        } catch (\Exception $e) {
-            // We don't care if the database does not exist.
-        }
-        $dbConnectionAdmin->createDatabase($GLOBALS['db_name']);
+        $connectionParams = array(
+            'user' => $GLOBALS['db_username'],
+            'password' => $GLOBALS['db_password'],
+            'host' => $GLOBALS['db_host'],
+            'port' => $GLOBALS['db_port'],
+            'driver' => $GLOBALS['db_driver'],
+            'dbname' => $GLOBALS['db_name']
+        );
 
-        $this->dbConnection = new MySqlConnection();
-        $this->dbConnection->host = $GLOBALS['db_host'];
-        $this->dbConnection->user = $GLOBALS['db_username'];
-        $this->dbConnection->dbname = $GLOBALS['db_name'];
-        $this->dbConnection->password = $GLOBALS['db_password'];
-        $this->dbConnection->port = $GLOBALS['db_port'];
+        $this->dbConnection = DriverManager::getConnection($connectionParams, $config);
+        $this->tdbmService = new TDBMService($this->dbConnection);
+    }
 
-        $this->dbConnection->executeSqlFile(__DIR__.'/../../../sql/tdbmunittest2.sql');
+    protected static function loadSqlFile(Connection $connection, $sqlFile) {
+        $sql = file_get_contents($sqlFile);
 
-        $this->tdbmService = new TDBMService();
-        $this->tdbmService->connection = $this->dbConnection;
-        $this->tdbmService->cacheService = new NoCache();
+        $stmt = $connection->prepare($sql);
+        $stmt->execute();
+        /*do {
+            // Required due to "MySQL has gone away!" issue
+            $stmt->fetch();
+            $stmt->closeCursor();
+        } while ($stmt->nextRowset());*/
     }
 }

@@ -18,6 +18,7 @@ namespace Mouf\Database\TDBM;
  along with this program; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+use Doctrine\DBAL\Driver\Connection;
 use Mouf\Database\TDBM\Filters\FilterInterface;
 
 
@@ -53,24 +54,17 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	 *
 	 * @var array
 	 */
-	private $db_row = array();
+	private $dbRow = array();
 
 	/**
 	 * One of TDBMObjectStateEnum::STATE_NEW, TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DELETED.
-	 * $tdbmObjectState = TDBMObjectStateEnum::STATE_NEW when a new object is created with DBMObject:getNewObject.
-	 * $tdbmObjectState = TDBMObjectStateEnum::STATE_NOT_LOADED when the object has been retrieved with getObject but when no data has been accessed in it yet.
-	 * $tdbmObjectState = TDBMObjectStateEnum::STATE_LOADED when the object is cached in memory.
+	 * $status = TDBMObjectStateEnum::STATE_NEW when a new object is created with DBMObject:getNewObject.
+	 * $status = TDBMObjectStateEnum::STATE_NOT_LOADED when the object has been retrieved with getObject but when no data has been accessed in it yet.
+	 * $status = TDBMObjectStateEnum::STATE_LOADED when the object is cached in memory.
 	 *
 	 * @var string
 	 */
-	private $tdbmObjectState;
-
-	/**
-	 * True if the object has been modified and must be saved.
-	 *
-	 * @var boolean
-	 */
-	private $db_modified_state;
+	private $status;
 
 	/**
 	 * True if an error has occurred while saving. The user will have to call save() explicitly or to modify one of its members to save it again.
@@ -81,7 +75,8 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	public $db_onerror;
 
 	/**
-	 * The values of the primary key
+	 * The values of the primary key.
+	 * This is set when the object is in "loaded" state.
 	 *
 	 * @var array An array of column => value
 	 */
@@ -116,30 +111,33 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	 * @param mixed $id
 	 */
 	public function __construct($table_name, $id=null, TDBMService $tdbmService=null) {
-		$this->attach($tdbmService);
 		$this->dbTableName = $table_name;
 		$this->TDBMObject_id = $id;
 		$this->db_onerror = false;
 		if ($tdbmService === null) {
-			$this->tdbmObjectState = TDBMObjectStateEnum::STATE_DETACHED;
+			$this->status = TDBMObjectStateEnum::STATE_DETACHED;
 			if ($id !== null) {
 				throw new TDBMException('You cannot pass an id to the AbstractTDBMObject constructor without passing also a TDBMService.');
 			}
 		} else {
+			$this->_attach($tdbmService);
+			$this->db_autosave = $this->tdbmService->getDefaultAutoSaveMode();
+
 			if ($id !== null) {
-				$this->tdbmObjectState = TDBMObjectStateEnum::STATE_NOT_LOADED;
-				$this->db_modified_state = false;
+				$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
 			} else {
-				$this->tdbmObjectState = TDBMObjectStateEnum::STATE_NEW;
-				$this->db_modified_state = true;
+				$this->status = TDBMObjectStateEnum::STATE_NEW;
 			}
 		}
-		
-		$this->db_autosave = $this->tdbmService->getDefaultAutoSaveMode();
 	}
 
-	public function attach(TDBMService $tdbmService) {
+	public function _attach(TDBMService $tdbmService) {
+		if ($this->status !== TDBMObjectStateEnum::STATE_DETACHED) {
+			throw new TDBMInvalidOperationException('Cannot attach an object that is already attached to TDBM.');
+		}
 		$this->tdbmService = $tdbmService;
+		$this->status = TDBMObjectStateEnum::STATE_NEW;
+		$this->tdbmService->_addToToSaveObjectList($this);
 	}
 
 	/**
@@ -165,18 +163,18 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	/**
 	 * Sets the state of the TDBM Object
 	 * One of TDBMObjectStateEnum::STATE_NEW, TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DELETED.
-	 * $tdbmObjectState = TDBMObjectStateEnum::STATE_NEW when a new object is created with DBMObject:getNewObject.
-	 * $tdbmObjectState = TDBMObjectStateEnum::STATE_NOT_LOADED when the object has been retrieved with getObject but when no data has been accessed in it yet.
-	 * $tdbmObjectState = TDBMObjectStateEnum::STATE_LOADED when the object is cached in memory.
+	 * $status = TDBMObjectStateEnum::STATE_NEW when a new object is created with DBMObject:getNewObject.
+	 * $status = TDBMObjectStateEnum::STATE_NOT_LOADED when the object has been retrieved with getObject but when no data has been accessed in it yet.
+	 * $status = TDBMObjectStateEnum::STATE_LOADED when the object is cached in memory.
 	 * @param string $state
 	 */
-	public function setTDBMObjectState($state){
-		$this->tdbmObjectState = $state;	
+	public function _setStatus($state){
+		$this->status = $state;
 	}
 
     /**
      * Internal TDBM method, you should not use this.
-     * Loads the db_row property of the object from the $row array.
+     * Loads the dbRow property of the object from the $row array.
      * Any row having a key starting with 'tdbm_reserved_col_' is ignored.
      *
      * @param array $row
@@ -192,8 +190,8 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
             }
         }
 
-        $this->db_row = array_intersect_key($row, $colsArray);
-        $this->tdbmObjectState = TDBMObjectStateEnum::STATE_LOADED;
+        $this->dbRow = array_intersect_key($row, $colsArray);
+        $this->status = TDBMObjectStateEnum::STATE_LOADED;
 	}
 
 	/**
@@ -205,7 +203,7 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	 * @return array
 	 */
 	public function getPrimaryKey() {
-		return $this->tdbmService->getPrimaryKeyStatic($this->dbTableName);
+		return $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
 	}
 
 	/**
@@ -216,7 +214,7 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	 * cannot be found).
 	 */
 	public function _dbLoadIfNotLoaded() {
-		if ($this->tdbmObjectState == TDBMObjectStateEnum::STATE_NOT_LOADED)
+		if ($this->status == TDBMObjectStateEnum::STATE_NOT_LOADED)
 		{
 			$sql_where = $this->getPrimaryKeyWhereStatement();
 
@@ -233,12 +231,12 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 			
 			$result->closeCursor();
 				
-			$this->db_row = array();
+			$this->dbRow = array();
 			foreach ($fullCaseRow[0] as $key=>$value)  {
-				$this->db_row[$this->db_connection->toStandardCaseColumn($key)]=$value;
+				$this->dbRow[$this->db_connection->toStandardCaseColumn($key)]=$value;
 			}
 			
-			$this->tdbmObjectState = TDBMObjectStateEnum::STATE_LOADED;
+			$this->status = TDBMObjectStateEnum::STATE_LOADED;
 		}
 	}
 
@@ -246,7 +244,8 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 		$this->_dbLoadIfNotLoaded();
 
 		// Let's first check if the key exist.
-		if (!isset($this->db_row[$var])) {
+		if (!isset($this->dbRow[$var])) {
+			/*
 			// Unable to find column.... this is an error if the object has been retrieved from database.
 			// If it's a new object, well, that may not be an error after all!
 			// Let's check if the column does exist in the table
@@ -265,9 +264,10 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 			else
 			$str = "Could not find column \"$var\" in table \"$this->dbTableName\". Maybe you meant one of those columns: '".implode("', '",$result_array)."'";
 
-			throw new TDBMException($str);
+			throw new TDBMException($str);*/
+			return null;
 		}
-		return $this->db_row[$var];
+		return $this->dbRow[$var];
 	}
 
 	/**
@@ -279,12 +279,13 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	public function has($var) {
 		$this->_dbLoadIfNotLoaded();
 
-		return isset($this->db_row[$var]);
+		return isset($this->dbRow[$var]);
 	}
 	
 	public function set($var, $value) {
 		$this->_dbLoadIfNotLoaded();
 
+		/*
 		// Ok, let's start by checking the column type
 		$type = $this->db_connection->getColumnType($this->dbTableName, $var);
 
@@ -292,12 +293,13 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 		if (!$this->db_connection->checkType($value, $type)) {
 			throw new TDBMException("Error! Invalid value passed for attribute '$var' of table '$this->dbTableName'. Passed '$value', but expecting '$type'");
 		}
+		*/
 
-		/*if ($var == $this->getPrimaryKey() && isset($this->db_row[$var]))
+		/*if ($var == $this->getPrimaryKey() && isset($this->dbRow[$var]))
 			throw new TDBMException("Error! Changing primary key value is forbidden.");*/
-		$this->db_row[$var] = $value;
-		if ($this->db_modified_state == false) {
-			$this->db_modified_state = true;
+		$this->dbRow[$var] = $value;
+		if ($this->tdbmService !== null && $this->status == TDBMObjectStateEnum::STATE_LOADED) {
+			$this->status = TDBMObjectStateEnum::STATE_DIRTY;
 			$this->tdbmService->_addToToSaveObjectList($this);
 		}
 		// Unset the error since something has changed (Insert or Update could work this time).
@@ -320,19 +322,20 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 
 	/**
 	 * Reverts any changes made to the object and resumes it to its DB state.
-	 * This can only be called on objects that come from database adn that have not been deleted.
+	 * This can only be called on objects that come from database and that have not been deleted.
 	 * Otherwise, this will throw an exception.
 	 *
 	 */
 	public function discardChanges() {
-		if ($this->tdbmObjectState == TDBMObjectStateEnum::STATE_NEW)
-		throw new TDBMException("You cannot call discardChanges() on an object that has been created with getNewObject and that has not yet been saved.");
+		if ($this->status == TDBMObjectStateEnum::STATE_NEW) {
+			throw new TDBMException("You cannot call discardChanges() on an object that has been created with getNewObject and that has not yet been saved.");
+		}
 
-		if ($this->tdbmObjectState == TDBMObjectStateEnum::STATE_DELETED)
-		throw new TDBMException("You cannot call discardChanges() on an object that has been deleted.");
+		if ($this->status == TDBMObjectStateEnum::STATE_DELETED) {
+			throw new TDBMException("You cannot call discardChanges() on an object that has been deleted.");
+		}
 			
-		$this->db_modified_state = false;
-		$this->tdbmObjectState = TDBMObjectStateEnum::STATE_NOT_LOADED;
+		$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
 	}
 
 	/**
@@ -348,14 +351,14 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	 * Method used internally by TDBM. You should not use it directly.
 	 * This method returns the status of the TDBMObject.
 	 * This is one of TDBMObjectStateEnum::STATE_NEW, TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DELETED.
-	 * $tdbmObjectState = TDBMObjectStateEnum::STATE_NEW when a new object is created with DBMObject:getNewObject.
-	 * $tdbmObjectState = TDBMObjectStateEnum::STATE_NOT_LOADED when the object has been retrieved with getObject but when no data has been accessed in it yet.
-	 * $tdbmObjectState = TDBMObjectStateEnum::STATE_LOADED when the object is cached in memory.
+	 * $status = TDBMObjectStateEnum::STATE_NEW when a new object is created with DBMObject:getNewObject.
+	 * $status = TDBMObjectStateEnum::STATE_NOT_LOADED when the object has been retrieved with getObject but when no data has been accessed in it yet.
+	 * $status = TDBMObjectStateEnum::STATE_LOADED when the object is cached in memory.
 	 *
 	 * @return string
 	 */
 	public function _getStatus() {
-		return $this->tdbmObjectState;
+		return $this->status;
 	}
 	
 		/**
@@ -375,7 +378,7 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	 */
     public function offsetExists($offset) {
     	$this->_dbLoadIfNotLoaded();
-        return isset($this->db_row[$offset]);
+        return isset($this->dbRow[$offset]);
     }
 	/**
 	 * Implements array behaviour for our object.
@@ -401,31 +404,31 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	 */
 	public function rewind() {
     	$this->_dbLoadIfNotLoaded();
-		if (count($this->db_row)>0) {
+		if (count($this->dbRow)>0) {
 			$this->_validIterator = true;
 		} else {
 			$this->_validIterator = false;
 		}
-		reset($this->db_row);
+		reset($this->dbRow);
 	}
 	/**
 	 * Implements iterator behaviour for our object (so we can each column).
 	 */
 	public function next() {
-		$val = next($this->db_row);
+		$val = next($this->dbRow);
 		$this->_validIterator = !($val === false);
 	}
 	/**
 	 * Implements iterator behaviour for our object (so we can each column).
 	 */
 	public function key() {
-		return key($this->db_row);
+		return key($this->dbRow);
 	}
 	/**
 	 * Implements iterator behaviour for our object (so we can each column).
 	 */
 	public function current() {
-		return current($this->db_row);
+		return current($this->dbRow);
 	}
 	/**
 	 * Implements iterator behaviour for our object (so we can each column).
@@ -440,16 +443,16 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	 */
 	public function jsonSerialize(){
 		$this->_dbLoadIfNotLoaded();
-		return $this->db_row;
+		return $this->dbRow;
 	}
 
 	/**
 	 * Returns the SQL of the filter (the SQL WHERE clause).
 	 *
-	 * @param ConnectionInterface $dbConnection
+	 * @param Connection $dbConnection
 	 * @return string
 	 */
-	public function toSql(ConnectionInterface $dbConnection) {
+	public function toSql(Connection $dbConnection) {
 		return $this->getPrimaryKeyWhereStatement();
 	}
 
@@ -469,7 +472,7 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	 */
 	private function getPrimaryKeyWhereStatement () {
 		// Let's first get the primary keys
-		$pk_table = $this->tdbmService->getPrimaryKeyStatic($this->dbTableName);
+		$pk_table = $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
 		// Now for the object_id
 		$object_id = $this->TDBMObject_id;
 		// If there is only one primary key:
@@ -494,15 +497,15 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
     public function __clone(){
         $this->_dbLoadIfNotLoaded();
         //First lets set the status to new (to enter the save function)
-        $this->tdbmObjectState = TDBMObjectStateEnum::STATE_NEW;
+        $this->status = TDBMObjectStateEnum::STATE_NEW;
 
         // Add the current TDBMObject to the save object list
         $this->tdbmService->_addToToSaveObjectList($this);
 
         //Now unset the PK from the row
-        $pk_array = $this->tdbmService->getPrimaryKeyStatic($this->dbTableName);
+        $pk_array = $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
         foreach ($pk_array as $pk) {
-            $this->db_row[$pk] = null;
+            $this->dbRow[$pk] = null;
         }
     }
 
@@ -512,7 +515,7 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	 * @return array
 	 */
 	public function _getDbRow() {
-		return $this->db_row;
+		return $this->dbRow;
 	}
 
 	/**
@@ -530,7 +533,7 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	{
 		$this->primaryKeys = $primaryKeys;
 		foreach ($this->primaryKeys as $column => $value) {
-			$this->db_row[$column] => $value;
+			$this->dbRow[$column] = $value;
 		}
 	}
 

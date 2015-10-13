@@ -53,7 +53,7 @@ class TDBMService {
 	/**
 	 * The database connection.
 	 *
-	 * @var ConnectionInterface
+	 * @var Connection
 	 */
 	private $connection;
 
@@ -110,9 +110,9 @@ class TDBMService {
 	 * Primary keys are stored by tables, as an array of column.
 	 * For instance $primary_key['my_table'][0] will return the first column of the primary key of table 'my_table'.
 	 *
-	 * @var array
+	 * @var string[]
 	 */
-	private $primary_keys;
+	private $primaryKeysColumns;
 
 	/**
 	 * Whether we should track execution time or not.
@@ -146,7 +146,7 @@ class TDBMService {
 	private $mode = self::MODE_ARRAY;
 
 	/// Table of new objects not yet inserted in database or objects modified that must be saved.
-	private $tosave_objects;
+	private $toSaveObjects = array();
 
 	/// Table of constraints that that table applies on another table n the form [this table][this column]=XXX
 	//private $external_constraint;
@@ -179,7 +179,7 @@ class TDBMService {
 	 * 										 Will be automatically created if not passed.
 	 */
 	public function __construct(Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null) {
-		register_shutdown_function(array($this,"completeSaveOnExit"));
+		//register_shutdown_function(array($this,"completeSaveOnExit"));
 		if (extension_loaded('weakref')) {
 			$this->objectStorage = new WeakrefObjectStorage();
 		} else {
@@ -202,7 +202,7 @@ class TDBMService {
 	/**
 	 * Returns the object used to connect to the database.
 	 *
-	 * @return ConnectionInterface
+	 * @return Connection
 	 */
 	public function getConnection() {
 		return $this->connection;
@@ -494,7 +494,7 @@ class TDBMService {
 		$object = new $className($this, $table_name);
 
 		if ($auto_assign_id && !$this->isPrimaryKeyAutoIncrement($table_name)) {
-			$pk_table =  $this->getPrimaryKeyStatic($table_name);
+			$pk_table =  $this->getPrimaryKeyColumns($table_name);
 			if (count($pk_table)==1)
 			{
 				$root_table = $this->connection->findRootSequenceTable($table_name);
@@ -525,40 +525,41 @@ class TDBMService {
 
 	/**
 	 * Removes the given object from database.
+	 * This cannot be called on an object that is not attached to this TDBMService
+	 * (will throw a TDBMInvalidOperationException)
 	 *
-	 * @param TDBMObject $object the object to delete.
+	 * @param AbstractTDBMObject $object the object to delete.
+	 * @throws TDBMException
+	 * @throws TDBMInvalidOperationException
 	 */
-	public function deleteObject(TDBMObject $object) {
-		if ($object->getTDBMObjectState() != TDBMObjectStateEnum::STATE_NEW && $object->getTDBMObjectState() != TDBMObjectStateEnum::STATE_DELETED)
-		{
-			$pk_table = $object->getPrimaryKey();
-			// Now for the object_id
-			$object_id = $object->TDBMObject_id;
-			// If there is only one primary key:
-			if (count($pk_table)==1) {
-				$sql_where = $this->connection->escapeDBItem($pk_table[0])."=".$this->connection->quoteSmart($object->TDBMObject_id);
-			} else {
-				$ids = unserialize($object_id);
-				$i=0;
-				$sql_where_array = array();
-				foreach ($pk_table as $pk) {
-					$sql_where_array[] = $this->connection->escapeDBItem($pk)."=".$this->connection->quoteSmart($ids[$i]);
-					$i++;
-				}
-				$sql_where = implode(" AND ",$sql_where_array);
-			}
+	public function delete(AbstractTDBMObject $object) {
+		switch ($object->_getStatus()) {
+			case TDBMObjectStateEnum::STATE_DELETED:
+				// Nothing to do, object already deleted.
+				return;
+			case TDBMObjectStateEnum::STATE_DETACHED:
+				throw new TDBMInvalidOperationException('Cannot delete a detached object');
+			case TDBMObjectStateEnum::STATE_NEW:
+				$this->removeFromToSaveObjectList($object);
+				break;
+			case TDBMObjectStateEnum::STATE_DIRTY:
+				$this->removeFromToSaveObjectList($object);
+			case TDBMObjectStateEnum::STATE_NOT_LOADED:
+			case TDBMObjectStateEnum::STATE_LOADED:
+				$tableName = $object->_getDbTableName();
+				$primaryKeys = $object->_getPrimaryKeys();
 
+				$this->connection->delete($tableName, $primaryKeys);
 
-			$sql = 'DELETE FROM '.$this->connection->escapeDBItem($object->_getDbTableName()).' WHERE '.$sql_where;
-			$result = $this->connection->exec($sql);
-
-			if ($result != 1) {
-				throw new TDBMException("Error while deleting object from table ".$object->_getDbTableName().": ".$result." have been affected.");
-			}
-
-			$this->objectStorage->remove($object->_getDbTableName(), $object_id);
-			$object->setTDBMObjectState(TDBMObjectStateEnum::STATE_DELETED);
+				$this->objectStorage->remove($object->_getDbTableName(), $this->getObjectHash($primaryKeys));
+				break;
+			// @codeCoverageIgnoreStart
+			default:
+				throw new TDBMInvalidOperationException('Unexpected status for bean');
+			// @codeCoverageIgnoreEnd
 		}
+
+		$object->_setStatus(TDBMObjectStateEnum::STATE_DELETED);
 	}
 
     /**
@@ -567,9 +568,9 @@ class TDBMService {
      *
      * Notice: if the object has a multiple primary key, the function will not work.
      *
-     * @param TDBMObject $objToDelete
+     * @param AbstractTDBMObject $objToDelete
      */
-    public function deleteCascade(TDBMObject $objToDelete) {
+    public function deleteCascade(AbstractTDBMObject $objToDelete) {
         $this->deleteAllConstraintWithThisObject($objToDelete);
         $this->deleteObject($objToDelete);
     }
@@ -636,10 +637,22 @@ class TDBMService {
 
 		$table_name = $this->connection->toStandardcase($table_name);
 
-		$this->getPrimaryKeyStatic($table_name);
+		$this->getPrimaryKeyColumns($table_name);
 
-		$result = $this->connection->query($sql, $from, $limit);
-		
+		$result = $this->dbConnection->query($sql, $from, $limit);
+
+		if ($className === null) {
+			if (isset($this->tableToBeanMap[$table_name])) {
+				$className = $this->tableToBeanMap[$table_name];
+			} else {
+				$className = "Mouf\\Database\\TDBM\\TDBMObject";
+			}
+		}
+
+		if (!is_string($className)) {
+			throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
+		}
+
 		if ($this->mode == self::MODE_COMPATIBLE_ARRAY || $this->mode == self::MODE_ARRAY) {
 			if ($this->mode == self::MODE_COMPATIBLE_ARRAY) {
 				$returned_objects = new TDBMObjectArray();
@@ -662,7 +675,7 @@ class TDBMService {
 				foreach ($fullCaseRow as $key=>$value) {
 					$row[$keysStandardCased[$key]]=$value;
 				}
-				$pk_table = $this->primary_keys[$table_name];
+				$pk_table = $this->primaryKeysColumns[$table_name];
 				if (count($pk_table)==1)
 				{
 					if (!isset($keysStandardCased[$pk_table[0]])) {
@@ -678,18 +691,6 @@ class TDBMService {
 						$ids[] = $row[$keysStandardCased[$pk]];
 					}
 					$id = serialize($ids);
-				}
-
-				if ($className === null) {
-					if (isset($this->tableToBeanMap[$table_name])) {
-						$className = $this->tableToBeanMap[$table_name];
-					} else {
-						$className = "Mouf\\Database\\TDBM\\TDBMObject";
-					}
-				}
-
-				if (!is_string($className)) {
-					throw new TDBMException("Error while casting TDBMObject to class, the parameter passed is not a string. Value passed: ".$className);
 				}
 
                 $obj = $this->objectStorage->get($table_name,$id);
@@ -749,7 +750,7 @@ class TDBMService {
 			foreach ($fullCaseRow as $key=>$value) {
 				$row[$keysStandardCased[$key]]=$value;
 			}
-			$pk_table = $this->primary_keys[$table_name];
+			$pk_table = $this->primaryKeysColumns[$table_name];
 			if (count($pk_table)==1)
 			{
 				if (!isset($keysStandardCased[$pk_table[0]])) {
@@ -772,7 +773,7 @@ class TDBMService {
 				if ($className == null) {
 					$obj = new TDBMObject($this, $table_name, $id);
 				} elseif (is_string($className)) {
-					if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
+					if (!is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject") && $className != "Mouf\\Database\\TDBM\\TDBMObject") {
 						throw new TDBMException("Error while calling TDBM: The class ".$className." should extend TDBMObject.");
 					}
 					$obj = new $className($this, $table_name, $id);
@@ -820,14 +821,11 @@ class TDBMService {
 	 */
 	public function completeSave() {
 
-		if (is_array($this->tosave_objects))
+		foreach ($this->toSaveObjects as $object)
 		{
-			foreach ($this->tosave_objects as $object)
+			if (!$object->db_onerror && $object->db_autosave)
 			{
-				if (!$object->db_onerror && $object->db_autosave)
-				{
-					$object->save();
-				}
+				$object->save();
 			}
 		}
 
@@ -838,7 +836,7 @@ class TDBMService {
 	 * It should never be called by the user, the program will call it directly.
 	 *
 	 */
-	public function completeSaveOnExit() {
+	/*public function completeSaveOnExit() {
 		$this->is_program_exiting = true;
 		$this->completeSave();
 
@@ -860,7 +858,7 @@ class TDBMService {
 				}
 			}
 		}
-	}
+	}*/
 
 	/**
 	 * Function used internally by TDBM.
@@ -878,47 +876,18 @@ class TDBMService {
 	 * the changes will be retrieved when we access the object again.
 	 *
 	 */
-	public function completeSaveAndFlush() {
+	/*public function completeSaveAndFlush() {
 		$this->completeSave();
 
 		$this->objectStorage->apply(function(TDBMObject $object) {
-			/* @var $object TDBMObject */
-			if (!$object->db_onerror && $object->getTDBMObjectState() == TDBMObjectStateEnum::STATE_LOADED)
+			/* @var $object TDBMObject * /
+			if (!$object->db_onerror && $object->_getStatus() == TDBMObjectStateEnum::STATE_LOADED)
 			{
-				$object->setTDBMObjectState(TDBMObjectStateEnum::STATE_NOT_LOADED);
+				$object->_setStatus(TDBMObjectStateEnum::STATE_NOT_LOADED);
 			}
 		});
 	}
-
-
-	/**
-	 * Returns transient objects.
-	 * getTransientObjectsFromSQL executes the SQL request passed, and returns a set of objects matching this request.
-	 * The objects returned will not be saved in database if they are modified.
-	 *
-	 * This method is particularly useful for retrieving aggregated data for instance (requests with GROUP BY).
-	 *
-	 * For instance you can use getTransientObjectsFromSQL to rertrieve the number of users in each country:
-	 *
-	 * $objects = getTransientObjectsFromSQL("SELECT country_code, count(user_id) AS cnt FROM users GROUP BY country_code");
-	 * foreach ($objects as $object) {
-	 * 		echo "Country $object->country_code has $object->cnt users";
-	 * }
-	 *
-	 * Note that using getObjectsFromSQL for such requests would be a mistake since getObjectsFromSQL is retrieving objects
-	 * that can be saved later.
-	 *
-	 * TODO: make the result a TDBMObjectArray instead of an array.
-	 *
-	 * @param string $sql
-	 * @return array the result of your query
-	 */
-	public function getTransientObjectsFromSQL($sql,$classname=null) {
-		if ($this->connection == null) {
-			throw new TDBMException("Error while calling TDBMObject::getObject(): No connection has been established on the database!");
-		}
-		return $this->connection->getAll($sql, \PDO::FETCH_CLASS,$classname);
-	}
+*/
 
 
 	private function to_explain_string($path) {
@@ -1545,7 +1514,7 @@ class TDBMService {
 
 		if ($mode=="getCount") {
 			// Let's get the list of primary keys to perform a DISTINCT request.
-			$pk_table = $this->getPrimaryKeyStatic($table_name);
+			$pk_table = $this->getPrimaryKeyColumns($table_name);
 				
 			$pk_arr = array();
 			foreach ($pk_table as $pk) {
@@ -1791,17 +1760,25 @@ class TDBMService {
 		}
 		return $cols[0]->autoIncrement;
 	}
-	
-	public function getPrimaryKeyStatic($table) {
-		if (!isset($this->primary_keys[$table]))
+
+	/**
+	 * @param string $table
+	 * @return string[]
+	 */
+	public function getPrimaryKeyColumns($table) {
+		if (!isset($this->primaryKeysColumns[$table]))
 		{
-			$arr = array();
+			$this->primaryKeysColumns[$table] = $this->getSchema()->getTable($table)->getPrimaryKeyColumns();
+
+			// TODO TDBM4: See if we need to improve error reporting if table name does not exist.
+
+			/*$arr = array();
 			foreach ($this->connection->getPrimaryKey($table) as $col) {
 				$arr[] = $col->name;
 			}
-			// The primary_keys contains only the column's name, not the DB_Column object.
-			$this->primary_keys[$table] = $arr;
-			if (empty($this->primary_keys[$table]))
+			// The primaryKeysColumns contains only the column's name, not the DB_Column object.
+			$this->primaryKeysColumns[$table] = $arr;
+			if (empty($this->primaryKeysColumns[$table]))
 			{
 				// Unable to find primary key.... this is an error
 				// Let's try to be precise in error reporting. Let's try to find the table.
@@ -1815,9 +1792,9 @@ class TDBMService {
 					$str = "Could not find table '$table'. Maybe you meant one of those tables: '".implode("', '",$tables)."'";
 					throw new TDBMException($str);
 				}
-			}
+			}*/
 		}
-		return $this->primary_keys[$table];
+		return $this->primaryKeysColumns[$table];
 	}
 
 	/**
@@ -1826,8 +1803,10 @@ class TDBMService {
 	 *
 	 * @param TDBMObject $object
 	 */
-	public function _addToCache(TDBMObject $object) {
-		$this->objectStorage->set($object->_getDbTableName(), $object->TDBMObject_id, $object);
+	private function _addToCache(TDBMObject $object) {
+		$primaryKey = $this->getPrimaryKeysForObjectFromDbRow($object);
+		$hash = $this->getObjectHash($primaryKey);
+		$this->objectStorage->set($object->_getDbTableName(), $hash, $object);
 	}
 
 	/**
@@ -1838,10 +1817,11 @@ class TDBMService {
 	 * @param TDBMObject $myObject
 	 */
 	private function removeFromToSaveObjectList(TDBMObject $myObject) {
-		foreach ($this->tosave_objects as $id=>$object) {
+		// TODO: replace this by a SplObjectStorage!!! Much more efficient on search!!!!
+		foreach ($this->toSaveObjects as $id=>$object) {
 			if ($object == $myObject)
 			{
-				unset($this->tosave_objects[$id]);
+				unset($this->toSaveObjects[$id]);
 				break;
 			}
 		}
@@ -1855,7 +1835,7 @@ class TDBMService {
 	 * @param TDBMObject $myObject
 	 */
 	public function _addToToSaveObjectList(TDBMObject $myObject) {
-		$this->tosave_objects[] = $myObject;
+		$this->toSaveObjects[] = $myObject;
 	}
 
 	/**
@@ -1903,7 +1883,7 @@ class TDBMService {
 			if ($this->cache->contains($cacheKey)) {
 				$this->schema = $this->cache->fetch($cacheKey);
 			} else {
-				$this->schema = $this->connection->getSchemaManager()->getSchema();
+				$this->schema = $this->connection->getSchemaManager()->createSchema();
 				$this->cache->save($cacheKey, $this->schema);
 			}
 		}
@@ -1922,43 +1902,44 @@ class TDBMService {
 
 		// Let's attach this object if it is in detached state.
 		if ($status === TDBMObjectStateEnum::STATE_DETACHED) {
-			$object->attach($this);
+			$object->_attach($this);
 			$status = $object->_getStatus();
 		}
 
 		if ($status === TDBMObjectStateEnum::STATE_NEW) {
 
 			$tableName = $object->_getDbTableName();
-			$dbRow = $this->_getDbRow();
+			$dbRow = $object->_getDbRow();
 
 			$schema = $this->getSchema();
 			$tableDescriptor = $schema->getTable($tableName);
-			$primaryKeys = $tableDescriptor->getPrimaryKeyColumns();
+
+			$primaryKeyColumns = $this->getPrimaryKeyColumns($tableName);
+
+			$primaryKeys = $this->getPrimaryKeysForObjectFromDbRow($object);
 
 			// Let's see if the columns for primary key have been set before inserting.
-			// We assume that if one of the value of the PK has been set, the values have not been changed.
-			$pk_set = false;
-			$pk_array = $this->getPrimaryKey();
-			$isAutoIncrement = true;
+			// We assume that if one of the value of the PK has been set, the PK is set.
+			$isPkSet = !empty($primaryKeys);
 
-			foreach ($primaryKeys as $pkColumn) {
-				if (isset($dbRow[$pkColumn])) {
-					$pk_set=true;
+
+			/*if (!$isPkSet) {
+				// if there is no autoincrement and no pk set, let's go in error.
+				$isAutoIncrement = true;
+
+				foreach ($primaryKeyColumns as $pkColumnName) {
+					$pkColumn = $tableDescriptor->getColumn($pkColumnName);
+					if (!$pkColumn->getAutoincrement()) {
+						$isAutoIncrement = false;
+					}
 				}
-				if (!$pkColumn->getAutoincrement()) {
-					$isAutoIncrement = false;
-				}
-			}
 
-			// if there is no autoincrement and no pk set, let's go in error.
-			if (!$isAutoIncrement && !$pk_set) {
-				$msg = "Error! You did not set the primary key(s) for the new object of type '$tableName'. The primary key is not set to 'autoincrement' so you must either set the primary key in the object or modify the DB model to create an primary key with auto-increment.";
-
-				if (!$this->isProgramExiting())
+				if (!$isAutoIncrement) {
+					$msg = "Error! You did not set the primary key(s) for the new object of type '$tableName'. The primary key is not set to 'autoincrement' so you must either set the primary key in the object or modify the DB model to create an primary key with auto-increment.";
 					throw new TDBMException($msg);
-				else
-					trigger_error($msg, E_USER_ERROR);
-			}
+				}
+
+			}*/
 
 			$types = [];
 
@@ -1969,20 +1950,18 @@ class TDBMService {
 
 			$this->connection->insert($tableName, $dbRow, $types);
 
-			if ($pk_set && count($primaryKeys) == 1) {
+			if (!$isPkSet && count($primaryKeyColumns) == 1) {
 				$id = $this->connection->lastInsertId();
-				// TODO: change this to some private magic accessor in future
-				$object->set($primaryKeys[0], $id);
+				$primaryKeys[$primaryKeyColumns[0]] = $id;
 			}
 
-			// TODO: set the ID!
-			// IDs are saved in the object in the primaryKeys column.
-			// Ids can be updated. Objects attached must update themselves when a primary key changes.(????)
-			// TODO: store multikeys as hashes:
-			// ksort($keys);
-			// $hash = md5(json_encode($keys));
+			// TODO: change this to some private magic accessor in future
+			$object->_setPrimaryKeys($primaryKeys);
+
+
+
+
 			/*
-			 * Ok, we keep storing the ID in the object
 			 * When attached, on "save", we check if the column updated is part of a primary key
 			 * If this is part of a primary key, we call the _update_id method that updates the id in the list of known objects.
 			 * This method should first verify that the id is not already used (and is not auto-incremented)
@@ -2033,57 +2012,107 @@ class TDBMService {
 			var_dump($pk_array);
 			var_dump($new_db_row);*/
 
-			$this->tdbmObjectState = TDBMObjectStateEnum::STATE_NOT_LOADED;
-			$this->db_modified_state = false;
-			$dbRow = array();
+			// TODO: change this behaviour to something more sensible performance-wise
+			// Maybe a setting to trigger this globally?
+			//$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
+			//$this->db_modified_state = false;
+			//$dbRow = array();
 
 			// Let's add this object to the list of objects in cache.
-			$this->tdbmService->_addToCache($this);
-		} elseif ($status == TDBMObjectStateEnum::STATE_LOADED && $this->db_modified_state==true) {
-			//$primary_key = $this->getPrimaryKey();
+			$this->_addToCache($object);
+			$object->_setStatus(TDBMObjectStateEnum::STATE_LOADED);
+		} elseif ($status === TDBMObjectStateEnum::STATE_DIRTY) {
 			// Let's first get the primary keys
-			$pk_table = $this->getPrimaryKey();
-			// Now for the object_id
-			$object_id = $this->TDBMObject_id;
-			// If there is only one primary key:
-			if (count($pk_table)==1) {
-				$sql_where = $this->db_connection->escapeDBItem($pk_table[0])."=".$this->db_connection->quoteSmart($this->TDBMObject_id);
-			} else {
-				$ids = unserialize($object_id);
-				$i=0;
-				$sql_where_array = array();
-				foreach ($pk_table as $pk) {
-					$sql_where_array[] = $this->db_connection->escapeDBItem($pk)."=".$this->db_connection->quoteSmart($ids[$i]);
-					$i++;
+			$tableName = $object->_getDbTableName();
+			$dbRow = $object->_getDbRow();
+
+			$schema = $this->getSchema();
+			$tableDescriptor = $schema->getTable($tableName);
+
+			$primaryKeys = $object->_getPrimaryKeys();
+
+			$types = [];
+
+			foreach ($dbRow as $columnName => $value) {
+				$columnDescriptor = $tableDescriptor->getColumn($columnName);
+				$types[] = $columnDescriptor->getType();
+			}
+			foreach ($primaryKeys as $columnName => $value) {
+				$columnDescriptor = $tableDescriptor->getColumn($columnName);
+				$types[] = $columnDescriptor->getType();
+			}
+
+			$this->connection->update($tableName, $dbRow, $primaryKeys, $types);
+
+			// Let's check if the primary key has been updated...
+			$needsUpdatePk = false;
+			foreach ($primaryKeys as $column => $value) {
+				if (!isset($dbRow[$column]) || $dbRow[$column] != $value) {
+					$needsUpdatePk = true;
+					break;
 				}
-				$sql_where = implode(" AND ",$sql_where_array);
+			}
+			if ($needsUpdatePk) {
+				$this->objectStorage->remove($tableName, $this->getObjectHash($primaryKeys));
+				$newPrimaryKeys = $this->getPrimaryKeysForObjectFromDbRow($object);
+				$object->_setPrimaryKeys($newPrimaryKeys);
+				$this->objectStorage->set($tableName, $this->getObjectHash($primaryKeys), $object);
 			}
 
-			$sql = 'UPDATE '.$this->db_connection->escapeDBItem($this->dbTableName).' SET ';
+			// Let's remove this object from the list of objects to save.
+			$this->removeFromToSaveObjectList($object);
+			$object->_setStatus(TDBMObjectStateEnum::STATE_LOADED);
 
-			$first = true;
-			foreach ($dbRow as $key=>$value) {
-				if (!$first)
-					$sql .= ',';
-				$sql .= $this->db_connection->escapeDBItem($key)." = ".$this->db_connection->quoteSmart($value);
-				$first=false;
-			}
-			$sql .= ' WHERE '.$sql_where/*$primary_key."='".$dbRow[$primary_key]."'"*/;
-			try {
-				$this->db_connection->exec($sql);
-			} catch (TDBMException $e) {
-				if (!$this->tdbmService->isProgramExiting())
-					throw $e;
-				else
-					trigger_error($e->getMessage(), E_USER_ERROR);
-			}
-
-			// Let's remove this object from the $new_objects static table.
-			$this->tdbmService->removeFromToSaveObjectList($this);
-
-			$this->db_modified_state = false;
 		} elseif ($status === TDBMObjectStateEnum::STATE_DELETED) {
-			throw new TDBMException("This object has been deleted. It cannot be saved.");
+			throw new TDBMInvalidOperationException("This object has been deleted. It cannot be saved.");
 		}
+	}
+
+	/**
+	 * Returns a unique hash used to store the object based on its primary key.
+	 * If the array contains only one value, then the value is returned.
+	 * Otherwise, a hash representing the array is returned.
+	 *
+	 * @param array $primaryKeys An array of columns => values forming the primary key
+	 * @return string
+	 */
+	private function getObjectHash(array $primaryKeys) {
+		if (count($primaryKeys) === 1) {
+			return reset($primaryKeys);
+		} else {
+			ksort($primaryKeys);
+			return md5(json_encode($primaryKeys));
+		}
+	}
+
+	/**
+	 * Returns an array of primary keys from the object.
+	 * The primary keys are extracted from the object columns and not from the primary keys stored in the
+	 * $primaryKeys variable of the object.
+	 *
+	 * @param AbstractTDBMObject $object
+	 * @return array Returns an array of column => value
+	 */
+	public function getPrimaryKeysForObjectFromDbRow(AbstractTDBMObject $object) {
+		$primaryKeyColumns = $this->getPrimaryKeyColumns($object->_getDbTableName());
+		$dbRow = $object->_getDbRow();
+		$values = array();
+		foreach ($primaryKeyColumns as $column) {
+			if (isset($dbRow[$column])) {
+				$values[$column] = $dbRow[$column];
+			}
+		}
+		return $values;
+	}
+
+	/**
+	 * Attaches $object to this TDBMService.
+	 * The $object must be in DETACHED state and will pass in NEW state.
+	 *
+	 * @param AbstractTDBMObject $object
+	 * @throws TDBMInvalidOperationException
+	 */
+	public function attach(AbstractTDBMObject $object) {
+		$object->_attach($this);
 	}
 }

@@ -1,6 +1,7 @@
 <?php
 namespace Mouf\Database\TDBM\Utils;
 
+use Doctrine\DBAL\Driver\Connection;
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Database\TDBM\TDBMException;
 
@@ -14,7 +15,7 @@ class TDBMDaoGenerator {
 
 	/**
 	 * 
-	 * @var ConnectionInterface
+	 * @var Connection
 	 */
 	private $dbConnection;
 	
@@ -39,9 +40,9 @@ class TDBMDaoGenerator {
 	/**
 	 * Constructor.
 	 *
-	 * @param ConnectionInterface $dbConnection The connection to the database.
+	 * @param Connection $dbConnection The connection to the database.
 	 */
-	public function __construct(ConnectionInterface $dbConnection) {
+	public function __construct(Connection $dbConnection) {
 		$this->dbConnection = $dbConnection;
 		$this->rootPath = __DIR__."/../../../../../../../../";
 		

@@ -19,7 +19,7 @@ namespace Mouf\Database\TDBM;
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 use Mouf\Database\TDBM\Filters\FilterInterface;
-use Mouf\Database\DBConnection\ConnectionInterface;
+use Doctrine\DBAL\Driver\Connection;
 
 
 /**

@@ -27,7 +27,7 @@ use Mouf\Database\TDBM\Filters\AndFilter;
 use Mouf\Database\DBConnection\CachedConnection;
 use Mouf\Utils\Cache\CacheInterface;
 use Mouf\Database\TDBM\Filters\FilterInterface;
-use Mouf\Database\DBConnection\ConnectionInterface;
+use Doctrine\DBAL\Driver\Connection;
 use Mouf\Database\DBConnection\DBConnectionException;
 use Mouf\Database\TDBM\Filters\OrFilter;
 

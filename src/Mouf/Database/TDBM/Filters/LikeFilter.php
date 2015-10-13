@@ -3,7 +3,7 @@ namespace Mouf\Database\TDBM\Filters;
 
 use Mouf\Database\TDBM\TDBMException;
 
-use Mouf\Database\DBConnection\ConnectionInterface;
+use Doctrine\DBAL\Driver\Connection;
 
 /*
  Copyright (C) 2006-2011 David Négrier - THE CODING MACHINE
@@ -95,10 +95,10 @@ class LikeFilter implements FilterInterface {
 	/**
 	 * Returns the SQL of the filter (the SQL WHERE clause).
 	 *
-	 * @param ConnectionInterface $dbConnection
+	 * @param Connection $dbConnection
 	 * @return string
 	 */
-	public function toSql(ConnectionInterface $dbConnection) {
+	public function toSql(Connection $dbConnection) {
 		if ($this->enableCondition != null && !$this->enableCondition->isOk()) {
 			return "";
 		}

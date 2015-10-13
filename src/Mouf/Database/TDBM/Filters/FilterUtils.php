@@ -2,7 +2,7 @@
 namespace Mouf\Database\TDBM\Filters;
 
 use DateTimeInterface;
-use Mouf\Database\DBConnection\ConnectionInterface;
+use Doctrine\DBAL\Driver\Connection;
 
 /**
  * Utility functions for filters
@@ -12,11 +12,11 @@ class FilterUtils
     /**
      * @param string|null|DateTimeInterface $value
      */
-    public static function valueToSql($value, ConnectionInterface $dbConnection) {
+    public static function valueToSql($value, Connection $dbConnection) {
         if ($value instanceof DateTimeInterface) {
             return "'".$value->format('Y-m-d H:i:s')."'";
         } else {
-            return $dbConnection->quoteSmart($value);
+            return $dbConnection->quote($value);
         }
     }
 }

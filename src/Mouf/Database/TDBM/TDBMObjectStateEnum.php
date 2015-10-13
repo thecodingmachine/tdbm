@@ -29,6 +29,6 @@ final class TDBMObjectStateEnum extends AbstractTDBMObject {
     const STATE_NEW = "new";
     const STATE_NOT_LOADED = "not loaded";
     const STATE_LOADED = "loaded";
-    // TODO: a modified state???
+    const STATE_DIRTY = "dirty";
     const STATE_DELETED = "deleted";
 }
