@@ -1832,9 +1832,9 @@ class TDBMService {
 	 * This is used internally by TDBM to add an object to the list of objects that have been
 	 * created/updated but not saved yet.
 	 *
-	 * @param TDBMObject $myObject
+	 * @param AbstractTDBMObject $myObject
 	 */
-	public function _addToToSaveObjectList(TDBMObject $myObject) {
+	public function _addToToSaveObjectList(AbstractTDBMObject $myObject) {
 		$this->toSaveObjects[] = $myObject;
 	}
 

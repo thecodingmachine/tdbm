@@ -33,7 +33,7 @@ use Mouf\Database\TDBM\Filters\FilterInterface;
  * 
  * @author David Negrier
  */
-abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable, FilterInterface {
+abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface {
 
 	/**
 	 * The service this object is bound to.
@@ -360,82 +360,7 @@ abstract class AbstractTDBMObject implements \ArrayAccess, \Iterator, \JsonSeria
 	public function _getStatus() {
 		return $this->status;
 	}
-	
-		/**
-	 * Implements array behaviour for our object.
-	 * 
-	 * @param string $offset
-	 * @param string $value
-	 */
-	public function offsetSet($offset, $value) {
-		$this->__set($offset, $value);
-    }
-	/**
-	 * Implements array behaviour for our object.
-	 * 
-	 * @param string $offset
-     * @return bool
-	 */
-    public function offsetExists($offset) {
-    	$this->_dbLoadIfNotLoaded();
-        return isset($this->dbRow[$offset]);
-    }
-	/**
-	 * Implements array behaviour for our object.
-	 * 
-	 * @param string $offset
-	 */
-    public function offsetUnset($offset) {
-		$this->__set($offset, null);
-    }
-	/**
-	 * Implements array behaviour for our object.
-	 * 
-	 * @param string $offset
-     * @return mixed|null
-	 */
-    public function offsetGet($offset) {
-        return $this->__get($offset);
-    }
-	
-	private $_validIterator = false;
-	/**
-	 * Implements iterator behaviour for our object (so we can each column).
-	 */
-	public function rewind() {
-    	$this->_dbLoadIfNotLoaded();
-		if (count($this->dbRow)>0) {
-			$this->_validIterator = true;
-		} else {
-			$this->_validIterator = false;
-		}
-		reset($this->dbRow);
-	}
-	/**
-	 * Implements iterator behaviour for our object (so we can each column).
-	 */
-	public function next() {
-		$val = next($this->dbRow);
-		$this->_validIterator = !($val === false);
-	}
-	/**
-	 * Implements iterator behaviour for our object (so we can each column).
-	 */
-	public function key() {
-		return key($this->dbRow);
-	}
-	/**
-	 * Implements iterator behaviour for our object (so we can each column).
-	 */
-	public function current() {
-		return current($this->dbRow);
-	}
-	/**
-	 * Implements iterator behaviour for our object (so we can each column).
-	 */
-	public function valid() {
-		return $this->_validIterator;
-	}	
+
 	
 	/**
 	 * Implement the unique JsonSerializable method
