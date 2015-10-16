@@ -63,10 +63,10 @@ class WeakrefObjectStorage {
 	 * 
 	 * @param string $tableName
 	 * @param string $id
-	 * @param TDBMObject $object
+	 * @param DbRow $dbRow
 	 */
-	public function set($tableName, $id, TDBMObject $object) {
-		$this->objects[$tableName][$id] = new \WeakRef($object);
+	public function set($tableName, $id, DbRow $dbRow) {
+		$this->objects[$tableName][$id] = new \WeakRef($dbRow);
 		$this->garbageCollectorCount++;
 		if ($this->garbageCollectorCount == 10000) {
 			$this->garbageCollectorCount = 0;
@@ -97,7 +97,7 @@ class WeakrefObjectStorage {
 	 *
 	 * @param string $tableName
 	 * @param string $id
-	 * @return TDBMObject
+	 * @return DbRow
 	 */
 	public function get($tableName, $id) {
 		if (isset($this->objects[$tableName][$id])) {

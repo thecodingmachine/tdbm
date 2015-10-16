@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Oct 13, 2015 at 04:19 PM
+-- Generation Time: Oct 14, 2015 at 04:04 PM
 -- Server version: 5.6.25-0ubuntu0.15.04.1
 -- PHP Version: 5.6.10-1+deb.sury.org~utopic+1
 
@@ -19,6 +19,27 @@ SET time_zone = "+00:00";
 --
 -- Database: `tdbm_testcase`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `contact`
+--
+
+CREATE TABLE IF NOT EXISTS `contact` (
+  `id` int(11) NOT NULL,
+  `email` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `contact`
+--
+
+INSERT INTO `contact` (`id`, `email`) VALUES
+(1, 'john@smith.com'),
+(2, 'jean@dupont.com'),
+(3, 'robert@marley.com'),
+(4, 'bill@shakespeare.com');
 
 -- --------------------------------------------------------
 
@@ -39,6 +60,27 @@ INSERT INTO `country` (`id`, `label`) VALUES
 (1, 'France'),
 (2, 'UK'),
 (3, 'Jamaica');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `person`
+--
+
+CREATE TABLE IF NOT EXISTS `person` (
+`id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `person`
+--
+
+INSERT INTO `person` (`id`, `name`) VALUES
+(1, 'John Smith'),
+(2, 'Jean Dupont'),
+(3, 'Robert Marley'),
+(4, 'Bill Shakespeare');
 
 -- --------------------------------------------------------
 
@@ -106,21 +148,21 @@ INSERT INTO `roles_rights` (`role_id`, `right_label`) VALUES
 --
 
 CREATE TABLE IF NOT EXISTS `users` (
-`id` int(11) NOT NULL,
+  `id` int(11) NOT NULL,
   `login` varchar(255) NOT NULL,
   `password` varchar(255) DEFAULT NULL,
   `country_id` int(11) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`id`, `login`, `password`, `country_id`) VALUES
-(5, 'John Smith', NULL, 2),
-(6, 'Jean Dupont', NULL, 1),
-(7, 'Robert Marley', NULL, 3),
-(8, 'Bill Shakespeare', NULL, 2);
+(1, 'john.smith', NULL, 2),
+(2, 'jean.dupont', NULL, 1),
+(3, 'robert.marley', NULL, 3),
+(4, 'bill.shakespeare', NULL, 2);
 
 -- --------------------------------------------------------
 
@@ -139,20 +181,32 @@ CREATE TABLE IF NOT EXISTS `users_roles` (
 --
 
 INSERT INTO `users_roles` (`id`, `user_id`, `role_id`) VALUES
-(6, 5, 1),
-(7, 6, 1),
-(8, 7, 3),
-(9, 8, 2),
-(10, 7, 2);
+(6, 1, 1),
+(7, 2, 1),
+(8, 3, 3),
+(9, 4, 2),
+(10, 3, 2);
 
 --
 -- Indexes for dumped tables
 --
 
 --
+-- Indexes for table `contact`
+--
+ALTER TABLE `contact`
+ ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `country`
 --
 ALTER TABLE `country`
+ ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `person`
+--
+ALTER TABLE `person`
  ADD PRIMARY KEY (`id`);
 
 --
@@ -195,15 +249,15 @@ ALTER TABLE `users_roles`
 ALTER TABLE `country`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
 --
+-- AUTO_INCREMENT for table `person`
+--
+ALTER TABLE `person`
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=5;
+--
 -- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=10;
 --
 -- AUTO_INCREMENT for table `users_roles`
 --
@@ -212,6 +266,12 @@ MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=11;
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `contact`
+--
+ALTER TABLE `contact`
+ADD CONSTRAINT `contact_ibfk_1` FOREIGN KEY (`id`) REFERENCES `person` (`id`);
 
 --
 -- Constraints for table `roles_rights`
@@ -224,14 +284,15 @@ ADD CONSTRAINT `roles_rights_ibfk_2` FOREIGN KEY (`right_label`) REFERENCES `rig
 -- Constraints for table `users`
 --
 ALTER TABLE `users`
-ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`country_id`) REFERENCES `country` (`id`);
+ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`country_id`) REFERENCES `country` (`id`),
+ADD CONSTRAINT `users_ibfk_2` FOREIGN KEY (`id`) REFERENCES `contact` (`id`);
 
 --
 -- Constraints for table `users_roles`
 --
 ALTER TABLE `users_roles`
-ADD CONSTRAINT `users_roles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-ADD CONSTRAINT `users_roles_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
+ADD CONSTRAINT `users_roles_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`),
+ADD CONSTRAINT `users_roles_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

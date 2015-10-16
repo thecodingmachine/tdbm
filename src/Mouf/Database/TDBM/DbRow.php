@@ -23,13 +23,11 @@ use Mouf\Database\TDBM\Filters\FilterInterface;
 
 
 /**
- * Instances of this class represent a "bean". Usually, a bean is mapped to a row of one table.
- * In some special cases (where inheritance is used), beans can be scattered on several tables.
- * Therefore, a TDBMObject is really a set of DbRow objects that represent one row in a table.
+ * Instances of this class represent a row in a database.
  *
  * @author David Negrier
  */
-abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface {
+class DbRow implements \JsonSerializable, FilterInterface {
 
 	/**
 	 * The service this object is bound to.
@@ -39,10 +37,24 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 	protected $tdbmService;
 
 	/**
-	 * An array of DbRow, indexed by table name.
-	 * @var DbRow[]
+	 * The object containing this db row.
+	 * @var AbstractTDBMObject
 	 */
-	protected $dbRows = array();
+	private $object;
+
+	/**
+	 * The name of the table the object if issued from
+	 *
+	 * @var string
+	 */
+	private $dbTableName;
+
+	/**
+	 * The array of columns returned from database.
+	 *
+	 * @var array
+	 */
+	private $dbRow = array();
 
 	/**
 	 * One of TDBMObjectStateEnum::STATE_NEW, TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DELETED.
@@ -55,56 +67,47 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 	private $status;
 
 	/**
-	 * True if an error has occurred while saving. The user will have to call save() explicitly or to modify one of its members to save it again.
-	 * TODO: hide this with getters and setters
+	 * The values of the primary key.
+	 * This is set when the object is in "loaded" state.
 	 *
-	 * @var boolean
+	 * @var array An array of column => value
 	 */
-	public $db_onerror;
+	private $primaryKeys;
+
 
 	private $db_connection;
-	
-	/**
-	 * True to automatically save the object.
-	 * If false, the user must explicitly call the save() method to save the object. 
-	 * TODO: hide this with getters and setters
-	 * 
-	 * @var boolean
-	 */
-	public $db_autosave;
-	
-	
 
 	/**
-	 * You should never call the constructor directly. Instead, you should use the 
+	 * You should never call the constructor directly. Instead, you should use the
 	 * TDBMService class that will create TDBMObjects for you.
-	 * 
+	 *
 	 * Used with id!=false when we want to retrieve an existing object
 	 * and id==false if we want a new object
 	 *
+	 * @param AbstractTDBMObject $object The object containing this db row.
+	 * @param string $table_name
+	 * @param array $primaryKeys
 	 * @param TDBMService $tdbmService
-	 * @param string $tableName
-	 * @param mixed $id
+	 * @throws TDBMException
+	 * @throws TDBMInvalidOperationException
 	 */
-	public function __construct($tableName=null, array $primaryKeys=array(), TDBMService $tdbmService=null) {
-		// FIXME: lazy oading should be forbidden on tables with inheritance and dynamic type assignation.
-		if ($tableName) {
-			$this->dbRows[$tableName] = new DbRow($this, $tableName, $primaryKeys, $tdbmService);
-		}
+	public function __construct(AbstractTDBMObject $object, $table_name, array $primaryKeys=array(), TDBMService $tdbmService=null) {
+		$this->object = $object;
+		$this->dbTableName = $table_name;
 
 		if ($tdbmService === null) {
-			$this->_setStatus(TDBMObjectStateEnum::STATE_DETACHED);
+			$this->status = TDBMObjectStateEnum::STATE_DETACHED;
 			if (!empty($primaryKeys)) {
-				throw new TDBMException('You cannot pass primary keys to the AbstractTDBMObject constructor without passing also a TDBMService.');
+				throw new TDBMException('You cannot pass an id to the DbRow constructor without passing also a TDBMService.');
 			}
 		} else {
 			$this->_attach($tdbmService);
-			$this->_setPrimaryKeys($primaryKeys);
 
 			if (!empty($primaryKeys)) {
-				$this->_setStatus(TDBMObjectStateEnum::STATE_NOT_LOADED);
+				$this->_setPrimaryKeys($primaryKeys);
+				$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
 			} else {
-				$this->_setStatus(TDBMObjectStateEnum::STATE_NEW);
+				$this->status = TDBMObjectStateEnum::STATE_NEW;
 			}
 		}
 	}
@@ -114,46 +117,8 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 			throw new TDBMInvalidOperationException('Cannot attach an object that is already attached to TDBM.');
 		}
 		$this->tdbmService = $tdbmService;
-
-		// If we attach this object, we must work to make sure the tables are in ascending order (from low level to top level)
-		$tableNames = array_keys($this->dbRows);
-		$tableNames = $this->tdbmService->_getLinkBetweenInheritedTables($tableNames);
-		$tableNames = array_reverse($tableNames);
-
-		$newDbRows = [];
-
-		foreach ($tableNames as $table) {
-			if (!isset($this->dbRows[$table])) {
-				$this->registerTable($table);
-			}
-			$newDbRows[$table] = $this->dbRows[$table];
-		}
-		$this->dbRows = $newDbRows;
-
 		$this->status = TDBMObjectStateEnum::STATE_NEW;
-		foreach ($this->dbRows as $dbRow) {
-			$dbRow->_attach($tdbmService);
-		}
-	}
-
-	/**
-	 * Returns true if the object will save automatically, false if an explicit call to save() is required.
-	 *
-	 * @return boolean
-	 */
-	public function getAutoSaveMode() {
-		return $this->db_autosave;
-	}
-	
-	/**
-	 * Sets the autosave mode:
-	 * true if the object will save automatically,
-	 * false if an explicit call to save() is required.
-	 *
-	 * @param boolean $autoSave
-	 */
-	public function setAutoSaveMode($autoSave) {
-		$this->db_autosave = $autoSave;
+		$this->tdbmService->_addToToSaveObjectList($this);
 	}
 
 	/**
@@ -166,10 +131,6 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 	 */
 	public function _setStatus($state){
 		$this->status = $state;
-
-		foreach ($this->dbRows as $dbRow) {
-			$dbRow->_setStatus($state);
-		}
 	}
 
     /**
@@ -194,24 +155,80 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
         $this->status = TDBMObjectStateEnum::STATE_LOADED;
 	}
 
-	public function get($var, $tableName = null) {
-		if ($tableName === null) {
-			if (count($this->dbRows) > 1) {
-				throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
-			} elseif (count($this->dbRows) === 1) {
-				$tableName = array_keys($this->dbRows)[0];
-			}
-		}
+	/**
+	 * Returns an array of the columns composing the primary key for that object.
+	 * This methods caches the primary keys so that if it is called twice, the second call will
+	 * not make any query to the database.
+	 *
+	 * TODO: move this into TDBMService
+	 * @return array
+	 */
+	public function getPrimaryKey() {
+		return $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
+	}
 
-		if (!isset($this->dbRows[$tableName])) {
-			if (count($this->dbRows[$tableName] === 0)) {
-				throw new TDBMException('Object is not yet bound to any table.');
-			} else {
-				throw new TDBMException('Unknown table "'.$tableName.'"" in object.');
-			}
-		}
+	/**
+	 * This is an internal method. You should not call this method yourself. The TDBM library will do it for you.
+	 * If the object is in state 'not loaded', this method performs a query in database to load the object.
+	 *
+	 * A TDBMException is thrown is no object can be retrieved (for instance, if the primary key specified
+	 * cannot be found).
+	 */
+	public function _dbLoadIfNotLoaded() {
+		if ($this->status == TDBMObjectStateEnum::STATE_NOT_LOADED)
+		{
+			$sql_where = $this->getPrimaryKeyWhereStatement();
 
-		return $this->dbRows[$tableName]->get($var);
+			$sql = "SELECT * FROM ".$this->db_connection->escapeDBItem($this->dbTableName)." WHERE ".$sql_where;
+			$result = $this->db_connection->query($sql);
+
+
+			if ($result->rowCount()==0)
+			{
+				throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" with ID \"".$this->TDBMObject_id."\".");
+			}
+
+			$fullCaseRow = $result->fetchAll(\PDO::FETCH_ASSOC);
+			
+			$result->closeCursor();
+				
+			$this->dbRow = array();
+			foreach ($fullCaseRow[0] as $key=>$value)  {
+				$this->dbRow[$this->db_connection->toStandardCaseColumn($key)]=$value;
+			}
+			
+			$this->status = TDBMObjectStateEnum::STATE_LOADED;
+		}
+	}
+
+	public function get($var) {
+		$this->_dbLoadIfNotLoaded();
+
+		// Let's first check if the key exist.
+		if (!isset($this->dbRow[$var])) {
+			/*
+			// Unable to find column.... this is an error if the object has been retrieved from database.
+			// If it's a new object, well, that may not be an error after all!
+			// Let's check if the column does exist in the table
+			$column_exist = $this->db_connection->checkColumnExist($this->dbTableName, $var);
+			// If the column DOES exist, then the object is new, and therefore, we should
+			// return null.
+			if ($column_exist === true) {
+				return null;
+			}
+
+			// Let's try to be accurate in error reporting. The checkColumnExist returns an array of closest matches.
+			$result_array = $column_exist;
+
+			if (count($result_array)==1)
+			$str = "Could not find column \"$var\" in table \"$this->dbTableName\". Maybe you meant this column: '".$result_array[0]."'";
+			else
+			$str = "Could not find column \"$var\" in table \"$this->dbTableName\". Maybe you meant one of those columns: '".implode("', '",$result_array)."'";
+
+			throw new TDBMException($str);*/
+			return null;
+		}
+		return $this->dbRow[$var];
 	}
 
 	/**
@@ -220,79 +237,45 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 	 * @param string $var
 	 * @return boolean
 	 */
-	public function has($var, $tableName = null) {
-		if ($tableName === null) {
-			if (count($this->dbRows) > 1) {
-				throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
-			} elseif (count($this->dbRows) === 1) {
-				$tableName = array_keys($this->dbRows)[0];
-			}
-		}
+	public function has($var) {
+		$this->_dbLoadIfNotLoaded();
 
-		if (!isset($this->dbRows[$tableName])) {
-			if (count($this->dbRows[$tableName] === 0)) {
-				throw new TDBMException('Object is not yet bound to any table.');
-			} else {
-				throw new TDBMException('Unknown table "'.$tableName.'"" in object.');
-			}
-		}
-
-		return $this->dbRows[$tableName]->has($var);
+		return isset($this->dbRow[$var]);
 	}
 	
-	public function set($var, $value, $tableName = null) {
-		if ($tableName === null) {
-			if (count($this->dbRows) > 1) {
-				throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
-			} elseif (count($this->dbRows) === 1) {
-				$tableName = array_keys($this->dbRows)[0];
-			} else {
-				throw new TDBMException("Please specify a table for this object.");
-			}
-		}
+	public function set($var, $value) {
+		$this->_dbLoadIfNotLoaded();
 
-		if (!isset($this->dbRows[$tableName])) {
-			$this->registerTable($tableName);
-		}
+		/*
+		// Ok, let's start by checking the column type
+		$type = $this->db_connection->getColumnType($this->dbTableName, $var);
 
-		$this->dbRows[$tableName]->set($var, $value);
-		if ($this->dbRows[$tableName]->_getStatus() === TDBMObjectStateEnum::STATE_DIRTY) {
+		// Throws an exception if the type is not ok.
+		if (!$this->db_connection->checkType($value, $type)) {
+			throw new TDBMException("Error! Invalid value passed for attribute '$var' of table '$this->dbTableName'. Passed '$value', but expecting '$type'");
+		}
+		*/
+
+		/*if ($var == $this->getPrimaryKey() && isset($this->dbRow[$var]))
+			throw new TDBMException("Error! Changing primary key value is forbidden.");*/
+		$this->dbRow[$var] = $value;
+		if ($this->tdbmService !== null && $this->status === TDBMObjectStateEnum::STATE_LOADED) {
 			$this->status = TDBMObjectStateEnum::STATE_DIRTY;
+			$this->tdbmService->_addToToSaveObjectList($this);
 		}
+		// Unset the error since something has changed (Insert or Update could work this time).
+		$this->db_onerror = false;
 	}
-
-	/*public function __destruct() {
-		// In a destructor, no exception can be thrown (PHP 5 limitation)
-		// So we print the error instead
-		try {
-			if (!$this->db_onerror && $this->db_autosave)
-			{
-				$this->save();
-			}
-		} catch (\Exception $e) {
-			trigger_error($e->getMessage(), E_USER_ERROR);
-		}
-	}*/
-
 
 	/**
-	 * Reverts any changes made to the object and resumes it to its DB state.
-	 * This can only be called on objects that come from database and that have not been deleted.
-	 * Otherwise, this will throw an exception.
-	 *
+	 * Returns the name of the table this object comes from.
+	 * 
+	 * @return string
 	 */
-	public function discardChanges() {
-		if ($this->status == TDBMObjectStateEnum::STATE_NEW) {
-			throw new TDBMException("You cannot call discardChanges() on an object that has been created with getNewObject and that has not yet been saved.");
-		}
-
-		if ($this->status == TDBMObjectStateEnum::STATE_DELETED) {
-			throw new TDBMException("You cannot call discardChanges() on an object that has been deleted.");
-		}
-			
-		$this->_setStatus(TDBMObjectStateEnum::STATE_NOT_LOADED);
+	public function _getDbTableName() {
+		return $this->dbTableName;
 	}
-
+	
 	/**
 	 * Method used internally by TDBM. You should not use it directly.
 	 * This method returns the status of the TDBMObject.
@@ -313,7 +296,6 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 	 * @return array
 	 */
 	public function jsonSerialize(){
-		// FIXME
 		$this->_dbLoadIfNotLoaded();
 		return $this->dbRow;
 	}
@@ -334,7 +316,7 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 	 * @return array<string>
 	 */
 	public function getUsedTables() {
-		return array_keys($this->dbRows);
+		return array($this->dbTableName);
 	}
 
 	/**
@@ -382,30 +364,32 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
     }
 
 	/**
-	 * Returns raw database rows.
+	 * Returns raw database row.
 	 *
-	 * @return DbRow[] Key: table name, Value: DbRow object
+	 * @return array
 	 */
-	public function _getDbRows() {
-		return $this->dbRows;
+	public function _getDbRow() {
+		return $this->dbRow;
 	}
 
-	private function registerTable($tableName) {
-		$dbRow = new DbRow($this, $tableName);
+	/**
+	 * @return array
+	 */
+	public function _getPrimaryKeys()
+	{
+		return $this->primaryKeys;
+	}
 
-		if (in_array($this->status, [ TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DIRTY ])) {
-			// Let's get the primary key for the new table
-			$anotherDbRow = array_values($this->dbRows)[0];
-			/* @var $anotherDbRow DbRow */
-			$indexedPrimaryKeys = array_values($anotherDbRow->_getPrimaryKeys());
-			$primaryKeys = $this->tdbmService->_getPrimaryKeysFromIndexedPrimaryKeys($tableName, $indexedPrimaryKeys);
-			$dbRow->_setPrimaryKeys($primaryKeys);
+	/**
+	 * @param array $primaryKeys
+	 */
+	public function _setPrimaryKeys(array $primaryKeys)
+	{
+		$this->primaryKeys = $primaryKeys;
+		foreach ($this->primaryKeys as $column => $value) {
+			$this->dbRow[$column] = $value;
 		}
-
-		$dbRow->_setStatus($this->status);
-
-		$this->dbRows[$tableName] = $dbRow;
-		// TODO: look at status (if not new)=> get primary key from tdbmservice
 	}
+
 
 }

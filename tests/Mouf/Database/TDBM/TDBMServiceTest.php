@@ -27,7 +27,37 @@ use Mouf\Database\TDBM\Filters\OrderByColumn;
  */
 class TDBMServiceTest extends TDBMAbstractServiceTest {
 
-	public function testHashPrimaryKey() {
+    public function testGetLinkBetweenInheritedTables() {
+        $this->assertEquals(['users', 'contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(["contact", "users"]));
+        $this->assertEquals(['users', 'contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(["users", "contact"]));
+        $this->assertEquals(['contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(["person", "contact"]));
+        $this->assertEquals(['users', 'contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(["users"]));
+        $this->assertEquals(['person'], $this->tdbmService->_getLinkBetweenInheritedTables(["person"]));
+    }
+
+    public function testGetRelatedTablesByInheritance() {
+        $this->assertCount(2, $this->tdbmService->_getRelationshipsByInheritance('contact'));
+        $this->assertCount(2, $this->tdbmService->_getRelationshipsByInheritance('users'));
+        $this->assertCount(2, $this->tdbmService->_getRelationshipsByInheritance('person'));
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testGetPrimaryKeysFromIndexedPrimaryKeysException() {
+        $this->tdbmService->_getPrimaryKeysFromIndexedPrimaryKeys("users", [5, 4]);
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testGetLinkBetweenInheritedTablesExceptions() {
+        $this->tdbmService->_getLinkBetweenInheritedTables(["contact", "country"]);
+    }
+
+    public function testHashPrimaryKey() {
 		$reflection = new \ReflectionClass(get_class($this->tdbmService));
 		$method = $reflection->getMethod('getObjectHash');
 		$method->setAccessible(true);
@@ -47,21 +77,39 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
 		$this->assertEquals($result1, $result2);
 	}
 
-	public function testInsertAndUpdate() {
+	public function testInsertAndUpdateAndDelete() {
 		$object = new TDBMObject("users");
-		$object->login = "John Doe";
+		$object->login = "john.doe";
 		$object->country_id = 3;
 
 		$this->tdbmService->save($object);
 
-		$this->assertNotEmpty($object->id);
+		$this->assertNotEmpty($object->get('id', 'person'));
+        $this->assertNotEmpty($object->get('id', 'users'));
+        $this->assertEquals($object->get('id', 'person'), $object->get('id', 'users'));
 
-		$object->country_id = 2;
+		$object->set('country_id', 2, 'users');
 
 		$this->tdbmService->save($object);
+
+        $this->tdbmService->delete($object);
 	}
 
-	public function testUpdatePrimaryKey() {
+    public function testInsertMultipleDataAtOnceInInheritance() {
+        $object = new TDBMObject();
+        $object->set('login', 'jane.doe', 'users');
+        $object->set('name', 'Jane Doe', 'person');
+        $object->set('country_id', 2, 'users');
+
+        $this->tdbmService->save($object);
+
+        $this->assertNotEmpty($object->get('id', 'person'));
+        $this->assertNotEmpty($object->get('id', 'users'));
+        $this->assertEquals($object->get('id', 'person'), $object->get('id', 'users'));
+    }
+
+
+    public function testUpdatePrimaryKey() {
 		$object = new TDBMObject("rights");
 		$object->label = "CAN_EDIT_BOUK";
 

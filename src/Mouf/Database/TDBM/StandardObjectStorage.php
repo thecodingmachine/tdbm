@@ -53,10 +53,10 @@ class StandardObjectStorage {
 	 * 
 	 * @param string $tableName
 	 * @param string $id
-	 * @param TDBMObject $object
+	 * @param TDBMObject $dbRow
 	 */
-	public function set($tableName, $id, TDBMObject $object) {
-		$this->objects[$tableName][$id] = $object;
+	public function set($tableName, $id, DbRow $dbRow) {
+		$this->objects[$tableName][$id] = $dbRow;
 	}
 	
 	/**
@@ -75,7 +75,7 @@ class StandardObjectStorage {
 	 *
 	 * @param string $tableName
 	 * @param string $id
-	 * @return TDBMObject
+	 * @return DbRow
 	 */
 	public function get($tableName, $id) {
 		if (isset($this->objects[$tableName][$id])) {
