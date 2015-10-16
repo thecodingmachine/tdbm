@@ -2184,11 +2184,9 @@ class TDBMService {
 	/**
 	 * Returns the list of foreign keys related to this table (to all the parents and to all the children)
 	 * @param string $table
-	 * @return ForeignKeyConstraint[]
+	 * @return string[]
 	 */
-	public function _getRelationshipsByInheritance($table) {
-//////////////////////////// TODO: change this for tables only and use MagicQuery to create the query!!!!!!!
-
+	public function _getRelatedTablesByInheritance($table) {
 
 		// TODO! CACHE!
 
@@ -2198,36 +2196,35 @@ class TDBMService {
 		// Let's scan the parent tables
 		$currentTable = $table;
 
-		$parentKeys = [];
+		$parentTables = [ ];
 
 		// Get parent relationship
 		while ($currentFk = $schemaAnalyzer->getParentRelationship($currentTable)) {
-			$parentKeys[] = $currentFk;
 			$currentTable = $currentFk->getForeignTableName();
+			$parentTables[] = $currentTable;
 		};
 
 		// Let's recurse in children
-		$childrenKeys = $this->exploreChildrenTablesRelationships($schemaAnalyzer, $table);
+		$childrenTables = $this->exploreChildrenTablesRelationships($schemaAnalyzer, $table);
 
-		return array_merge($parentKeys, $childrenKeys);
+		return array_merge($parentTables, $childrenTables);
 	}
 
 	/**
 	 * Explore all the children and descendant of $table and returns ForeignKeyConstraints on those.
 	 *
 	 * @param string $table
-	 * @return ForeignKeyConstraint
+	 * @return string[]
 	 */
 	private function exploreChildrenTablesRelationships(SchemaAnalyzer $schemaAnalyzer, $table) {
+		$tables = [$table];
 		$keys = $schemaAnalyzer->getChildrenRelationships($table);
 
-		$finalKeys = $keys;
-
 		foreach ($keys as $key) {
-			$finalKeys = array_merge($finalKeys, $this->exploreChildrenTablesRelationships($schemaAnalyzer, $key->getLocalTableName()));
+			$tables = array_merge($tables, $this->exploreChildrenTablesRelationships($schemaAnalyzer, $key->getLocalTableName()));
 		}
 
-		return $finalKeys;
+		return $tables;
 	}
 
 	/**

@@ -36,9 +36,14 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
     }
 
     public function testGetRelatedTablesByInheritance() {
-        $this->assertCount(2, $this->tdbmService->_getRelationshipsByInheritance('contact'));
-        $this->assertCount(2, $this->tdbmService->_getRelationshipsByInheritance('users'));
-        $this->assertCount(2, $this->tdbmService->_getRelationshipsByInheritance('person'));
+        $contactRelatedTables = $this->tdbmService->_getRelatedTablesByInheritance('contact');
+        $this->assertCount(3, $contactRelatedTables);
+        $this->assertContains("users", $contactRelatedTables);
+        $this->assertContains("contact", $contactRelatedTables);
+        $this->assertContains("person", $contactRelatedTables);
+        $this->assertCount(3, $this->tdbmService->_getRelatedTablesByInheritance('users'));
+        $this->assertCount(3, $this->tdbmService->_getRelatedTablesByInheritance('person'));
+
     }
 
     /**
