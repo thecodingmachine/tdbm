@@ -169,6 +169,14 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $this->tdbmService->delete($object);
     }
 
+    public function testFindObjects() {
+        /*$magicQuery = new MagicQuery($this->tdbmService->getConnection());
+        $result = $magicQuery->parse("SELECT DISTINCT users.id, users.login FROM users");
+        var_dump($result);*/
+
+        $this->tdbmService->findObjects("contact");
+
+    }
 
     /*
         public function testObjectAsFilter() {

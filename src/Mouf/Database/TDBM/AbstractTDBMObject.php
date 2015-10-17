@@ -72,35 +72,28 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 	 * @var boolean
 	 */
 	public $db_autosave;
-	
-	
+
 
 	/**
-	 * You should never call the constructor directly. Instead, you should use the 
-	 * TDBMService class that will create TDBMObjects for you.
-	 * 
-	 * Used with id!=false when we want to retrieve an existing object
-	 * and id==false if we want a new object
+	 * Used with $primaryKeys when we want to retrieve an existing object
+	 * and $primaryKeys=[] if we want a new object
 	 *
-	 * @param TDBMService $tdbmService
 	 * @param string $tableName
-	 * @param mixed $id
+	 * @param array $primaryKeys
+	 * @param TDBMService $tdbmService
+	 * @throws TDBMException
+	 * @throws TDBMInvalidOperationException
 	 */
 	public function __construct($tableName=null, array $primaryKeys=array(), TDBMService $tdbmService=null) {
-		// FIXME: lazy oading should be forbidden on tables with inheritance and dynamic type assignation.
-		if ($tableName) {
+		// FIXME: lazy loading should be forbidden on tables with inheritance and dynamic type assignation...
+		if (!empty($tableName)) {
 			$this->dbRows[$tableName] = new DbRow($this, $tableName, $primaryKeys, $tdbmService);
 		}
 
 		if ($tdbmService === null) {
 			$this->_setStatus(TDBMObjectStateEnum::STATE_DETACHED);
-			if (!empty($primaryKeys)) {
-				throw new TDBMException('You cannot pass primary keys to the AbstractTDBMObject constructor without passing also a TDBMService.');
-			}
 		} else {
 			$this->_attach($tdbmService);
-			$this->_setPrimaryKeys($primaryKeys);
-
 			if (!empty($primaryKeys)) {
 				$this->_setStatus(TDBMObjectStateEnum::STATE_NOT_LOADED);
 			} else {

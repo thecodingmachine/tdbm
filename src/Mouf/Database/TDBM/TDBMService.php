@@ -37,6 +37,7 @@ use Mouf\Utils\Cache\CacheInterface;
 use Mouf\Database\TDBM\Filters\FilterInterface;
 use Mouf\Database\TDBM\Filters\OrFilter;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
+use SQLParser\Node\ColRef;
 
 /**
  * The TDBMService class is the main TDBM class. It provides methods to retrieve TDBMObject instances
@@ -194,9 +195,12 @@ class TDBMService {
 		}
 		$this->schemaAnalyzer = $schemaAnalyzer;
 
+		$this->magicQuery = new MagicQuery($this->connection, $this->cache, $this->schemaAnalyzer);
+
 		if (self::$script_start_up_time === null) {
 			self::$script_start_up_time = microtime(true);
 		}
+
 	}
 
 
@@ -214,10 +218,6 @@ class TDBMService {
 	 */
 	private function getSchemaAnalyzer() {
 		if ($this->schemaAnalyzer === null) {
-			if (!$this->connection) {
-				throw new MagicQueryMissingConnectionException('In order to use MagicJoin, you need to configure a DBAL connection.');
-			}
-
 			$this->schemaAnalyzer = new SchemaAnalyzer($this->connection->getSchemaManager(), $this->cache, $this->getConnectionUniqueId());
 		}
 		return $this->schemaAnalyzer;
@@ -1562,7 +1562,7 @@ class TDBMService {
 	 * Takes in input a filter_bag (which can be about anything from a string to an array of TDBMObjects... see above from documentation),
 	 * and gives back a proper Filter object.
 	 *
-	 * @param unknown_type $filter_bag
+	 * @param mixed $filter_bag
 	 * @return FilterInterface
 	 */
 	public function buildFilterFromFilterBag($filter_bag) {
@@ -2154,12 +2154,29 @@ class TDBMService {
 	 * Algorithm: one of those tables is the ultimate child. From this child, by recursively getting the parent,
 	 * we must be able to find all other tables.
 	 *
-	 * @param string $tables
+	 * @param string[] $tables
+	 * @return string[]
 	 */
-	public function _getLinkBetweenInheritedTables(array $tables) {
+	public function _getLinkBetweenInheritedTables(array $tables)
+	{
+		sort($tables);
+		return $this->fromCache($this->cachePrefix.'_linkbetweeninheritedtables_'.implode('__split__', $tables),
+			function() use ($tables) {
+				return $this->_getLinkBetweenInheritedTablesWithoutCache($tables);
+			});
+	}
 
-		// TODO! cache!
-
+	/**
+	 * Return the list of tables (from child to parent) joining the tables passed in parameter.
+	 * Tables must be in a single line of inheritance. The method will find missing tables.
+	 *
+	 * Algorithm: one of those tables is the ultimate child. From this child, by recursively getting the parent,
+	 * we must be able to find all other tables.
+	 *
+	 * @param string[] $tables
+	 * @return string[]
+	 */
+	private function _getLinkBetweenInheritedTablesWithoutCache(array $tables) {
 		$schemaAnalyzer = $this->getSchemaAnalyzer();
 
 		foreach ($tables as $currentTable) {
@@ -2182,14 +2199,23 @@ class TDBMService {
 	}
 
 	/**
-	 * Returns the list of foreign keys related to this table (to all the parents and to all the children)
+	 * Returns the list of tables related to this table (via a parent or child inheritance relationship)
 	 * @param string $table
 	 * @return string[]
 	 */
-	public function _getRelatedTablesByInheritance($table) {
+	public function _getRelatedTablesByInheritance($table)
+	{
+		return $this->fromCache($this->cachePrefix."_relatedtables_".$table, function() use ($table) {
+			return $this->_getRelatedTablesByInheritanceWithoutCache($table);
+		});
+	}
 
-		// TODO! CACHE!
-
+	/**
+	 * Returns the list of tables related to this table (via a parent or child inheritance relationship)
+	 * @param string $table
+	 * @return string[]
+	 */
+	private function _getRelatedTablesByInheritanceWithoutCache($table) {
 		$schemaAnalyzer = $this->getSchemaAnalyzer();
 
 
@@ -2237,7 +2263,7 @@ class TDBMService {
 	 * @param bool $leftTableIsLocal
 	 * @return string
 	 */
-	private function foreignKeyToSql(ForeignKeyConstraint $fk, $leftTableIsLocal) {
+	/*private function foreignKeyToSql(ForeignKeyConstraint $fk, $leftTableIsLocal) {
 		$onClauses = [];
 		$foreignTableName = $this->connection->quoteIdentifier($fk->getForeignTableName());
 		$foreignColumns = $fk->getForeignColumns();
@@ -2261,5 +2287,242 @@ class TDBMService {
 		} else {
 			return sprintf(" LEFT JOIN %s ON (%s)", $localTableName, $onClause);
 		}
+	}*/
+
+	/**
+	 * Performs the real operations for getObjects, explainSQL and explainTree.
+	 * It takes as an entry the same parameters, with an additional parameter $mode.
+	 *
+	 * @param string $mode One of 'getObjects', 'explainSQL', 'explainTree'
+	 * @param string $mainTable The name of the table queried
+	 * @param unknown_type $filterBag The filter bag (see above for complete description)
+	 * @param unknown_type $orderByBag The order bag (see above for complete description)
+	 * @param integer $from The offset
+	 * @param integer $limit The maximum number of rows returned
+	 * @param string $className Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+	 * @param unknown_type $hint_path Hints to get the path for the query (expert parameter, you should leave it to null).
+	 * @return array|Generator|TDBMObjectArray|int An array or object containing the resulting objects of the query.
+	 */
+	public function findObjects($mainTable, $filterString=null, array $parameters = array(), $orderString=null, $from=null, $limit=null, array $additionalTablesFetch = array(), $className=null) {
+		// $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
+		if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
+			throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
+		}
+
+		// From the table name and the additional tables we want to fetch, let's build a list of all tables
+		// that must be part of the select columns.
+
+		$allFetchedTables = $this->_getRelatedTablesByInheritance($mainTable);
+		foreach ($additionalTablesFetch as $additionalTable) {
+			$allFetchedTables = array_merge($allFetchedTables, $this->_getRelatedTablesByInheritance($additionalTable));
+		}
+
+		// Let's remove any duplicate
+		$allFetchedTables = array_flip(array_flip($allFetchedTables));
+
+		$columnsList = [];
+		$schema = $this->getSchema();
+
+		// Now, let's build the column list
+		foreach ($allFetchedTables as $table) {
+			foreach ($schema->getTable($table)->getColumns() as $column) {
+				$columnName = $column->getName();
+				$columnsList[] = $this->connection->quoteIdentifier($table).'.'.$this->connection->quoteIdentifier($columnName).' as '.
+					$this->connection->quoteIdentifier($table.'____'.$columnName);
+			}
+		}
+
+		$sql = "SELECT DISTINCT ".implode(', ', $columnsList)." FROM MAGICJOIN(".$mainTable.")";
+
+		if (!empty($filterString)) {
+			$sql .= " WHERE ".$filterString;
+		}
+
+		if (!empty($orderString)) {
+			$sql .= " ORDER BY ".$orderString;
+		}
+
+
+		$sql = $this->magicQuery->build($sql, $parameters);
+
+		var_dump($sql);
+
+//		// Now, let's find the path from the needed tables of the resulting filter.
+//
+//		// Let's get needed tables from the filters
+//		$needed_table_array_for_filters = $filter->getUsedTables();
+//
+//		$needed_table_array_for_orderby = array();
+//		// Let's get needed tables from the order by
+//		foreach ($orderby_bag2 as $orderby) {
+//			$needed_table_array_for_orderby = array_merge($needed_table_array_for_orderby, $orderby->getUsedTables());
+//		}
+//
+//		// Remove the asked table from the needed table array for group bys.
+//		foreach ($needed_table_array_for_orderby as $id=>$needed_table_name)
+//		{
+//			if ($needed_table_name == $mainTable) {
+//				unset($needed_table_array_for_orderby[$id]);
+//			}
+//		}
+//
+//		$needed_table_array = array_flip(array_flip(array_merge($needed_table_array_for_filters, $needed_table_array_for_orderby)));
+//
+//		// Remove the asked table from the needed table array.
+//		foreach ($needed_table_array as $id=>$needed_table_name)
+//		{
+//			if ($needed_table_name == $mainTable) {
+//				unset($needed_table_array[$id]);
+//			}
+//		}
+//
+//		if (count($needed_table_array)==0)
+//		{
+//			$sql = $this->connection->escapeDBItem($mainTable); //Make by Pierre PIV (add escapeDBItem)
+//		}
+//		else {
+//			$full_paths = $this->static_find_paths($mainTable,$needed_table_array);
+//
+//			if ($mode == 'explainTree') {
+//				return $this->getTablePathsTree($full_paths);
+//			}
+//
+//			$flat_path = $this->flatten_paths($full_paths);
+//
+//			// Now, let's generate the SQL and let's call getObjectsBySQL.
+//
+//
+//			$constraint = $flat_path[0];
+//
+//			$sql = $this->connection->escapeDBItem($constraint['table2']);
+//
+//			foreach ($flat_path as $constraint) {
+//				$table1 = $constraint['table2'];
+//				$table2 = $constraint['table1'];
+//				$col2 = $constraint['col1'];
+//				$col1 = $constraint['col2'];
+//
+//				$sql = "($sql LEFT JOIN ".$this->connection->escapeDBItem($table2)." ON
+//				".$this->connection->escapeDBItem($table1).".".$this->connection->escapeDBItem($col1)."=".$this->connection->escapeDBItem($table2).".".$this->connection->escapeDBItem($col2).")";
+//			}
+//		}
+//
+//
+//		// Now, for each needed table to perform the order by, we must verify if the relationship between the order by and the object is indeed a 1* relationship
+//		foreach ($needed_table_array_for_orderby as $target_table_table) {
+//			// Get the path between the main table and the target group by table
+//
+//			// TODO! Pas bon!!!! Faut le quÃ©rir, hÃ©las!
+//			// Mais comment gÃ©rer Ã§a sans plomber les perfs et en utilisant le path fourni?????
+//
+//			$path = $this->getPathFromCache($mainTable, $target_table_table);
+//
+//			/**********************************
+//			 * Modifier par Marc de *1 vers 1*
+//			 * (sur les conseils de David !)
+//			 */
+//			$is_ok = true;
+//			foreach ($path as $step) {
+//				if ($step["type"]=="1*") {
+//					$is_ok = false;
+//					break;
+//				}
+//			}
+//
+//			if (!$is_ok) {
+//				throw new TDBMException("Error in querying database from getObjectsByFilter. You tried to order your data according to a column of the '$target_table_table' table. However, the '$target_table_table' table has a many to 1 relationship with the '$mainTable' table. This means that one '$mainTable' object can contain many '$target_table_table' objects. Therefore, trying to order '$mainTable' objects using '$target_table_table' objects is meaningless and cannot be performed.");
+//			}
+//		}
+//
+//		// In a SELECT DISTINCT ... ORDER BY ... clause, the orderbyed columns must appear!
+//		// Therefore, we must be able to parse the Orderby columns requested, give them dummy names and remove them afterward!
+//		// Get the column statement and the order by statement
+//		$orderby_statement = '';
+//		$orderby_column_statement = '';
+//
+//		if (count($orderby_bag2)>0) {
+//
+//			// make an array of columns
+//			$orderby_columns_array = array();
+//			foreach ($orderby_bag2 as $orderby_object) {
+//				$orderby_columns_array = array_merge($orderby_columns_array, $orderby_object->toSqlStatementsArray());
+//			}
+//
+//			$orderby_statement = ' ORDER BY '.implode(',',$orderby_columns_array);
+//			$count = 0;
+//			foreach ($orderby_columns_array as $id=>$orderby_statement_phrase) {
+//				// Let's remove the trailing ASC or DESC and add AS tdbm_reserved_col_Xxx
+//				$res = strripos($orderby_statement_phrase, 'ASC');
+//				if ($res !== false) {
+//					$orderby_statement_phrase = substr($orderby_statement_phrase, 0, $res);
+//				} else {
+//					$res = strripos($orderby_statement_phrase, 'DESC');
+//					if ($res !== false) {
+//						$orderby_statement_phrase = substr($orderby_statement_phrase, 0, $res);
+//					}
+//				}
+//
+//
+//				$orderby_columns_array[$id] = $orderby_statement_phrase.' AS tdbm_reserved_col_'.$count;
+//				$count++;
+//			}
+//			$orderby_column_statement = ', '.implode(',',$orderby_columns_array);
+//		}
+//
+//		if ($mode=="getCount") {
+//			// Let's get the list of primary keys to perform a DISTINCT request.
+//			$pk_table = $this->getPrimaryKeyColumns($mainTable);
+//
+//			$pk_arr = array();
+//			foreach ($pk_table as $pk) {
+//				$pk_arr[] = $mainTable.'.'.$pk;
+//			}
+//			$pk_str = implode(',', $pk_arr);
+//
+//			$sql = "SELECT COUNT(DISTINCT $pk_str) FROM $sql";
+//
+//			$where_clause = $filter->toSql($this->connection);
+//			if ($where_clause != '')
+//				$sql .= ' WHERE '.$where_clause;
+//
+//			// Now, let's perform the request:
+//			$result = $this->connection->getOne($sql, array());
+//
+//			return $result;
+//		}
+//
+//		$sql = "SELECT DISTINCT ".$this->connection->escapeDBItem($mainTable).".* $orderby_column_statement FROM $sql";
+//
+//		$where_clause = $filter->toSql($this->connection);
+//		if ($where_clause != '')
+//			$sql .= ' WHERE '.$where_clause;
+//
+//		$sql .= $orderby_statement;
+//
+//
+//		if ($mode == 'explainSQL') {
+//			return $sql;
+//		}
+//		return $this->getObjectsFromSQL($mainTable, $sql,  $from, $limit, $className);
+//
+	}
+
+	/**
+	 * Returns an item from cache or computes it using $closure and puts it in cache.
+	 *
+	 * @param string   $key
+	 * @param callable $closure
+	 *
+	 * @return mixed
+	 */
+	private function fromCache($key, callable $closure)
+	{
+		$item = $this->cache->fetch($key);
+		if ($item === false) {
+			$item = $closure();
+			$this->cache->save($key, $item);
+		}
+
+		return $item;
 	}
 }
