@@ -75,8 +75,6 @@ class DbRow implements \JsonSerializable, FilterInterface {
 	private $primaryKeys;
 
 
-	private $db_connection;
-
 	/**
 	 * You should never call the constructor directly. Instead, you should use the
 	 * TDBMService class that will create TDBMObjects for you.
@@ -91,24 +89,33 @@ class DbRow implements \JsonSerializable, FilterInterface {
 	 * @throws TDBMException
 	 * @throws TDBMInvalidOperationException
 	 */
-	public function __construct(AbstractTDBMObject $object, $table_name, array $primaryKeys=array(), TDBMService $tdbmService=null) {
+	public function __construct(AbstractTDBMObject $object, $table_name, array $primaryKeys=array(), TDBMService $tdbmService=null, array $dbRow = array()) {
 		$this->object = $object;
 		$this->dbTableName = $table_name;
 
+		$this->status = TDBMObjectStateEnum::STATE_DETACHED;
+
 		if ($tdbmService === null) {
-			$this->status = TDBMObjectStateEnum::STATE_DETACHED;
 			if (!empty($primaryKeys)) {
 				throw new TDBMException('You cannot pass an id to the DbRow constructor without passing also a TDBMService.');
 			}
 		} else {
-			$this->_attach($tdbmService);
+			$this->tdbmService = $tdbmService;
 
 			if (!empty($primaryKeys)) {
 				$this->_setPrimaryKeys($primaryKeys);
-				$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
+				if (!empty($dbRow)) {
+					$this->dbRow = $dbRow;
+					$this->status = TDBMObjectStateEnum::STATE_LOADED;
+				} else {
+					$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
+				}
+				$tdbmService->_addToCache($this);
 			} else {
 				$this->status = TDBMObjectStateEnum::STATE_NEW;
+				$this->tdbmService->_addToToSaveObjectList($this);
 			}
+
 		}
 	}
 
@@ -177,26 +184,23 @@ class DbRow implements \JsonSerializable, FilterInterface {
 	public function _dbLoadIfNotLoaded() {
 		if ($this->status == TDBMObjectStateEnum::STATE_NOT_LOADED)
 		{
-			$sql_where = $this->getPrimaryKeyWhereStatement();
+			$connection = $this->tdbmService->getConnection();
 
-			$sql = "SELECT * FROM ".$this->db_connection->escapeDBItem($this->dbTableName)." WHERE ".$sql_where;
-			$result = $this->db_connection->query($sql);
+			/// buildFilterFromFilterBag($filter_bag)
+			list($sql_where, $parameters) = $this->tdbmService->buildFilterFromFilterBag($this->primaryKeys);
 
+			$sql = "SELECT * FROM ".$connection->quoteIdentifier($this->dbTableName)." WHERE ".$sql_where;
+			$result = $connection->executeQuery($sql, $parameters);
 
 			if ($result->rowCount()==0)
 			{
 				throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" with ID \"".$this->TDBMObject_id."\".");
 			}
 
-			$fullCaseRow = $result->fetchAll(\PDO::FETCH_ASSOC);
+			$this->dbRow = $result->fetch(\PDO::FETCH_ASSOC);
 			
 			$result->closeCursor();
 				
-			$this->dbRow = array();
-			foreach ($fullCaseRow[0] as $key=>$value)  {
-				$this->dbRow[$this->db_connection->toStandardCaseColumn($key)]=$value;
-			}
-			
 			$this->status = TDBMObjectStateEnum::STATE_LOADED;
 		}
 	}
@@ -319,32 +323,6 @@ class DbRow implements \JsonSerializable, FilterInterface {
 		return array($this->dbTableName);
 	}
 
-	/**
-	 * Returns Where statement to query this object
-	 *
-	 * @return string
-	 */
-	private function getPrimaryKeyWhereStatement () {
-		// Let's first get the primary keys
-		$pk_table = $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
-		// Now for the object_id
-		$object_id = $this->TDBMObject_id;
-		// If there is only one primary key:
-		if (count($pk_table)==1) {
-			$sql_where = $this->db_connection->escapeDBItem($this->dbTableName).'.'.$this->db_connection->escapeDBItem($pk_table[0])."=".$this->db_connection->quoteSmart($this->TDBMObject_id);
-		} else {
-			$ids = unserialize($object_id);
-			$i=0;
-			$sql_where_array = array();
-			foreach ($pk_table as $pk) {
-				$sql_where_array[] = $this->db_connection->escapeDBItem($this->dbTableName).'.'.$this->db_connection->escapeDBItem($pk)."=".$this->db_connection->quoteSmart($ids[$i]);
-				$i++;
-			}
-			$sql_where = implode(" AND ",$sql_where_array);
-		}
-		return $sql_where;
-	}
-
     /**
      * Override the native php clone function for TDBMObjects
      */
@@ -389,6 +367,15 @@ class DbRow implements \JsonSerializable, FilterInterface {
 		foreach ($this->primaryKeys as $column => $value) {
 			$this->dbRow[$column] = $value;
 		}
+	}
+
+	/**
+	 * Returns the TDBMObject this bean is associated to.
+	 * @return AbstractTDBMObject
+	 */
+	public function getTDBMObject()
+	{
+		return $this->object;
 	}
 
 

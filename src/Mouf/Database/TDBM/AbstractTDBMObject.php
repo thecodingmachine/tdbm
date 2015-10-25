@@ -102,6 +102,37 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 		}
 	}
 
+	/**
+	 * Alternative constructor called when data is fetched from database via a SELECT.
+	 *
+	 * @param array $beanData array<table, array<column, value>>
+	 * @param TDBMService $tdbmService
+	 */
+	public function _constructFromData(array $beanData, TDBMService $tdbmService) {
+		$this->tdbmService = $tdbmService;
+
+		foreach ($beanData as $table => $columns) {
+			$this->dbRows[$table] = new DbRow($this, $table, $tdbmService->_getPrimaryKeysFromObjectData($table, $columns), $tdbmService, $columns);
+		}
+
+		$this->status = TDBMObjectStateEnum::STATE_LOADED;
+	}
+
+	/**
+	 * Alternative constructor called when bean is lazily loaded.
+	 *
+	 * @param string $tableName
+	 * @param array $primaryKeys
+	 * @param TDBMService $tdbmService
+	 */
+	public function _constructLazy($tableName, array $primaryKeys, TDBMService $tdbmService) {
+		$this->tdbmService = $tdbmService;
+
+		$this->dbRows[$tableName] = new DbRow($this, $tableName, $primaryKeys, $tdbmService);
+
+		$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
+	}
+
 	public function _attach(TDBMService $tdbmService) {
 		if ($this->status !== TDBMObjectStateEnum::STATE_DETACHED) {
 			throw new TDBMInvalidOperationException('Cannot attach an object that is already attached to TDBM.');

@@ -174,9 +174,126 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $result = $magicQuery->parse("SELECT DISTINCT users.id, users.login FROM users");
         var_dump($result);*/
 
-        $this->tdbmService->findObjects("contact");
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+        $beans2 = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1]);
+
+        foreach ($beans as $bean) {
+            $bean1 = $bean;
+            break;
+        }
+
+        foreach ($beans2 as $bean) {
+            $bean2 = $bean;
+            break;
+        }
+
+        $this->assertTrue($bean1 === $bean2);
+        $this->assertEquals(5, $beans->fullCount());
+        $this->assertEquals(1, $beans2->fullCount());
+
+        //$this->assertTrue($beans[0] === $beans2[0]);
+        //var_dump($beans);
 
     }
+
+    public function testSetLimitOffset() {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+
+        $beans->setLimit(2)->setOffset(0);
+
+        $this->assertEquals(2, $beans->count());
+
+        $beans->setLimit(1)->setOffset(1);
+
+        $this->assertEquals(1, $beans->count());
+    }
+
+    public function testSetParameters() {
+        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", []);
+
+        $beans->setParameters(["id"=>1]);
+
+        foreach ($beans as $bean) {
+            $this->assertEquals(1, $bean->get("id", "contact"));
+            break;
+        }
+
+        $beans->setParameters(["id"=>2]);
+
+        foreach ($beans as $bean) {
+            $this->assertEquals(2, $bean->get("id", "contact"));
+            break;
+        }
+    }
+
+    public function testMap() {
+        $beans = $this->tdbmService->findObjects("person", null, [], "person.id ASC");
+
+        $results = $beans->map(function($item) {
+           return $item->get('id', 'person');
+        })->toArray();
+
+        $this->assertEquals([1,2,3,4,6], $results);
+    }
+
+    public function testToArray() {
+        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1]);
+
+        $beanArray = $beans->toArray();
+
+        $this->assertCount(1, $beanArray);
+        $this->assertEquals(1, $beanArray[0]->get('id', 'contact'));
+    }
+
+    public function testCursorMode() {
+        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, null, null, [], TDBMService::MODE_CURSOR);
+
+        $this->assertInstanceOf("\\Mouf\\Database\\TDBM\\ResultIterator", $beans);
+        $this->assertNotInstanceOf("\\Mouf\\Database\\TDBM\\MapIterator", $beans);
+
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testCursorModeException() {
+        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, null, null, [], "foobaz");
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testTableNameException() {
+        $beans = $this->tdbmService->findObjects("foo bar");
+    }
+
+    public function testLinkedTableFetch() {
+        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, null, null, ['country']);
+    }
+
+    public function testFindObject() {
+        $bean = $this->tdbmService->findObject("contact", "contact.id = :id", ["id"=>-42]);
+        $this->assertNull($bean);
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\NoBeanFoundException
+     * @throws NoBeanFoundException
+     */
+    public function testFindObjectOrFail() {
+        $bean = $this->tdbmService->findObjectOrFail("contact", "contact.id = :id", ["id"=>-42]);
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\DuplicateRowException
+     * @throws DuplicateRowException
+     */
+    public function testFindObjectDuplicateRow() {
+        $bean = $this->tdbmService->findObject("contact");
+    }
+
 
     /*
         public function testObjectAsFilter() {
