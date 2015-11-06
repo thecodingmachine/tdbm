@@ -76,9 +76,9 @@ class TDBMService {
 	private $magicQuery;
 
 	/**
-	 * @var Schema
+	 * @var TDBMSchemaAnalyzer
 	 */
-	private $schema;
+	private $tdbmSchemaAnalyzer;
 
 	/**
 	 * @var string
@@ -180,14 +180,21 @@ class TDBMService {
 			$this->objectStorage = new StandardObjectStorage();
 		}
 		$this->connection = $connection;
-		if ($this->cache !== null) {
+		if ($cache !== null) {
 			$this->cache = $cache;
 		} else {
 			$this->cache = new VoidCache();
 		}
-		$this->schemaAnalyzer = $schemaAnalyzer;
+		if ($schemaAnalyzer) {
+			$this->schemaAnalyzer = $schemaAnalyzer;
+		} else {
+			$this->schemaAnalyzer = new SchemaAnalyzer($this->connection->getSchemaManager(), $this->cache, $this->getConnectionUniqueId());
+		}
 
 		$this->magicQuery = new MagicQuery($this->connection, $this->cache, $this->schemaAnalyzer);
+
+		$this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, $this->cache, $this->schemaAnalyzer);
+		$this->cachePrefix = $this->tdbmSchemaAnalyzer->getCachePrefix();
 
 		if (self::$script_start_up_time === null) {
 			self::$script_start_up_time = microtime(true);
@@ -203,16 +210,6 @@ class TDBMService {
 	 */
 	public function getConnection() {
 		return $this->connection;
-	}
-
-	/**
-	 * @return SchemaAnalyzer
-	 */
-	private function getSchemaAnalyzer() {
-		if ($this->schemaAnalyzer === null) {
-			$this->schemaAnalyzer = new SchemaAnalyzer($this->connection->getSchemaManager(), $this->cache, $this->getConnectionUniqueId());
-		}
-		return $this->schemaAnalyzer;
 	}
 
 	/**
@@ -608,7 +605,7 @@ class TDBMService {
 		{
 			if (!$object->db_onerror && $object->db_autosave)
 			{
-				$object->save();
+				$this->save($object);
 			}
 		}
 
@@ -901,7 +898,7 @@ class TDBMService {
 	public function getPrimaryKeyColumns($table) {
 		if (!isset($this->primaryKeysColumns[$table]))
 		{
-			$this->primaryKeysColumns[$table] = $this->getSchema()->getTable($table)->getPrimaryKeyColumns();
+			$this->primaryKeysColumns[$table] = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKeyColumns();
 
 			// TODO TDBM4: See if we need to improve error reporting if table name does not exist.
 
@@ -983,7 +980,7 @@ class TDBMService {
 	 * @return \string[] the list of tables
 	 */
 	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime) {
-		$tdbmDaoGenerator = new TDBMDaoGenerator($this->getSchemaAnalyzer(), $this->getSchema());
+		$tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema());
 		return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime);
 	}
 
@@ -992,35 +989,6 @@ class TDBMService {
  	*/
 	public function setTableToBeanMap(array $tableToBeanMap) {
 		$this->tableToBeanMap = $tableToBeanMap;
-	}
-
-	/**
-	 * Returns a unique ID for the current collection. Useful for prepending cache instances.
-	 * @return string
-	 */
-	private function getCachePrefix() {
-		if ($this->cachePrefix === null) {
-			$this->cachePrefix = hash('md4', $this->connection->getHost()."-".$this->connection->getPort()."-".$this->connection->getDatabase()."-".$this->connection->getDriver()->getName());
-		}
-		return $this->cachePrefix;
-	}
-
-	/**
-	 * Returns the (cached) schema.
-	 *
-	 * @return Schema
-	 */
-	public function getSchema() {
-		if ($this->schema === null) {
-			$cacheKey = $this->getCachePrefix().'_schema';
-			if ($this->cache->contains($cacheKey)) {
-				$this->schema = $this->cache->fetch($cacheKey);
-			} else {
-				$this->schema = $this->connection->getSchemaManager()->createSchema();
-				$this->cache->save($cacheKey, $this->schema);
-			}
-		}
-		return $this->schema;
 	}
 
 	/**
@@ -1048,7 +1016,7 @@ class TDBMService {
 
 				$tableName = $dbRow->_getDbTableName();
 
-				$schema = $this->getSchema();
+				$schema = $this->tdbmSchemaAnalyzer->getSchema();
 				$tableDescriptor = $schema->getTable($tableName);
 
 				$primaryKeyColumns = $this->getPrimaryKeyColumns($tableName);
@@ -1162,7 +1130,7 @@ class TDBMService {
 				$tableName = $dbRow->_getDbTableName();
 				$dbRowData = $dbRow->_getDbRow();
 
-				$schema = $this->getSchema();
+				$schema = $this->tdbmSchemaAnalyzer->getSchema();
 				$tableDescriptor = $schema->getTable($tableName);
 
 				$primaryKeys = $dbRow->_getPrimaryKeys();
@@ -1275,7 +1243,7 @@ class TDBMService {
 	 * @param array $indexedPrimaryKeys
 	 */
 	public function _getPrimaryKeysFromIndexedPrimaryKeys($tableName, array $indexedPrimaryKeys) {
-		$primaryKeyColumns = $this->getSchema()->getTable($tableName)->getPrimaryKeyColumns();
+		$primaryKeyColumns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getPrimaryKeyColumns();
 
 		if (count($primaryKeyColumns) !== count($indexedPrimaryKeys)) {
 			throw new TDBMException(sprintf('Wrong number of columns passed for primary key. Expected %s columns for table "%s",
@@ -1315,7 +1283,7 @@ class TDBMService {
 	 * @return string[]
 	 */
 	private function _getLinkBetweenInheritedTablesWithoutCache(array $tables) {
-		$schemaAnalyzer = $this->getSchemaAnalyzer();
+		$schemaAnalyzer = $this->schemaAnalyzer;
 
 		foreach ($tables as $currentTable) {
 			$allParents = [ $currentTable ];
@@ -1354,7 +1322,7 @@ class TDBMService {
 	 * @return string[]
 	 */
 	private function _getRelatedTablesByInheritanceWithoutCache($table) {
-		$schemaAnalyzer = $this->getSchemaAnalyzer();
+		$schemaAnalyzer = $this->schemaAnalyzer;
 
 
 		// Let's scan the parent tables
@@ -1485,7 +1453,7 @@ class TDBMService {
 
 		$columnsList = [];
 		$columnDescList = [];
-		$schema = $this->getSchema();
+		$schema = $this->tdbmSchemaAnalyzer->getSchema();
 
 		// Now, let's build the column list
 		foreach ($allFetchedTables as $table) {
@@ -1566,7 +1534,7 @@ class TDBMService {
 					$reflectionClassCache[$className] = new \ReflectionClass($className);
 				}
 				// Let's bypass the constructor when creating the bean!
-				$bean = $reflectionClassCache[$className]->newInstance();
+				$bean = $reflectionClassCache[$className]->newInstanceWithoutConstructor();
 				/* @var $bean AbstractTDBMObject */
 				$bean->_constructLazy($table, $primaryKeys, $this);
 			}

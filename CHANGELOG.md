@@ -4,6 +4,7 @@
 Major changes:
 
 - Bean constructors no longer require a `TDBMService` to be created
+- Beans do not have a `save` method any more. You need to use the DAO `save` method instead.
  
 Minor changes:
 

@@ -182,7 +182,7 @@ class ResultIterator implements \Iterator, \Countable {
 						$reflectionClassCache[$actualClassName] = new \ReflectionClass($actualClassName);
 					}
 					// Let's bypass the constructor when creating the bean!
-					$bean = $reflectionClassCache[$actualClassName]->newInstance();
+					$bean = $reflectionClassCache[$actualClassName]->newInstanceWithoutConstructor();
 					$bean->_constructFromData($beanData, $this->tdbmService);
 				}
 

@@ -19,9 +19,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
+use Doctrine\Common\Cache\ArrayCache;
 use Mouf\Database\DBConnection\MySqlConnection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use Mouf\Database\TDBM\Test\Dao\Bean\UserBean;
 use Mouf\Database\TDBM\Test\Dao\ContactDao;
+use Mouf\Database\TDBM\Test\Dao\CountryDao;
 use Mouf\Database\TDBM\Test\Dao\UserDao;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Mouf\Utils\Cache\NoCache;
@@ -40,7 +43,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
         parent::setUp();
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
-        $this->tdbmDaoGenerator = new TDBMDaoGenerator($schemaAnalyzer, $schemaManager->createSchema());
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
+        $this->tdbmDaoGenerator = new TDBMDaoGenerator($schemaAnalyzer, $schemaManager->createSchema(), $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__.'/../../../../';
         $this->tdbmDaoGenerator->setRootPath($this->rootPath);
 
@@ -132,4 +136,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
         $this->assertTrue($userBean === $contactBean);
     }
 
+
+    public function testNewBeans() {
+        $countryDao = new CountryDao($this->tdbmService);
+        $userDao = new UserDao($this->tdbmService);
+        $userBean = new UserBean('John Doe', new \DateTime(), 'john@doe.com', $countryDao->getById(2), 'john.doe');
+
+        $userDao->save($userBean);
+    }
 }
