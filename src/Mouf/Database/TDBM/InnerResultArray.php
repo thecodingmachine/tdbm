@@ -28,7 +28,7 @@ use Mouf\Database\MagicQuery;
  * Iterator used to retrieve results. It behaves like an array.
  *
  */
-class ResultArray extends ResultIterator implements \ArrayAccess {
+class InnerResultArray extends InnerResultIterator {
 
 	/**
 	 * The list of results already fetched.
@@ -75,40 +75,13 @@ class ResultArray extends ResultIterator implements \ArrayAccess {
 		return $this->results[$offset];
 	}
 
-	/**
-	 * Offset to set
-	 * @link http://php.net/manual/en/arrayaccess.offsetset.php
-	 * @param mixed $offset <p>
-	 * The offset to assign the value to.
-	 * </p>
-	 * @param mixed $value <p>
-	 * The value to set.
-	 * </p>
-	 * @return void
-	 * @since 5.0.0
-	 */
-	public function offsetSet($offset, $value)
-	{
-		throw new TDBMInvalidOperationException('You can set values in a TDBM result set.');
-	}
-
-	/**
-	 * Offset to unset
-	 * @link http://php.net/manual/en/arrayaccess.offsetunset.php
-	 * @param mixed $offset <p>
-	 * The offset to unset.
-	 * </p>
-	 * @return void
-	 * @since 5.0.0
-	 */
-	public function offsetUnset($offset)
-	{
-		throw new TDBMInvalidOperationException('You can unset values in a TDBM result set.');
-	}
 
 	private function toIndex($offset) {
 		if ($offset < 0 || filter_var($offset, FILTER_VALIDATE_INT) === false) {
 			throw new TDBMInvalidOffsetException('Trying to access result set using offset "'.$offset.'". An offset must be a positive integer.');
+		}
+		if ($this->statement === null) {
+			$this->executeQuery();
 		}
 		while (!isset($this->results[$offset])) {
 			$this->next();
@@ -125,7 +98,9 @@ class ResultArray extends ResultIterator implements \ArrayAccess {
 			$this->current = $this->results[$this->key];
 		} else {
 			parent::next();
-			$this->results[$this->key] = $this->current;
+			if ($this->current !== null) {
+				$this->results[$this->key] = $this->current;
+			}
 		}
 	}
 
@@ -140,16 +115,5 @@ class ResultArray extends ResultIterator implements \ArrayAccess {
 		}
 		$this->key = -1;
 		$this->next();
-	}
-
-	/**
-	 * Resets the query.
-	 * Stops any running query. Does not run the query again.
-	 *
-	 * @param bool $resetTotalCount
-	 */
-	protected function reset($resetTotalCount = false) {
-		$this->results = [];
-		parent::reset($resetTotalCount);
 	}
 }

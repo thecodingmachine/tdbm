@@ -215,13 +215,14 @@ class BeanDescriptor
 %s
      */
     public function __construct(%s) {
-%s
+%s%s
     }
     ";
 
         $paramAnnotations = [];
         $arguments = [];
         $assigns = [];
+        $parentConstructorArguments = [];
 
         foreach ($constructorProperties as $property) {
             $className = $property->getClassName();
@@ -231,10 +232,19 @@ class BeanDescriptor
                 $arguments[] = $property->getVariableName();
             }
             $paramAnnotations[] = $property->getParamAnnotation();
-            $assigns[] = $property->getConstructorAssignCode();
+            if ($property->getTable()->getName() === $this->table->getName()) {
+                $assigns[] = $property->getConstructorAssignCode();
+            } else {
+                $parentConstructorArguments[] = $property->getVariableName();
+            }
         }
 
-        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(", ", $arguments), implode("\n", $assigns));
+        $parentConstrutorCode = '';
+        if ($parentConstructorArguments) {
+            $parentConstrutorCode = sprintf("        parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
+        }
+
+        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(", ", $arguments), $parentConstrutorCode, implode("\n", $assigns));
     }
 
     /**

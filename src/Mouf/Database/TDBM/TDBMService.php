@@ -248,7 +248,7 @@ class TDBMService {
 	 * Sets the fetch mode of the result sets returned by `getObjects`.
 	 * Can be one of: TDBMObjectArray::MODE_CURSOR or TDBMObjectArray::MODE_ARRAY or TDBMObjectArray::MODE_COMPATIBLE_ARRAY
 	 *
-	 * In 'MODE_ARRAY' mode (default), the result is a ResultArray object that behaves like an array. Use this mode by default (unless the list returned is very big).
+	 * In 'MODE_ARRAY' mode (default), the result is a ResultIterator object that behaves like an array. Use this mode by default (unless the list returned is very big).
 	 * In 'MODE_CURSOR' mode, the result is a ResultIterator object. If you scan it many times (by calling several time a foreach loop), the query will be run
 	 * several times. In cursor mode, you cannot access the result set by key. Use this mode for large datasets processed by batch.
 	 *
@@ -1416,10 +1416,10 @@ class TDBMService {
 	 * @param integer $limit The maximum number of rows returned
 	 * @param array $additionalTablesFetch
 	 * @param string $className Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-	 * @return ResultIterator|ResultArray An object representing an array of results.
+	 * @return ResultIterator An object representing an array of results.
 	 * @throws TDBMException
 	 */
-	public function findObjects($mainTable, $filter=null, array $parameters = array(), $orderString=null, $from=null, $limit=null, array $additionalTablesFetch = array(), $mode = null, $className=null) {
+	public function findObjects($mainTable, $filter=null, array $parameters = array(), $orderString=null, array $additionalTablesFetch = array(), $mode = null, $className=null) {
 		// $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
 		if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
 			throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
@@ -1490,11 +1490,7 @@ class TDBMService {
 
 		$mode = $mode?:$this->mode;
 
-		if ($mode === self::MODE_CURSOR) {
-			return new ResultIterator($sql, $countSql, $parameters, $limit, $from, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery);
-		} else {
-			return new ResultArray($sql, $countSql, $parameters, $limit, $from, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery);
-		}
+		return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode);
 	}
 
 	/**
@@ -1556,8 +1552,9 @@ class TDBMService {
 	 * @throws TDBMException
 	 */
 	public function findObject($mainTable, $filterString=null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null) {
-		$objects = $this->findObjects($mainTable, $filterString, $parameters, null, null, 2, $additionalTablesFetch, self::MODE_ARRAY, $className);
-		$count = $objects->count();
+		$objects = $this->findObjects($mainTable, $filterString, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
+		$page = $objects->take(0, 2);
+		$count = $page->count();
 		if ($count > 1) {
 			throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
 		} elseif ($count === 0) {

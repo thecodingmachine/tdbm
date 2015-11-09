@@ -4,8 +4,7 @@ namespace Mouf\Database\TDBM;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
-use Porpaginas\Result;
-use Traversable;
+use Porpaginas\Page;
 
 /*
  Copyright (C) 2006-2015 David Négrier - THE CODING MACHINE
@@ -30,7 +29,7 @@ use Traversable;
  * Iterator used to retrieve results.
  *
  */
-class ResultIterator implements Result, \ArrayAccess {
+class PageIterator implements Page, \ArrayAccess {
 
 	/**
 	 *
@@ -42,18 +41,14 @@ class ResultIterator implements Result, \ArrayAccess {
 	private $objectStorage;
 	private $className;
 
-
+	private $parentResult;
 	private $tdbmService;
 	private $magicSql;
-	private $magicSqlCount;
 	private $parameters;
+	private $limit;
+	private $offset;
 	private $columnDescriptors;
 	private $magicQuery;
-
-	/**
-	 * @var InnerResultIterator
-	 */
-	private $innerResultIterator;
 
 	/**
 	 * The key of the current retrieved object.
@@ -66,39 +61,86 @@ class ResultIterator implements Result, \ArrayAccess {
 
 	private $databasePlatform;
 
-	private $totalCount;
+	private $innerResultIterator;
 
-	private $mode;
-	
-	public function __construct($magicSql, $magicSqlCount, array $parameters, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode)
+	public function __construct(ResultIterator $parentResult, $magicSql, array $parameters, $limit, $offset, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode)
 	{
+		$this->parentResult = $parentResult;
 		$this->magicSql = $magicSql;
-		$this->magicSqlCount = $magicSqlCount;
 		$this->objectStorage = $objectStorage;
 		$this->className = $className;
 		$this->tdbmService = $tdbmService;
 		$this->parameters = $parameters;
+		$this->limit = $limit;
+		$this->offset = $offset;
 		$this->columnDescriptors = $columnDescriptors;
 		$this->magicQuery = $magicQuery;
 		$this->databasePlatform = $this->tdbmService->getConnection()->getDatabasePlatform();
 		$this->mode = $mode;
 	}
 
-	protected function executeCountQuery() {
-		$sql = $this->magicQuery->build($this->magicSqlCount, $this->parameters);
-		$this->totalCount = $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters);
+	/**
+	 * Retrieve an external iterator
+	 * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
+	 * @return InnerResultIterator An instance of an object implementing <b>Iterator</b> or
+	 * <b>Traversable</b>
+	 * @since 5.0.0
+	 */
+	public function getIterator()
+	{
+		if ($this->innerResultIterator === null) {
+			if ($this->mode === TDBMService::MODE_CURSOR) {
+				$this->innerResultIterator = new InnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery);
+			} else {
+				$this->innerResultIterator = new InnerResultArray($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery);
+			}
+
+		}
+		return $this->innerResultIterator;
 	}
 
 	/**
-	 * Counts found records (this is the number of records fetched, taking into account the LIMIT and OFFSET settings)
+	 * @return int
+	 */
+	public function getCurrentOffset()
+	{
+		return $this->offset;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getCurrentPage()
+	{
+		return floor($this->offset / $this->limit) + 1;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getCurrentLimit()
+	{
+		return $this->limit;
+	}
+
+	/**
+	 * Return the number of results on the current page of the {@link Result}.
+	 *
 	 * @return int
 	 */
 	public function count()
 	{
-		if ($this->totalCount === null) {
-			$this->executeCountQuery();
-		}
-		return $this->totalCount;
+		return $this->getIterator()->count();
+	}
+
+	/**
+	 * Return the number of ALL results in the paginatable of {@link Result}.
+	 *
+	 * @return int
+	 */
+	public function totalCount()
+	{
+		return $this->parentResult->count();
 	}
 
 	/**
@@ -118,59 +160,6 @@ class ResultIterator implements Result, \ArrayAccess {
 	 */
 	public function map(callable $callable) {
 		return new MapIterator($this->getIterator(), $callable);
-	}
-
-	/**
-	 * Fetches all records (this could impact into your site performance) and rewinds the cursor
-	 * @param boolean $asRecords Bind into record class?
-	 * @return array[Record_PDO]|array[array] Array of records or arrays (depends on $asRecords)
-	 */
-	/*public function getAll($asRecords = true)
-	{
-		$all = array();
-		$this->rewind();
-		foreach ($this->pdoStatement as $id => $doc) {
-			if ($asRecords)
-				$all[$id] = $this->cast($doc);
-			else
-				$all[$id] = $doc;
-		}
-		return $all;
-	}*/
-	/**
-	 * @return PDOStatement
-	 */
-	/*public function getPDOStatement()
-	{
-		return $this->pdoStatement;
-	}*/
-
-	/**
-	 * Retrieve an external iterator
-	 * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
-	 * @return InnerResultIterator An instance of an object implementing <b>Iterator</b> or
-	 * <b>Traversable</b>
-	 * @since 5.0.0
-	 */
-	public function getIterator()
-	{
-		if ($this->innerResultIterator === null) {
-			if ($this->mode === TDBMService::MODE_CURSOR) {
-				$this->innerResultIterator = new InnerResultIterator($this->magicSql, $this->parameters, null, null, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery);
-			} else {
-				$this->innerResultIterator = new InnerResultArray($this->magicSql, $this->parameters, null, null, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery);
-			}
-		}
-		return $this->innerResultIterator;
-	}
-
-	/**
-	 * @param int $offset
-	 * @return PageIterator
-	 */
-	public function take($offset, $limit)
-	{
-		return new PageIterator($this, $this->magicSql, $this->parameters, $limit, $offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode);
 	}
 
 	/**

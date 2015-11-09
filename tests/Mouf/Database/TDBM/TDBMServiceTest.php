@@ -188,42 +188,111 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         }
 
         $this->assertTrue($bean1 === $bean2);
-        $this->assertEquals(5, $beans->fullCount());
-        $this->assertEquals(1, $beans2->fullCount());
+        $this->assertEquals(5, $beans->count());
+        $this->assertEquals(1, $beans2->count());
 
         //$this->assertTrue($beans[0] === $beans2[0]);
         //var_dump($beans);
 
     }
 
-    public function testSetLimitOffset() {
+    public function testArrayAccess()
+    {
         $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
 
-        $beans->setLimit(2)->setOffset(0);
+        $this->assertTrue(isset($beans[0]));
+        $this->assertFalse(isset($beans[42]));
+        $this->assertEquals(1, $beans[0]->get('id', 'person'));
 
-        $this->assertEquals(2, $beans->count());
+        $result1 = [];
+        foreach ($beans as $bean) {
+            $result1[] = $bean;
+        }
 
-        $beans->setLimit(1)->setOffset(1);
+        $result2 = [];
+        foreach ($beans as $bean) {
+            $result2[] = $bean;
+        }
 
-        $this->assertEquals(1, $beans->count());
+        $this->assertEquals($result1, $result2);
+        $this->assertTrue($result1[0] === $result2[0]);
     }
 
-    public function testSetParameters() {
-        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", []);
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMInvalidOffsetException
+     * @throws TDBMInvalidOffsetException
+     */
+    public function testArrayAccessException()
+    {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
 
-        $beans->setParameters(["id"=>1]);
+        $beans[-1];
+    }
 
-        foreach ($beans as $bean) {
-            $this->assertEquals(1, $bean->get("id", "contact"));
-            break;
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMInvalidOffsetException
+     * @throws TDBMInvalidOffsetException
+     */
+    public function testArrayAccessException2()
+    {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+
+        $beans["foo"];
+    }
+
+
+
+
+    public function testTake() {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+
+        $page = $beans->take(0, 2);
+
+        $this->assertEquals(2, $page->count());
+
+        $results = [];
+        foreach ($page as $result) {
+            $results[] = $result;
         }
+        $this->assertCount(2, $results);
 
-        $beans->setParameters(["id"=>2]);
+        $this->assertEquals(5, $page->totalCount());
 
-        foreach ($beans as $bean) {
-            $this->assertEquals(2, $bean->get("id", "contact"));
-            break;
+        $page = $beans->take(1, 1);
+
+        $this->assertEquals(1, $page->count());
+
+        $resultArray = $page->toArray();
+        $this->assertCount(1, $resultArray);
+        $this->assertTrue($resultArray[0] === $page[0]);
+        // Test page isset
+        $this->assertTrue(isset($page[0]));
+    }
+
+    public function testTakeInCursorMode() {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC", [], TDBMService::MODE_CURSOR);
+
+        $page = $beans->take(0, 2);
+
+        $this->assertEquals(2, $page->count());
+        $this->assertEquals(0, $page->getCurrentOffset());
+        $this->assertEquals(2, $page->getCurrentLimit());
+        $this->assertEquals(1, $page->getCurrentPage());
+
+        $results = [];
+        foreach ($page as $result) {
+            $results[] = $result;
         }
+        $this->assertCount(2, $results);
+
+        $this->assertEquals(5, $page->totalCount());
+
+        $page = $beans->take(1, 1);
+        $this->assertEquals(1, $page->getCurrentOffset());
+        $this->assertEquals(1, $page->getCurrentLimit());
+        $this->assertEquals(2, $page->getCurrentPage());
+
+        $this->assertEquals(1, $page->count());
     }
 
     public function testMap() {
@@ -234,7 +303,58 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         })->toArray();
 
         $this->assertEquals([1,2,3,4,6], $results);
+
+        // Same test with page
+        $page = $beans->take(0, 2);
+
+        $results = $page->map(function($item) {
+            return $item->get('id', 'person');
+        })->toArray();
+
+        $this->assertEquals([1,2], $results);
+
     }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testUnsetException() {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+
+        unset($beans[0]);
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testSetException() {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+
+        $beans[0] = "foo";
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testPageUnsetException() {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+        $page = $beans->take(0,1);
+        unset($page[0]);
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testPageSetException() {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+        $page = $beans->take(0,1);
+        $page[0] = "foo";
+    }
+
 
     public function testToArray() {
         $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1]);
@@ -246,11 +366,33 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
     }
 
     public function testCursorMode() {
-        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, null, null, [], TDBMService::MODE_CURSOR);
+        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, [], TDBMService::MODE_CURSOR);
 
         $this->assertInstanceOf("\\Mouf\\Database\\TDBM\\ResultIterator", $beans);
-        $this->assertNotInstanceOf("\\Mouf\\Database\\TDBM\\MapIterator", $beans);
 
+        $result = [];
+        foreach ($beans as $bean) {
+            $result[] = $bean;
+        }
+
+        $this->assertCount(1, $result);
+
+        // In cursor mode, access by array causes an exception.
+        $exceptionTriggered = false;
+        try {
+            $beans[0];
+        } catch (TDBMInvalidOperationException $e) {
+            $exceptionTriggered = true;
+        }
+        $this->assertTrue($exceptionTriggered);
+
+        $exceptionTriggered = false;
+        try {
+            isset($beans[0]);
+        } catch (TDBMInvalidOperationException $e) {
+            $exceptionTriggered = true;
+        }
+        $this->assertTrue($exceptionTriggered);
     }
 
     /**
@@ -258,7 +400,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
      * @throws TDBMException
      */
     public function testCursorModeException() {
-        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, null, null, [], "foobaz");
+        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, [], "foobaz");
     }
 
     /**
@@ -270,7 +412,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
     }
 
     public function testLinkedTableFetch() {
-        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, null, null, ['country']);
+        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, ['country']);
     }
 
     public function testFindObject() {
