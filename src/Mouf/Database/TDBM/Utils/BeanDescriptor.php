@@ -101,6 +101,38 @@ class BeanDescriptor
     }
 
     /**
+     * Returns the list of foreign keys pointing to the table represented by this bean, excluding foreign keys
+     * from junction tables and from inheritance.
+     *
+     * @return ForeignKeyConstraint[]
+     */
+    public function getIncomingForeignKeys() {
+
+        $junctionTables = $this->schemaAnalyzer->detectJunctionTables();
+        $junctionTableNames = array_map(function(Table $table) { return $table->getName(); }, $junctionTables);
+        $childrenRelationships = $this->schemaAnalyzer->getChildrenRelationships($this->table->getName());
+
+        $fks = [];
+        foreach ($this->schema->getTables() as $table) {
+            foreach ($table->getForeignKeys() as $fk) {
+                if ($fk->getForeignTableName() === $this->table->getName()) {
+                    if (in_array($fk->getLocalTableName(), $junctionTableNames)) {
+                        continue;
+                    }
+                    foreach ($childrenRelationships as $childFk) {
+                        if ($fk->getLocalTableName() === $childFk->getLocalTableName() && $fk->getLocalColumns() === $childFk->getLocalColumns()) {
+                            continue 2;
+                        }
+                    }
+                    $fks[] = $fk;
+                }
+            }
+        }
+
+        return $fks;
+    }
+
+    /**
      * Returns the list of properties for this table (including parent tables).
      *
      * @param Table $table
@@ -173,7 +205,6 @@ class BeanDescriptor
         }
 
         // Now, let's get the name of all properties and let's check there is no duplicate.
-        // FIXME: properties can override other parent properties if not in the same table.
         /** @var $names AbstractBeanPropertyDescriptor[] */
         $names = [];
         foreach ($beanPropertyDescriptors as $beanDescriptor) {
@@ -247,6 +278,164 @@ class BeanDescriptor
         return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(", ", $arguments), $parentConstrutorCode, implode("\n", $assigns));
     }
 
+    public function generateDirectForeignKeysCode() {
+        $fks = $this->getIncomingForeignKeys();
+
+        $fksByTable = [];
+
+        foreach ($fks as $fk) {
+            $fksByTable[$fk->getLocalTableName()][] = $fk;
+        }
+
+        /* @var $fksByMethodName ForeignKeyConstraint[] */
+        $fksByMethodName = [];
+
+        foreach ($fksByTable as $tableName => $fksForTable) {
+            if (count($fksForTable) > 1) {
+                foreach ($fksForTable as $fk) {
+                    $methodName = 'get'.TDBMDaoGenerator::toCamelCase($fk->getLocalTableName()).'By';
+
+                    $camelizedColumns = array_map(['Mouf\\Database\\TDBM\\Utils\\TDBMDaoGenerator', 'toCamelCase'], $fk->getLocalColumns());
+
+                    $methodName .= implode('And', $camelizedColumns);
+
+                    $fksByMethodName[$methodName] = $fk;
+                }
+            } else {
+                $methodName = 'get'.TDBMDaoGenerator::toCamelCase($fksForTable[0]->getLocalTableName());
+                $fksByMethodName[$methodName] = $fk;
+            }
+        }
+
+        $code = '';
+
+        foreach ($fksByMethodName as $methodName => $fk) {
+            $getterCode = '    /**
+     * Returns the list of %s pointing to this bean via the %s column.
+     *
+     * @return %s[]|Resultiterator
+     */
+    public function %s()
+    {
+        return $this->tdbmService->findObjects(%s, %s, %s);
+    }
+
+';
+
+            list($sql, $parametersCode) = $this->getFilters($fk);
+
+            $beanClass = TDBMDaoGenerator::getBeanNameFromTableName($fk->getLocalTableName());
+            $code .= sprintf($getterCode,
+                $beanClass,
+                implode(', ', $fk->getColumns()),
+                $beanClass,
+                $methodName,
+                var_export($fk->getLocalTableName(), true),
+                $sql,
+                $parametersCode
+            );
+        }
+
+        return $code;
+    }
+
+    private function getFilters(ForeignKeyConstraint $fk) {
+        $sqlParts = [];
+        $counter = 0;
+        $parameters = [];
+
+        $pkColumns = $this->table->getPrimaryKeyColumns();
+
+        foreach ($fk->getLocalColumns() as $columnName) {
+            $paramName = "tdbmparam".$counter;
+            $sqlParts[] = $fk->getLocalTableName().'.'.$columnName." = :".$paramName;
+
+            $pkColumn = $pkColumns[$counter];
+            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($paramName, true), var_export($pkColumn, true), var_export($this->table->getName(), true));
+            $counter++;
+        }
+        $sql = "'".implode(' AND ', $sqlParts)."'";
+        $parametersCode = '[ '.implode(', ', $parameters).' ]';
+
+        return [$sql, $parametersCode];
+    }
+
+    /**
+     * Generate code section about pivot tables
+     *
+     * @return string;
+     */
+    public function generatePivotTableCode() {
+        $descs = [];
+        foreach ($this->schemaAnalyzer->detectJunctionTables() as $table) {
+            // There are exactly 2 FKs since this is a pivot table.
+            $fks = array_values($table->getForeignKeys());
+
+            if ($fks[0]->getForeignTableName() === $this->table->getName()) {
+                $localFK = $fks[0];
+                $remoteFK = $fks[1];
+            } elseif ($fks[1]->getForeignTableName() === $this->table->getName()) {
+                $localFK = $fks[1];
+                $remoteFK = $fks[0];
+            } else {
+                continue;
+            }
+
+            $descs[$remoteFK->getForeignTableName()][] = [
+                'table' => $table,
+                'localFK' => $localFK,
+                'remoteFK' => $remoteFK
+            ];
+
+        }
+
+        $finalDescs = [];
+        foreach ($descs as $descArray) {
+            if (count($descArray) > 1) {
+                foreach ($descArray as $desc) {
+                    $desc['name'] = TDBMDaoGenerator::toCamelCase($desc['remoteFK']->getForeignTableName())."By".TDBMDaoGenerator::toCamelCase($desc['table']->getName());
+                    $finalDescs[] = $desc;
+                }
+            } else {
+                $desc = $descArray[0];
+                $desc['name'] = TDBMDaoGenerator::toCamelCase($desc['remoteFK']->getForeignTableName());
+                $finalDescs[] = $desc;
+            }
+        }
+
+
+        $code = '';
+
+        foreach ($finalDescs as $desc) {
+            $code .= $this->getPivotTableCode($desc['name'], $desc['table'], $desc['localFK'], $desc['remoteFK']);
+        }
+
+        return $code;
+    }
+
+    public function getPivotTableCode($name, Table $table, ForeignKeyConstraint $localFK, ForeignKeyConstraint $remoteFK) {
+        $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($table->getName());
+
+        list($sql, $parametersCode) = $this->getFilters($localFK);
+
+        $str = '    /**
+     * Returns the list of %s associated to this bean via the %s pivot table.
+     *
+     * @return %s|ResultIterator
+     */
+    public function get%s() {
+        return $this->tdbmService->findObjects(%s, %s, %s);
+    }
+';
+
+        $getterCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $name, var_export($remoteFK->getForeignTableName(), true), $sql, $parametersCode);
+
+
+        $code = $getterCode;
+
+        return $code;
+    }
+
     /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
@@ -269,6 +458,7 @@ class BeanDescriptor
         $str = "<?php
 namespace {$beannamespace};
 
+use Mouf\\Database\\TDBM\\ResultIterator;
 $use
 /*
  * This file has been automatically generated by TDBM.
@@ -290,6 +480,9 @@ class $baseClassName extends $extends
         foreach ($this->getExposedProperties() as $property) {
             $str .= $property->getGetterSetterCode();
         }
+
+        $str .= $this->generateDirectForeignKeysCode();
+        $str .= $this->generatePivotTableCode();
 
         $str .= "}
 ";

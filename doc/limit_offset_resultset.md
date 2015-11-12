@@ -1,0 +1,62 @@
+Limits, offsets and result sets
+===============================
+
+Paginating data with limits and offsets
+---------------------------------------
+
+When you perform a query with TDBM, you never pass the limit or offset to the DAO method you are querying.
+
+```php
+$users = $userDao->getList();
+
+// Iterate all users
+foreach ($users as $user) {
+    // Do stuff...
+}
+```
+
+If you want to limit the number of records returned, or start at a given offset, you can use the `take` method.
+
+```php
+$users = $userDao->getList();
+
+$page = $users->take(0, 10);
+
+// Iterate only the first 10 records
+foreach ($page as $user) {
+    // Do stuff...
+}
+```
+
+What is going on behind the scene? When you query a TDBM DAO for a list, instead of returning an array containing the
+results, TDBM will return a `ResultIterator` object. This object behaves like an array, so you can call `foreach` on it.
+It is important to understand that the SQL query is not actually performed until `foreach` is called! This is
+actually a nice thing, since we can call additional methods afterwards to modify the query. Like the `take` method.
+
+Here is a list of the methods you can call on a `ResultIterator`:
+
+- `take($offset, $limit)`: this will add an OFFSET and a LIMIT to the query performed. The `take` method returns a 
+  `PageIterator` instance that represents the "limited" results.
+- `count()`: will return the total count of records
+- `toArray()`: will cast the `ResultIterator` into a plain old PHP array.
+- `map(callable $callback)`: will call the `$callback` on every bean of the recordset and return the matching array.
+
+Pages (retrieved with the `take` method) also have additional methods you can call:
+
+- `count()`: will return the count of records in the page
+- `totalCount()`: will return the total count of records (bypassing the limit and offset)
+- `getCurrentOffset()`: returns the offset
+- `getCurrentLimit()`: returns the limit
+- `getCurrentPage()`: returns the page number (starting at one and based on the limit and offset given)
+- `toArray()`: will cast the `PageIterator` into a plain old PHP array.
+- `map(callable $callback)`: will call the `$callback` on every bean of the page and return the matching array.
+
+
+Implements Porpiginas
+---------------------
+
+If you are already familiar with [beberlei/porpaginas](https://github.com/beberlei/porpaginas), you probably noticed
+that TDBM result sets implement Porpaginas interfaces (the `Result` and `Page` concept comes from Porpaginas).
+
+This means that you can easily migrate to and from any ORM that uses Porpaginas for its results. You can also
+use any pagination library compatible with Porpaginas, like Pagerfanta.

@@ -57,6 +57,11 @@ class DbRow implements \JsonSerializable, FilterInterface {
 	private $dbRow = array();
 
 	/**
+	 * @var AbstractTDBMObject[]
+	 */
+	private $references = array();
+
+	/**
 	 * One of TDBMObjectStateEnum::STATE_NEW, TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DELETED.
 	 * $status = TDBMObjectStateEnum::STATE_NEW when a new object is created with DBMObject:getNewObject.
 	 * $status = TDBMObjectStateEnum::STATE_NOT_LOADED when the object has been retrieved with getObject but when no data has been accessed in it yet.
@@ -140,40 +145,6 @@ class DbRow implements \JsonSerializable, FilterInterface {
 		$this->status = $state;
 	}
 
-    /**
-     * Internal TDBM method, you should not use this.
-     * Loads the dbRow property of the object from the $row array.
-     * Any row having a key starting with 'tdbm_reserved_col_' is ignored.
-     *
-     * @param array $row
-     * @param array|null $colsArray A big optimization to avoid calling strpos to many times. This array should
-     *                              contain as keys the list of interesting columns. If null, this list will be initialized.
-     */
-	public function loadFromRow($row, &$colsArray) {
-        if ($colsArray === null) {
-            foreach ($row as $key=>$value) {
-                if (strpos($key, 'tdbm_reserved_col_')!==0) {
-                    $colsArray[$key] = true;
-                }
-            }
-        }
-
-        $this->dbRow = array_intersect_key($row, $colsArray);
-        $this->status = TDBMObjectStateEnum::STATE_LOADED;
-	}
-
-	/**
-	 * Returns an array of the columns composing the primary key for that object.
-	 * This methods caches the primary keys so that if it is called twice, the second call will
-	 * not make any query to the database.
-	 *
-	 * TODO: move this into TDBMService
-	 * @return array
-	 */
-	public function getPrimaryKey() {
-		return $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
-	}
-
 	/**
 	 * This is an internal method. You should not call this method yourself. The TDBM library will do it for you.
 	 * If the object is in state 'not loaded', this method performs a query in database to load the object.
@@ -241,11 +212,11 @@ class DbRow implements \JsonSerializable, FilterInterface {
 	 * @param string $var
 	 * @return boolean
 	 */
-	public function has($var) {
+	/*public function has($var) {
 		$this->_dbLoadIfNotLoaded();
 
 		return isset($this->dbRow[$var]);
-	}
+	}*/
 	
 	public function set($var, $value) {
 		$this->_dbLoadIfNotLoaded();
@@ -269,6 +240,46 @@ class DbRow implements \JsonSerializable, FilterInterface {
 		}
 		// Unset the error since something has changed (Insert or Update could work this time).
 		$this->db_onerror = false;
+	}
+
+	/**
+	 * @param string $foreignKeyName
+	 * @param AbstractTDBMObject $bean
+	 */
+	public function setRef($foreignKeyName, AbstractTDBMObject $bean = null) {
+		$this->references[$foreignKeyName] = $bean;
+
+        if ($this->tdbmService !== null && $this->status === TDBMObjectStateEnum::STATE_LOADED) {
+            $this->status = TDBMObjectStateEnum::STATE_DIRTY;
+            $this->tdbmService->_addToToSaveObjectList($this);
+        }
+	}
+
+    /**
+     * @param string $foreignKeyName A unique name for this reference
+     * @return AbstractTDBMObject|null
+     */
+    public function getRef($foreignKeyName) {
+		if (isset($this->references[$foreignKeyName])) {
+			return $this->references[$foreignKeyName];
+		} elseif ($this->status === TDBMObjectStateEnum::STATE_NEW) {
+            // If the object is new and has no property, then it has to be empty.
+            return null;
+        } else {
+            $this->_dbLoadIfNotLoaded();
+
+            // Let's match the name of the columns to the primary key values
+            $fk = $this->tdbmService->_getForeignKeyByName($this->dbTableName, $foreignKeyName);
+
+            $values = [];
+            foreach ($fk->getLocalColumns() as $column) {
+                $values[] = $this->dbRow[$column];
+            }
+
+            $filter = array_combine($this->tdbmService->getPrimaryKeyColumns($fk->getForeignTableName()), $values);
+
+            return $this->tdbmService->findObjectByPk($fk->getForeignTableName(), $filter, [], true);
+		}
 	}
 
 	/**
@@ -347,10 +358,33 @@ class DbRow implements \JsonSerializable, FilterInterface {
 	 * @return array
 	 */
 	public function _getDbRow() {
-		return $this->dbRow;
+        // Let's merge $dbRow and $references
+        $dbRow = $this->dbRow;
+
+        foreach ($this->references as $foreignKeyName => $reference) {
+            // Let's match the name of the columns to the primary key values
+            $fk = $this->tdbmService->_getForeignKeyByName($this->dbTableName, $foreignKeyName);
+            $pkValues = array_values($reference->_getDbRows()[0]->_getPrimaryKeys());
+            $localColumns = $fk->getLocalColumns();
+
+            for ($i=0, $count=count($localColumns); $i<$count; $i++) {
+                $dbRow[$localColumns[$i]] = $pkValues[$i];
+            }
+        }
+
+		return $dbRow;
 	}
 
-	/**
+    /**
+     * Returns references array.
+     *
+     * @return AbstractTDBMObject[]
+     */
+    public function _getReferences() {
+        return $this->references;
+    }
+
+    /**
 	 * @return array
 	 */
 	public function _getPrimaryKeys()
@@ -377,6 +411,4 @@ class DbRow implements \JsonSerializable, FilterInterface {
 	{
 		return $this->object;
 	}
-
-
 }

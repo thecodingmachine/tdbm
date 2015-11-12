@@ -22,9 +22,11 @@ namespace Mouf\Database\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Mouf\Database\DBConnection\MySqlConnection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\UserBean;
 use Mouf\Database\TDBM\Test\Dao\ContactDao;
 use Mouf\Database\TDBM\Test\Dao\CountryDao;
+use Mouf\Database\TDBM\Test\Dao\RoleDao;
 use Mouf\Database\TDBM\Test\Dao\UserDao;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Mouf\Utils\Cache\NoCache;
@@ -143,5 +145,40 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
         $userBean = new UserBean('John Doe', new \DateTime(), 'john@doe.com', $countryDao->getById(2), 'john.doe');
 
         $userDao->save($userBean);
+    }
+
+    public function testAssigningNewBeans() {
+        $userDao = new UserDao($this->tdbmService);
+        $countryBean = new CountryBean("Mexico");
+        $userBean = new UserBean('Speedy Gonzalez', new \DateTime(), 'speedy@gonzalez.com', $countryBean, 'speedy.gonzalez');
+        $this->assertEquals($countryBean, $userBean->getCountry());
+
+        $userDao->save($userBean);
+    }
+
+    public function testDirectReversedRelationship() {
+        $countryDao = new CountryDao($this->tdbmService);
+        $country = $countryDao->getById(1);
+        $users = $country->getUsers();
+
+        $arr = $users->toArray();
+
+        $this->assertCount(1, $arr);
+        $this->assertInstanceOf('Mouf\\Database\\TDBM\\Test\\Dao\\Bean\\UserBean', $arr[0]);
+        $this->assertEquals('jean.dupont', $arr[0]->getLogin());
+    }
+
+    public function testJointureGetters() {
+        $roleDao = new RoleDao($this->tdbmService);
+        $role = $roleDao->getById(1);
+        $users = $role->getUsers();
+
+        $this->assertCount(2, $users);
+        $this->assertInstanceOf('Mouf\\Database\\TDBM\\Test\\Dao\\Bean\\UserBean', $users[0]);
+
+        $rights = $role->getRights();
+
+        $this->assertCount(2, $rights);
+        $this->assertInstanceOf('Mouf\\Database\\TDBM\\Test\\Dao\\Bean\\RightBean', $rights[0]);
     }
 }

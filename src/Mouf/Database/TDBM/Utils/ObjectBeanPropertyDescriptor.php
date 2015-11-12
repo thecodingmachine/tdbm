@@ -134,24 +134,8 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return '.$referencedBeanName.'
      */
-    public function '.$getterName.'() {';
-
-        foreach ($this->foreignKey->getLocalColumns() as $column) {
-            $str .= '
-        if ($this->get('.var_export($column, true).', '.var_export($tableName, true).') == null) {
-            return null;
-        }';
-        }
-
-        $str .= '
-        return $this->tdbmService->findObjectByPk("'.$this->foreignKey->getForeignTableName().'", [
-';
-        $foreignColumns = $this->foreignKey->getForeignColumns();
-        foreach ($this->foreignKey->getLocalColumns() as $key => $column) {
-            $str .= '            '. var_export($foreignColumns[$key], true) .' => $this->get('.var_export($column, true).', '.var_export($tableName, true).'),'."\n";
-        }
-        $str .='
-        ], [], true);
+    public function '.$getterName.'() {
+        return $this->getRef('.var_export($this->foreignKey->getName(), true).', '.var_export($tableName, true).');
     }
 
     /**
@@ -159,13 +143,8 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @param '.$referencedBeanName.' $object
      */
-    public function '.$setterName.'('.$referencedBeanName.' $object = null) {';
-        $foreignColumns = $this->foreignKey->getForeignColumns();
-        foreach ($this->foreignKey->getLocalColumns() as $key=>$column) {
-            $str .= '
-        $this->set(' . var_export($column, true) . ', ($object === null)?null:$object->get(' . var_export($foreignColumns[$key], true).', '.var_export($this->foreignKey->getForeignTableName(), true).'), '.var_export($tableName, true).');';
-        }
-        $str .= '
+    public function '.$setterName.'('.$referencedBeanName.' $object = null) {
+        $this->setRef(' . var_export($this->foreignKey->getName(), true) . ', $object, '.var_export($tableName, true).');
     }
 
 ';

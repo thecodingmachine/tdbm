@@ -28,15 +28,9 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
-use Mouf\Database\TDBM\Filters\InFilter;
 use Mouf\Database\TDBM\Filters\OrderBySQLString;
-use Mouf\Database\TDBM\Filters\EqualFilter;
-use Mouf\Database\TDBM\Filters\SqlStringFilter;
-use Mouf\Database\TDBM\Filters\AndFilter;
-use Mouf\Utils\Cache\CacheInterface;
-use Mouf\Database\TDBM\Filters\FilterInterface;
-use Mouf\Database\TDBM\Filters\OrFilter;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
+use Mouf\Utils\Cache\CacheInterface;
 use SQLParser\Node\ColRef;
 
 /**
@@ -1029,6 +1023,15 @@ class TDBMService {
 					$dbRow->_setPrimaryKeys($primaryKeys);
 				}
 
+				$references = $dbRow->_getReferences();
+
+				// Let's save all references in NEW state (we need their primary key)
+				foreach ($references as $fkName => $reference) {
+					if ($reference->_getStatus() === TDBMObjectStateEnum::STATE_NEW) {
+						$this->save($reference);
+					}
+				}
+
 				$dbRowData = $dbRow->_getDbRow();
 
 				// Let's see if the columns for primary key have been set before inserting.
@@ -1126,6 +1129,15 @@ class TDBMService {
 			$dbRows = $object->_getDbRows();
 
 			foreach ($dbRows as $dbRow) {
+				$references = $dbRow->_getReferences();
+
+				// Let's save all references in NEW state (we need their primary key)
+				foreach ($references as $fkName => $reference) {
+					if ($reference->_getStatus() === TDBMObjectStateEnum::STATE_NEW) {
+						$this->save($reference);
+					}
+				}
+
 				// Let's first get the primary keys
 				$tableName = $dbRow->_getDbTableName();
 				$dbRowData = $dbRow->_getDbRow();
@@ -1636,5 +1648,15 @@ class TDBMService {
 		}
 
 		return $item;
+	}
+
+	/**
+	 * Returns the foreign key object.
+	 * @param string $table
+	 * @param string $fkName
+	 * @return ForeignKeyConstraint
+	 */
+	public function _getForeignKeyByName($table, $fkName) {
+		return $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getForeignKey($fkName);
 	}
 }

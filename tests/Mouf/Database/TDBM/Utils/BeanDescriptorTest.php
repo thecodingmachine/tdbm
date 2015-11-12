@@ -79,6 +79,28 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest {
         $this->assertArrayNotHasKey("id", $constructorPropertyDescriptors);
     }
 
+    public function testGetIncomingForeignKeys() {
+        $usersTable = $this->schema->getTable("users");
+        $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema);
+        $fks = $beanDescriptor->getIncomingForeignKeys();
+        $this->assertCount(0, $fks);
+    }
+
+    public function testGetIncomingForeignKeys2() {
+        $contactsTable = $this->schema->getTable("contact");
+        $beanDescriptor = new BeanDescriptor($contactsTable, $this->schemaAnalyzer, $this->schema);
+        $fks = $beanDescriptor->getIncomingForeignKeys();
+        $this->assertCount(0, $fks);
+    }
+
+    public function testGetIncomingForeignKeys3() {
+        $table = $this->schema->getTable("country");
+        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema);
+        $fks = $beanDescriptor->getIncomingForeignKeys();
+        $this->assertCount(1, $fks);
+        $this->assertEquals('users', $fks[0]->getLocalTableName());
+    }
+
     /*public function testGeneratePhpCode() {
         $usersTable = $this->schema->getTable("users");
         $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema);

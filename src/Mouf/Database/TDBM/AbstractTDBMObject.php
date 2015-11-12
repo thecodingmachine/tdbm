@@ -196,28 +196,6 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 		}
 	}
 
-    /**
-     * Internal TDBM method, you should not use this.
-     * Loads the dbRow property of the object from the $row array.
-     * Any row having a key starting with 'tdbm_reserved_col_' is ignored.
-     *
-     * @param array $row
-     * @param array|null $colsArray A big optimization to avoid calling strpos to many times. This array should
-     *                              contain as keys the list of interesting columns. If null, this list will be initialized.
-     */
-	public function loadFromRow($row, &$colsArray) {
-        if ($colsArray === null) {
-            foreach ($row as $key=>$value) {
-                if (strpos($key, 'tdbm_reserved_col_')!==0) {
-                    $colsArray[$key] = true;
-                }
-            }
-        }
-
-        $this->dbRow = array_intersect_key($row, $colsArray);
-        $this->status = TDBMObjectStateEnum::STATE_LOADED;
-	}
-
 	public function get($var, $tableName = null) {
 		if ($tableName === null) {
 			if (count($this->dbRows) > 1) {
@@ -283,6 +261,55 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 		if ($this->dbRows[$tableName]->_getStatus() === TDBMObjectStateEnum::STATE_DIRTY) {
 			$this->status = TDBMObjectStateEnum::STATE_DIRTY;
 		}
+	}
+
+	/**
+	 * @param string $foreignKeyName
+	 * @param AbstractTDBMObject $bean
+	 */
+	public function setRef($foreignKeyName, AbstractTDBMObject $bean, $tableName = null) {
+		if ($tableName === null) {
+			if (count($this->dbRows) > 1) {
+				throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
+			} elseif (count($this->dbRows) === 1) {
+				$tableName = array_keys($this->dbRows)[0];
+			} else {
+				throw new TDBMException("Please specify a table for this object.");
+			}
+		}
+
+		if (!isset($this->dbRows[$tableName])) {
+			$this->registerTable($tableName);
+		}
+
+		$this->dbRows[$tableName]->setRef($foreignKeyName, $bean);
+		if ($this->dbRows[$tableName]->_getStatus() === TDBMObjectStateEnum::STATE_DIRTY) {
+			$this->status = TDBMObjectStateEnum::STATE_DIRTY;
+		}
+	}
+
+	/**
+	 * @param string $foreignKeyName A unique name for this reference
+	 * @return AbstractTDBMObject|null
+	 */
+	public function getRef($foreignKeyName, $tableName = null) {
+		if ($tableName === null) {
+			if (count($this->dbRows) > 1) {
+				throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
+			} elseif (count($this->dbRows) === 1) {
+				$tableName = array_keys($this->dbRows)[0];
+			}
+		}
+
+		if (!isset($this->dbRows[$tableName])) {
+			if (count($this->dbRows[$tableName] === 0)) {
+				throw new TDBMException('Object is not yet bound to any table.');
+			} else {
+				throw new TDBMException('Unknown table "'.$tableName.'"" in object.');
+			}
+		}
+
+		return $this->dbRows[$tableName]->getRef($foreignKeyName);
 	}
 
 	/*public function __destruct() {
