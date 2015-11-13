@@ -78,5 +78,33 @@ class TDBMSchemaAnalyzer
         return $this->schema;
     }
 
+    /**
+     * Returns the list of pivot tables linked to table $tableName
+     * @param string $tableName
+     * @return array|string[]
+     */
+    public function getPivotTableLinkedToTable($tableName) {
+        $cacheKey = $this->getCachePrefix().'_pivottables_link';
+        if ($this->cache->contains($cacheKey)) {
+            return $this->cache->fetch($cacheKey);
+        }
+
+        $pivotTables = [];
+
+        $junctionTables = $this->schemaAnalyzer->detectJunctionTables();
+        foreach ($junctionTables as $table) {
+            $fks = $table->getForeignKeys();
+            foreach ($fks as $fk) {
+                if ($fk->getForeignTableName() == $tableName) {
+                    $pivotTables[] = $table->getName();
+                    break;
+                }
+            }
+        }
+
+        $this->cache->save($cacheKey, $pivotTables);
+        return $pivotTables;
+    }
+
 
 }

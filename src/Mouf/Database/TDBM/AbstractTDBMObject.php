@@ -73,6 +73,17 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 	 */
 	public $db_autosave;
 
+	/**
+	 * Array storing beans related via many to many relationships (pivot tables)
+	 * @var \SplObjectStorage[] Key: pivot table name, value: SplObjectStorage
+	 */
+	private $relationships = [];
+
+	/**
+	 *
+	 * @var bool[] Key: pivot table name, value: whether a query was performed to load the data.
+	 */
+	private $loadedRelationships = [];
 
 	/**
 	 * Used with $primaryKeys when we want to retrieve an existing object
@@ -191,6 +202,7 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 	public function _setStatus($state){
 		$this->status = $state;
 
+		// TODO: we might ignore the loaded => dirty state here! dirty status comes from the db_row itself.
 		foreach ($this->dbRows as $dbRow) {
 			$dbRow->_setStatus($state);
 		}
@@ -310,6 +322,127 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 		}
 
 		return $this->dbRows[$tableName]->getRef($foreignKeyName);
+	}
+
+	/**
+	 * Adds a many to many relationship to this bean.
+	 * @param string $pivotTableName
+	 * @param AbstractTDBMObject $remoteBean
+	 */
+	protected function addRelationship($pivotTableName, AbstractTDBMObject $remoteBean) {
+		$this->setRelationship($pivotTableName, $remoteBean, 'new');
+	}
+
+	/**
+	 * Returns true if there is a relationship to this bean.
+	 * @param string $pivotTableName
+	 * @param AbstractTDBMObject $remoteBean
+	 * @return bool
+	 */
+	protected function hasRelationship($pivotTableName, AbstractTDBMObject $remoteBean) {
+		$storage = $this->retrieveRelationshipsStorage($pivotTableName);
+
+		if ($storage->contains($remoteBean)) {
+			if ($storage[$remoteBean]['status'] !== 'delete') {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Internal TDBM method. Removes a many to many relationship from this bean.
+	 * @param string $pivotTableName
+	 * @param AbstractTDBMObject $remoteBean
+	 */
+	public function _removeRelationship($pivotTableName, AbstractTDBMObject $remoteBean) {
+		if (isset($this->relationships[$pivotTableName][$remoteBean]) && $this->relationships[$pivotTableName][$remoteBean]['status'] === 'new') {
+			unset($this->relationships[$pivotTableName][$remoteBean]);
+			unset($remoteBean->relationships[$pivotTableName][$this]);
+		} else {
+			$this->setRelationship($pivotTableName, $remoteBean, 'delete');
+		}
+	}
+
+	/**
+	 * Returns the list of objects linked to this bean via $pivotTableName
+	 * @param $pivotTableName
+	 * @return \SplObjectStorage
+	 */
+	private function retrieveRelationshipsStorage($pivotTableName) {
+		$storage = $this->getRelationshipStorage($pivotTableName);
+		if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || isset($this->loadedRelationships[$pivotTableName]) && $this->loadedRelationships[$pivotTableName]) {
+			return $storage;
+		}
+
+		$beans = $this->tdbmService->_getRelatedBeans($pivotTableName, $this);
+		$this->loadedRelationships[$pivotTableName] = true;
+
+		foreach ($beans as $bean) {
+			if (isset($storage[$bean])) {
+				$oldStatus = $storage[$bean]['status'];
+				if ($oldStatus === 'delete') {
+					// Keep deleted things deleted
+					continue;
+				}
+			}
+			$this->setRelationship($pivotTableName, $bean, "loaded");
+		}
+
+		return $storage;
+
+	}
+
+	/**
+	 * Internal TDBM method. Returns the list of objects linked to this bean via $pivotTableName
+	 * @param $pivotTableName
+	 * @return AbstractTDBMObject[]
+	 */
+	public function _getRelationships($pivotTableName) {
+		return $this->relationshipStorageToArray($this->retrieveRelationshipsStorage($pivotTableName));
+	}
+
+	private function relationshipStorageToArray(\SplObjectStorage $storage) {
+		$beans = [];
+		foreach ($storage as $bean) {
+			$statusArr = $storage[$bean];
+			if ($statusArr['status'] !== 'delete') {
+				$beans[] = $bean;
+			}
+		}
+		return $beans;
+	}
+
+	/**
+	 * Declares a relationship between
+	 * @param string $pivotTableName
+	 * @param AbstractTDBMObject $remoteBean
+	 * @param string $status
+	 */
+	private function setRelationship($pivotTableName, AbstractTDBMObject $remoteBean, $status) {
+		$storage = $this->getRelationshipStorage($pivotTableName);
+		$storage->attach($remoteBean, [ 'status' => $status, 'reverse' => false ]);
+		if ($this->status === TDBMObjectStateEnum::STATE_LOADED) {
+			$this->_setStatus(TDBMObjectStateEnum::STATE_DIRTY);
+		}
+
+		$remoteStorage = $remoteBean->getRelationshipStorage($pivotTableName);
+		$remoteStorage->attach($this, [ 'status' => $status, 'reverse' => true ]);
+	}
+
+	/**
+	 * Returns the SplObjectStorage associated to this relationship (creates it if it does not exists)
+	 * @param $pivotTableName
+	 * @return \SplObjectStorage
+	 */
+	private function getRelationshipStorage($pivotTableName) {
+		if (isset($this->relationships[$pivotTableName])) {
+			$storage = $this->relationships[$pivotTableName];
+		} else {
+			$storage = new \SplObjectStorage();
+			$this->relationships[$pivotTableName] = $storage;
+		}
+		return $storage;
 	}
 
 	/*public function __destruct() {
@@ -459,4 +592,11 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 		// TODO: look at status (if not new)=> get primary key from tdbmservice
 	}
 
+	/**
+	 * Internal function: return the list of relationships
+	 * @return \SplObjectStorage[]
+	 */
+	public function _getCachedRelationships() {
+		return $this->relationships;
+	}
 }

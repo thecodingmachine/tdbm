@@ -343,12 +343,13 @@ class $baseClassName
      * @param $beanClassWithoutNameSpace \$obj object to delete
      * @param bool \$cascade if true, it will delete all object linked to \$obj
      */
-    public function delete(\$obj, \$cascade = false)
+    public function delete($beanClassWithoutNameSpace \$obj, \$cascade = false)
     {
-        if (\$cascade === true)
-            \$this->tdbmService->deleteObject(\$obj);
-        else
+        if (\$cascade === true) {
             \$this->tdbmService->deleteCascade(\$obj);
+        } else {
+            \$this->tdbmService->delete(\$obj);
+        }
     }
 
 

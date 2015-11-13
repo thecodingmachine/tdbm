@@ -23,6 +23,7 @@ use Doctrine\Common\Cache\ArrayCache;
 use Mouf\Database\DBConnection\MySqlConnection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
+use Mouf\Database\TDBM\Test\Dao\Bean\RoleBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\UserBean;
 use Mouf\Database\TDBM\Test\Dao\ContactDao;
 use Mouf\Database\TDBM\Test\Dao\CountryDao;
@@ -156,6 +157,16 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
         $userDao->save($userBean);
     }
 
+    public function testAssigningExistingRelationship() {
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+        $countryDao = new CountryDao($this->tdbmService);
+        $country = $countryDao->getById(2);
+
+        $user->setCountry($country);
+        $this->assertEquals(TDBMObjectStateEnum::STATE_DIRTY, $user->_getStatus());
+    }
+
     public function testDirectReversedRelationship() {
         $countryDao = new CountryDao($this->tdbmService);
         $country = $countryDao->getById(1);
@@ -181,4 +192,199 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
         $this->assertCount(2, $rights);
         $this->assertInstanceOf('Mouf\\Database\\TDBM\\Test\\Dao\\Bean\\RightBean', $rights[0]);
     }
+
+    public function testNewBeanConstructor() {
+        $role = new RoleBean('Newrole');
+        $this->assertEquals(TDBMObjectStateEnum::STATE_DETACHED, $role->_getStatus());
+    }
+
+    public function testJointureAdderOnNewBean() {
+        $countryDao = new CountryDao($this->tdbmService);
+        $country = $countryDao->getById(1);
+        $user = new UserBean('Speedy Gonzalez', new \DateTime(), 'speedy@gonzalez.com', $country, 'speedy.gonzalez');
+        $role = new RoleBean('Mouse');
+        $user->addRole($role);
+        $roles = $user->getRoles();
+        $this->assertCount(1, $roles);
+        $role = $roles[0];
+        $this->assertInstanceOf('Mouf\\Database\\TDBM\\Test\\Dao\\Bean\\RoleBean', $role);
+        $users = $role->getUsers();
+        $this->assertCount(1, $users);
+        $this->assertEquals($user, $users[0]);
+
+        $role->removeUser($user);
+        $this->assertCount(0, $role->getUsers());
+        $this->assertCount(0, $user->getRoles());
+    }
+
+    public function testJointureDeleteBeforeGetters() {
+        $roleDao = new RoleDao($this->tdbmService);
+        $userDao = new UserDao($this->tdbmService);
+        $role = $roleDao->getById(1);
+        $user = $userDao->getById(1);
+
+        // We call removeUser BEFORE calling getUsers
+        // This should work as expected.
+        $role->removeUser($user);
+        $users = $role->getUsers();
+
+        $this->assertCount(1, $users);
+    }
+
+    public function testJointureMultiAdd() {
+        $countryDao = new CountryDao($this->tdbmService);
+        $country = $countryDao->getById(1);
+        $user = new UserBean('Speedy Gonzalez', new \DateTime(), 'speedy@gonzalez.com', $country, 'speedy.gonzalez');
+        $role = new RoleBean('Mouse');
+        $user->addRole($role);
+        $role->addUser($user);
+        $user->addRole($role);
+
+        $this->assertCount(1, $user->getRoles());
+    }
+
+    /**
+     * Step 1: we remove the role 1 from user 1 but save role 1.
+     * Expected result: no save done.
+     */
+    public function testJointureSave1() {
+        $roleDao = new RoleDao($this->tdbmService);
+        $role = $roleDao->getById(1);
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+
+        $this->assertTrue($user->hasRole($role));
+        $this->assertTrue($role->hasUser($user));
+        $user->removeRole($role);
+        $this->assertFalse($user->hasRole($role));
+        $this->assertFalse($role->hasUser($user));
+        $roleDao->save($role);
+
+        $this->assertEquals(TDBMObjectStateEnum::STATE_DIRTY, $user->_getStatus());
+        $this->assertEquals(TDBMObjectStateEnum::STATE_LOADED, $role->_getStatus());
+    }
+
+    /**
+     * Step 2: we check that nothing was saved
+     * Expected result: no save done.
+     *
+     * @depends testJointureSave1
+     */
+    public function testJointureSave2() {
+        $roleDao = new RoleDao($this->tdbmService);
+        $role = $roleDao->getById(1);
+        $this->assertCount(2, $role->getUsers());
+    }
+
+    /**
+     * Step 3: we remove the role 1 from user 1 and save user 1.
+     * Expected result: save done.
+     *
+     * @depends testJointureSave2
+     */
+    public function testJointureSave3() {
+        $roleDao = new RoleDao($this->tdbmService);
+        $role = $roleDao->getById(1);
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+
+        $this->assertCount(1, $user->getRoles());
+        $user->removeRole($role);
+        $this->assertCount(0, $user->getRoles());
+        $userDao->save($user);
+        $this->assertCount(0, $user->getRoles());
+    }
+
+    /**
+     * Step 4: we check that save was done
+     * Expected result: save done.
+     *
+     * @depends testJointureSave3
+     */
+    public function testJointureSave4() {
+        $roleDao = new RoleDao($this->tdbmService);
+        $role = $roleDao->getById(1);
+        $this->assertCount(1, $role->getUsers());
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+        $this->assertCount(0, $user->getRoles());
+    }
+
+    /**
+     * Step 5: we add the role 1 from user 1 and save user 1.
+     * Expected result: save done.
+     *
+     * @depends testJointureSave4
+     */
+    public function testJointureSave5() {
+        $roleDao = new RoleDao($this->tdbmService);
+        $role = $roleDao->getById(1);
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+
+        $user->addRole($role);
+        $this->assertCount(1, $user->getRoles());
+        $userDao->save($user);
+    }
+
+    /**
+     * Step 6: we check that save was done
+     * Expected result: save done.
+     *
+     * @depends testJointureSave5
+     */
+    public function testJointureSave6() {
+        $roleDao = new RoleDao($this->tdbmService);
+        $role = $roleDao->getById(1);
+        $this->assertCount(2, $role->getUsers());
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+        $this->assertCount(1, $user->getRoles());
+    }
+
+    /**
+     * Step 7: we add a new role to user 1 and save user 1.
+     * Expected result: save done, including the new role
+     *
+     * @depends testJointureSave6
+     */
+    public function testJointureSave7() {
+        $role = new RoleBean("my new role");
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+
+        $user->addRole($role);
+        $userDao->save($user);
+
+        $this->assertEquals(TDBMObjectStateEnum::STATE_LOADED, $role->_getStatus());
+    }
+
+    /**
+     * Step 8: we check that save was done
+     * Expected result: save done.
+     *
+     * @depends testJointureSave7
+     */
+    public function testJointureSave8() {
+        $roleDao = new RoleDao($this->tdbmService);
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+
+        $roles = $user->getRoles();
+        foreach ($roles as $role) {
+            if ($role->getName() === "my new role") {
+                $selectedRole = $role;
+                break;
+            }
+        }
+        $this->assertNotNull($selectedRole);
+
+        $this->assertCount(2, $user->getRoles());
+
+        // Expected: relationship removed!
+        $roleDao->delete($selectedRole);
+
+        $this->assertCount(1, $user->getRoles());
+    }
+
 }

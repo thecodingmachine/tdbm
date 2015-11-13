@@ -364,7 +364,9 @@ class DbRow implements \JsonSerializable, FilterInterface {
         foreach ($this->references as $foreignKeyName => $reference) {
             // Let's match the name of the columns to the primary key values
             $fk = $this->tdbmService->_getForeignKeyByName($this->dbTableName, $foreignKeyName);
-            $pkValues = array_values($reference->_getDbRows()[0]->_getPrimaryKeys());
+            $refDbRows = $reference->_getDbRows();
+            $firstRefDbRow = reset($refDbRows);
+            $pkValues = array_values($firstRefDbRow->_getPrimaryKeys());
             $localColumns = $fk->getLocalColumns();
 
             for ($i=0, $count=count($localColumns); $i<$count; $i++) {

@@ -510,6 +510,7 @@ class TDBMService {
 			case TDBMObjectStateEnum::STATE_DETACHED:
 				throw new TDBMInvalidOperationException('Cannot delete a detached object');
 			case TDBMObjectStateEnum::STATE_NEW:
+                $this->deleteManyToManyRelationships($object);
 				foreach ($object->_getDbRows() as $dbRow) {
 					$this->removeFromToSaveObjectList($dbRow);
 				}
@@ -520,6 +521,7 @@ class TDBMService {
 				}
 			case TDBMObjectStateEnum::STATE_NOT_LOADED:
 			case TDBMObjectStateEnum::STATE_LOADED:
+                $this->deleteManyToManyRelationships($object);
 				// Let's delete db rows, in reverse order.
 				foreach (array_reverse($object->_getDbRows()) as $dbRow) {
 					$tableName = $dbRow->_getDbTableName();
@@ -540,6 +542,24 @@ class TDBMService {
 	}
 
     /**
+     * Removes all many to many relationships for this object.
+     * @param AbstractTDBMObject $object
+     */
+    private function deleteManyToManyRelationships(AbstractTDBMObject $object) {
+        foreach ($object->_getDbRows() as $tableName => $dbRow) {
+            $pivotTables = $this->tdbmSchemaAnalyzer->getPivotTableLinkedToTable($tableName);
+            foreach ($pivotTables as $pivotTable) {
+                $remoteBeans = $object->_getRelationships($pivotTable);
+                foreach ($remoteBeans as $remoteBean) {
+                    $object->_removeRelationship($pivotTable, $remoteBean);
+                }
+            }
+        }
+        $this->persistManyToManyRelationships($object);
+    }
+
+
+    /**
      * This function removes the given object from the database. It will also remove all objects relied to the one given
      * by parameter before all.
      *
@@ -549,7 +569,7 @@ class TDBMService {
      */
     public function deleteCascade(AbstractTDBMObject $objToDelete) {
         $this->deleteAllConstraintWithThisObject($objToDelete);
-        $this->deleteObject($objToDelete);
+        $this->delete($objToDelete);
     }
 
     /**
@@ -1025,9 +1045,10 @@ class TDBMService {
 
 				$references = $dbRow->_getReferences();
 
-				// Let's save all references in NEW state (we need their primary key)
+				// Let's save all references in NEW or DETACHED state (we need their primary key)
 				foreach ($references as $fkName => $reference) {
-					if ($reference->_getStatus() === TDBMObjectStateEnum::STATE_NEW) {
+                    $refStatus = $reference->_getStatus();
+					if ($refStatus === TDBMObjectStateEnum::STATE_NEW || $refStatus === TDBMObjectStateEnum::STATE_DETACHED) {
 						$this->save($reference);
 					}
 				}
@@ -1184,7 +1205,95 @@ class TDBMService {
 		} elseif ($status === TDBMObjectStateEnum::STATE_DELETED) {
 			throw new TDBMInvalidOperationException("This object has been deleted. It cannot be saved.");
 		}
+
+        // Finally, let's save all the many to many relationships to this bean.
+        $this->persistManyToManyRelationships($object);
 	}
+
+    private function persistManyToManyRelationships(AbstractTDBMObject $object) {
+        foreach ($object->_getCachedRelationships() as $pivotTableName => $storage) {
+            $tableDescriptor = $this->tdbmSchemaAnalyzer->getSchema()->getTable($pivotTableName);
+            list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $object);
+
+            foreach ($storage as $remoteBean) {
+                /* @var $remoteBean AbstractTDBMObject */
+                $statusArr = $storage[$remoteBean];
+                $status = $statusArr['status'];
+                $reverse = $statusArr['reverse'];
+                if ($reverse) {
+                    continue;
+                }
+
+                if ($status === 'new') {
+                    $remoteBeanStatus = $remoteBean->_getStatus();
+                    if ($remoteBeanStatus === TDBMObjectStateEnum::STATE_NEW || $remoteBeanStatus === TDBMObjectStateEnum::STATE_DETACHED) {
+                        // Let's save remote bean if needed.
+                        $this->save($remoteBean);
+                    }
+
+                    $filters = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk);
+
+                    $types = [];
+
+                    foreach ($filters as $columnName => $value) {
+                        $columnDescriptor = $tableDescriptor->getColumn($columnName);
+                        $types[] = $columnDescriptor->getType();
+                    }
+
+                    $this->connection->insert($pivotTableName, $filters, $types);
+
+                    // Finally, let's mark relationships as saved.
+                    $statusArr['status'] = 'loaded';
+                    $storage[$remoteBean] = $statusArr;
+                    $remoteStorage = $remoteBean->_getCachedRelationships()[$pivotTableName];
+                    $remoteStatusArr = $remoteStorage[$object];
+                    $remoteStatusArr['status'] = 'loaded';
+                    $remoteStorage[$object] = $remoteStatusArr;
+
+                } elseif ($status === 'delete') {
+                    $filters = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk);
+
+                    $types = [];
+
+                    foreach ($filters as $columnName => $value) {
+                        $columnDescriptor = $tableDescriptor->getColumn($columnName);
+                        $types[] = $columnDescriptor->getType();
+                    }
+
+                    $this->connection->delete($pivotTableName, $filters, $types);
+
+                    // Finally, let's remove relationships completely from bean.
+                    $storage->detach($remoteBean);
+                    $remoteBean->_getCachedRelationships()[$pivotTableName]->detach($object);
+                }
+            }
+        }
+    }
+
+    private function getPivotFilters(AbstractTDBMObject $localBean, AbstractTDBMObject $remoteBean, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk) {
+        $localBeanPk = $this->getPrimaryKeyValues($localBean);
+        $remoteBeanPk = $this->getPrimaryKeyValues($remoteBean);
+        $localColumns = $localFk->getLocalColumns();
+        $remoteColumns = $remoteFk->getLocalColumns();
+
+        $localFilters = array_combine($localColumns, $localBeanPk);
+        $remoteFilters = array_combine($remoteColumns, $remoteBeanPk);
+
+        return array_merge($localFilters, $remoteFilters);
+    }
+
+    /**
+     * Returns the "values" of the primary key.
+     * This returns the primary key from the $primaryKey attribute, not the one stored in the columns.
+     *
+     * @param AbstractTDBMObject $bean
+     * @return array numerically indexed array of values.
+     */
+    private function getPrimaryKeyValues(AbstractTDBMObject $bean) {
+        $dbRows = $bean->_getDbRows();
+        $dbRow = reset($dbRows);
+        return array_values($dbRow->_getPrimaryKeys());
+    }
 
 	/**
 	 * Returns a unique hash used to store the object based on its primary key.
@@ -1659,4 +1768,47 @@ class TDBMService {
 	public function _getForeignKeyByName($table, $fkName) {
 		return $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getForeignKey($fkName);
 	}
+
+	/**
+	 * @param $pivotTableName
+	 * @param AbstractTDBMObject $bean
+	 * @return AbstractTDBMObject[]
+	 */
+	public function _getRelatedBeans($pivotTableName, AbstractTDBMObject $bean) {
+
+        list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $bean);
+        /* @var $localFk ForeignKeyConstraint */
+        /* @var $remoteFk ForeignKeyConstraint */
+        $remoteTable = $remoteFk->getForeignTableName();
+
+
+        $primaryKeys = $this->getPrimaryKeyValues($bean);
+        $columnNames = array_map(function($name) use ($pivotTableName) { return $pivotTableName.'.'.$name; }, $localFk->getLocalColumns());
+
+        $filter = array_combine($columnNames, $primaryKeys);
+
+        return $this->findObjects($remoteTable, $filter);
+	}
+
+    /**
+     * @param $pivotTableName
+     * @param AbstractTDBMObject $bean The LOCAL bean
+     * @return ForeignKeyConstraint[] First item: the LOCAL bean, second item: the REMOTE bean.
+     * @throws TDBMException
+     */
+    private function getPivotTableForeignKeys($pivotTableName, AbstractTDBMObject $bean) {
+        $fks = array_values($this->tdbmSchemaAnalyzer->getSchema()->getTable($pivotTableName)->getForeignKeys());
+        $table1 = $fks[0]->getForeignTableName();
+        $table2 = $fks[1]->getForeignTableName();
+
+        $beanTables = array_map(function(DbRow $dbRow) { return $dbRow->_getDbTableName(); }, $bean->_getDbRows());
+
+        if (in_array($table1, $beanTables)) {
+            return [$fks[0], $fks[1]];
+        } elseif (in_array($table2, $beanTables)) {
+            return [$fks[1], $fks[0]];
+        } else {
+            throw new TDBMException("Unexpected bean type in getPivotTableForeignKeys. Awaiting beans from table {$table1} and {$table2}");
+        }
+    }
 }

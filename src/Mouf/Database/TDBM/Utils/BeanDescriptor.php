@@ -270,10 +270,7 @@ class BeanDescriptor
             }
         }
 
-        $parentConstrutorCode = '';
-        if ($parentConstructorArguments) {
-            $parentConstrutorCode = sprintf("        parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
-        }
+        $parentConstrutorCode = sprintf("        parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
 
         return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(", ", $arguments), $parentConstrutorCode, implode("\n", $assigns));
     }
@@ -414,24 +411,61 @@ class BeanDescriptor
     }
 
     public function getPivotTableCode($name, Table $table, ForeignKeyConstraint $localFK, ForeignKeyConstraint $remoteFK) {
-        $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($table->getName());
-
-        list($sql, $parametersCode) = $this->getFilters($localFK);
+        $singularName = TDBMDaoGenerator::toSingular($name);
+        $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($remoteFK->getForeignTableName());
+        $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
 
         $str = '    /**
      * Returns the list of %s associated to this bean via the %s pivot table.
      *
-     * @return %s|ResultIterator
+     * @return %s[]
      */
     public function get%s() {
-        return $this->tdbmService->findObjects(%s, %s, %s);
+        return $this->_getRelationships(%s);
     }
 ';
 
-        $getterCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $name, var_export($remoteFK->getForeignTableName(), true), $sql, $parametersCode);
+        $getterCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $name, var_export($remoteFK->getLocalTableName(), true));
+
+        $str = '    /**
+     * Adds a relationship with %s associated to this bean via the %s pivot table.
+     *
+     * @param %s %s
+     */
+    public function add%s(%s %s) {
+        return $this->addRelationship(%s, %s);
+    }
+';
+
+        $adderCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $variableName, $singularName, $remoteBeanName, $variableName, var_export($remoteFK->getLocalTableName(), true), $variableName);
+
+        $str = '    /**
+     * Deletes the relationship with %s associated to this bean via the %s pivot table.
+     *
+     * @param %s %s
+     */
+    public function remove%s(%s %s) {
+        return $this->_removeRelationship(%s, %s);
+    }
+';
+
+        $removerCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $variableName, $singularName, $remoteBeanName, $variableName, var_export($remoteFK->getLocalTableName(), true), $variableName);
+
+        $str = '    /**
+     * Returns whether this bean is associated with %s via the %s pivot table.
+     *
+     * @param %s %s
+     * @return bool
+     */
+    public function has%s(%s %s) {
+        return $this->hasRelationship(%s, %s);
+    }
+';
+
+        $hasCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $variableName, $singularName, $remoteBeanName, $variableName, var_export($remoteFK->getLocalTableName(), true), $variableName);
 
 
-        $code = $getterCode;
+        $code = $getterCode.$adderCode.$removerCode.$hasCode;
 
         return $code;
     }
