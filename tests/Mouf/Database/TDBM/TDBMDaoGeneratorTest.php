@@ -82,6 +82,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
             require_once($this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/'.$daoName.".php");
         }
 
+        // Check that pivot tables do not generate DAOs or beans.
+        $this->assertFalse(class_exists($daonamespace.'\\RolesRightDao'));
     }
 
     /**

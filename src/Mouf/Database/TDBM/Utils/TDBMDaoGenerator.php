@@ -72,6 +72,17 @@ class TDBMDaoGenerator {
         // TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
 
         $tableList = $this->schema->getTables();
+
+        // Remove all beans and daos from junction tables
+        $junctionTables = $this->schemaAnalyzer->detectJunctionTables();
+        $junctionTableNames = array_map(function(Table $table) {
+            return $table->getName();
+        }, $junctionTables);
+
+        $tableList = array_filter($tableList, function(Table $table) use ($junctionTableNames) {
+            return !in_array($table->getName(), $junctionTableNames);
+        });
+
         foreach ($tableList as $table) {
             $this->generateDaoAndBean($table, $daonamespace, $beannamespace, $classNameMapper, $storeInUtc);
         }
