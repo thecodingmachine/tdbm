@@ -395,7 +395,7 @@ class $baseClassName
     /**
      * Sets the default column for default sorting.
      *
-     * @param \$defaultSort
+     * @param string \$defaultSort
      */
     public function setDefaultSort(\$defaultSort)
     {

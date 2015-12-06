@@ -1,6 +1,7 @@
 <?php
 namespace Mouf\Database\TDBM\Controllers;
 
+use Mouf\Actions\InstallUtils;
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Controllers\AbstractMoufInstanceController;
 
@@ -145,6 +146,8 @@ class TdbmController extends AbstractMoufInstanceController {
 
 		$tableToBeanMap = [];
 
+		//$tdbmServiceDescriptor = $moufManager->getInstanceDescriptor('tdbmService');
+
 		foreach ($tables as $table) {
 			$daoName = TDBMDaoGenerator::getDaoNameFromTableName($table);
 		
@@ -152,7 +155,7 @@ class TdbmController extends AbstractMoufInstanceController {
 			if (!$moufManager->instanceExists($instanceName)) {
 				$moufManager->declareComponent($instanceName, $daonamespace."\\".$daoName);
 			}
-			$moufManager->bindComponentViaSetter($instanceName, "setTdbmService", $name);
+			$moufManager->setParameterViaConstructor($instanceName, 0, $name, "object");
 			$moufManager->bindComponentViaSetter($daofactoryinstancename, "set".$daoName, $instanceName);
 
 			$tableToBeanMap[$table] = $beannamespace . "\\" . TDBMDaoGenerator::getBeanNameFromTableName($table);
