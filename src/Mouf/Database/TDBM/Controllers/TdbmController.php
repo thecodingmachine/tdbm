@@ -32,8 +32,6 @@ class TdbmController extends AbstractMoufInstanceController {
 	protected $daoFactoryName;
 	protected $daoFactoryInstanceName;
 	protected $autoloadDetected;
-	protected $keepSupport;
-	protected $castDatesToDateTime;
 	protected $storeInUtc;
 	
 	/**
@@ -51,16 +49,12 @@ class TdbmController extends AbstractMoufInstanceController {
 			$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace_".$name);
 			$this->daoFactoryName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryName_".$name);
 			$this->daoFactoryInstanceName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryInstanceName_".$name);
-			$this->keepSupport = $this->moufManager->getVariable("tdbmDefaultKeepSupport_".$name);
-			$this->castDatesToDateTime = $this->moufManager->getVariable("tdbmDefaultCastDatesToDateTime_".$name);
 			$this->storeInUtc = $this->moufManager->getVariable("tdbmDefaultStoreInUtc_".$name);
 		} else {
 			$this->daoNamespace = $this->moufManager->getVariable("tdbmDefaultDaoNamespace");
 			$this->beanNamespace = $this->moufManager->getVariable("tdbmDefaultBeanNamespace");
 			$this->daoFactoryName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryName");
 			$this->daoFactoryInstanceName = $this->moufManager->getVariable("tdbmDefaultDaoFactoryInstanceName");
-			$this->keepSupport = $this->moufManager->getVariable("tdbmDefaultKeepSupport");
-			$this->castDatesToDateTime = $this->moufManager->getVariable("tdbmDefaultCastDatesToDateTime");
 			$this->storeInUtc = $this->moufManager->getVariable("tdbmDefaultStoreInUtc");
 		}
 				
@@ -93,10 +87,10 @@ class TdbmController extends AbstractMoufInstanceController {
 	 * @param string $name
 	 * @param bool $selfedit
 	 */
-	public function generate($name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $keepSupport = 0, $storeInUtc = 0, $castDatesToDateTime = 0, $selfedit="false") {
+	public function generate($name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $storeInUtc = 0, $selfedit="false") {
 		$this->initController($name, $selfedit);
 
-		self::generateDaos($this->moufManager, $name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $selfedit, $keepSupport, $storeInUtc, $castDatesToDateTime);
+		self::generateDaos($this->moufManager, $name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $selfedit, $storeInUtc);
 
 		// TODO: better: we should redirect to a screen that list the number of DAOs generated, etc...
 		header("Location: ".ROOT_URL."ajaxinstance/?name=".urlencode($name)."&selfedit=".$selfedit);
@@ -111,18 +105,14 @@ class TdbmController extends AbstractMoufInstanceController {
 	 * @param string $daofactoryclassname
 	 * @param string $daofactoryinstancename
 	 * @param string $selfedit
-	 * @param bool $keepSupport
 	 * @param bool $storeInUtc
-	 * @param bool $castDatesToDateTime
 	 * @throws \Mouf\MoufException
 	 */
-	public static function generateDaos(MoufManager $moufManager, $name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $selfedit="false", $keepSupport = null, $storeInUtc = null, $castDatesToDateTime = null) {
+	public static function generateDaos(MoufManager $moufManager, $name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $selfedit="false", $storeInUtc = null) {
 		$moufManager->setVariable("tdbmDefaultDaoNamespace_".$name, $daonamespace);
 		$moufManager->setVariable("tdbmDefaultBeanNamespace_".$name, $beannamespace);
 		$moufManager->setVariable("tdbmDefaultDaoFactoryName_".$name, $daofactoryclassname);
 		$moufManager->setVariable("tdbmDefaultDaoFactoryInstanceName_".$name, $daofactoryinstancename);
-		$moufManager->setVariable("tdbmDefaultKeepSupport_".$name, $keepSupport);
-		$moufManager->setVariable("tdbmDefaultCastDatesToDateTime_".$name, $castDatesToDateTime);
 		$moufManager->setVariable("tdbmDefaultStoreInUtc_".$name, $storeInUtc);
 		
 		// In case of instance renaming, let's use the last used settings
@@ -130,8 +120,6 @@ class TdbmController extends AbstractMoufInstanceController {
 		$moufManager->setVariable("tdbmDefaultBeanNamespace", $beannamespace);
 		$moufManager->setVariable("tdbmDefaultDaoFactoryName", $daofactoryclassname);
 		$moufManager->setVariable("tdbmDefaultDaoFactoryInstanceName", $daofactoryinstancename);
-		$moufManager->setVariable("tdbmDefaultKeepSupport", $keepSupport);
-		$moufManager->setVariable("tdbmDefaultCastDatesToDateTime", $castDatesToDateTime);
 		$moufManager->setVariable("tdbmDefaultStoreInUtc", $storeInUtc);
 		
 		// Remove first and last slash in namespace.
@@ -150,7 +138,7 @@ class TdbmController extends AbstractMoufInstanceController {
 		
 		$tdbmService = new InstanceProxy($name);
 		/* @var $tdbmService TDBMService */
-        $tables = $tdbmService->generateAllDaosAndBeans($daofactoryclassname, $daonamespace, $beannamespace, $keepSupport, $storeInUtc, $castDatesToDateTime);
+        $tables = $tdbmService->generateAllDaosAndBeans($daofactoryclassname, $daonamespace, $beannamespace, $storeInUtc);
 
 
 		$moufManager->declareComponent($daofactoryinstancename, $daonamespace."\\".$daofactoryclassname, false, MoufManager::DECLARE_ON_EXIST_KEEP_INCOMING_LINKS);

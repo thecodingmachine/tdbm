@@ -76,8 +76,6 @@ class TdbmInstallController extends Controller {
 	protected $daoNamespace;
 	protected $beanNamespace;
 	protected $autoloadDetected;
-	protected $keepSupport;
-	protected $castDatesToDateTime;
 	protected $storeInUtc;
 	
 	/**
@@ -97,8 +95,8 @@ class TdbmInstallController extends Controller {
 		}
 		
 		// Let's start by performing basic checks about the instances we assume to exist.
-		if (!$this->moufManager->instanceExists("dbConnection")) {
-			$this->displayErrorMsg("The TDBM install process assumes your database connection instance is already created, and that the name of this instance is 'dbConnection'. Could not find the 'dbConnection' instance.");
+		if (!$this->moufManager->instanceExists("dbalConnection")) {
+			$this->displayErrorMsg("The TDBM install process assumes your database connection instance is already created, and that the name of this instance is 'dbalConnection'. Could not find the 'dbalConnection' instance.");
 			return;
 		}
 		
@@ -146,7 +144,7 @@ class TdbmInstallController extends Controller {
 	 * @param string $selfedit
 	 * @throws \Mouf\MoufException
 	 */
-    public function generate($daonamespace, $beannamespace, $keepSupport = 0, $storeInUtc = 0, $castDatesToDateTime = 1, $selfedit="false") {
+    public function generate($daonamespace, $beannamespace, $storeInUtc = 0, $selfedit="false") {
 		$this->selfedit = $selfedit;
 		
 		if ($selfedit == "true") {
@@ -157,13 +155,13 @@ class TdbmInstallController extends Controller {
 		
 		if (!$this->moufManager->instanceExists("tdbmService")) {
 			$this->moufManager->declareComponent("tdbmService", "Mouf\\Database\\TDBM\\TDBMService");
-			$this->moufManager->bindComponentViaSetter("tdbmService", "setConnection", "dbConnection");
+			$this->moufManager->bindComponentViaSetter("tdbmService", "setConnection", "dbalConnection");
 			$this->moufManager->bindComponentViaSetter("tdbmService", "setCacheService", "noCacheService");
 		}
 		
 		$this->moufManager->rewriteMouf();
 		
-		TdbmController::generateDaos($this->moufManager, "tdbmService", $daonamespace, $beannamespace, "DaoFactory", "daoFactory", $selfedit, $keepSupport, $storeInUtc, $castDatesToDateTime);
+		TdbmController::generateDaos($this->moufManager, "tdbmService", $daonamespace, $beannamespace, "DaoFactory", "daoFactory", $selfedit, $storeInUtc);
 				
 		InstallUtils::continueInstall($selfedit == "true");
 	}
