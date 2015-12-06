@@ -152,11 +152,18 @@ class TdbmInstallController extends Controller {
 		} else {
 			$this->moufManager = MoufManager::getMoufManagerHiddenInstance();
 		}
-		
+
+		if (!$this->moufManager->instanceExists("doctrineApcCache")) {
+			$doctrineApcCache = $this->moufManager->createInstance("Doctrine\\Common\\Cache\\ApcCache")->setName('doctrineApcCache');
+			// TODO: set namespace
+		} else {
+			$doctrineApcCache = $this->moufManager->getInstanceDescriptor('doctrineApcCache');
+		}
+
 		if (!$this->moufManager->instanceExists("tdbmService")) {
-			$this->moufManager->declareComponent("tdbmService", "Mouf\\Database\\TDBM\\TDBMService");
-			$this->moufManager->bindComponentViaSetter("tdbmService", "setConnection", "dbalConnection");
-			$this->moufManager->bindComponentViaSetter("tdbmService", "setCacheService", "noCacheService");
+			$tdbmService = $this->moufManager->createInstance("Mouf\\Database\\TDBM\\TDBMService")->setName('tdbmService');
+			$tdbmService->getConstructorArgumentProperty('connection')->setValue($this->moufManager->getInstanceDescriptor('dbalConnection'));
+			$tdbmService->getConstructorArgumentProperty('cache')->setValue($doctrineApcCache);
 		}
 		
 		$this->moufManager->rewriteMouf();

@@ -992,7 +992,7 @@ class TDBMService {
 	 * @return \string[] the list of tables
 	 */
 	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc) {
-		$tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema());
+		$tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer);
 		return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
 	}
 
