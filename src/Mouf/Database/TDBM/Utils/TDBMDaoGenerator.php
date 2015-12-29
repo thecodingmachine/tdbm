@@ -395,7 +395,7 @@ class $baseClassName
     /**
      * Sets the default column for default sorting.
      *
-     * @param \$defaultSort
+     * @param string \$defaultSort
      */
     public function setDefaultSort(\$defaultSort)
     {
@@ -559,6 +559,8 @@ class $daoFactoryClassName
      * @return string
      */
     public static function toSingular($str) {
+        // Workaround for autoload files not loaded by Mouf
+        require_once __DIR__.'/../../../../../../../icanboogie/inflector/lib/helpers.php';
         return \ICanBoogie\singularize($str, "en");
     }
     

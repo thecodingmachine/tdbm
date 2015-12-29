@@ -43,23 +43,6 @@ Unless you are developing your own autoload system, you should configure <strong
 </div>
 
 <div class="control-group">
-	<label class="control-label">Keep support for previous DAOs:</label>
-	<div class="controls">
-		<input type="checkbox" name="keepSupport" <?php echo $this->keepSupport?'checked="checked"':"" ?>></input>
-		<span class="help-block">DAOs generated before TDBM 2.3 had a different method signature. This will ensure this signature
-		is respected. Use this only if you are migrating legacy code.</span>
-	</div>
-</div>
-<div class="control-group">
-	<label class="control-label">Cast dates as <code>DateTimeImmutable</code>:</label>
-	<div class="controls">
-		<input type="checkbox" name="castDatesToDateTime" value="1" <?php echo $this->castDatesToDateTime?'checked="checked"':"" ?>></input>
-<span class="help-block">Select this option if you want dates to be returned as <code>DateTimeImmutable</code>.
-This is highly recommended. If you do not select this box, getters and setters will return / expect a timestamp
-(this was the default behaviour up to TDBM 3.3).</span>
-	</div>
-</div>
-<div class="control-group">
 	<label class="control-label">Store dates / timestamps in UTC:</label>
 	<div class="controls">
 		<input type="checkbox" name="storeInUtc" value="1" <?php echo $this->storeInUtc?'checked="checked"':"" ?>></input>
