@@ -436,6 +436,14 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $bean = $this->tdbmService->findObject("contact");
     }
 
+    public function testFindObjectsByBean() {
+        $countryBean = $this->tdbmService->findObject("country", "id = :id", ["id"=>1]);
+
+        $users = $this->tdbmService->findObjects("users", $countryBean);
+        $this->assertCount(1, $users);
+        $this->assertEquals("jean.dupont", $users[0]->get('login', 'users'));
+    }
+
 
     /*
         public function testObjectAsFilter() {

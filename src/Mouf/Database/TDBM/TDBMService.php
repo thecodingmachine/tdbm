@@ -781,13 +781,13 @@ class TDBMService {
 	}*/
 
 
-
 	/**
 	 * Takes in input a filter_bag (which can be about anything from a string to an array of TDBMObjects... see above from documentation),
 	 * and gives back a proper Filter object.
 	 *
 	 * @param mixed $filter_bag
 	 * @return array First item: filter string, second item: parameters.
+	 * @throws TDBMException
 	 */
 	public function buildFilterFromFilterBag($filter_bag) {
 		$counter = 1;
@@ -810,8 +810,17 @@ class TDBMService {
 			}
 			return [implode(' AND ', $sqlParts), $parameters];
 		} elseif ($filter_bag instanceof AbstractTDBMObject) {
-			// TODO
-			throw new TDBMException("Missing feature!");
+			$dbRows = $filter_bag->_getDbRows();
+			$dbRow = reset($dbRows);
+			$primaryKeys = $dbRow->_getPrimaryKeys();
+
+			foreach ($primaryKeys as $column => $value) {
+				$paramName = "tdbmparam".$counter;
+				$sqlParts[] = $this->connection->quoteIdentifier($dbRow->_getDbTableName()).'.'.$this->connection->quoteIdentifier($column)." = :".$paramName;
+				$parameters[$paramName] = $value;
+				$counter++;
+			}
+			return [implode(' AND ', $sqlParts), $parameters];
 		} elseif ($filter_bag instanceof \Iterator) {
 			return $this->buildFilterFromFilterBag(iterator_to_array($filter_bag));
 		} else {
@@ -1533,9 +1542,8 @@ class TDBMService {
 	 * @param string|array|null $filter The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
 	 * @param array $parameters
 	 * @param string|null $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
-	 * @param integer $from The offset
-	 * @param integer $limit The maximum number of rows returned
 	 * @param array $additionalTablesFetch
+	 * @param string $mode
 	 * @param string $className Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
 	 * @return ResultIterator An object representing an array of results.
 	 * @throws TDBMException

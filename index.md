@@ -23,9 +23,14 @@ Design philosophy
 
 Design choices:
 
-- _TDBM relies on the model of your database._ It has one of **the most powerful database model analyzer** that helps it 
-  map tables to objects. TDBM understands the meaning of your database model and the intent of it.
-  TDBM relies on your database model to find joins between tables.  It relies in fact on foreign key constraints.
+- _TDBM starts with your database model and generates PHP files._ TDBM **understands your database model**. From it,
+  it will generate PHP classes that will help you access your database. It will generate 2 kind of classes: *DAOs*
+  that are services helping you access a given table, and *Beans* that are classes representing a row in your database.
+  Because PHP objects are generated, it means you get a nice **autocompletion** in your favorite IDE. 
+- _TDBM is really good at understanding the meaning and the intent behind your database model._
+  TDBM has one of **the most powerful database model analyzer** that helps it 
+  map tables to objects.
+  TDBM relies on your foreign key constraints to find joins between tables.
   TDBM finds these constraints itself in the database by querying the 
   DB system. It can automatically detect pivot table to generate **many to many relationships**. It can also 
   detect **inheritance** relationships.
