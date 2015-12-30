@@ -7,6 +7,7 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use ICanBoogie\Inflector;
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\TDBMException;
@@ -560,8 +561,9 @@ class $daoFactoryClassName
      */
     public static function toSingular($str) {
         // Workaround for autoload files not loaded by Mouf
-        require_once __DIR__.'/../../../../../../../icanboogie/inflector/lib/helpers.php';
-        return \ICanBoogie\singularize($str, "en");
+        //require_once __DIR__.'/../../../../../../../icanboogie/inflector/lib/helpers.php';
+        //return \ICanBoogie\singularize($str, "en");
+        return Inflector::get('en')->singularize($str);
     }
     
     /**
