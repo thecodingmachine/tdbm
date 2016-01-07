@@ -368,18 +368,19 @@ class $baseClassName
     /**
      * Get a list of $beanClassWithoutNameSpace specified by its filters.
      *
-     * @param mixed \$filterBag The filter bag (see TDBMService::getObjects for complete description)
-     * @param mixed \$orderbyBag The order bag (see TDBMService::getObjects for complete description)
-     * @param integer \$from The offset
-     * @param integer \$limit The maximum number of rows returned
+     * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
+     * @param array \$parameters The parameters associated with the filter
+     * @param mixed \$orderby The order string
+     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @param string \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
-    protected function getListByFilter(\$filterBag=null, \$orderbyBag=null, \$from=null, \$limit=null)
+    protected function getListByFilter(\$filter=null, array \$parameters = [], \$orderby=null, array \$additionalTablesFetch = array(), \$mode = null)
     {
-        if (\$this->defaultSort && \$orderbyBag == null) {
-            \$orderbyBag = new OrderByColumn('$tableName', \$this->defaultSort, \$this->defaultDirection);
+        if (\$this->defaultSort && \$orderby == null) {
+            \$orderby = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
         }
-        return \$this->tdbmService->getObjects('$tableName', \$filterBag, \$orderbyBag, \$from, \$limit);
+        return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderby);
     }
 
     /**

@@ -390,12 +390,17 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
         $this->assertCount(1, $user->getRoles());
     }
 
-    public function testGetListByFilter() {
+    public function testGetListByFilterOrderBy() {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByAlphabeticalOrder();
 
-        $this->assertCount(4, $users);
-        $this->assertEquals("bill.shakespear", $users[0]->getLogin());
+        $this->assertCount(6, $users);
+        $this->assertEquals("bill.shakespeare", $users[0]->getLogin());
         $this->assertEquals("jean.dupont", $users[1]->getLogin());
     }
+
+    // TODO: test getListByFilter filter and parameters and all parameters accepted by the list
+    // TODO: test getList
+    // TODO: test getByFilter
+
 }
