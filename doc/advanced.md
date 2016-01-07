@@ -4,13 +4,13 @@ Advanced tutorial
 In this advanced tutorial, we will learn how to use the getObjects method in details, and see the behaviour of TDBM with more complex data model.
 If you are new to TDBM, you should start with the <a href="quickstart.html">quickstart guide</a>.
 
-Making complex queries: the getObjects method
----------------------------------------------
+Making complex queries: the getListByFilter method
+--------------------------------------------------
 
 Complex queries with filters and ordering is achieved in TDBM through the `xxxDao::getListByFilter` protected method.
 
 ```php
-protected function getListByFilter($filterBag=null, $orderbyBag=null, $from=null, $limit=null);
+protected function getListByFilter($filterBag=null, $parameters = [], $orderbyBag=null, $from=null, $limit=null);
 ```
 
 The `getListByFilter` method should be the preferred way to perform queries in TDBM.  (Note: if you want to query the database for an object by its primary key, use the `getById` method).

@@ -560,9 +560,6 @@ class $daoFactoryClassName
      * @return string
      */
     public static function toSingular($str) {
-        // Workaround for autoload files not loaded by Mouf
-        //require_once __DIR__.'/../../../../../../../icanboogie/inflector/lib/helpers.php';
-        //return \ICanBoogie\singularize($str, "en");
         return Inflector::get('en')->singularize($str);
     }
     

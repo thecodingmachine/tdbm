@@ -60,3 +60,9 @@ that TDBM result sets implement Porpaginas interfaces (the `Result` and `Page` c
 
 This means that you can easily migrate to and from any ORM that uses Porpaginas for its results. You can also
 use any pagination library compatible with Porpaginas, like Pagerfanta.
+
+
+Next step
+---------
+
+Let's now learn how to [regenerate DAOs](generating_daos.md) when your data model changes.

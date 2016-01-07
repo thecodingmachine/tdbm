@@ -138,7 +138,7 @@ class UserDao extends UserBaseDao {
 	 * Returns the list of users starting with $firstLetter
 	 *
 	 * @param string $firstLetter
-	 * @return array&lt;UserBean>
+	 * @return UserBean[]
 	 */
 	public function getUsersByLetter($firstLetter) {
 		// The getListByFilter can be used to retrieve a list of UserBean
@@ -177,6 +177,29 @@ Furthermore, TDBM performs a very complex analysis on your SQL query. It takes a
 so the cost of the analysis will be negligible in the long run. But if you append parameters in the SQL query instead
 of using parameters, TDBM will not be able to find the query in the cache. The cache will grow with useless queries 
 while your application will be very slow. You have been warned!</div>
+
+###Getting only one record
+
+If you are confident that your query will only ever return one record (for instance, you are performing a lookup by `login` on the `Users` table, then, you can use the `getByFilter` method instead of `getListByFilter`.
+
+```php
+class UserDao extends UserBaseDao {
+
+	/**
+	 * Returns the list of users starting with $firstLetter
+	 *
+	 * @param string $firstLetter
+	 * @return UserBean|null
+	 */
+	public function getUserByLogin($login) {
+		// The getByFilter method can be used to retrieve a single UserBean
+		// It takes in parameter a SQL filter string and a list of parameters.
+		// If will return the UserBean, or null of no user is found
+		// If more than 1 user is found, it will throw an exception.
+		return $this->getByFilter("login = :login", [ "login" => $login ]);
+	}
+}
+```
 
 So far, so good, we have had enough play with the `Users` table. But the users table is not alone and it would be good to get some more information.
 
@@ -268,6 +291,8 @@ $hasUser = $roleBean->hasUser($roleBean);
 Joins ans filters
 -----------------
 
+###Simple joins
+
 In the previous chapter, we saw how to apply filters on a table (for instance to get all users whose name starts with a 
 'J'). In this chapter, we will see how to apply JOINs in the filters.
 
@@ -296,33 +321,29 @@ MagicQuery is smart enough to automatically detect the link between the `users` 
 to tell TDBM what filter you want on **any column** in **any table** in your database model and TDBM will find
 the right query for you.
 
+###Filtering by ID/bean
+
 Most of the time, of course, you will not pass the name of the country but the ID of the country. Actually,
 using TDBM you can just pass the object. Have a look!
 
-TODO: check this!
-
-<pre class="brush:php">
+```php
 class UserDao extends UserBaseDao {
 	/**
 	 * Returns the list of users whose country is "$countryBean"
 	 *
 	 * @param CountryBean $countryBean
-	 * @return array&lt;UserBean>
+	 * @return UserBean[]
 	 */
 	public function getUsersByCountry(CountryBean $countryBean) {
-		// You can pass a CountryBean instance directly to the getUserListByFilter method!
-		return $this->getUserListByFilter($countryBean);
+		// You can pass a CountryBean instance directly to the getListByFilter method!
+		return $this->getListByFilter($countryBean);
 	}
 }
-</pre>
+```
 
 You would use this method like this:
 
-<pre class="brush:php">
-// Let's get the DAO
-$countryDao = Mouf::getCountryDao();
-$userDao = Mouf::getUserDao();
-
+```php
 // Let's get the country bean
 $countryBean = $countryDao->getCountryById(12);
 
@@ -333,37 +354,84 @@ $userList = $userBean->getUsersByCountry($countryBean);
 foreach ($userList as $userBean)
 {
 	/* @var $userBean UserBean */
-	echo $userBean->getName().'&lt;br/>';
+	echo $userBean->getName().'<br/>';
 }
-</pre>
+```
 
-So now, what if I want to find out what groups robert marley belongs to.<br/>
-We saw how to access a "1*" and "*1" relationship, therefore, we could do it by getting "robert marley" from users, then accessing the "pivot_users_groups" objects, then accessing the "groups" objects associated to that group. But this would be definitely tedious, and the use of a pivot table to generate "**" relationships is definitely common.<br/>
-Hopefully, TDBM can help here too:
+###Complex joins
 
-<pre class="brush:php">
-// Since we are accessing groups, we will modify the GroupDao class
-class GroupDao extends GroupDaoBase {
-	/**
-	 * Returns the list of groups associated to a user
+![Users, roles and rights](images/user_role_right.png)
+
+So now, what if I want to find what rights the user "Robert Marley" has?
+
+Well this is really easy. Remember how TDBM relies on MagicQuery to find the relationship between tables?
+It turns out MagicQuery is clever enough to find the shortest path between any table in your data model. This means
+your code can look like this:
+
+```php
+class RoleDao extends RoleBaseDao {
+ 	/**
+	 * Returns the list of roles for a given user
 	 *
-	 * @param UserBean $userBean
-	 * @return array&lt;UserBean>
+	 * @param UserBean $user
+	 * @return RoleBean[]
 	 */
-	public function getGroupsForUser(UserBean $userBean) {
+	public function getRolesForUser(UserBean $user) {
 		// Behold the magic!
-		return $this->getCountryListByFilter($userBean);
+		return $this->getListByFilter($user);
 	}
 }
-</pre>
+```
 
-Powerful, isn't it? TDBM automatically detected the pivot table and performed the SQL double join to retrieve the groups our user belongs too.<br/>
-<br/>
-Actually, TDBM is much more powerful. It can perform any kind of joins between 2 tables as long as they can be related by a constraint. Let's admit that I want to find the countries of all the writers in database. Well, I can do it in one single line of code:<br/>
-<br/>
+Powerful, isn't it? TDBM automatically detected the two pivot tables and performed 4 joins to retrieve the roles our user has.<br/>
 
-<pre class="brush:php">
-return $this->getCountryListByFilter(new EqualFilter("groups", "name", "writers"));
-</pre>
+###Simple filter syntax
 
-Let's now learn how to <a href="generating_daos.md">regenerate DAOs</a> when your data model changes.
+If your filter is only made of "=" and "AND" statements, you can use the shortcut "array" syntax in your queries.
+Here, we filter a `products` table by `category_id` and `status`:
+
+```php
+class ProductDao extends ProductBaseDao {
+ 	/**
+	 * Returns the list of products filtered by category_id and status
+	 *
+	 * @param int $category_id
+	 * @param int $status
+	 * @return ProductBean[]
+	 */
+	public function getRolesForUser(int $category_id, int $status) {
+		return $this->getListByFilter([
+		    'category_id' => $category_id,
+		    'status' => $status,
+		]);
+	}
+}
+```
+
+Ordering
+--------
+
+You can get your results in a specific order using the third parameter of the `getListByFilter` method:
+ 
+```php
+class UserDao extends UserBaseDao {
+
+	/**
+	 * Returns the list of users by alphabetical order
+	 *
+	 * @return UserBean[]
+	 */
+	public function getUsersByAlphabeticalOrder() {
+		// The third parameter will be used in the "ORDER BY" clause of the SQL query.
+		return $this->getListByFilter(null, [], 'name ASC');
+	}
+}
+```
+
+
+TODO: hierarchy
+
+Restricting results fetched using limits and offsets
+----------------------------------------------------
+
+Let's now learn how to [use limit and offsets](limit_offset_resultset.md) to limit the number of results fetched in a query.

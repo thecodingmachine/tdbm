@@ -22,6 +22,7 @@ namespace Mouf\Database\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Mouf\Database\DBConnection\MySqlConnection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use Mouf\Database\TDBM\Dao\TestUserDao;
 use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\RoleBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\UserBean;
@@ -389,4 +390,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
         $this->assertCount(1, $user->getRoles());
     }
 
+    public function testGetListByFilter() {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByAlphabeticalOrder();
+
+        $this->assertCount(4, $users);
+        $this->assertEquals("bill.shakespear", $users[0]->getLogin());
+        $this->assertEquals("jean.dupont", $users[1]->getLogin());
+    }
 }
