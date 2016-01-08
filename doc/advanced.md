@@ -1,32 +1,32 @@
 Advanced tutorial
 =================
 
-In this advanced tutorial, we will learn how to use the getObjects method in details, and see the behaviour of TDBM with more complex data model.
+In this advanced tutorial, we will learn how to use the `find` method in details, and see the behaviour of TDBM with more complex data model.
 If you are new to TDBM, you should start with the <a href="quickstart.html">quickstart guide</a>.
 
-Making complex queries: the getListByFilter method
+Making complex queries: the find method
 --------------------------------------------------
 
-Complex queries with filters and ordering is achieved in TDBM through the `xxxDao::getListByFilter` protected method.
+Complex queries with filters and ordering is achieved in TDBM through the `xxxDao::find` protected method.
 
 ```php
-protected function getListByFilter($filterBag=null, $parameters = [], $orderbyBag=null, $from=null, $limit=null);
+protected function find($filterBag=null, $parameters = [], $orderbyBag=null, $from=null, $limit=null);
 ```
 
-The `getListByFilter` method should be the preferred way to perform queries in TDBM.  (Note: if you want to query the database for an object by its primary key, use the `getById` method).
-The `getListByFilter` method takes in parameter: 
+The `find` method should be the preferred way to perform queries in TDBM.  (Note: if you want to query the database for an object by its primary key, use the `getById` method).
+The `find` method takes in parameter: 
 
 - filter_bag (optionnal): The filter bag is anything that you can use to filter your request. It can be a SQL Where clause,	a series of `xxxFilter` objects, or even `TDBMObjects` or `TDBMObjectArrays` that you will use as filters.
 - order_bag (optionnal): The order bag is what you use to order the results of your request. It can be a SQL OrderBy clause, a series of `OrderByColumn` objects or an array containing both.
-- from (optionnal): The offset from which the query should be performed. For instance, if `$from = 5`, the `getListByFilter` method will return objects from the 6th row.
+- from (optionnal): The offset from which the query should be performed. For instance, if `$from = 5`, the `find` method will return objects from the 6th row.
 - limit (optionnal): The maximum number of objects returned. Together with the `from` parameter, this can be used to implement paging.
 
 
-The `getListByFilter` method will return an array (or a generator dependenging on the fetch mode used).
+The `find` method will return an array (or a generator dependenging on the fetch mode used).
 
 ###More about the filter bag
 
-A filter is anything that can change the set of objects returned by `getListByFilter`. 
+A filter is anything that can change the set of objects returned by `find`. 
 There are many kind of filters in TDBM: A filter can be: 
 
 - A SQL WHERE clause:
@@ -48,7 +48,7 @@ There are many kind of filters in TDBM: A filter can be:
   ```php
   class UserDao extends UserBaseDao {
       public function getUsersByCountryName($countryName) {
-          return $this->getListByFilter("countries.country_name='".addslashes($countryName)."'");
+          return $this->find("countries.country_name='".addslashes($countryName)."'");
       }
   }
   ```
@@ -64,7 +64,7 @@ There are many kind of filters in TDBM: A filter can be:
   ```php
   class UserDao extends UserBaseDao {
       public function getUsersByCountry(CountryBean $countryBean) {
-          return $this->getListByFilter($countryBean);
+          return $this->find($countryBean);
       }
   }
   ```
@@ -78,7 +78,7 @@ There are many kind of filters in TDBM: A filter can be:
        * @return UserBean[]
        */
       public function getUsersByCountries(array $countries) {
-          return $this->getListByFilter($countries);
+          return $this->find($countries);
       }
   }
   ```
@@ -113,16 +113,16 @@ There are many kind of filters in TDBM: A filter can be:
           // Notice how we do can refer to a column of the 'countries' table without
           // specifying the joins
           // TDBM will use the most obvious ones (i.e. the shortest route)
-          return $this->getListByFilter(new EqualFilter('countries','country_name',$countryName));
+          return $this->find(new EqualFilter('countries','country_name',$countryName));
       }
 
       public function getUsersCreatedThisYear() {
-          return $this->getListByFilter(new GreaterFilter('users','create_date',date('Y-m-d'));
+          return $this->find(new GreaterFilter('users','create_date',date('Y-m-d'));
       }
 
       public function getUsersByName($name) {
           // Let's search on the first name or last name:
-          return $this->getListByFilter(new OrFilter(
+          return $this->find(new OrFilter(
               new LikeFilter('users', 'first_name', '%'.$name.'%'),
               new LikeFilter('users', 'last_name', '%'.$name.'%')
           ));
@@ -140,7 +140,7 @@ There are many kind of filters in TDBM: A filter can be:
   class UserDao extends UserBaseDao {
       public function getAdministratorsByCountry(CountryBean $countryBean) {
           // Returns the users who have a administrator role and are linked to $countryBean
-      	  return $this->getListByFilter(array(
+      	  return $this->find(array(
       	      $countryBean,
       	      new EqualFilter('role', 'role_name', 'Administrator')
       	  ));
@@ -166,7 +166,7 @@ The order bag can contain two kinds of objects:
   The only difference with SQL is that when you specify a column name, it should always be fully qualified with the table name: <code>"country_name ASC"</code> is not valid, while `"countries.country_name ASC"` is valid (if "countries" is a table and "country_name" a column in that table, sure).
   
   ```php
-  $users = $this->getListByFilter(null, "countries.country_name ASC");
+  $users = $this->find(null, "countries.country_name ASC");
   ```
   
   This will return all the users sorted by country.
@@ -177,7 +177,7 @@ The order bag can contain two kinds of objects:
   ```php
   class CountryDao extends CountryBaseDao {
       public function getListByAlphabeticalOrder() {
-          return $this->getListByFilter(null, new OrderByColumn("country", "country_name", "ASC");
+          return $this->find(null, new OrderByColumn("country", "country_name", "ASC");
       }
   }
   ```

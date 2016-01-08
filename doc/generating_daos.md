@@ -82,7 +82,7 @@ Let's now have a closer look at the methods that are available in the "UserDao" 
 - `public function create()` : returns a new UserBean object ready to be added in the database.
 - `public function save(UserBean $obj)` : saves a UserBean object in database (TDBM can also decide to save the object by
   itself so most of the time, you don't need to call this function explicitly)
-- `public function getList()` : returns all users records as an array of "UserBean" objects.
+- `public function findAll()` : returns all users records as an array of "UserBean" objects.
 - `public function getById($id, $lazyLoading = false)` : Get a UserBean specified by its ID (its primary key)
 - `public function delete($obj, $cascade=false)` : Deletes the UserBean passed in parameter. If $cascade is set to true, it will delete all objects linked to $obj.
 
@@ -90,10 +90,10 @@ Let's now have a closer look at the methods that are available in the "UserDao" 
 The last 2 functions are _protected_. It means they are designed to be used in the UserDao class.
 
 
-- `protected function getListByFilter($filterBag=null, $orderbyBag=null, $from=null, $limit=null)` : returns a list of
+- `protected function find($filterBag=null, $orderbyBag=null, $from=null, $limit=null)` : returns a list of
   users based on a filter bag (see the `TDBM_Service` documentation to learn more about filter bags). You can also
   provide an order, and an offset / limit range.
-- `protected function getByFilter($filterBag=null)` : this has exactly the same purpose as getListByFilter except
+- `protected function findOne($filterBag=null)` : this has exactly the same purpose as find except
   it returns only 1 bean object instead of a list of bean objects.
 
 

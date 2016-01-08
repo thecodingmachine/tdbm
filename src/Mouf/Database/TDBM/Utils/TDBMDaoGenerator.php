@@ -319,14 +319,14 @@ class $baseClassName
      *
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
-    public function getList()
+    public function findAll()
     {
         if (\$this->defaultSort) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
         } else {
             \$orderBy = null;
         }
-        return \$this->tdbmService->getObjects('$tableName',  null, [], \$orderBy);
+        return \$this->tdbmService->findObjects('$tableName',  null, [], \$orderBy);
     }
     ";
 
@@ -375,7 +375,7 @@ class $baseClassName
      * @param string \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
-    protected function getListByFilter(\$filter=null, array \$parameters = [], \$orderby=null, array \$additionalTablesFetch = array(), \$mode = null)
+    protected function find(\$filter=null, array \$parameters = [], \$orderby=null, array \$additionalTablesFetch = array(), \$mode = null)
     {
         if (\$this->defaultSort && \$orderby == null) {
             \$orderby = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
@@ -386,12 +386,13 @@ class $baseClassName
     /**
      * Get a single $beanClassWithoutNameSpace specified by its filters.
      *
-     * @param mixed \$filterBag The filter bag (see TDBMService::getObjects for complete description)
+     * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
+     * @param array \$parameters The parameters associated with the filter
      * @return $beanClassWithoutNameSpace
      */
-    protected function getByFilter(\$filterBag = null)
+    protected function findOne(\$filter=null, array \$parameters = [])
     {
-        return \$this->tdbmService->getObject('$tableName', \$filterBag);
+        return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters);
     }
     
     /**

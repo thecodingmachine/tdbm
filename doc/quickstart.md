@@ -83,7 +83,7 @@ Ok, that's easy, just use the `getUserList()` method!
 
 ```php
 // Let's get the list of users
-$userList = $userDao->getList();
+$userList = $userDao->findAll();
 
 // Let's display the names
 foreach ($userList as $userBean) {
@@ -102,7 +102,7 @@ Bill Shakespeare
 ```
 
 
-The `getList` method will return the list of beans.
+The `findAll` method will return the list of beans.
 Of course, most of the time, you don't want all the rows in a database.
 You want to perform a query with filters.
 
@@ -111,7 +111,7 @@ You want to perform a query with filters.
 
 Now, what if I want to get something more difficult, like the list of users with name starting with a 'J'?
 
-To do this, I need to call the `getListByFilter` method and pass the filter in parameter.
+To do this, I need to call the `find` method and pass the filter in parameter.
 
 At this point, it might be a good idea to have a look at the code TDBM did generate. For the `users` table, TDBM
 generated 4 classes:
@@ -141,9 +141,9 @@ class UserDao extends UserBaseDao {
 	 * @return UserBean[]
 	 */
 	public function getUsersByLetter($firstLetter) {
-		// The getListByFilter can be used to retrieve a list of UserBean
+		// The find can be used to retrieve a list of UserBean
 		// It takes in parameter a SQL filter string and a list of parameters.
-		return $this->getListByFilter("name LIKE :name", [ "name" => $firstLetter.'%' ]);
+		return $this->find("name LIKE :name", [ "name" => $firstLetter.'%' ]);
 	}
 }
 ```
@@ -169,7 +169,7 @@ You should never write something like:
 
 ```php
 // NEVER DO THIS!
-$list = $this->getListByFilter("name LIKE '".$firstLetter.'%"' );
+$list = $this->find("name LIKE '".$firstLetter.'%"' );
 ```
 
 <div class="alert alert-info">First of all, be writing this, you are introducing a security flaw in your application (namely: an SQL injection).
@@ -180,7 +180,7 @@ while your application will be very slow. You have been warned!</div>
 
 ###Getting only one record
 
-If you are confident that your query will only ever return one record (for instance, you are performing a lookup by `login` on the `Users` table, then, you can use the `getByFilter` method instead of `getListByFilter`.
+If you are confident that your query will only ever return one record (for instance, you are performing a lookup by `login` on the `Users` table, then, you can use the `findOne` method instead of `find`.
 
 ```php
 class UserDao extends UserBaseDao {
@@ -192,11 +192,11 @@ class UserDao extends UserBaseDao {
 	 * @return UserBean|null
 	 */
 	public function getUserByLogin($login) {
-		// The getByFilter method can be used to retrieve a single UserBean
+		// The findOne method can be used to retrieve a single UserBean
 		// It takes in parameter a SQL filter string and a list of parameters.
 		// If will return the UserBean, or null of no user is found
 		// If more than 1 user is found, it will throw an exception.
-		return $this->getByFilter("login = :login", [ "login" => $login ]);
+		return $this->findOne("login = :login", [ "login" => $login ]);
 	}
 }
 ```
@@ -309,12 +309,12 @@ class UserDao extends UserBaseDao {
 	 */
 	public function getUsersByCountryName($countryName) {
 		// Behold the magic!
-		return $this->getListByFilter("country.name LIKE :country", [ 'country' => $countryName.'%' ] );
+		return $this->find("country.name LIKE :country", [ 'country' => $countryName.'%' ] );
 	}
 }
 ```
 
-Here, we called the `getListByFilter` method passing a filter on the `name` column of the `country` table.
+Here, we called the `find` method passing a filter on the `name` column of the `country` table.
 
 Behind the scene, TDBM is calling a library called [MagicQuery](http://mouf-php.com/packages/mouf/magic-query/README.md).
 MagicQuery is smart enough to automatically detect the link between the `users` and the `countries` table. You just need
@@ -335,8 +335,8 @@ class UserDao extends UserBaseDao {
 	 * @return UserBean[]
 	 */
 	public function getUsersByCountry(CountryBean $countryBean) {
-		// You can pass a CountryBean instance directly to the getListByFilter method!
-		return $this->getListByFilter($countryBean);
+		// You can pass a CountryBean instance directly to the find method!
+		return $this->find($countryBean);
 	}
 }
 ```
@@ -378,7 +378,7 @@ class RoleDao extends RoleBaseDao {
 	 */
 	public function getRolesForUser(UserBean $user) {
 		// Behold the magic!
-		return $this->getListByFilter($user);
+		return $this->find($user);
 	}
 }
 ```
@@ -400,7 +400,7 @@ class ProductDao extends ProductBaseDao {
 	 * @return ProductBean[]
 	 */
 	public function getRolesForUser(int $category_id, int $status) {
-		return $this->getListByFilter([
+		return $this->find([
 		    'category_id' => $category_id,
 		    'status' => $status,
 		]);
@@ -411,7 +411,7 @@ class ProductDao extends ProductBaseDao {
 Ordering
 --------
 
-You can get your results in a specific order using the third parameter of the `getListByFilter` method:
+You can get your results in a specific order using the third parameter of the `find` method:
  
 ```php
 class UserDao extends UserBaseDao {
@@ -423,7 +423,7 @@ class UserDao extends UserBaseDao {
 	 */
 	public function getUsersByAlphabeticalOrder() {
 		// The third parameter will be used in the "ORDER BY" clause of the SQL query.
-		return $this->getListByFilter(null, [], 'name ASC');
+		return $this->find(null, [], 'name ASC');
 	}
 }
 ```

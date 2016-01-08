@@ -9,7 +9,7 @@ Let's assume you have a big "users" table with 100.000 records and you want to p
 You will typically write:
 
 ```php
-$users = Mouf::getUserDao->getList();
+$users = Mouf::getUserDao->findAll();
 foreach ($users as $user) {
 	// Do stuff
 }
@@ -27,7 +27,7 @@ To do this, you simply need to use the **cursor** mode:
 
 ```php
 Mouf::getTdbmService()->setFetchMode(TDBMService::MODE_CURSOR);
-$users = Mouf::getUserDao->getList();
+$users = Mouf::getUserDao->findAll();
 foreach ($users as $user) {
 	// Do stuff
 }

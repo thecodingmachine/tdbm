@@ -7,7 +7,7 @@ Paginating data with limits and offsets
 When you perform a query with TDBM, you never pass the limit or offset to the DAO method you are querying.
 
 ```php
-$users = $userDao->getList();
+$users = $userDao->findAll();
 
 // Iterate all users
 foreach ($users as $user) {
@@ -18,7 +18,7 @@ foreach ($users as $user) {
 If you want to limit the number of records returned, or start at a given offset, you can use the `take` method.
 
 ```php
-$users = $userDao->getList();
+$users = $userDao->findAll();
 
 $page = $users->take(0, 10);
 
