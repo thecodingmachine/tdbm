@@ -104,13 +104,28 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $object = new TDBMObject();
         $object->set('login', 'jane.doe', 'users');
         $object->set('name', 'Jane Doe', 'person');
-        $object->set('country_id', 2, 'users');
+        $object->set('country_id', 1, 'users');
 
         $this->tdbmService->save($object);
 
         $this->assertNotEmpty($object->get('id', 'person'));
         $this->assertNotEmpty($object->get('id', 'users'));
         $this->assertEquals($object->get('id', 'person'), $object->get('id', 'users'));
+    }
+
+    public function testCompleteSave() {
+        $beans = $this->tdbmService->findObjects("users", "users.login = :login", ["login"=>"jane.doe"]);
+        $jane = $beans[0];
+        $jane->set('country_id', 2, 'users');
+
+        $this->tdbmService->completeSave();
+    }
+
+    public function testCompleteSave2() {
+        $beans = $this->tdbmService->findObjects("users", "users.login = :login", ["login"=>"jane.doe"]);
+        $jane = $beans[0];
+
+        $this->assertEquals(2, $jane->get('country_id', 'users'));
     }
 
 

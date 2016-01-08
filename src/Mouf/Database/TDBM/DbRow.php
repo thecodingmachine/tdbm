@@ -238,8 +238,6 @@ class DbRow implements \JsonSerializable, FilterInterface {
 			$this->status = TDBMObjectStateEnum::STATE_DIRTY;
 			$this->tdbmService->_addToToSaveObjectList($this);
 		}
-		// Unset the error since something has changed (Insert or Update could work this time).
-		$this->db_onerror = false;
 	}
 
 	/**

@@ -53,13 +53,6 @@ class TDBMService {
 	private $connection;
 
 	/**
-	 * The cache service to cache data.
-	 *
-	 * @var CacheInterface
-	 */
-	private $cacheService;
-
-	/**
 	 * @var SchemaAnalyzer
 	 */
 	private $schemaAnalyzer;
@@ -98,14 +91,6 @@ class TDBMService {
 	private $primaryKeysColumns;
 
 	/**
-	 * Whether we should track execution time or not.
-	 * If true, if the execution time reaches 90% of the allowed execution time, the request will stop with an exception.
-	 *
-	 * @var bool
-	 */
-	private $trackExecutionTime = true;
-
-	/**
 	 * Service storing objects in memory.
 	 * Access is done by table name and then by primary key.
 	 * If the primary key is split on several columns, access is done by an array of columns, serialized.
@@ -130,15 +115,12 @@ class TDBMService {
 
 	/**
 	 * Table of new objects not yet inserted in database or objects modified that must be saved.
-	 * @var DbRow[]
+	 * @var \SplObjectStorage of DbRow objects
 	 */
-	private $toSaveObjects = array();
+	private $toSaveObjects;
 
 	/// The timestamp of the script startup. Useful to stop execution before time limit is reached and display useful error message.
 	public static $script_start_up_time;
-
-	/// True if the program is exiting (we are in the "exit" statement). False otherwise.
-	private $is_program_exiting = false;
 
 	/**
 	 * The content of the cache variable.
@@ -193,7 +175,7 @@ class TDBMService {
 		if (self::$script_start_up_time === null) {
 			self::$script_start_up_time = microtime(true);
 		}
-
+		$this->toSaveObjects = new \SplObjectStorage();
 	}
 
 
@@ -254,40 +236,6 @@ class TDBMService {
 		}
 		$this->mode = $mode;
 		return $this;
-	}
-
-	/**
-	 * Whether we should track execution time or not.
-	 * If true, if the execution time reaches 90% of the allowed execution time, the request will stop with an exception.
-	 *
-	 * @param boolean $trackExecutionTime
-	 */
-	public function setTrackExecutionTime($trackExecutionTime = true) {
-		$this->trackExecutionTime = $trackExecutionTime;
-	}
-
-
-	/**
-	 * Loads the cache and stores it (to be reused in this instance).
-	 * Note: the cache is not returned. It is stored in the $cache instance variable.
-	 */
-	/*private function loadCache() {
-		// TODO: evaluate for 4.0
-		if ($this->cache == null) {
-			if ($this->cacheService == null) {
-				throw new TDBMException("A cache service must be explicitly bound to the TDBM Service. Please configure your instance of TDBM Service.");
-			}
-			$this->cache = $this->cacheService->get($this->cacheKey);
-		}
-	}*/
-
-	/**
-	 * Saves the cache.
-	 *
-	 */
-	private function saveCache() {
-		// TODO: evaluate for 4.0
-		$this->cacheService->set($this->cacheKey, $this->cache);
 	}
 
 	/**
@@ -417,83 +365,6 @@ class TDBMService {
 	}*/
 
 	/**
-	 * Creates a new object that will be stored in table "table_name".
-	 * If $auto_assign_id is true, the primary key of the object will be automatically be filled.
-	 * Otherwise, the database system or the user will have to fill it itself (for exemple with
-	 * AUTOINCREMENT in MySQL or with a sequence in POSTGRESQL).
-	 * Please note that $auto_assign_id parameter is ignored if the primary key is autoincremented (MySQL only)
-	 * Also, please note that $auto_assign_id does not work on tables that have primary keys on multiple
-	 * columns.
-	 *
-	 * @param string $table_name
-	 * @param boolean $auto_assign_id
-	 * @param string $className Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-	 * @return TDBMObject
-	 */
-	public function getNewObject($table_name, $auto_assign_id=true, $className = null) {
-		if ($this->connection == null) {
-			throw new TDBMException("Error while calling TDBMObject::getNewObject(): No connection has been established on the database!");
-		}
-		$table_name = $this->connection->toStandardcase($table_name);
-
-		// Ok, let's verify that the table does exist:
-		try {
-			/*$data =*/ $this->connection->getTableInfo($table_name);
-		} catch (TDBMException $exception) {
-			$probable_table_name = $this->connection->checkTableExist($table_name);
-			if ($probable_table_name == null)
-			throw new TDBMException("Error while calling TDBMObject::getNewObject(): The table named '$table_name' does not exist.");
-			else
-			throw new TDBMException("Error while calling TDBMObject::getNewObject(): The table named '$table_name' does not exist. Maybe you meant the table '$probable_table_name'.");
-		}
-
-		if ($className === null) {
-			if (isset($this->tableToBeanMap[$table_name])) {
-				$className = $this->tableToBeanMap[$table_name];
-			} else {
-				$className = "Mouf\\Database\\TDBM\\TDBMObject";
-			}
-		}
-
-		if (!is_string($className)) {
-			throw new TDBMException("Error while calling TDBMObject::getNewObject(): The third parameter should be a string representing a class name to instantiate.");
-		}
-		if (!is_a($className, "Mouf\\Database\\TDBM\\TDBMObject", true)) {
-			throw new TDBMException("Error while calling TDBMObject::getNewObject(): The class ".$className." should extend TDBMObject.");
-		}
-		$object = new $className($this, $table_name);
-
-		if ($auto_assign_id && !$this->isPrimaryKeyAutoIncrement($table_name)) {
-			$pk_table =  $this->getPrimaryKeyColumns($table_name);
-			if (count($pk_table)==1)
-			{
-				$root_table = $this->connection->findRootSequenceTable($table_name);
-				$id = $this->connection->nextId($root_table);
-				// If $id == 1, it is likely that the sequence was just created.
-				// However, there might be already some data in the database. We will check the biggest ID in the table.
-				if ($id == 1) {
-					$sql = "SELECT MAX(".$this->connection->escapeDBItem($pk_table[0]).") AS maxkey FROM ".$root_table;
-					$res = $this->connection->getAll($sql);
-					// NOTE: this will work only if the ID is an integer!
-					$newid = $res[0]['maxkey'] + 1;
-					if ($newid>$id) {
-						$id = $newid;
-					}
-					$this->connection->setSequenceId($root_table, $id);
-				}
-
-				$object->TDBMObject_id = $id;
-
-				$object->db_row[$pk_table[0]] = $object->TDBMObject_id;
-			}
-		}
-
-		$this->_addToToSaveObjectList($object);
-
-		return $object;
-	}
-
-	/**
 	 * Removes the given object from database.
 	 * This cannot be called on an object that is not attached to this TDBMService
 	 * (will throw a TDBMInvalidOperationException)
@@ -601,88 +472,15 @@ class TDBMService {
 
 	/**
 	 * This function performs a save() of all the objects that have been modified.
-	 * This function is automatically called at the end of your script, so you don't have to call it yourself.
-	 *
-	 * Note: if you want to catch or display efficiently any error that might happen, you might want to call this
-	 * method explicitly and to catch any TDBMException that it might throw like this:
-	 *
-	 * try {
-	 * 		TDBMObject::completeSave();
-	 * } catch (TDBMException e) {
-	 * 		// Do something here.
-	 * }
-	 *
 	 */
 	public function completeSave() {
 
-		foreach ($this->toSaveObjects as $object)
+		foreach ($this->toSaveObjects as $dbRow)
 		{
-			if (!$object->db_onerror && $object->db_autosave)
-			{
-				$this->save($object);
-			}
+			$this->save($dbRow->getTDBMObject());
 		}
 
 	}
-
-	/**
-	 * This function performs a save() of all the objects that have been modified just before the program exits.
-	 * It should never be called by the user, the program will call it directly.
-	 *
-	 */
-	/*public function completeSaveOnExit() {
-		$this->is_program_exiting = true;
-		$this->completeSave();
-
-		// Now, let's commit or rollback if needed.
-		if ($this->connection != null && $this->connection->hasActiveTransaction()) {
-			if ($this->commitOnQuit) {
-				try  {
-					$this->connection->commit();
-				} catch (Exception $e) {
-					echo $e->getMessage()."<br/>";
-					echo $e->getTraceAsString();
-				}
-			} else {
-				try  {
-					$this->connection->rollback();
-				} catch (Exception $e) {
-					echo $e->getMessage()."<br/>";
-					echo $e->getTraceAsString();
-				}
-			}
-		}
-	}*/
-
-	/**
-	 * Function used internally by TDBM.
-	 * Returns true if the program is exiting.
-	 *
-	 * @return bool
-	 */
-	public function isProgramExiting() {
-		return $this->is_program_exiting;
-	}
-
-	/**
-	 * This function performs a save() of all the objects that have been modified, then it sets all the data to a not loaded state.
-	 * Therefore, the database will be queried again next time we access the object. Meanwhile, if another process modifies the database,
-	 * the changes will be retrieved when we access the object again.
-	 *
-	 */
-	/*public function completeSaveAndFlush() {
-		$this->completeSave();
-
-		$this->objectStorage->apply(function(TDBMObject $object) {
-			/* @var $object TDBMObject * /
-			if (!$object->db_onerror && $object->_getStatus() == TDBMObjectStateEnum::STATE_LOADED)
-			{
-				$object->_setStatus(TDBMObjectStateEnum::STATE_NOT_LOADED);
-			}
-		});
-	}
-*/
-
 
 	/**
 	 * Returns an array of objects of "table_name" kind filtered from the filter bag.
@@ -970,14 +768,7 @@ class TDBMService {
 	 * @param DbRow $myObject
 	 */
 	private function removeFromToSaveObjectList(DbRow $myObject) {
-		// TODO: replace this by a SplObjectStorage!!! Much more efficient on search!!!!
-		foreach ($this->toSaveObjects as $id=>$object) {
-			if ($object == $myObject)
-			{
-				unset($this->toSaveObjects[$id]);
-				break;
-			}
-		}
+		unset($this->toSaveObjects[$myObject]);
 	}
 
 	/**
@@ -988,7 +779,7 @@ class TDBMService {
 	 * @param AbstractTDBMObject $myObject
 	 */
 	public function _addToToSaveObjectList(DbRow $myObject) {
-		$this->toSaveObjects[] = $myObject;
+		$this->toSaveObjects[$myObject] = true;
 	}
 
 	/**
@@ -1017,7 +808,6 @@ class TDBMService {
 	 *
 	 * @param AbstractTDBMObject $object
 	 * @throws TDBMException
-	 * @throws \Exception
 	 */
 	public function save(AbstractTDBMObject $object) {
 		$status = $object->_getStatus();
