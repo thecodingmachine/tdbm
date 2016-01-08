@@ -62,17 +62,32 @@
 			],
 			"logo" : "icon.png",
 			"doc" : [{
+					"title" : "Install TDBM",
+					"url" : "doc/install.md"
+				},{
 					"title" : "Getting started",
 					"url" : "doc/quickstart.md"
 				}, {
+					"title" : "Add limit and offsets to your queries",
+					"url" : "doc/limit_offset_resultset.md"
+				}, {
 					"title" : "About DAOs",
 					"url" : "doc/generating_daos.md"
+				}, {
+					"title" : "Modeling inheritance",
+					"url" : "doc/modeling_inheritance.md"
 				}, {
 					"title" : "Advanced filtering",
 					"url" : "doc/advanced.md"
 				}, {
 					"title" : "Memory management and batches processing",
 					"url" : "doc/memory_management.md"
+				}, {
+					"title" : "A quick comparison with Doctrine",
+					"url" : "doc/comparison_with_doctrine.md"
+				}, {
+					"title" : "TDBM internals",
+					"url" : "doc/internals.md"
 				}
 			]
 		}

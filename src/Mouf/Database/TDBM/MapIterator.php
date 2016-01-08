@@ -1,11 +1,13 @@
 <?php
 namespace Mouf\Database\TDBM;
 
+use Iterator;
+
 
 /**
  * An iterator that maps element of another iterator by calling a callback on it.
  */
-class MapIterator implements \Iterator {
+class MapIterator implements Iterator {
 
     /**
      * @var Iterator
@@ -20,13 +22,13 @@ class MapIterator implements \Iterator {
     /**
      * @param $iterator Iterator|array
      * @param $callable callable This can have two parameters
-     * @throws Exception
+     * @throws TDBMException
      */
     public function __construct($iterator, callable $callable) {
         if (is_array($iterator)) {
             $this->iterator = new \ArrayIterator($iterator);
         }
-        elseif (!($iterator instanceof \Iterator))
+        elseif (!($iterator instanceof Iterator))
         {
             throw new TDBMException("\$iterator parameter must be an instance of Iterator");
         }

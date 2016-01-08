@@ -7,11 +7,11 @@ This feature will allow you to cleanly separate the database code (that you will
 Getting started
 ---------------
 
-###The tdbmService instance
+###The *tdbmService* instance
 
 During installation, TDBM will generate a "tdbmService" instance.
 
-This instance is already configured, but sould you need to modify the configuration, you need to know that
+This instance is already configured, but should you need to modify the configuration, you need to know that
 a `TDBMService` must be connected to a database connection, and to a caching service.
 
 <img src="images/tdbm_service_instance.png" alt="" />

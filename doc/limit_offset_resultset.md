@@ -66,3 +66,4 @@ Next step
 ---------
 
 Let's now learn how to [regenerate DAOs](generating_daos.md) when your data model changes.
+Or if you want to have a look at advanced stuff, learn how to [model inheritance in your database](modeling_inheritance.md).

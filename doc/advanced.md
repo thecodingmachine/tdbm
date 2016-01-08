@@ -1,6 +1,9 @@
 Advanced tutorial
 =================
 
+TODO: this documentation is outdated and needs some work
+--------------------------------------------------------
+
 In this advanced tutorial, we will learn how to use the `find` method in details, and see the behaviour of TDBM with more complex data model.
 If you are new to TDBM, you should start with the <a href="quickstart.html">quickstart guide</a>.
 
