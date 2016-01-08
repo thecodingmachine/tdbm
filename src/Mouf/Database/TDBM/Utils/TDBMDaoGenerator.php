@@ -579,6 +579,7 @@ class $daoFactoryClassName
     /**
      * Ensures the file passed in parameter can be written in its directory.
      * @param string $fileName
+     * @throws TDBMException
      */
     private function ensureDirectoryExist($fileName) {
         $dirName = dirname($fileName);
@@ -586,9 +587,8 @@ class $daoFactoryClassName
             $old = umask(0);
             $result = mkdir($dirName, 0775, true);
             umask($old);
-            if ($result == false) {
-                echo "Unable to create directory: ".$dirName.".";
-                exit;
+            if ($result === false) {
+                throw new TDBMException("Unable to create directory: '".$dirName."'.");
             }
         }
     }
