@@ -80,6 +80,9 @@
 					"title" : "Advanced filtering",
 					"url" : "doc/advanced.md"
 				}, {
+					"title" : "JSON serialization",
+					"url" : "doc/json_serialization.md"
+				}, {
 					"title" : "Memory management and batches processing",
 					"url" : "doc/memory_management.md"
 				}, {

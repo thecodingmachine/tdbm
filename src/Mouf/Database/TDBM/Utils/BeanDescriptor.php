@@ -310,7 +310,7 @@ class BeanDescriptor
             $getterCode = '    /**
      * Returns the list of %s pointing to this bean via the %s column.
      *
-     * @return %s[]|Resultiterator
+     * @return %s[]|ResultIterator
      */
     public function %s()
     {
@@ -363,6 +363,19 @@ class BeanDescriptor
      * @return string;
      */
     public function generatePivotTableCode() {
+
+        $finalDescs = $this->getPivotTableDescriptors();
+
+        $code = '';
+
+        foreach ($finalDescs as $desc) {
+            $code .= $this->getPivotTableCode($desc['name'], $desc['table'], $desc['localFK'], $desc['remoteFK']);
+        }
+
+        return $code;
+    }
+
+    private function getPivotTableDescriptors() {
         $descs = [];
         foreach ($this->schemaAnalyzer->detectJunctionTables() as $table) {
             // There are exactly 2 FKs since this is a pivot table.
@@ -400,14 +413,7 @@ class BeanDescriptor
             }
         }
 
-
-        $code = '';
-
-        foreach ($finalDescs as $desc) {
-            $code .= $this->getPivotTableCode($desc['name'], $desc['table'], $desc['localFK'], $desc['remoteFK']);
-        }
-
-        return $code;
+        return $finalDescs;
     }
 
     public function getPivotTableCode($name, Table $table, ForeignKeyConstraint $localFK, ForeignKeyConstraint $remoteFK) {
@@ -470,6 +476,58 @@ class BeanDescriptor
         return $code;
     }
 
+    public function generateJsonSerialize() {
+        $tableName = $this->table->getName();
+        $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
+        if ($parentFk !== null) {
+            $initializer = '$array = parent::jsonSerialize();';
+        } else {
+            $initializer = '$array = [];';
+        }
+
+        $str = '
+    /**
+     * Serializes the object for JSON encoding
+     *
+     * @param bool $stopRecursion Parameter used internally by TDBM to stop embedded objects from embedding other objects.
+     * @return array
+     */
+    public function jsonSerialize($stopRecursion = false)
+    {
+        %s
+%s
+%s
+        return $array;
+    }
+';
+
+        $propertiesCode = '';
+        foreach ($this->beanPropertyDescriptors as $beanPropertyDescriptor) {
+            $propertiesCode .= $beanPropertyDescriptor->getJsonSerializeCode();
+        }
+
+        // Many to many relationships:
+
+        $descs = $this->getPivotTableDescriptors();
+
+        $many2manyCode = '';
+
+        foreach ($descs as $desc) {
+            $remoteFK = $desc['remoteFK'];
+            $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($remoteFK->getForeignTableName());
+            $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
+
+            $many2manyCode .= '        if (!$stopRecursion) {
+            $array[\''.lcfirst($desc['name']).'\'] = array_map(function('.$remoteBeanName.' '.$variableName.') {
+                return '.$variableName.'->jsonSerialize(true);
+            }, $this->get'.$desc['name'].'());
+        }
+        ';
+        }
+
+        return sprintf($str, $initializer, $propertiesCode, $many2manyCode);
+    }
+
     /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
@@ -503,7 +561,7 @@ $use
 /**
  * The $baseClassName class maps the '$tableName' table in database.
  */
-class $baseClassName extends $extends
+class $baseClassName extends $extends implements \\JsonSerializable
 {
 ";
 
@@ -517,6 +575,7 @@ class $baseClassName extends $extends
 
         $str .= $this->generateDirectForeignKeysCode();
         $str .= $this->generatePivotTableCode();
+        $str .= $this->generateJsonSerialize();
 
         $str .= "}
 ";

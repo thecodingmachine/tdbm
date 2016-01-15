@@ -106,4 +106,11 @@ abstract class AbstractBeanPropertyDescriptor
      * @return string
      */
     abstract public function getGetterSetterCode();
+
+    /**
+     * Returns the part of code useful when doing json serialization.
+     *
+     * @return string
+     */
+    abstract public function getJsonSerializeCode();
 }

@@ -27,7 +27,7 @@ use Mouf\Database\TDBM\Filters\FilterInterface;
  *
  * @author David Negrier
  */
-class DbRow implements \JsonSerializable, FilterInterface {
+class DbRow implements FilterInterface {
 
 	/**
 	 * The service this object is bound to.
@@ -304,15 +304,6 @@ class DbRow implements \JsonSerializable, FilterInterface {
 	}
 
 	
-	/**
-	 * Implement the unique JsonSerializable method
-	 * @return array
-	 */
-	public function jsonSerialize(){
-		$this->_dbLoadIfNotLoaded();
-		return $this->dbRow;
-	}
-
 	/**
 	 * Returns the SQL of the filter (the SQL WHERE clause).
 	 *

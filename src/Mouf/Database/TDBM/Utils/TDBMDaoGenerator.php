@@ -157,7 +157,7 @@ class TDBMDaoGenerator {
      *
      * @param string $className The name of the class
      * @param string $baseClassName The name of the base class which will be extended (name only, no directory)
-     * @param string $tableName The name of the table
+     * @param Table $table The table
      * @param string $beannamespace The namespace of the bean
      * @param ClassNameMapper $classNameMapper
      * @throws TDBMException

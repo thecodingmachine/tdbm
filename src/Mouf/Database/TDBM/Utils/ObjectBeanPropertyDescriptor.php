@@ -150,4 +150,17 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 ';
         return $str;
     }
+
+    /**
+     * Returns the part of code useful when doing json serialization.
+     *
+     * @return string
+     */
+    public function getJsonSerializeCode()
+    {
+        return '        if (!$stopRecursion) {
+            $array['.var_export($this->getLowerCamelCaseName(), true).'] = $this->'.$this->getGetterName().'()->jsonSerialize(true);
+        }
+';
+    }
 }

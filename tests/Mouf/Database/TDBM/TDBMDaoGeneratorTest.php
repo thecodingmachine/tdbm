@@ -416,8 +416,70 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
 
     public function testFindOne() {
         $userDao = new TestUserDao($this->tdbmService);
-        $user = $userDao->getUsersByLogin("bill.shakespeare");
+        $user = $userDao->getUserByLogin("bill.shakespeare");
 
         $this->assertEquals("bill.shakespeare", $user->getLogin());
+    }
+
+    public function testJsonEncodeBean() {
+        $userDao = new TestUserDao($this->tdbmService);
+        $user = $userDao->getUserByLogin("bill.shakespeare");
+
+        $jsonEncoded = json_encode($user);
+        $userDecoded = json_decode($jsonEncoded, true);
+
+        $this->assertEquals("bill.shakespeare", $userDecoded['login']);
+
+        // test serialization of dates.
+        $this->assertTrue(is_string($userDecoded['createdAt']));
+        $this->assertEquals('2015-10-24', (new \DateTimeImmutable($userDecoded['createdAt']))->format('Y-m-d'));
+
+        // testing many to 1 relationships
+        $this->assertEquals('UK', $userDecoded['country']['label']);
+
+        // testing many to many relationships
+        $this->assertCount(1, $userDecoded['roles']);
+        $this->assertArrayNotHasKey('users', $userDecoded['roles'][0]);
+        $this->assertArrayNotHasKey('rights', $userDecoded['roles'][0]);
+    }
+
+    public function testInnerJsonEncode() {
+        $userDao = new TestUserDao($this->tdbmService);
+        $user = $userDao->getUserByLogin("bill.shakespeare");
+
+        $jsonEncoded = json_encode(['user'=>$user]);
+        $msgDecoded = json_decode($jsonEncoded, true);
+
+        $this->assertEquals("bill.shakespeare", $msgDecoded['user']['login']);
+    }
+
+    public function testArrayJsonEncode() {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByLoginStartingWith("bill");
+
+        $jsonEncoded = json_encode($users);
+        $msgDecoded = json_decode($jsonEncoded, true);
+
+        $this->assertCount(1, $msgDecoded);
+    }
+
+    public function testCursorJsonEncode() {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByLoginStartingWith("bill", TDBMService::MODE_CURSOR);
+
+        $jsonEncoded = json_encode($users);
+        $msgDecoded = json_decode($jsonEncoded, true);
+
+        $this->assertCount(1, $msgDecoded);
+    }
+
+    public function testPageJsonEncode() {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByLoginStartingWith("bill");
+
+        $jsonEncoded = json_encode($users->take(0, 1));
+        $msgDecoded = json_decode($jsonEncoded, true);
+
+        $this->assertCount(1, $msgDecoded);
     }
 }

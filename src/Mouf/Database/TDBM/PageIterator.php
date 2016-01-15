@@ -29,7 +29,7 @@ use Porpaginas\Page;
  * Iterator used to retrieve results.
  *
  */
-class PageIterator implements Page, \ArrayAccess {
+class PageIterator implements Page, \ArrayAccess, \JsonSerializable {
 
 	/**
 	 *
@@ -222,5 +222,19 @@ class PageIterator implements Page, \ArrayAccess {
 	public function offsetUnset($offset)
 	{
 		return $this->getIterator()->offsetUnset($offset);
+	}
+
+	/**
+	 * Specify data which should be serialized to JSON
+	 * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
+	 * @return mixed data which can be serialized by <b>json_encode</b>,
+	 * which is a value of any type other than a resource.
+	 * @since 5.4.0
+	 */
+	public function jsonSerialize()
+	{
+		return array_map(function(AbstractTDBMObject $item) {
+			return $item->jsonSerialize();
+		}, $this->toArray());
 	}
 }

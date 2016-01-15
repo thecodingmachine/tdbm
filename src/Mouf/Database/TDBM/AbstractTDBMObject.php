@@ -29,7 +29,7 @@ use Mouf\Database\TDBM\Filters\FilterInterface;
  *
  * @author David Negrier
  */
-abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface {
+abstract class AbstractTDBMObject implements FilterInterface {
 
 	/**
 	 * The service this object is bound to.
@@ -395,6 +395,7 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 
 	/**
 	 * Internal TDBM method. Returns the list of objects linked to this bean via $pivotTableName
+	 * @access private
 	 * @param $pivotTableName
 	 * @return AbstractTDBMObject[]
 	 */
@@ -489,17 +490,6 @@ abstract class AbstractTDBMObject implements \JsonSerializable, FilterInterface 
 	 */
 	public function _getStatus() {
 		return $this->status;
-	}
-
-	
-	/**
-	 * Implement the unique JsonSerializable method
-	 * @return array
-	 */
-	public function jsonSerialize(){
-		// FIXME
-		$this->_dbLoadIfNotLoaded();
-		return $this->dbRow;
 	}
 
 	/**

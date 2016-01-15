@@ -131,4 +131,21 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             var_export($this->table->getName(), true)
         );
     }
+
+    /**
+     * Returns the part of code useful when doing json serialization.
+     *
+     * @return string
+     */
+    public function getJsonSerializeCode()
+    {
+        $type = $this->column->getType();
+        $normalizedType = TDBMDaoGenerator::dbalTypeToPhpType($type);
+
+        if ($normalizedType == "\\DateTimeInterface") {
+            return '        $array['.var_export($this->getLowerCamelCaseName(), true).'] = $this->'.$this->getGetterName()."()->format('c');\n";
+        } else {
+            return '        $array['.var_export($this->getLowerCamelCaseName(), true).'] = $this->'.$this->getGetterName()."();\n";
+        }
+    }
 }
