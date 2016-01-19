@@ -516,7 +516,7 @@ abstract class AbstractTDBMObject implements FilterInterface {
 	 *
 	 * @return string
 	 */
-	private function getPrimaryKeyWhereStatement () {
+	private function getPrimaryKeyWhereStatement() {
 		// Let's first get the primary keys
 		$pk_table = $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
 		// Now for the object_id
@@ -540,19 +540,35 @@ abstract class AbstractTDBMObject implements FilterInterface {
     /**
      * Override the native php clone function for TDBMObjects
      */
-    public function __clone(){
-        $this->_dbLoadIfNotLoaded();
-        //First lets set the status to new (to enter the save function)
-        $this->status = TDBMObjectStateEnum::STATE_NEW;
+    public function __clone() {
+		// Let's clone the many to many relationships
+		if ($this->status === TDBMObjectStateEnum::STATE_DETACHED) {
+			$pivotTableList = array_keys($this->relationships);
+		} else {
+			$pivotTableList = $this->tdbmService->_getPivotTablesLinkedToBean($this);
+		}
 
-        // Add the current TDBMObject to the save object list
-        $this->tdbmService->_addToToSaveObjectList($this);
+		foreach ($pivotTableList as $pivotTable) {
+			$storage = $this->retrieveRelationshipsStorage($pivotTable);
 
-        //Now unset the PK from the row
-        $pk_array = $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
-        foreach ($pk_array as $pk) {
-            $this->dbRow[$pk] = null;
-        }
+			// Let's duplicate the reverse side of the relationship
+			foreach ($storage as $remoteBean) {
+				$metadata = $storage[$remoteBean];
+
+				$remoteStorage = $remoteBean->getRelationshipStorage($pivotTable);
+				$remoteStorage->attach($this, [ 'status' => $metadata['status'], 'reverse' => !$metadata['reverse'] ]);
+			}
+		}
+
+		// Let's clone each row
+		foreach ($this->dbRows as $key=>$dbRow) {
+			$this->dbRows[$key] = clone $dbRow;
+		}
+
+		// Let's set the status to new (to enter the save function)
+        $this->status = TDBMObjectStateEnum::STATE_DETACHED;
+
+
     }
 
 	/**

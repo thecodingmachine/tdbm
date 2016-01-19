@@ -83,6 +83,9 @@
 					"title" : "JSON serialization",
 					"url" : "doc/json_serialization.md"
 				}, {
+					"title" : "Miscellaneous features",
+					"url" : "doc/miscellaneous.md"
+				}, {
 					"title" : "Memory management and batches processing",
 					"url" : "doc/memory_management.md"
 				}, {

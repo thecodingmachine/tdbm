@@ -327,18 +327,21 @@ class DbRow implements FilterInterface {
      * Override the native php clone function for TDBMObjects
      */
     public function __clone(){
-        $this->_dbLoadIfNotLoaded();
-        //First lets set the status to new (to enter the save function)
-        $this->status = TDBMObjectStateEnum::STATE_NEW;
+		// Let's load the row (before we lose the ID!)
+		$this->_dbLoadIfNotLoaded();
 
-        // Add the current TDBMObject to the save object list
-        $this->tdbmService->_addToToSaveObjectList($this);
+		//Let's set the status to detached
+        $this->status = TDBMObjectStateEnum::STATE_DETACHED;
+
+		$this->primaryKeys = null;
 
         //Now unset the PK from the row
-        $pk_array = $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
-        foreach ($pk_array as $pk) {
-            $this->dbRow[$pk] = null;
-        }
+		if ($this->tdbmService) {
+			$pk_array = $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
+			foreach ($pk_array as $pk) {
+				$this->dbRow[$pk] = null;
+			}
+		}
     }
 
 	/**

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace Mouf\Database\TDBM;
 
 use Doctrine\Common\Cache\ArrayCache;
-use Mouf\Database\DBConnection\MySqlConnection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Dao\TestUserDao;
 use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
@@ -482,4 +481,48 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
 
         $this->assertCount(1, $msgDecoded);
     }
+
+    public function testCloneBeanAttachedBean()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $user = $userDao->getUserByLogin("bill.shakespeare");
+        $user2 = clone $user;
+        $this->assertNull($user2->getId());
+        $this->assertEquals("bill.shakespeare", $user2->getLogin());
+        $this->assertEquals("Bill Shakespeare", $user2->getName());
+        $this->assertEquals('UK', $user2->getCountry()->getLabel());
+
+        // MANY 2 MANY must be duplicated
+        $this->assertEquals('Writers', $user2->getRoles()[0]->getName());
+
+        // Let's test saving this clone
+        $user2->setLogin('william.shakespeare');
+        $userDao->save($user2);
+
+        $this->assertNotNull($user2->getId());
+
+        $user3 = $userDao->getUserByLogin("william.shakespeare");
+        $userDao->delete($user3);
+    }
+
+    public function testCloneNewBean()
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $roleDao = new RoleDao($this->tdbmService);
+        $role = $roleDao->getById(1);
+
+        $userBean = new UserBean('John Doe', new \DateTime(), 'john@doe.com', $countryDao->getById(2), 'john.doe');
+        $userBean->addRole($role);
+
+        $user2 = clone $userBean;
+
+        $this->assertNull($user2->getId());
+        $this->assertEquals("john.doe", $user2->getLogin());
+        $this->assertEquals("John Doe", $user2->getName());
+        $this->assertEquals('UK', $user2->getCountry()->getLabel());
+
+        // MANY 2 MANY must be duplicated
+        $this->assertEquals($role->getName(), $user2->getRoles()[0]->getName());
+    }
+
 }

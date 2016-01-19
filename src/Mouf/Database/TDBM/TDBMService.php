@@ -26,6 +26,7 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\Table;
 use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Filters\OrderBySQLString;
@@ -397,9 +398,7 @@ class TDBMService {
 				foreach (array_reverse($object->_getDbRows()) as $dbRow) {
 					$tableName = $dbRow->_getDbTableName();
 					$primaryKeys = $dbRow->_getPrimaryKeys();
-
 					$this->connection->delete($tableName, $primaryKeys);
-
 					$this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
 				}
 				break;
@@ -1257,7 +1256,7 @@ class TDBMService {
 		// Let's recurse in children
 		$childrenTables = $this->exploreChildrenTablesRelationships($schemaAnalyzer, $table);
 
-		return array_merge($parentTables, $childrenTables);
+		return array_merge(array_reverse($parentTables), $childrenTables);
 	}
 
 	/**
@@ -1604,7 +1603,31 @@ class TDBMService {
         } elseif (in_array($table2, $beanTables)) {
             return [$fks[1], $fks[0]];
         } else {
-            throw new TDBMException("Unexpected bean type in getPivotTableForeignKeys. Awaiting beans from table {$table1} and {$table2}");
+            throw new TDBMException("Unexpected bean type in getPivotTableForeignKeys. Awaiting beans from table {$table1} and {$table2} for pivot table {$pivotTableName}");
         }
     }
+
+	/**
+	 * Returns a list of pivot tables linked to $bean.
+	 *
+	 * @access private
+	 * @param AbstractTDBMObject $bean
+	 * @return string[]
+	 */
+	public function _getPivotTablesLinkedToBean(AbstractTDBMObject $bean) {
+		$junctionTables = [];
+		$allJunctionTables = $this->schemaAnalyzer->detectJunctionTables();
+		foreach ($bean->_getDbRows() as $dbRow) {
+			foreach ($allJunctionTables as $table) {
+				// There are exactly 2 FKs since this is a pivot table.
+				$fks = array_values($table->getForeignKeys());
+
+				if ($fks[0]->getForeignTableName() === $dbRow->_getDbTableName() || $fks[1]->getForeignTableName() === $dbRow->_getDbTableName()) {
+					$junctionTables[] = $table->getName();
+				}
+			}
+		}
+
+		return $junctionTables;
+	}
 }

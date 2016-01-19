@@ -429,8 +429,6 @@ class UserDao extends UserBaseDao {
 ```
 
 
-TODO: hierarchy
-
 Restricting results fetched using limits and offsets
 ----------------------------------------------------
 

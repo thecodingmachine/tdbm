@@ -41,8 +41,8 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $this->assertContains("users", $contactRelatedTables);
         $this->assertContains("contact", $contactRelatedTables);
         $this->assertContains("person", $contactRelatedTables);
-        $this->assertCount(3, $this->tdbmService->_getRelatedTablesByInheritance('users'));
-        $this->assertCount(3, $this->tdbmService->_getRelatedTablesByInheritance('person'));
+        $this->assertEquals(['person', 'contact', 'users'], $this->tdbmService->_getRelatedTablesByInheritance('users'));
+        $this->assertEquals(['person', 'contact', 'users'], $this->tdbmService->_getRelatedTablesByInheritance('person'));
 
     }
 
@@ -551,36 +551,6 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
             $results = $this->tdbmService->getObjects('departements');
 
             $this->assertEquals("Alpes Maritimes", $results[5]->nom);
-        }
-
-        public function testTDBMObjectArrayJsonEncode() {
-            $this->tdbmService->setFetchMode(TDBMService::MODE_COMPATIBLE_ARRAY);
-            $jsonEncoded = json_encode($this->tdbmService->getObjects('departements'));
-            $count = count(json_decode($jsonEncoded));
-
-            $this->assertEquals(95, $count);
-        }
-
-        public function testInnerJsonEncode() {
-            $this->tdbmService->setFetchMode(TDBMService::MODE_COMPATIBLE_ARRAY);
-            $departements = $this->tdbmService->getObjects('departements');
-            $jsonEncoded = json_encode(['departements'=>$departements]);
-            $count = count(json_decode($jsonEncoded, true)['departements']);
-
-            $this->assertEquals(95, $count);
-        }
-
-
-        public function testCursorJsonEncode() {
-            // COMMENTING THE WHOLE SCRIPT.
-            // If we are in CURSOR mode, there is probably no point in json_encoding the result.
-            /*$this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
-            $results = $this->tdbmService->getObjects('departements');
-            $jsonEncoded = json_encode($results);
-            $count = count(json_decode($jsonEncoded, true));
-
-            $this->assertEquals(95, $count);
-            * /
         }
 
         public function testTDBMObjectArrayCountAfterForeach() {
