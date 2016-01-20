@@ -198,38 +198,16 @@ class TDBMService {
 	}
 
 	/**
-	 * Returns true if the objects will save automatically by default,
-	 * false if an explicit call to save() is required.
-	 *
-	 * The behaviour can be overloaded by setAutoSaveMode on each object.
-	 *
-	 * @return boolean
-	 */
-	/*public function getDefaultAutoSaveMode() {
-		return $this->autosave_default;
-	}*/
-
-	/**
-	 * Sets the autosave mode:
-	 * true if the object will save automatically,
-	 * false if an explicit call to save() is required.
-	 *
-	 * @Compulsory
-	 * @param boolean $autoSave
-	 */
-	/*public function setDefaultAutoSaveMode($autoSave = true) {
-		$this->autosave_default = $autoSave;
-	}*/
-
-	/**
-	 * Sets the fetch mode of the result sets returned by `getObjects`.
-	 * Can be one of: TDBMObjectArray::MODE_CURSOR or TDBMObjectArray::MODE_ARRAY or TDBMObjectArray::MODE_COMPATIBLE_ARRAY
+	 * Sets the default fetch mode of the result sets returned by `getObjects`.
+	 * Can be one of: TDBMObjectArray::MODE_CURSOR or TDBMObjectArray::MODE_ARRAY.
 	 *
 	 * In 'MODE_ARRAY' mode (default), the result is a ResultIterator object that behaves like an array. Use this mode by default (unless the list returned is very big).
 	 * In 'MODE_CURSOR' mode, the result is a ResultIterator object. If you scan it many times (by calling several time a foreach loop), the query will be run
 	 * several times. In cursor mode, you cannot access the result set by key. Use this mode for large datasets processed by batch.
 	 *
 	 * @param int $mode
+	 * @return $this
+	 * @throws TDBMException
 	 */
 	public function setFetchMode($mode) {
 		if ($mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
@@ -450,6 +428,10 @@ class TDBMService {
      * @return TDBMObjectArray
      */
     private function deleteAllConstraintWithThisObject(TDBMObject $obj) {
+		// TODO: rewrite this!!
+		// Use the BeanDescriptor::getIncomingForeignKeys. Extract this function and put it in TDBMAnalysisService...
+		// Then, simply perform a findObjects on linked tables based on foreign key detected!
+
         $tableFrom = $this->connection->escapeDBItem($obj->_getDbTableName());
         $constraints = $this->connection->getConstraintsFromTable($tableFrom);
         foreach ($constraints as $constraint) {

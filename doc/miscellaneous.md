@@ -40,3 +40,20 @@ Cloned beans have the following properties:
 - The cloned bean is "detached" from TDBM. You will have to call the `save` method of the DAO to save the bean in database.
 - Many to many relationships are also passed to the cloned bean.
 
+Mapping result sets
+-------------------
+
+Please notice that result sets have a very useful `map` method.
+
+Let's say you want to build an array of all your users first name:
+
+```php
+$users = $userDao->findAll();
+
+// The callback passed to the map function will be called once for each record in the recordset.
+// You will get in $firstNames an array containing the list of callback results.
+$firstNames = $users->map(function(UserBean $user) {
+    return $user->getFirstName();
+});
+```
+

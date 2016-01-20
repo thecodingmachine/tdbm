@@ -1,13 +1,13 @@
 <?php
 namespace Mouf\Database\TDBM\Utils;
 
+use Doctrine\Common\Inflector\Inflector;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
-use ICanBoogie\Inflector;
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\TDBMException;
@@ -164,7 +164,7 @@ class TDBMDaoGenerator {
      */
     public function generateBean($className, $baseClassName, Table $table, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc) {
 
-        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema);
+        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer);
 
         $str = $beanDescriptor->generatePhpCode($beannamespace);
 
@@ -380,7 +380,7 @@ class $baseClassName
         if (\$this->defaultSort && \$orderby == null) {
             \$orderby = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
         }
-        return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderby);
+        return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderby, \$additionalTablesFetch, \$mode);
     }
 
     /**
@@ -527,6 +527,7 @@ class $daoFactoryClassName
 
         $this->ensureDirectoryExist($possibleFileName);
         file_put_contents($possibleFileName ,$str);
+        @chmod($possibleFileName, 0664);
     }
 
     /**
@@ -562,7 +563,7 @@ class $daoFactoryClassName
      * @return string
      */
     public static function toSingular($str) {
-        return Inflector::get('en')->singularize($str);
+        return Inflector::singularize($str);
     }
     
     /**

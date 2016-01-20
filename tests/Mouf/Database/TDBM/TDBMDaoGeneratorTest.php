@@ -406,6 +406,16 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
         $this->assertEquals("bill.shakespeare", $users[0]->getLogin());
     }
 
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     */
+    public function testFindMode() {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByLoginStartingWith("bill", TDBMService::MODE_CURSOR);
+
+        $users[0];
+    }
+
     public function testFindAll() {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->findAll();

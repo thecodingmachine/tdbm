@@ -9,6 +9,7 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\TDBMException;
+use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
 
 /**
  * This class represents a bean
@@ -35,10 +36,16 @@ class BeanDescriptor
      */
     private $beanPropertyDescriptors = [];
 
-    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema) {
+    /**
+     * @var TDBMSchemaAnalyzer
+     */
+    private $tdbmSchemaAnalyzer;
+
+    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer) {
         $this->table = $table;
         $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schema = $schema;
+        $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
         $this->initBeanPropertyDescriptors();
     }
 
@@ -98,38 +105,6 @@ class BeanDescriptor
         });
 
         return $exposedProperties;
-    }
-
-    /**
-     * Returns the list of foreign keys pointing to the table represented by this bean, excluding foreign keys
-     * from junction tables and from inheritance.
-     *
-     * @return ForeignKeyConstraint[]
-     */
-    public function getIncomingForeignKeys() {
-
-        $junctionTables = $this->schemaAnalyzer->detectJunctionTables();
-        $junctionTableNames = array_map(function(Table $table) { return $table->getName(); }, $junctionTables);
-        $childrenRelationships = $this->schemaAnalyzer->getChildrenRelationships($this->table->getName());
-
-        $fks = [];
-        foreach ($this->schema->getTables() as $table) {
-            foreach ($table->getForeignKeys() as $fk) {
-                if ($fk->getForeignTableName() === $this->table->getName()) {
-                    if (in_array($fk->getLocalTableName(), $junctionTableNames)) {
-                        continue;
-                    }
-                    foreach ($childrenRelationships as $childFk) {
-                        if ($fk->getLocalTableName() === $childFk->getLocalTableName() && $fk->getLocalColumns() === $childFk->getLocalColumns()) {
-                            continue 2;
-                        }
-                    }
-                    $fks[] = $fk;
-                }
-            }
-        }
-
-        return $fks;
     }
 
     /**
@@ -276,7 +251,7 @@ class BeanDescriptor
     }
 
     public function generateDirectForeignKeysCode() {
-        $fks = $this->getIncomingForeignKeys();
+        $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($this->table->getName());
 
         $fksByTable = [];
 

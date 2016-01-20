@@ -410,6 +410,31 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $this->assertTrue($exceptionTriggered);
     }
 
+    public function testSetFetchMode() {
+        $this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
+        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1]);
+
+        $this->assertInstanceOf("\\Mouf\\Database\\TDBM\\ResultIterator", $beans);
+
+        // In cursor mode, access by array causes an exception.
+        $exceptionTriggered = false;
+        try {
+            $beans[0];
+        } catch (TDBMInvalidOperationException $e) {
+            $exceptionTriggered = true;
+        }
+        $this->assertTrue($exceptionTriggered);
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testInvalidSetFetchMode() {
+        $this->tdbmService->setFetchMode("foo");
+    }
+
+
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
      * @throws TDBMException

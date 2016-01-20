@@ -51,6 +51,35 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest {
         $this->assertTrue($schema1 === $schema2);
     }
 
+    public function testGetIncomingForeignKeys() {
+        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), "prefix_");
+        $cache = new ArrayCache();
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
+
+        $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys("users");
+        $this->assertCount(0, $fks);
+    }
+
+    public function testGetIncomingForeignKeys2() {
+        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), "prefix_");
+        $cache = new ArrayCache();
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
+
+        $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys("contact");
+        $this->assertCount(0, $fks);
+    }
+
+    public function testGetIncomingForeignKeys3() {
+        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), "prefix_");
+        $cache = new ArrayCache();
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
+
+        $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys("country");
+        $this->assertCount(1, $fks);
+        $this->assertEquals('users', $fks[0]->getLocalTableName());
+    }
+
+
     /*public function testGetCompulsoryColumnsWithNoInheritance() {
         $table = $this->tdbmSchemaAnalyzer->getSchema()->getTable('country');
         $compulsoryColumns = $this->tdbmSchemaAnalyzer->getCompulsoryProperties($table);

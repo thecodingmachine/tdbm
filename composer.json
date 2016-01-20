@@ -26,7 +26,7 @@
 		"mouf/utils.common.conditioninterface" : "~2.0",
 	    "psr/log": "~1.0",
 	    "mouf/mouf": "~2.0.0",
-	  	"icanboogie/inflector": "~1.3",
+	  	"doctrine/inflector": "~1.0",
 	    "beberlei/porpaginas": "~1.0"
 	},
     "require-dev" : {

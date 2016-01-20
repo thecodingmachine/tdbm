@@ -106,5 +106,35 @@ class TDBMSchemaAnalyzer
         return $pivotTables;
     }
 
+    /**
+     * Returns the list of foreign keys pointing to the table represented by this bean, excluding foreign keys
+     * from junction tables and from inheritance.
+     *
+     * @return ForeignKeyConstraint[]
+     */
+    public function getIncomingForeignKeys($tableName) {
 
+        $junctionTables = $this->schemaAnalyzer->detectJunctionTables();
+        $junctionTableNames = array_map(function(Table $table) { return $table->getName(); }, $junctionTables);
+        $childrenRelationships = $this->schemaAnalyzer->getChildrenRelationships($tableName);
+
+        $fks = [];
+        foreach ($this->getSchema()->getTables() as $table) {
+            foreach ($table->getForeignKeys() as $fk) {
+                if ($fk->getForeignTableName() === $tableName) {
+                    if (in_array($fk->getLocalTableName(), $junctionTableNames)) {
+                        continue;
+                    }
+                    foreach ($childrenRelationships as $childFk) {
+                        if ($fk->getLocalTableName() === $childFk->getLocalTableName() && $fk->getLocalColumns() === $childFk->getLocalColumns()) {
+                            continue 2;
+                        }
+                    }
+                    $fks[] = $fk;
+                }
+            }
+        }
+
+        return $fks;
+    }
 }

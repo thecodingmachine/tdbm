@@ -20,10 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace Mouf\Database\TDBM\Utils;
 
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Schema\Schema;
 use Mouf\Database\DBConnection\MySqlConnection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\TDBMAbstractServiceTest;
+use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
 use Mouf\Database\TDBM\Test\Dao\Bean\UserBean;
 use Mouf\Database\TDBM\Test\Dao\ContactDao;
 use Mouf\Database\TDBM\Test\Dao\CountryDao;
@@ -45,17 +47,22 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest {
      */
     protected $schemaAnalyzer;
 
+    /**
+     * @var TDBMSchemaAnalyzer
+     */
+    protected $tdbmSchemaAnalyzer;
 
     protected function setUp() {
         parent::setUp();
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $this->schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $this->schema = $schemaManager->createSchema();
+        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new VoidCache(), $this->schemaAnalyzer);
     }
 
 	public function testConstructor() {
         $usersTable = $this->schema->getTable("users");
-        $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema);
+        $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer);
         $propertyDescriptors = $beanDescriptor->getBeanPropertyDescriptors();
         $firstElem = reset($propertyDescriptors);
         $idProperty = $propertyDescriptors['id'];
@@ -70,7 +77,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest {
 
     public function testGetConstructorProperties() {
         $usersTable = $this->schema->getTable("users");
-        $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema);
+        $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer);
         $constructorPropertyDescriptors = $beanDescriptor->getConstructorProperties();
         $this->assertArrayHasKey("name", $constructorPropertyDescriptors);
         // password is nullable
@@ -79,27 +86,6 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest {
         $this->assertArrayNotHasKey("id", $constructorPropertyDescriptors);
     }
 
-    public function testGetIncomingForeignKeys() {
-        $usersTable = $this->schema->getTable("users");
-        $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema);
-        $fks = $beanDescriptor->getIncomingForeignKeys();
-        $this->assertCount(0, $fks);
-    }
-
-    public function testGetIncomingForeignKeys2() {
-        $contactsTable = $this->schema->getTable("contact");
-        $beanDescriptor = new BeanDescriptor($contactsTable, $this->schemaAnalyzer, $this->schema);
-        $fks = $beanDescriptor->getIncomingForeignKeys();
-        $this->assertCount(0, $fks);
-    }
-
-    public function testGetIncomingForeignKeys3() {
-        $table = $this->schema->getTable("country");
-        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema);
-        $fks = $beanDescriptor->getIncomingForeignKeys();
-        $this->assertCount(1, $fks);
-        $this->assertEquals('users', $fks[0]->getLocalTableName());
-    }
 
     /*public function testGeneratePhpCode() {
         $usersTable = $this->schema->getTable("users");

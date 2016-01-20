@@ -121,31 +121,6 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable {
 	}
 
 	/**
-	 * Fetches all records (this could impact into your site performance) and rewinds the cursor
-	 * @param boolean $asRecords Bind into record class?
-	 * @return array[Record_PDO]|array[array] Array of records or arrays (depends on $asRecords)
-	 */
-	/*public function getAll($asRecords = true)
-	{
-		$all = array();
-		$this->rewind();
-		foreach ($this->pdoStatement as $id => $doc) {
-			if ($asRecords)
-				$all[$id] = $this->cast($doc);
-			else
-				$all[$id] = $doc;
-		}
-		return $all;
-	}*/
-	/**
-	 * @return PDOStatement
-	 */
-	/*public function getPDOStatement()
-	{
-		return $this->pdoStatement;
-	}*/
-
-	/**
 	 * Retrieve an external iterator
 	 * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
 	 * @return InnerResultIterator An instance of an object implementing <b>Iterator</b> or
