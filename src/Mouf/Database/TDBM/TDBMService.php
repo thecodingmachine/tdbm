@@ -424,31 +424,27 @@ class TDBMService {
      * This function is used only in TDBMService (private function)
      * It will call deleteCascade function foreach object relied with a foreign key to the object given by parameter
      *
-     * @param TDBMObject $obj
-     * @return TDBMObjectArray
+     * @param AbstractTDBMObject $obj
      */
-    private function deleteAllConstraintWithThisObject(TDBMObject $obj) {
-		// TODO: rewrite this!!
-		// Use the BeanDescriptor::getIncomingForeignKeys. Extract this function and put it in TDBMAnalysisService...
-		// Then, simply perform a findObjects on linked tables based on foreign key detected!
+    private function deleteAllConstraintWithThisObject(AbstractTDBMObject $obj) {
+		$dbRows = $obj->_getDbRows();
+		foreach ($dbRows as $dbRow) {
+			$tableName = $dbRow->_getDbTableName();
+			$pks = array_values($dbRow->_getPrimaryKeys());
+			if (!empty($pks)) {
+				$incomingFks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($tableName);
 
-        $tableFrom = $this->connection->escapeDBItem($obj->_getDbTableName());
-        $constraints = $this->connection->getConstraintsFromTable($tableFrom);
-        foreach ($constraints as $constraint) {
-            $tableTo = $this->connection->escapeDBItem($constraint["table1"]);
-            $colFrom = $this->connection->escapeDBItem($constraint["col2"]);
-            $colTo = $this->connection->escapeDBItem($constraint["col1"]);
-            $idVarName = $this->connection->escapeDBItem($obj->getPrimaryKey()[0]);
-            $idValue = $this->connection->quoteSmart($obj->TDBMObject_id);
-            $sql = "SELECT DISTINCT ".$tableTo.".*"
-                    ." FROM ".$tableFrom
-                    ." LEFT JOIN ".$tableTo." ON ".$tableFrom.".".$colFrom." = ".$tableTo.".".$colTo
-                    ." WHERE ".$tableFrom.".".$idVarName."=".$idValue;
-            $result = $this->getObjectsFromSQL($constraint["table1"], $sql);
-            foreach ($result as $tdbmObj) {
-                $this->deleteCascade($tdbmObj);
-            }
-        }
+				foreach ($incomingFks as $incomingFk) {
+					$filter = array_combine($incomingFk->getLocalColumns(), $pks);
+
+					$results = $this->findObjects($incomingFk->getLocalTableName(), $filter);
+
+					foreach ($results as $bean) {
+						$this->deleteCascade($bean);
+					}
+				}
+			}
+		}
     }
 
 	/**

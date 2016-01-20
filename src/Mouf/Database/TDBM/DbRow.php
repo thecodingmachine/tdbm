@@ -379,6 +379,9 @@ class DbRow implements FilterInterface {
     }
 
     /**
+	 * Returns the values of the primary key.
+	 * This is set when the object is in "loaded" state.
+	 *
 	 * @return array
 	 */
 	public function _getPrimaryKeys()
@@ -387,6 +390,9 @@ class DbRow implements FilterInterface {
 	}
 
 	/**
+	 * Sets the values of the primary key.
+	 * This is set when the object is in "loaded" state.
+	 *
 	 * @param array $primaryKeys
 	 */
 	public function _setPrimaryKeys(array $primaryKeys)

@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace Mouf\Database\TDBM;
 
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Dao\TestUserDao;
 use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
@@ -535,4 +536,32 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
         $this->assertEquals($role->getName(), $user2->getRoles()[0]->getName());
     }
 
+    public function testCascadeDelete()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $countryDao = new CountryDao($this->tdbmService);
+
+        $spain = new CountryBean("Spain");
+        $sanchez = new UserBean("Manuel Sanchez", new \DateTimeImmutable(), "manuel@sanchez.com", $spain, "manuel.sanchez");
+
+        $countryDao->save($spain);
+        $userDao->save($sanchez);
+
+        $speedy2 = $userDao->getUserByLogin("manuel.sanchez");
+        $this->assertTrue($sanchez === $speedy2);
+
+        $exceptionTriggered = false;
+        try {
+            $countryDao->delete($spain);
+        } catch (ForeignKeyConstraintViolationException $e) {
+            $exceptionTriggered = true;
+        }
+        $this->assertTrue($exceptionTriggered);
+
+        $countryDao->delete($spain, true);
+
+        // Let's check that speed gonzalez was removed.
+        $speedy3 = $userDao->getUserByLogin("manuel.sanchez");
+        $this->assertNull($speedy3);
+    }
 }
