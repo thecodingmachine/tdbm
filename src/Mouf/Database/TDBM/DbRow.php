@@ -2,7 +2,7 @@
 namespace Mouf\Database\TDBM;
 
 /*
- Copyright (C) 2006-2015 David Négrier - THE CODING MACHINE
+ Copyright (C) 2006-2016 David Négrier - THE CODING MACHINE
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@ namespace Mouf\Database\TDBM;
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 use Doctrine\DBAL\Driver\Connection;
-use Mouf\Database\TDBM\Filters\FilterInterface;
 
 
 /**
@@ -27,7 +26,7 @@ use Mouf\Database\TDBM\Filters\FilterInterface;
  *
  * @author David Negrier
  */
-class DbRow implements FilterInterface {
+class DbRow {
 
 	/**
 	 * The service this object is bound to.
@@ -301,26 +300,6 @@ class DbRow implements FilterInterface {
 	 */
 	public function _getStatus() {
 		return $this->status;
-	}
-
-	
-	/**
-	 * Returns the SQL of the filter (the SQL WHERE clause).
-	 *
-	 * @param Connection $dbConnection
-	 * @return string
-	 */
-	public function toSql(Connection $dbConnection) {
-		return $this->getPrimaryKeyWhereStatement();
-	}
-
-	/**
-	 * Returns the tables used in the filter in an array.
-	 *
-	 * @return array<string>
-	 */
-	public function getUsedTables() {
-		return array($this->dbTableName);
 	}
 
     /**

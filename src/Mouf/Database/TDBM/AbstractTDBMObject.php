@@ -2,7 +2,7 @@
 namespace Mouf\Database\TDBM;
 
 /*
- Copyright (C) 2006-2015 David Négrier - THE CODING MACHINE
+ Copyright (C) 2006-2016 David Négrier - THE CODING MACHINE
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@ namespace Mouf\Database\TDBM;
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 use Doctrine\DBAL\Driver\Connection;
-use Mouf\Database\TDBM\Filters\FilterInterface;
 
 
 /**
@@ -29,7 +28,7 @@ use Mouf\Database\TDBM\Filters\FilterInterface;
  *
  * @author David Negrier
  */
-abstract class AbstractTDBMObject implements FilterInterface {
+abstract class AbstractTDBMObject {
 
 	/**
 	 * The service this object is bound to.
@@ -53,25 +52,6 @@ abstract class AbstractTDBMObject implements FilterInterface {
 	 * @var string
 	 */
 	private $status;
-
-	/**
-	 * True if an error has occurred while saving. The user will have to call save() explicitly or to modify one of its members to save it again.
-	 * TODO: hide this with getters and setters
-	 *
-	 * @var boolean
-	 */
-	public $db_onerror;
-
-	private $db_connection;
-	
-	/**
-	 * True to automatically save the object.
-	 * If false, the user must explicitly call the save() method to save the object. 
-	 * TODO: hide this with getters and setters
-	 * 
-	 * @var boolean
-	 */
-	public $db_autosave;
 
 	/**
 	 * Array storing beans related via many to many relationships (pivot tables)
@@ -169,26 +149,6 @@ abstract class AbstractTDBMObject implements FilterInterface {
 		foreach ($this->dbRows as $dbRow) {
 			$dbRow->_attach($tdbmService);
 		}
-	}
-
-	/**
-	 * Returns true if the object will save automatically, false if an explicit call to save() is required.
-	 *
-	 * @return boolean
-	 */
-	public function getAutoSaveMode() {
-		return $this->db_autosave;
-	}
-	
-	/**
-	 * Sets the autosave mode:
-	 * true if the object will save automatically,
-	 * false if an explicit call to save() is required.
-	 *
-	 * @param boolean $autoSave
-	 */
-	public function setAutoSaveMode($autoSave) {
-		$this->db_autosave = $autoSave;
 	}
 
 	/**
@@ -446,33 +406,20 @@ abstract class AbstractTDBMObject implements FilterInterface {
 		return $storage;
 	}
 
-	/*public function __destruct() {
-		// In a destructor, no exception can be thrown (PHP 5 limitation)
-		// So we print the error instead
-		try {
-			if (!$this->db_onerror && $this->db_autosave)
-			{
-				$this->save();
-			}
-		} catch (\Exception $e) {
-			trigger_error($e->getMessage(), E_USER_ERROR);
-		}
-	}*/
-
-
 	/**
 	 * Reverts any changes made to the object and resumes it to its DB state.
 	 * This can only be called on objects that come from database and that have not been deleted.
 	 * Otherwise, this will throw an exception.
 	 *
+	 * @throws TDBMException
 	 */
 	public function discardChanges() {
-		if ($this->status == TDBMObjectStateEnum::STATE_NEW) {
-			throw new TDBMException("You cannot call discardChanges() on an object that has been created with getNewObject and that has not yet been saved.");
+		if ($this->status === TDBMObjectStateEnum::STATE_NEW || $this->status === TDBMObjectStateEnum::STATE_DETACHED) {
+			throw new TDBMException("You cannot call discardChanges() on an object that has been created with the 'new' keyword and that has not yet been saved.");
 		}
 
-		if ($this->status == TDBMObjectStateEnum::STATE_DELETED) {
-			throw new TDBMException("You cannot call discardChanges() on an object that has been deleted.");
+		if ($this->status === TDBMObjectStateEnum::STATE_DELETED) {
+			throw new TDBMException('You cannot call discardChanges() on an object that has been deleted.');
 		}
 			
 		$this->_setStatus(TDBMObjectStateEnum::STATE_NOT_LOADED);
@@ -490,51 +437,6 @@ abstract class AbstractTDBMObject implements FilterInterface {
 	 */
 	public function _getStatus() {
 		return $this->status;
-	}
-
-	/**
-	 * Returns the SQL of the filter (the SQL WHERE clause).
-	 *
-	 * @param Connection $dbConnection
-	 * @return string
-	 */
-	public function toSql(Connection $dbConnection) {
-		return $this->getPrimaryKeyWhereStatement();
-	}
-
-	/**
-	 * Returns the tables used in the filter in an array.
-	 *
-	 * @return array<string>
-	 */
-	public function getUsedTables() {
-		return array_keys($this->dbRows);
-	}
-
-	/**
-	 * Returns Where statement to query this object
-	 *
-	 * @return string
-	 */
-	private function getPrimaryKeyWhereStatement() {
-		// Let's first get the primary keys
-		$pk_table = $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
-		// Now for the object_id
-		$object_id = $this->TDBMObject_id;
-		// If there is only one primary key:
-		if (count($pk_table)==1) {
-			$sql_where = $this->db_connection->escapeDBItem($this->dbTableName).'.'.$this->db_connection->escapeDBItem($pk_table[0])."=".$this->db_connection->quoteSmart($this->TDBMObject_id);
-		} else {
-			$ids = unserialize($object_id);
-			$i=0;
-			$sql_where_array = array();
-			foreach ($pk_table as $pk) {
-				$sql_where_array[] = $this->db_connection->escapeDBItem($this->dbTableName).'.'.$this->db_connection->escapeDBItem($pk)."=".$this->db_connection->quoteSmart($ids[$i]);
-				$i++;
-			}
-			$sql_where = implode(" AND ",$sql_where_array);
-		}
-		return $sql_where;
 	}
 
     /**

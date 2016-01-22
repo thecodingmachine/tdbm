@@ -24,6 +24,7 @@ use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Dao\TestUserDao;
 use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
+use Mouf\Database\TDBM\Test\Dao\Bean\PersonBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\RoleBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\UserBean;
 use Mouf\Database\TDBM\Test\Dao\ContactDao;
@@ -563,5 +564,43 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest {
         // Let's check that speed gonzalez was removed.
         $speedy3 = $userDao->getUserByLogin("manuel.sanchez");
         $this->assertNull($speedy3);
+    }
+
+    public function testDiscardChanges() {
+        $contactDao = new ContactDao($this->tdbmService);
+        $contactBean = $contactDao->getById(1);
+
+        $oldName = $contactBean->getName();
+
+        $contactBean->setName('MyNewName');
+
+        $contactBean->discardChanges();
+
+        $this->assertEquals($oldName, $contactBean->getName());
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     */
+    public function testDiscardChangesOnNewBeanFails() {
+        $person = new PersonBean("John Foo", new \DateTimeImmutable());
+        $person->discardChanges();
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     */
+    public function testDiscardChangesOnDeletedBeanFails() {
+        $userDao = new TestUserDao($this->tdbmService);
+        $countryDao = new CountryDao($this->tdbmService);
+
+        $sanchez = new UserBean("Manuel Sanchez", new \DateTimeImmutable(), "manuel@sanchez.com", $countryDao->getById(1), "manuel.sanchez");
+
+        $userDao->save($sanchez);
+
+        $userDao->delete($sanchez);
+
+        // Cannot discard changes on a bean that is already deleted.
+        $sanchez->discardChanges();
     }
 }

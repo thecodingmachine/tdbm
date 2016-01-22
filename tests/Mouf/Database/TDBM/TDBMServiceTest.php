@@ -255,6 +255,31 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $beans["foo"];
     }
 
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testBeanGetException()
+    {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+        $bean = $beans[0];
+
+        // we don't specify the table on inheritance table => exception.
+        $bean->get('id');
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testBeanSetException()
+    {
+        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+        $bean = $beans[0];
+
+        // we don't specify the table on inheritance table => exception.
+        $bean->set('name', 'foo');
+    }
 
 
 
