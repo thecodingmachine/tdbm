@@ -177,6 +177,40 @@ so the cost of the analysis will be negligible in the long run. But if you appen
 of using parameters, TDBM will not be able to find the query in the cache. The cache will grow with useless queries 
 while your application will be very slow. You have been warned!</div>
 
+###Discarding parameters automatically with "Magic parameters"
+
+TDBM helps you build queries with a variable number of parameters in a very efficient way.
+
+Let's say you want to filter products by category and store.
+
+Your request might look like this:
+
+```php
+class ProductDao extends ProductBaseDao {
+
+	/**
+	 * Returns the list of products filtered by category and/or store
+	 *
+	 * @param CategoryBean $category
+	 * @param StoreBean $store
+	 * @return CountryBean[]
+	 */
+	public function getProductsByCategoryAndStore(CategoryBean $category = null, StoreBean $store = null) {
+		return $this->find("category = :category AND store = :store", [ 
+		    "category" => $category?$category->getId():null,
+		    "store" => $store?$store->getId():null
+		]);
+	}
+}
+```
+
+The interesting part is that TDBM will automatically **discard** any parameter that is set to null.
+So let's imagine that your `$store` parameter is `null`. Suddenly, your filter will transform into: `category = :category`.
+The `AND store = :store` will be automatically dropped by TDBM.
+
+How is this possible? TDBM is built upon [MagicQuery](http://mouf-php.com/packages/mouf/magic-query/README.md) that has
+such a feature. You can read more about this feature [here](http://mouf-php.com/packages/mouf/magic-query/doc/discard_unused_parameters.md) and [here](http://www.thecodingmachine.com/simplifier-des-requetes-sql-complexes-avec-magic-query-cest-magique/) (french link).
+
 ###Getting only one record
 
 If you are confident that your query will only ever return one record (for instance, you are performing a lookup by `login` on the `Users` table, then, you can use the `findOne` method instead of `find`.

@@ -92,6 +92,9 @@
 					"title" : "A quick comparison with Doctrine",
 					"url" : "doc/comparison_with_doctrine.md"
 				}, {
+					"title" : "Migrating",
+					"url" : "doc/migrating.md"
+				}, {
 					"title" : "TDBM internals",
 					"url" : "doc/internals.md"
 				}
