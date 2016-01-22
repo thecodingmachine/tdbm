@@ -1,6 +1,28 @@
 Miscellaneous features
 ======================
 
+Deleting beans
+--------------
+
+Each DAO comes with a `delete` method to delete beans from the database.
+
+```php
+$userDao->delete($user);
+```
+
+When `delete` is called on a bean, the many-to-many relationships are automatically deleted as well.
+
+###Cascading deletes
+
+The `delete` method accepts a second `$cascade` parameter, that can be set to true is you want to perform cascade delete operations.
+
+```php
+// Delete $user and any bean that is pointing to the user.
+$userDao->delete($user, true);
+```
+
+When using "cascading delete", any bean pointing to the deleted bean will be deleted as well.
+
 Discarding changes on a bean
 ----------------------------
 

@@ -74,7 +74,6 @@ no name convention to respect, your primary key column can be named anything ('i
 To use this method, the primary key must be on a single column. If your primary key is on several columns, you can still use the
 search method (see below).
 
-
 ###Querying the database
 
 Now, what about getting the list of all users and displaying their name?
@@ -433,3 +432,4 @@ Restricting results fetched using limits and offsets
 ----------------------------------------------------
 
 Let's now learn how to [use limit and offsets](limit_offset_resultset.md) to limit the number of results fetched in a query.
+
