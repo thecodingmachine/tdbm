@@ -1,4 +1,5 @@
 <?php
+
 /*
  Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE
 
@@ -19,88 +20,95 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
-use Mouf\Utils\Cache\NoCache;
 use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\OrderByColumn;
 
 /**
  */
-class TDBMServiceTest extends TDBMAbstractServiceTest {
-
-    public function testGetLinkBetweenInheritedTables() {
-        $this->assertEquals(['users', 'contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(["contact", "users"]));
-        $this->assertEquals(['users', 'contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(["users", "contact"]));
-        $this->assertEquals(['contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(["person", "contact"]));
-        $this->assertEquals(['users', 'contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(["users"]));
-        $this->assertEquals(['person'], $this->tdbmService->_getLinkBetweenInheritedTables(["person"]));
+class TDBMServiceTest extends TDBMAbstractServiceTest
+{
+    public function testGetLinkBetweenInheritedTables()
+    {
+        $this->assertEquals(['users', 'contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(['contact', 'users']));
+        $this->assertEquals(['users', 'contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(['users', 'contact']));
+        $this->assertEquals(['contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(['person', 'contact']));
+        $this->assertEquals(['users', 'contact', 'person'], $this->tdbmService->_getLinkBetweenInheritedTables(['users']));
+        $this->assertEquals(['person'], $this->tdbmService->_getLinkBetweenInheritedTables(['person']));
     }
 
-    public function testGetRelatedTablesByInheritance() {
+    public function testGetRelatedTablesByInheritance()
+    {
         $contactRelatedTables = $this->tdbmService->_getRelatedTablesByInheritance('contact');
         $this->assertCount(3, $contactRelatedTables);
-        $this->assertContains("users", $contactRelatedTables);
-        $this->assertContains("contact", $contactRelatedTables);
-        $this->assertContains("person", $contactRelatedTables);
+        $this->assertContains('users', $contactRelatedTables);
+        $this->assertContains('contact', $contactRelatedTables);
+        $this->assertContains('person', $contactRelatedTables);
         $this->assertEquals(['person', 'contact', 'users'], $this->tdbmService->_getRelatedTablesByInheritance('users'));
         $this->assertEquals(['person', 'contact', 'users'], $this->tdbmService->_getRelatedTablesByInheritance('person'));
-
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
-    public function testGetPrimaryKeysFromIndexedPrimaryKeysException() {
-        $this->tdbmService->_getPrimaryKeysFromIndexedPrimaryKeys("users", [5, 4]);
+    public function testGetPrimaryKeysFromIndexedPrimaryKeysException()
+    {
+        $this->tdbmService->_getPrimaryKeysFromIndexedPrimaryKeys('users', [5, 4]);
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
-    public function testGetLinkBetweenInheritedTablesExceptions() {
-        $this->tdbmService->_getLinkBetweenInheritedTables(["contact", "country"]);
+    public function testGetLinkBetweenInheritedTablesExceptions()
+    {
+        $this->tdbmService->_getLinkBetweenInheritedTables(['contact', 'country']);
     }
 
-    public function testHashPrimaryKey() {
-		$reflection = new \ReflectionClass(get_class($this->tdbmService));
-		$method = $reflection->getMethod('getObjectHash');
-		$method->setAccessible(true);
+    public function testHashPrimaryKey()
+    {
+        $reflection = new \ReflectionClass(get_class($this->tdbmService));
+        $method = $reflection->getMethod('getObjectHash');
+        $method->setAccessible(true);
 
-		$result = $method->invokeArgs($this->tdbmService, [
-			[ 'id' => 42 ]
-		]);
-		$this->assertEquals(42, $result);
+        $result = $method->invokeArgs($this->tdbmService, [
+            ['id' => 42],
+        ]);
+        $this->assertEquals(42, $result);
 
-		// Check that multiple primary keys are insensitive to column order
-		$result1 = $method->invokeArgs($this->tdbmService, [
-			[ 'id1' => 42, 'id2' => 24 ]
-		]);
-		$result2 = $method->invokeArgs($this->tdbmService, [
-			[ 'id2' => 24, 'id1' => 42 ]
-		]);
-		$this->assertEquals($result1, $result2);
-	}
+        // Check that multiple primary keys are insensitive to column order
+        $result1 = $method->invokeArgs($this->tdbmService, [
+            ['id1' => 42, 'id2' => 24],
+        ]);
+        $result2 = $method->invokeArgs($this->tdbmService, [
+            ['id2' => 24, 'id1' => 42],
+        ]);
+        $this->assertEquals($result1, $result2);
+    }
 
-	public function testInsertAndUpdateAndDelete() {
-		$object = new TDBMObject("users");
-		$object->login = "john.doe";
-		$object->country_id = 3;
+    public function testInsertAndUpdateAndDelete()
+    {
+        $object = new TDBMObject('users');
+        $object->login = 'john.doe';
+        $object->country_id = 3;
 
-		$this->tdbmService->save($object);
+        $this->tdbmService->save($object);
 
-		$this->assertNotEmpty($object->get('id', 'person'));
+        $this->assertNotEmpty($object->get('id', 'person'));
         $this->assertNotEmpty($object->get('id', 'users'));
         $this->assertEquals($object->get('id', 'person'), $object->get('id', 'users'));
 
-		$object->set('country_id', 2, 'users');
+        $object->set('country_id', 2, 'users');
 
-		$this->tdbmService->save($object);
+        $this->tdbmService->save($object);
 
         $this->tdbmService->delete($object);
-	}
+    }
 
-    public function testInsertMultipleDataAtOnceInInheritance() {
+    public function testInsertMultipleDataAtOnceInInheritance()
+    {
         $object = new TDBMObject();
         $object->set('login', 'jane.doe', 'users');
         $object->set('name', 'Jane Doe', 'person');
@@ -113,49 +121,52 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $this->assertEquals($object->get('id', 'person'), $object->get('id', 'users'));
     }
 
-    public function testCompleteSave() {
-        $beans = $this->tdbmService->findObjects("users", "users.login = :login", ["login"=>"jane.doe"]);
+    public function testCompleteSave()
+    {
+        $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe']);
         $jane = $beans[0];
         $jane->set('country_id', 2, 'users');
 
         $this->tdbmService->completeSave();
     }
 
-    public function testCompleteSave2() {
-        $beans = $this->tdbmService->findObjects("users", "users.login = :login", ["login"=>"jane.doe"]);
+    public function testCompleteSave2()
+    {
+        $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe']);
         $jane = $beans[0];
 
         $this->assertEquals(2, $jane->get('country_id', 'users'));
     }
 
+    public function testUpdatePrimaryKey()
+    {
+        $object = new TDBMObject('rights');
+        $object->label = 'CAN_EDIT_BOUK';
 
-    public function testUpdatePrimaryKey() {
-		$object = new TDBMObject("rights");
-		$object->label = "CAN_EDIT_BOUK";
+        $this->tdbmService->save($object);
 
+        $object->label = 'CAN_EDIT_BOOK';
 
-		$this->tdbmService->save($object);
-
-		$object->label = "CAN_EDIT_BOOK";
-
-		$this->tdbmService->save($object);
-	}
+        $this->tdbmService->save($object);
+    }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMInvalidOperationException
+     *
      * @throws TDBMInvalidOperationException
      */
-    public function testCannotDeleteDetachedObjects() {
-        $object = new TDBMObject("rights");
-        $object->label = "CAN_DELETE";
+    public function testCannotDeleteDetachedObjects()
+    {
+        $object = new TDBMObject('rights');
+        $object->label = 'CAN_DELETE';
 
         $this->tdbmService->delete($object);
     }
 
-
-    public function testDeleteNewObject() {
-        $object = new TDBMObject("rights");
-        $object->label = "CAN_DELETE";
+    public function testDeleteNewObject()
+    {
+        $object = new TDBMObject('rights');
+        $object->label = 'CAN_DELETE';
 
         $this->tdbmService->attach($object);
 
@@ -170,13 +181,14 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $this->assertTrue($exceptionRaised);
     }
 
-    public function testDeleteLoadedObject() {
-        $object = new TDBMObject("rights");
-        $object->label = "CAN_DELETE";
+    public function testDeleteLoadedObject()
+    {
+        $object = new TDBMObject('rights');
+        $object->label = 'CAN_DELETE';
 
         $this->tdbmService->save($object);
 
-        $object->label = "CAN_DELETE2";
+        $object->label = 'CAN_DELETE2';
 
         $this->tdbmService->delete($object);
 
@@ -184,13 +196,14 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $this->tdbmService->delete($object);
     }
 
-    public function testFindObjects() {
+    public function testFindObjects()
+    {
         /*$magicQuery = new MagicQuery($this->tdbmService->getConnection());
         $result = $magicQuery->parse("SELECT DISTINCT users.id, users.login FROM users");
         var_dump($result);*/
 
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
-        $beans2 = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1]);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans2 = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1]);
 
         foreach ($beans as $bean) {
             $bean1 = $bean;
@@ -208,12 +221,11 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
 
         //$this->assertTrue($beans[0] === $beans2[0]);
         //var_dump($beans);
-
     }
 
     public function testArrayAccess()
     {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
 
         $this->assertTrue(isset($beans[0]));
         $this->assertFalse(isset($beans[42]));
@@ -235,33 +247,36 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMInvalidOffsetException
+     *
      * @throws TDBMInvalidOffsetException
      */
     public function testArrayAccessException()
     {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
 
         $beans[-1];
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMInvalidOffsetException
+     *
      * @throws TDBMInvalidOffsetException
      */
     public function testArrayAccessException2()
     {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
 
-        $beans["foo"];
+        $beans['foo'];
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
     public function testBeanGetException()
     {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
         $bean = $beans[0];
 
         // we don't specify the table on inheritance table => exception.
@@ -270,21 +285,21 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
     public function testBeanSetException()
     {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
         $bean = $beans[0];
 
         // we don't specify the table on inheritance table => exception.
         $bean->set('name', 'foo');
     }
 
-
-
-    public function testTake() {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+    public function testTake()
+    {
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
 
         $page = $beans->take(0, 2);
 
@@ -309,8 +324,9 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $this->assertTrue(isset($page[0]));
     }
 
-    public function testTakeInCursorMode() {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC", [], TDBMService::MODE_CURSOR);
+    public function testTakeInCursorMode()
+    {
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], TDBMService::MODE_CURSOR);
 
         $page = $beans->take(0, 2);
 
@@ -335,69 +351,77 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $this->assertEquals(1, $page->count());
     }
 
-    public function testMap() {
-        $beans = $this->tdbmService->findObjects("person", null, [], "person.id ASC");
+    public function testMap()
+    {
+        $beans = $this->tdbmService->findObjects('person', null, [], 'person.id ASC');
 
-        $results = $beans->map(function($item) {
+        $results = $beans->map(function ($item) {
            return $item->get('id', 'person');
         })->toArray();
 
-        $this->assertEquals([1,2,3,4,6], $results);
+        $this->assertEquals([1, 2, 3, 4, 6], $results);
 
         // Same test with page
         $page = $beans->take(0, 2);
 
-        $results = $page->map(function($item) {
+        $results = $page->map(function ($item) {
             return $item->get('id', 'person');
         })->toArray();
 
-        $this->assertEquals([1,2], $results);
-
+        $this->assertEquals([1, 2], $results);
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
-    public function testUnsetException() {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+    public function testUnsetException()
+    {
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
 
         unset($beans[0]);
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
-    public function testSetException() {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
+    public function testSetException()
+    {
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
 
-        $beans[0] = "foo";
+        $beans[0] = 'foo';
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
-    public function testPageUnsetException() {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
-        $page = $beans->take(0,1);
+    public function testPageUnsetException()
+    {
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $page = $beans->take(0, 1);
         unset($page[0]);
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
-    public function testPageSetException() {
-        $beans = $this->tdbmService->findObjects("contact", null, [], "contact.id ASC");
-        $page = $beans->take(0,1);
-        $page[0] = "foo";
+    public function testPageSetException()
+    {
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $page = $beans->take(0, 1);
+        $page[0] = 'foo';
     }
 
-
-    public function testToArray() {
-        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1]);
+    public function testToArray()
+    {
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1]);
 
         $beanArray = $beans->toArray();
 
@@ -405,10 +429,11 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $this->assertEquals(1, $beanArray[0]->get('id', 'contact'));
     }
 
-    public function testCursorMode() {
-        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, [], TDBMService::MODE_CURSOR);
+    public function testCursorMode()
+    {
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], TDBMService::MODE_CURSOR);
 
-        $this->assertInstanceOf("\\Mouf\\Database\\TDBM\\ResultIterator", $beans);
+        $this->assertInstanceOf('\\Mouf\\Database\\TDBM\\ResultIterator', $beans);
 
         $result = [];
         foreach ($beans as $bean) {
@@ -435,11 +460,12 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
         $this->assertTrue($exceptionTriggered);
     }
 
-    public function testSetFetchMode() {
+    public function testSetFetchMode()
+    {
         $this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
-        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1]);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1]);
 
-        $this->assertInstanceOf("\\Mouf\\Database\\TDBM\\ResultIterator", $beans);
+        $this->assertInstanceOf('\\Mouf\\Database\\TDBM\\ResultIterator', $beans);
 
         // In cursor mode, access by array causes an exception.
         $exceptionTriggered = false;
@@ -453,62 +479,73 @@ class TDBMServiceTest extends TDBMAbstractServiceTest {
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
-    public function testInvalidSetFetchMode() {
-        $this->tdbmService->setFetchMode("foo");
-    }
-
-
-    /**
-     * @expectedException \Mouf\Database\TDBM\TDBMException
-     * @throws TDBMException
-     */
-    public function testCursorModeException() {
-        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, [], "foobaz");
+    public function testInvalidSetFetchMode()
+    {
+        $this->tdbmService->setFetchMode('foo');
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
-    public function testTableNameException() {
-        $beans = $this->tdbmService->findObjects("foo bar");
+    public function testCursorModeException()
+    {
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], 'foobaz');
     }
 
-    public function testLinkedTableFetch() {
-        $beans = $this->tdbmService->findObjects("contact", "contact.id = :id", ["id"=>1], null, ['country']);
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
+     * @throws TDBMException
+     */
+    public function testTableNameException()
+    {
+        $beans = $this->tdbmService->findObjects('foo bar');
     }
 
-    public function testFindObject() {
-        $bean = $this->tdbmService->findObject("contact", "contact.id = :id", ["id"=>-42]);
+    public function testLinkedTableFetch()
+    {
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, ['country']);
+    }
+
+    public function testFindObject()
+    {
+        $bean = $this->tdbmService->findObject('contact', 'contact.id = :id', ['id' => -42]);
         $this->assertNull($bean);
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\NoBeanFoundException
+     *
      * @throws NoBeanFoundException
      */
-    public function testFindObjectOrFail() {
-        $bean = $this->tdbmService->findObjectOrFail("contact", "contact.id = :id", ["id"=>-42]);
+    public function testFindObjectOrFail()
+    {
+        $bean = $this->tdbmService->findObjectOrFail('contact', 'contact.id = :id', ['id' => -42]);
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\DuplicateRowException
+     *
      * @throws DuplicateRowException
      */
-    public function testFindObjectDuplicateRow() {
-        $bean = $this->tdbmService->findObject("contact");
+    public function testFindObjectDuplicateRow()
+    {
+        $bean = $this->tdbmService->findObject('contact');
     }
 
-    public function testFindObjectsByBean() {
-        $countryBean = $this->tdbmService->findObject("country", "id = :id", ["id"=>1]);
+    public function testFindObjectsByBean()
+    {
+        $countryBean = $this->tdbmService->findObject('country', 'id = :id', ['id' => 1]);
 
-        $users = $this->tdbmService->findObjects("users", $countryBean);
+        $users = $this->tdbmService->findObjects('users', $countryBean);
         $this->assertCount(1, $users);
-        $this->assertEquals("jean.dupont", $users[0]->get('login', 'users'));
+        $this->assertEquals('jean.dupont', $users[0]->get('login', 'users'));
     }
-
 
     /*
         public function testObjectAsFilter() {

@@ -1,4 +1,4 @@
-<?php 
+<?php
 /* @var $this Mouf\Database\TDBM\Controllers\TdbmInstallController */ ?>
 <h1>Setting up TDBM</h1>
 
@@ -7,10 +7,12 @@
 <form action="generate" method="post" class="form-horizontal">
 <input type="hidden" id="selfedit" name="selfedit" value="<?php echo plainstring_to_htmlprotected($this->selfedit) ?>" />
 
-<?php if (!$this->autoloadDetected) { ?>
+<?php if (!$this->autoloadDetected) {
+    ?>
 <div class="alert">Warning! TDBM could not detect the autoload section of your composer.json file.
 Unless you are developing your own autoload system, you should configure <strong>composer.json</strong> to <a href="http://getcomposer.org/doc/01-basic-usage.md#autoloading" target="_blank">define a source directory and a root namespace using PSR-0</a>.</div>
-<?php } ?>
+<?php 
+} ?>
 
 <div class="control-group">
 	<label class="control-label">Dao namespace:</label>
@@ -29,7 +31,7 @@ Unless you are developing your own autoload system, you should configure <strong
 <div class="control-group">
 	<label class="control-label">Store dates / timestamps in UTC:</label>
 	<div class="controls">
-		<input type="checkbox" name="storeInUtc" value="1" <?php echo $this->storeInUtc?'checked="checked"':"" ?>></input>
+		<input type="checkbox" name="storeInUtc" value="1" <?php echo $this->storeInUtc ? 'checked="checked"' : '' ?>></input>
 		<span class="help-block">Select this option if you want timestamps to be stored in UTC.
 		If your application supports several time zones, you should select this option to store all dates in
 		the same time zone.</span>

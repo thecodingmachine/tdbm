@@ -1,4 +1,5 @@
 <?php
+
 /*
  Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE
 
@@ -19,19 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
-use Mouf\Utils\Cache\NoCache;
-use Mouf\Database\TDBM\Filters\EqualFilter;
-use Mouf\Database\TDBM\Filters\OrderByColumn;
-
 /**
  */
-class MapIteratorTest extends \PHPUnit_Framework_TestCase {
-
+class MapIteratorTest extends \PHPUnit_Framework_TestCase
+{
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
      */
-    public function testConstructorException1() {
-        $mapIterator = new MapIterator(new \DateTime(), function($item) {
+    public function testConstructorException1()
+    {
+        $mapIterator = new MapIterator(new \DateTime(), function ($item) {
             return $item;
         });
     }
@@ -39,8 +37,9 @@ class MapIteratorTest extends \PHPUnit_Framework_TestCase {
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
      */
-    public function testConstructorException2() {
-        $mapIterator = new MapIterator(array(1,2,3), function() {
+    public function testConstructorException2()
+    {
+        $mapIterator = new MapIterator(array(1, 2, 3), function () {
             return $item;
         });
     }

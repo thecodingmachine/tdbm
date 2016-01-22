@@ -1,4 +1,5 @@
 <?php
+
 namespace Mouf\Database\TDBM;
 
 /*
@@ -18,8 +19,6 @@ namespace Mouf\Database\TDBM;
  along with this program; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-use Doctrine\DBAL\Driver\Connection;
-
 
 /**
  * Instances of this class represent an object that is bound to a row in a database table.
@@ -34,7 +33,6 @@ use Doctrine\DBAL\Driver\Connection;
  */
 class TDBMObject extends AbstractTDBMObject implements \ArrayAccess, \Iterator
 {
-
     public function __get($var)
     {
         return $this->get($var);
@@ -44,7 +42,8 @@ class TDBMObject extends AbstractTDBMObject implements \ArrayAccess, \Iterator
      * Returns true if a column is set, false otherwise.
      *
      * @param string $var
-     * @return boolean
+     *
+     * @return bool
      */
     public function __isset($var)
     {
@@ -71,11 +70,13 @@ class TDBMObject extends AbstractTDBMObject implements \ArrayAccess, \Iterator
      * Implements array behaviour for our object.
      *
      * @param string $offset
+     *
      * @return bool
      */
     public function offsetExists($offset)
     {
         $this->_dbLoadIfNotLoaded();
+
         return isset($this->dbRow[$offset]);
     }
 
@@ -93,6 +94,7 @@ class TDBMObject extends AbstractTDBMObject implements \ArrayAccess, \Iterator
      * Implements array behaviour for our object.
      *
      * @param string $offset
+     *
      * @return mixed|null
      */
     public function offsetGet($offset)

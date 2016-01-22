@@ -1,21 +1,19 @@
 <?php
+
 namespace Mouf\Database\TDBM;
+
 use Doctrine\Common\Cache\Cache;
-use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
-use Mouf\Database\TDBM\Utils\AbstractBeanPropertyDescriptor;
 
 /**
  * This class is used to analyze the schema and return valuable information / hints.
  */
 class TDBMSchemaAnalyzer
 {
-
     private $connection;
 
     /**
@@ -39,12 +37,13 @@ class TDBMSchemaAnalyzer
     private $schemaAnalyzer;
 
     /**
-     * @param Connection $connection The DBAL DB connection to use
-     * @param Cache $cache A cache service to be used
+     * @param Connection     $connection     The DBAL DB connection to use
+     * @param Cache          $cache          A cache service to be used
      * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
-     * 										 Will be automatically created if not passed.
+     *                                       Will be automatically created if not passed.
      */
-    public function __construct(Connection $connection, Cache $cache, SchemaAnalyzer $schemaAnalyzer) {
+    public function __construct(Connection $connection, Cache $cache, SchemaAnalyzer $schemaAnalyzer)
+    {
         $this->connection = $connection;
         $this->cache = $cache;
         $this->schemaAnalyzer = $schemaAnalyzer;
@@ -52,12 +51,15 @@ class TDBMSchemaAnalyzer
 
     /**
      * Returns a unique ID for the current connection. Useful for namespacing cache entries in the current connection.
+     *
      * @return string
      */
-    public function getCachePrefix() {
+    public function getCachePrefix()
+    {
         if ($this->cachePrefix === null) {
-            $this->cachePrefix = hash('md4', $this->connection->getHost()."-".$this->connection->getPort()."-".$this->connection->getDatabase()."-".$this->connection->getDriver()->getName());
+            $this->cachePrefix = hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
         }
+
         return $this->cachePrefix;
     }
 
@@ -66,7 +68,8 @@ class TDBMSchemaAnalyzer
      *
      * @return Schema
      */
-    public function getSchema() {
+    public function getSchema()
+    {
         if ($this->schema === null) {
             $cacheKey = $this->getCachePrefix().'_schema';
             if ($this->cache->contains($cacheKey)) {
@@ -76,15 +79,19 @@ class TDBMSchemaAnalyzer
                 $this->cache->save($cacheKey, $this->schema);
             }
         }
+
         return $this->schema;
     }
 
     /**
-     * Returns the list of pivot tables linked to table $tableName
+     * Returns the list of pivot tables linked to table $tableName.
+     *
      * @param string $tableName
+     *
      * @return array|string[]
      */
-    public function getPivotTableLinkedToTable($tableName) {
+    public function getPivotTableLinkedToTable($tableName)
+    {
         $cacheKey = $this->getCachePrefix().'_pivottables_link';
         if ($this->cache->contains($cacheKey)) {
             return $this->cache->fetch($cacheKey);
@@ -104,6 +111,7 @@ class TDBMSchemaAnalyzer
         }
 
         $this->cache->save($cacheKey, $pivotTables);
+
         return $pivotTables;
     }
 
@@ -113,10 +121,10 @@ class TDBMSchemaAnalyzer
      *
      * @return ForeignKeyConstraint[]
      */
-    public function getIncomingForeignKeys($tableName) {
-
+    public function getIncomingForeignKeys($tableName)
+    {
         $junctionTables = $this->schemaAnalyzer->detectJunctionTables();
-        $junctionTableNames = array_map(function(Table $table) { return $table->getName(); }, $junctionTables);
+        $junctionTableNames = array_map(function (Table $table) { return $table->getName(); }, $junctionTables);
         $childrenRelationships = $this->schemaAnalyzer->getChildrenRelationships($tableName);
 
         $fks = [];

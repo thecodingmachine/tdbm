@@ -1,4 +1,5 @@
 <?php
+
 /*
  Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE
 
@@ -21,14 +22,13 @@ namespace Mouf\Database\TDBM;
 
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\DriverManager;
-use Mouf\Utils\Cache\NoCache;
 
 /**
  */
-abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase {
-
+abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
+{
     /**
-     * @var Connection $dbConnection
+     * @var Connection
      */
     protected $dbConnection;
 
@@ -37,8 +37,8 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase {
      */
     protected $tdbmService;
 
-    public static function setUpBeforeClass() {
-
+    public static function setUpBeforeClass()
+    {
         $config = new \Doctrine\DBAL\Configuration();
 
         $connectionParams = array(
@@ -46,7 +46,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase {
             'password' => $GLOBALS['db_password'],
             'host' => $GLOBALS['db_host'],
             'port' => $GLOBALS['db_port'],
-            'driver' => $GLOBALS['db_driver']
+            'driver' => $GLOBALS['db_driver'],
         );
 
         $adminConn = DriverManager::getConnection($connectionParams, $config);
@@ -59,8 +59,8 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase {
         self::loadSqlFile($dbConnection, __DIR__.'/../../../sql/tdbmunittest.sql');
     }
 
-    protected function setUp() {
-
+    protected function setUp()
+    {
         $config = new \Doctrine\DBAL\Configuration();
 
         $connectionParams = array(
@@ -69,14 +69,15 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase {
             'host' => $GLOBALS['db_host'],
             'port' => $GLOBALS['db_port'],
             'driver' => $GLOBALS['db_driver'],
-            'dbname' => $GLOBALS['db_name']
+            'dbname' => $GLOBALS['db_name'],
         );
 
         $this->dbConnection = DriverManager::getConnection($connectionParams, $config);
         $this->tdbmService = new TDBMService($this->dbConnection);
     }
 
-    protected static function loadSqlFile(Connection $connection, $sqlFile) {
+    protected static function loadSqlFile(Connection $connection, $sqlFile)
+    {
         $sql = file_get_contents($sqlFile);
 
         $stmt = $connection->prepare($sql);

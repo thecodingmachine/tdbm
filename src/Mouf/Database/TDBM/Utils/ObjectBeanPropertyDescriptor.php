@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Mouf\Database\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Column;
@@ -9,11 +8,10 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 
 /**
- * This class represent a property in a bean that points to another table
+ * This class represent a property in a bean that points to another table.
  */
 class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 {
-
     /**
      * @var ForeignKeyConstraint
      */
@@ -24,28 +22,30 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     private $schemaAnalyzer;
 
-    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, SchemaAnalyzer $schemaAnalyzer) {
+    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, SchemaAnalyzer $schemaAnalyzer)
+    {
         parent::__construct($table);
         $this->foreignKey = $foreignKey;
         $this->schemaAnalyzer = $schemaAnalyzer;
     }
-
-
 
     /**
      * Returns the foreignkey the column is part of, if any. null otherwise.
      *
      * @return ForeignKeyConstraint|null
      */
-    public function getForeignKey() {
+    public function getForeignKey()
+    {
         return $this->foreignKey;
     }
 
     /**
-     * Returns the name of the class linked to this property or null if this is not a foreign key
+     * Returns the name of the class linked to this property or null if this is not a foreign key.
+     *
      * @return null|string
      */
-    public function getClassName() {
+    public function getClassName()
+    {
         return TDBMDaoGenerator::getBeanNameFromTableName($this->foreignKey->getForeignTableName());
     }
 
@@ -54,12 +54,15 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    public function getParamAnnotation() {
-        $str = "     * @param %s %s";
+    public function getParamAnnotation()
+    {
+        $str = '     * @param %s %s';
+
         return sprintf($str, $this->getClassName(), $this->getVariableName());
     }
 
-    public function getUpperCamelCaseName() {
+    public function getUpperCamelCaseName()
+    {
         // First, are there many column or only one?
         // If one column, we name the setter after it. Otherwise, we name the setter after the table name
         if (count($this->foreignKey->getLocalColumns()) > 1) {
@@ -72,25 +75,28 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         } else {
             $column = $this->foreignKey->getLocalColumns()[0];
             // Let's remove any _id or id_.
-            if (strpos(strtolower($column), "id_") === 0) {
+            if (strpos(strtolower($column), 'id_') === 0) {
                 $column = substr($column, 3);
             }
-            if (strrpos(strtolower($column), "_id") === strlen($column)-3) {
-                $column = substr($column, 0, strlen($column)-3);
+            if (strrpos(strtolower($column), '_id') === strlen($column) - 3) {
+                $column = substr($column, 0, strlen($column) - 3);
             }
             $name = TDBMDaoGenerator::toCamelCase($column);
             if ($this->alternativeName) {
                 $name .= 'Object';
             }
         }
+
         return $name;
     }
 
     /**
      * Returns true if the property is compulsory (and therefore should be fetched in the constructor).
+     *
      * @return bool
      */
-    public function isCompulsory() {
+    public function isCompulsory()
+    {
         // Are all columns nullable?
         $localColumnNames = $this->foreignKey->getLocalColumns();
 
@@ -105,10 +111,12 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
-     * Returns true if the property is the primary key
+     * Returns true if the property is the primary key.
+     *
      * @return bool
      */
-    public function isPrimaryKey() {
+    public function isPrimaryKey()
+    {
         $fkColumns = $this->foreignKey->getLocalColumns();
         sort($fkColumns);
 
@@ -119,10 +127,12 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
-     * Returns the PHP code for getters and setters
+     * Returns the PHP code for getters and setters.
+     *
      * @return string
      */
-    public function getGetterSetterCode() {
+    public function getGetterSetterCode()
+    {
         $tableName = $this->table->getName();
         $getterName = $this->getGetterName();
         $setterName = $this->getSetterName();
@@ -130,7 +140,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $referencedBeanName = TDBMDaoGenerator::getBeanNameFromTableName($this->foreignKey->getForeignTableName());
 
         $str = '    /**
-     * Returns the '.$referencedBeanName.' object bound to this object via the '.implode(" and ", $this->foreignKey->getLocalColumns()).' column.
+     * Returns the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getLocalColumns()).' column.
      *
      * @return '.$referencedBeanName.'
      */
@@ -139,15 +149,16 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
-     * The setter for the '.$referencedBeanName.' object bound to this object via the '.implode(" and ", $this->foreignKey->getLocalColumns()).' column.
+     * The setter for the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getLocalColumns()).' column.
      *
      * @param '.$referencedBeanName.' $object
      */
     public function '.$setterName.'('.$referencedBeanName.' $object = null) {
-        $this->setRef(' . var_export($this->foreignKey->getName(), true) . ', $object, '.var_export($tableName, true).');
+        $this->setRef('.var_export($this->foreignKey->getName(), true).', $object, '.var_export($tableName, true).');
     }
 
 ';
+
         return $str;
     }
 

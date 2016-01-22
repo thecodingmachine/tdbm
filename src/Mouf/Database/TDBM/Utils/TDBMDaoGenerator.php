@@ -1,10 +1,10 @@
 <?php
+
 namespace Mouf\Database\TDBM\Utils;
 
 use Doctrine\Common\Inflector\Inflector;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
@@ -13,21 +13,17 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\TDBMException;
 use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
 
-
 /**
  * This class generates automatically DAOs and Beans for TDBM.
- *
  */
-class TDBMDaoGenerator {
-
+class TDBMDaoGenerator
+{
     /**
-     * 
      * @var SchemaAnalyzer
      */
     private $schemaAnalyzer;
 
     /**
-     *
      * @var Schema
      */
     private $schema;
@@ -49,24 +45,28 @@ class TDBMDaoGenerator {
      *
      * @param Connection $dbConnection The connection to the database.
      */
-    public function __construct(SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer) {
+    public function __construct(SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
+    {
         $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
-        $this->rootPath = __DIR__."/../../../../../../../../";
+        $this->rootPath = __DIR__.'/../../../../../../../../';
     }
 
     /**
      * Generates all the daos and beans.
      *
      * @param string $daoFactoryClassName The classe name of the DAO factory
-     * @param string $daonamespace The namespace for the DAOs, without trailing \
-     * @param string $beannamespace The Namespace for the beans, without trailing \
-     * @param bool $storeInUtc If the generated daos should store the date in UTC timezone instead of user's timezone.
+     * @param string $daonamespace        The namespace for the DAOs, without trailing \
+     * @param string $beannamespace       The Namespace for the beans, without trailing \
+     * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone.
+     *
      * @return \string[] the list of tables
+     *
      * @throws TDBMException
      */
-    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc) {
+    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc)
+    {
         // TODO: extract ClassNameMapper in its own package!
         $classNameMapper = ClassNameMapper::createFromComposerFile($this->rootPath.'composer.json');
 
@@ -76,33 +76,34 @@ class TDBMDaoGenerator {
 
         // Remove all beans and daos from junction tables
         $junctionTables = $this->schemaAnalyzer->detectJunctionTables();
-        $junctionTableNames = array_map(function(Table $table) {
+        $junctionTableNames = array_map(function (Table $table) {
             return $table->getName();
         }, $junctionTables);
 
-        $tableList = array_filter($tableList, function(Table $table) use ($junctionTableNames) {
+        $tableList = array_filter($tableList, function (Table $table) use ($junctionTableNames) {
             return !in_array($table->getName(), $junctionTableNames);
         });
 
         foreach ($tableList as $table) {
             $this->generateDaoAndBean($table, $daonamespace, $beannamespace, $classNameMapper, $storeInUtc);
         }
-        
+
         $this->generateFactory($tableList, $daoFactoryClassName, $daonamespace, $classNameMapper);
 
         // Ok, let's return the list of all tables.
         // These will be used by the calling script to create Mouf instances.
-        
-        return array_map(function(Table $table) { return $table->getName(); },$tableList);
+
+        return array_map(function (Table $table) { return $table->getName(); }, $tableList);
     }
-    
+
     /**
      * Generates in one method call the daos and the beans for one table.
-     * 
+     *
      * @param $tableName
      */
-    public function generateDaoAndBean(Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc) {
-		$tableName = $table->getName();
+    public function generateDaoAndBean(Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc)
+    {
+        $tableName = $table->getName();
         $daoName = $this->getDaoNameFromTableName($tableName);
         $beanName = $this->getBeanNameFromTableName($tableName);
         $baseBeanName = $this->getBaseBeanNameFromTableName($tableName);
@@ -111,66 +112,75 @@ class TDBMDaoGenerator {
         $this->generateBean($beanName, $baseBeanName, $table, $beannamespace, $classNameMapper, $storeInUtc);
         $this->generateDao($daoName, $baseDaoName, $beanName, $table, $daonamespace, $beannamespace, $classNameMapper);
     }
-    
+
     /**
      * Returns the name of the bean class from the table name.
-     * 
+     *
      * @param $tableName
+     *
      * @return string
      */
-    public static function getBeanNameFromTableName($tableName) {
-        return TDBMDaoGenerator::toSingular(TDBMDaoGenerator::toCamelCase($tableName))."Bean";
+    public static function getBeanNameFromTableName($tableName)
+    {
+        return self::toSingular(self::toCamelCase($tableName)).'Bean';
     }
-    
+
     /**
      * Returns the name of the DAO class from the table name.
-     * 
+     *
      * @param $tableName
+     *
      * @return string
      */
-    public static function getDaoNameFromTableName($tableName) {
-        return TDBMDaoGenerator::toSingular(TDBMDaoGenerator::toCamelCase($tableName))."Dao";
+    public static function getDaoNameFromTableName($tableName)
+    {
+        return self::toSingular(self::toCamelCase($tableName)).'Dao';
     }
-    
+
     /**
      * Returns the name of the base bean class from the table name.
-     * 
+     *
      * @param $tableName
+     *
      * @return string
      */
-    public static function getBaseBeanNameFromTableName($tableName) {
-        return TDBMDaoGenerator::toSingular(TDBMDaoGenerator::toCamelCase($tableName))."BaseBean";
+    public static function getBaseBeanNameFromTableName($tableName)
+    {
+        return self::toSingular(self::toCamelCase($tableName)).'BaseBean';
     }
 
     /**
      * Returns the name of the base DAO class from the table name.
      *
      * @param $tableName
+     *
      * @return string
      */
-    public static function getBaseDaoNameFromTableName($tableName) {
-        return TDBMDaoGenerator::toSingular(TDBMDaoGenerator::toCamelCase($tableName))."BaseDao";
+    public static function getBaseDaoNameFromTableName($tableName)
+    {
+        return self::toSingular(self::toCamelCase($tableName)).'BaseDao';
     }
 
     /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
-     * @param string $className The name of the class
-     * @param string $baseClassName The name of the base class which will be extended (name only, no directory)
-     * @param Table $table The table
-     * @param string $beannamespace The namespace of the bean
+     * @param string          $className       The name of the class
+     * @param string          $baseClassName   The name of the base class which will be extended (name only, no directory)
+     * @param Table           $table           The table
+     * @param string          $beannamespace   The namespace of the bean
      * @param ClassNameMapper $classNameMapper
+     *
      * @throws TDBMException
      */
-    public function generateBean($className, $baseClassName, Table $table, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc) {
-
+    public function generateBean($className, $baseClassName, Table $table, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc)
+    {
         $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer);
 
         $str = $beanDescriptor->generatePhpCode($beannamespace);
 
-        $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($beannamespace."\\".$baseClassName);
+        $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($beannamespace.'\\'.$baseClassName);
         if (!$possibleBaseFileNames) {
-            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace."\\".$baseClassName.'" is not autoloadable.');
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace.'\\'.$baseClassName.'" is not autoloadable.');
         }
         $possibleBaseFileName = $this->rootPath.$possibleBaseFileNames[0];
 
@@ -178,12 +188,10 @@ class TDBMDaoGenerator {
         file_put_contents($possibleBaseFileName, $str);
         @chmod($possibleBaseFileName, 0664);
 
-
-
-        $possibleFileNames = $classNameMapper->getPossibleFileNames($beannamespace."\\".$className);
+        $possibleFileNames = $classNameMapper->getPossibleFileNames($beannamespace.'\\'.$className);
         if (!$possibleFileNames) {
             // @codeCoverageIgnoreStart
-            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace."\\".$className.'" is not autoloadable.');
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace.'\\'.$className.'" is not autoloadable.');
             // @codeCoverageIgnoreEnd
         }
         $possibleFileName = $this->rootPath.$possibleFileNames[0];
@@ -198,16 +206,16 @@ class TDBMDaoGenerator {
  */
 
 namespace {$beannamespace};
- 
+
 /**
  * The $className class maps the '$tableName' table in database.
  */
-class $className extends $baseClassName 
+class $className extends $baseClassName
 {
 
 }";
             $this->ensureDirectoryExist($possibleFileName);
-            file_put_contents($possibleFileName ,$str);
+            file_put_contents($possibleFileName, $str);
             @chmod($possibleFileName, 0664);
         }
     }
@@ -215,11 +223,12 @@ class $className extends $baseClassName
     /**
      * Writes the PHP bean DAO with simple functions to create/get/save objects.
      *
-     * @param string $fileName The file that will be written (without the directory)
+     * @param string $fileName  The file that will be written (without the directory)
      * @param string $className The name of the class
      * @param string $tableName The name of the table
      */
-    public function generateDao($className, $baseClassName, $beanClassName, Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper) {
+    public function generateDao($className, $baseClassName, $beanClassName, Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper)
+    {
         $tableName = $table->getName();
         $primaryKeyColumns = $table->getPrimaryKeyColumns();
 
@@ -227,11 +236,11 @@ class $className extends $baseClassName
         foreach ($table->getColumns() as $column) {
             $comments = $column->getComment();
             $matches = array();
-            if (preg_match('/@defaultSort(\((desc|asc)\))*/', $comments, $matches) != 0){
+            if (preg_match('/@defaultSort(\((desc|asc)\))*/', $comments, $matches) != 0) {
                 $defaultSort = $data['column_name'];
-                if (count($matches == 3)){
+                if (count($matches == 3)) {
                     $defaultSortDirection = $matches[2];
-                }else{
+                } else {
                     $defaultSortDirection = 'ASC';
                 }
             }
@@ -239,10 +248,10 @@ class $className extends $baseClassName
 
         // FIXME: lowercase tables with _ in the name should work!
         $tableCamel = self::toSingular(self::toCamelCase($tableName));
-        
+
         $beanClassWithoutNameSpace = $beanClassName;
-        $beanClassName = $beannamespace."\\".$beanClassName;
-        
+        $beanClassName = $beannamespace.'\\'.$beanClassName;
+
         $str = "<?php
 
 /*
@@ -260,7 +269,7 @@ use $beanClassName;
 
 /**
  * The $baseClassName class will maintain the persistence of $beanClassWithoutNameSpace class into the $tableName table.
- * 
+ *
  */
 class $baseClassName
 {
@@ -269,21 +278,21 @@ class $baseClassName
      * @var TDBMService
      */
     protected \$tdbmService;
-    
+
     /**
      * The default sort column.
      *
      * @var string
      */
     private \$defaultSort = ".($defaultSort ? "'$defaultSort'" : 'null').";
-    
+
     /**
      * The default sort direction.
      *
      * @var string
      */
     private \$defaultDirection = ".($defaultSort && $defaultSortDirection ? "'$defaultSortDirection'" : "'asc'").";
-    
+
     /**
      * Sets the TDBM service used by this DAO.
      *
@@ -303,7 +312,7 @@ class $baseClassName
     {
         return \$this->tdbmService->getNewObject('$tableName', true);
     }*/
-    
+
     /**
      * Persist the $beanClassWithoutNameSpace instance.
      *
@@ -315,7 +324,7 @@ class $baseClassName
     }
 
     /**
-     * Get all $tableCamel records. 
+     * Get all $tableCamel records.
      *
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
@@ -394,7 +403,7 @@ class $baseClassName
     {
         return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters);
     }
-    
+
     /**
      * Sets the default column for default sorting.
      *
@@ -406,11 +415,11 @@ class $baseClassName
     }
     ";
 
-$str .= "
+        $str .= '
 }
-";
+';
 
-        $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($daonamespace."\\".$baseClassName);
+        $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($daonamespace.'\\'.$baseClassName);
         if (!$possibleBaseFileNames) {
             // @codeCoverageIgnoreStart
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$baseClassName.'" is not autoloadable.');
@@ -419,17 +428,17 @@ $str .= "
         $possibleBaseFileName = $this->rootPath.$possibleBaseFileNames[0];
 
         $this->ensureDirectoryExist($possibleBaseFileName);
-        file_put_contents($possibleBaseFileName ,$str);
+        file_put_contents($possibleBaseFileName, $str);
         @chmod($possibleBaseFileName, 0664);
 
-        $possibleFileNames = $classNameMapper->getPossibleFileNames($daonamespace."\\".$className);
+        $possibleFileNames = $classNameMapper->getPossibleFileNames($daonamespace.'\\'.$className);
         if (!$possibleFileNames) {
             // @codeCoverageIgnoreStart
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$className.'" is not autoloadable.');
             // @codeCoverageIgnoreEnd
         }
         $possibleFileName = $this->rootPath.$possibleFileNames[0];
-        
+
         // Now, let's generate the "editable" class
         if (!file_exists($possibleFileName)) {
             $str = "<?php
@@ -450,21 +459,20 @@ class $className extends $baseClassName
 }
 ";
             $this->ensureDirectoryExist($possibleFileName);
-            file_put_contents($possibleFileName ,$str);
+            file_put_contents($possibleFileName, $str);
             @chmod($possibleFileName, 0664);
         }
     }
 
-
-
     /**
      * Generates the factory bean.
-     * 
+     *
      * @param Table[] $tableList
      */
-    private function generateFactory(array $tableList, $daoFactoryClassName, $daoNamespace, ClassNameMapper $classNameMapper) {
+    private function generateFactory(array $tableList, $daoFactoryClassName, $daoNamespace, ClassNameMapper $classNameMapper)
+    {
         // For each table, let's write a property.
-        
+
         $str = "<?php
 
 /*
@@ -473,12 +481,12 @@ class $className extends $baseClassName
  */
 
 namespace {$daoNamespace};
-        
+
 /**
  * The $daoFactoryClassName provides an easy access to all DAOs generated by TDBM.
  *
  */
-class $daoFactoryClassName 
+class $daoFactoryClassName
 {
 ";
 
@@ -486,7 +494,7 @@ class $daoFactoryClassName
             $tableName = $table->getName();
             $daoClassName = $this->getDaoNameFromTableName($tableName);
             $daoInstanceName = self::toVariableName($daoClassName);
-            
+
             $str .= '    /**
      * @var '.$daoClassName.'
      */
@@ -494,14 +502,14 @@ class $daoFactoryClassName
 
     /**
      * Returns an instance of the '.$daoClassName.' class.
-     * 
+     *
      * @return '.$daoClassName.'
      */
     public function get'.$daoClassName.'()
     {
         return $this->'.$daoInstanceName.';
     }
-    
+
     /**
      * Sets the instance of the '.$daoClassName.' class that will be returned by the factory getter.
      *
@@ -510,79 +518,88 @@ class $daoFactoryClassName
     public function set'.$daoClassName.'('.$daoClassName.' $'.$daoInstanceName.') {
         $this->'.$daoInstanceName.' = $'.$daoInstanceName.';
     }
-    
+
 ';
         }
-        
-        
+
         $str .= '
 }
 ';
 
-        $possibleFileNames = $classNameMapper->getPossibleFileNames($daoNamespace."\\".$daoFactoryClassName);
+        $possibleFileNames = $classNameMapper->getPossibleFileNames($daoNamespace.'\\'.$daoFactoryClassName);
         if (!$possibleFileNames) {
-            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$daoNamespace."\\".$daoFactoryClassName.'" is not autoloadable.');
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$daoNamespace.'\\'.$daoFactoryClassName.'" is not autoloadable.');
         }
         $possibleFileName = $this->rootPath.$possibleFileNames[0];
 
         $this->ensureDirectoryExist($possibleFileName);
-        file_put_contents($possibleFileName ,$str);
+        file_put_contents($possibleFileName, $str);
         @chmod($possibleFileName, 0664);
     }
 
     /**
      * Transforms a string to camelCase (except the first letter will be uppercase too).
      * Underscores and spaces are removed and the first letter after the underscore is uppercased.
-     * 
+     *
      * @param $str string
+     *
      * @return string
      */
-    public static function toCamelCase($str) {
-        $str = strtoupper(substr($str,0,1)).substr($str,1);
+    public static function toCamelCase($str)
+    {
+        $str = strtoupper(substr($str, 0, 1)).substr($str, 1);
         while (true) {
-            if (strpos($str, "_") === false && strpos($str, " ") === false) {
+            if (strpos($str, '_') === false && strpos($str, ' ') === false) {
                 break;
-			}
-                
-            $pos = strpos($str, "_");
-            if ($pos === false) {
-                $pos = strpos($str, " ");
             }
-            $before = substr($str,0,$pos);
-            $after = substr($str,$pos+1);
-            $str = $before.strtoupper(substr($after,0,1)).substr($after,1);
+
+            $pos = strpos($str, '_');
+            if ($pos === false) {
+                $pos = strpos($str, ' ');
+            }
+            $before = substr($str, 0, $pos);
+            $after = substr($str, $pos + 1);
+            $str = $before.strtoupper(substr($after, 0, 1)).substr($after, 1);
         }
+
         return $str;
     }
-    
+
     /**
      * Tries to put string to the singular form (if it is plural).
      * We assume the table names are in english.
      *
      * @param $str string
+     *
      * @return string
      */
-    public static function toSingular($str) {
+    public static function toSingular($str)
+    {
         return Inflector::singularize($str);
     }
-    
+
     /**
      * Put the first letter of the string in lower case.
      * Very useful to transform a class name into a variable name.
-     * 
+     *
      * @param $str string
+     *
      * @return string
      */
-    public static function toVariableName($str) {
+    public static function toVariableName($str)
+    {
         return strtolower(substr($str, 0, 1)).substr($str, 1);
     }
 
     /**
      * Ensures the file passed in parameter can be written in its directory.
+     *
      * @param string $fileName
+     *
      * @throws TDBMException
      */
-    private function ensureDirectoryExist($fileName) {
+    private function ensureDirectoryExist($fileName)
+    {
         $dirName = dirname($fileName);
         if (!file_exists($dirName)) {
             $old = umask(0);
@@ -603,12 +620,14 @@ class $daoFactoryClassName
     }
 
     /**
-     * Transforms a DBAL type into a PHP type (for PHPDoc purpose)
+     * Transforms a DBAL type into a PHP type (for PHPDoc purpose).
      *
      * @param Type $type The DBAL type
+     *
      * @return string The PHP type
      */
-    public static function dbalTypeToPhpType(Type $type) {
+    public static function dbalTypeToPhpType(Type $type)
+    {
         $map = [
             Type::TARRAY => 'array',
             Type::SIMPLE_ARRAY => 'array',
@@ -628,26 +647,28 @@ class $daoFactoryClassName
             Type::BINARY => 'string',
             Type::BLOB => 'string',
             Type::FLOAT => 'float',
-            Type::GUID => 'string'
+            Type::GUID => 'string',
         ];
 
-        return isset($map[$type->getName()])?$map[$type->getName()]:$type->getName();
+        return isset($map[$type->getName()]) ? $map[$type->getName()] : $type->getName();
     }
 
     /**
-     *
      * @param string $beanNamespace
+     *
      * @return \string[] Returns a map mapping table name to beans name
      */
-    public function buildTableToBeanMap($beanNamespace) {
+    public function buildTableToBeanMap($beanNamespace)
+    {
         $tableToBeanMap = [];
 
         $tables = $this->schema->getTables();
 
         foreach ($tables as $table) {
             $tableName = $table->getName();
-            $tableToBeanMap[$tableName] = $beanNamespace . "\\" . self::getBeanNameFromTableName($tableName);
+            $tableToBeanMap[$tableName] = $beanNamespace.'\\'.self::getBeanNameFromTableName($tableName);
         }
+
         return $tableToBeanMap;
     }
 }

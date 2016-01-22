@@ -1,4 +1,5 @@
 <?php
+
 namespace Mouf\Database\TDBM;
 
 /*
@@ -19,87 +20,83 @@ namespace Mouf\Database\TDBM;
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
 /**
  * An object that behaves just like an array of TDBMObjects.
  * If there is only one object in it, it can be accessed just like an object.
- *
  */
-class TDBMObjectArray extends \ArrayObject implements \JsonSerializable {
-	public function __get($var) {
-		$cnt = count($this);
-		if ($cnt==1)
-		{
-			return $this[0]->__get($var);
-		}
-		elseif ($cnt>1)
-		{
-			throw new TDBMException('Array contains many objects! Use getarray_'.$var.' to retrieve an array of '.$var);
-		}
-		else
-		{
-			throw new TDBMException('Array contains no objects');
-		}
-	}
+class TDBMObjectArray extends \ArrayObject implements \JsonSerializable
+{
+    public function __get($var)
+    {
+        $cnt = count($this);
+        if ($cnt == 1) {
+            return $this[0]->__get($var);
+        } elseif ($cnt > 1) {
+            throw new TDBMException('Array contains many objects! Use getarray_'.$var.' to retrieve an array of '.$var);
+        } else {
+            throw new TDBMException('Array contains no objects');
+        }
+    }
 
-	public function __set($var, $value) {
-		$cnt = count($this);
-		if ($cnt==1)
-		{
-			return $this[0]->__set($var, $value);
-		}
-		elseif ($cnt>1)
-		{
-			throw new TDBMException('Array contains many objects! Use setarray_'.$var.' to set the array of '.$var);
-		}
-		else
-		{
-			throw new TDBMException('Array contains no objects');
-		}
-	}
+    public function __set($var, $value)
+    {
+        $cnt = count($this);
+        if ($cnt == 1) {
+            return $this[0]->__set($var, $value);
+        } elseif ($cnt > 1) {
+            throw new TDBMException('Array contains many objects! Use setarray_'.$var.' to set the array of '.$var);
+        } else {
+            throw new TDBMException('Array contains no objects');
+        }
+    }
 
-	/**
-	 * getarray_column_name returns an array containing the values of the column of the given objects.
-	 * setarray_column_name sets the value of the given column for all the objects.
-	 *
-	 * @param string $func_name
-	 * @param $values
-	 * @return array|void
+    /**
+     * getarray_column_name returns an array containing the values of the column of the given objects.
+     * setarray_column_name sets the value of the given column for all the objects.
+     *
+     * @param string $func_name
+     * @param $values
+     *
+     * @return array|void
+     *
      * @throws TDBMException
-	 */
-    public function __call($func_name, $values) {
+     */
+    public function __call($func_name, $values)
+    {
+        if (strpos($func_name, 'getarray_') === 0) {
+            $column = substr($func_name, 9);
 
-		if (strpos($func_name,"getarray_") === 0) {
-			$column = substr($func_name, 9);
-			return $this->getarray($column);
-		} elseif (strpos($func_name,"setarray_") === 0) {
-			$column = substr($func_name, 9);
-			return $this->setarray($column, $values[0]);
-		} elseif (count($this)==1) {
-			$this[0]->__call($func_name, $values);
-		}
-		else
-		{
-			throw new TDBMException("Method ".$func_name." not found");
-		}
+            return $this->getarray($column);
+        } elseif (strpos($func_name, 'setarray_') === 0) {
+            $column = substr($func_name, 9);
 
-	}
+            return $this->setarray($column, $values[0]);
+        } elseif (count($this) == 1) {
+            $this[0]->__call($func_name, $values);
+        } else {
+            throw new TDBMException('Method '.$func_name.' not found');
+        }
+    }
 
-	private function getarray($column) {
-		$arr = array();
-		foreach ($this as $object) {
-			$arr[] = $object->__get($column);
-		}
-		return $arr;
-	}
+    private function getarray($column)
+    {
+        $arr = array();
+        foreach ($this as $object) {
+            $arr[] = $object->__get($column);
+        }
 
-	private function setarray($column, $value) {
-		foreach ($this as $object) {
-			$object->__set($column, $value);
-		}
-	}
-	
-	public function jsonSerialize(){
-		return (array) $this;
-	}
+        return $arr;
+    }
+
+    private function setarray($column, $value)
+    {
+        foreach ($this as $object) {
+            $object->__set($column, $value);
+        }
+    }
+
+    public function jsonSerialize()
+    {
+        return (array) $this;
+    }
 }
