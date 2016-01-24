@@ -179,7 +179,7 @@ class TDBMDaoGenerator
         $str = $beanDescriptor->generatePhpCode($beannamespace);
 
         $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($beannamespace.'\\'.$baseClassName);
-        if (!$possibleBaseFileNames) {
+        if (empty($possibleBaseFileNames)) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace.'\\'.$baseClassName.'" is not autoloadable.');
         }
         $possibleBaseFileName = $this->rootPath.$possibleBaseFileNames[0];
@@ -189,7 +189,7 @@ class TDBMDaoGenerator
         @chmod($possibleBaseFileName, 0664);
 
         $possibleFileNames = $classNameMapper->getPossibleFileNames($beannamespace.'\\'.$className);
-        if (!$possibleFileNames) {
+        if (empty($possibleFileNames)) {
             // @codeCoverageIgnoreStart
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace.'\\'.$className.'" is not autoloadable.');
             // @codeCoverageIgnoreEnd
@@ -432,7 +432,7 @@ class $baseClassName
         @chmod($possibleBaseFileName, 0664);
 
         $possibleFileNames = $classNameMapper->getPossibleFileNames($daonamespace.'\\'.$className);
-        if (!$possibleFileNames) {
+        if (empty($possibleFileNames)) {
             // @codeCoverageIgnoreStart
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$className.'" is not autoloadable.');
             // @codeCoverageIgnoreEnd
@@ -527,7 +527,7 @@ class $daoFactoryClassName
 ';
 
         $possibleFileNames = $classNameMapper->getPossibleFileNames($daoNamespace.'\\'.$daoFactoryClassName);
-        if (!$possibleFileNames) {
+        if (empty($possibleFileNames)) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$daoNamespace.'\\'.$daoFactoryClassName.'" is not autoloadable.');
         }
         $possibleFileName = $this->rootPath.$possibleFileNames[0];

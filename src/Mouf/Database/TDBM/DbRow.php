@@ -165,8 +165,8 @@ class DbRow
             $sql = 'SELECT * FROM '.$connection->quoteIdentifier($this->dbTableName).' WHERE '.$sql_where;
             $result = $connection->executeQuery($sql, $parameters);
 
-            if ($result->rowCount() == 0) {
-                throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" with ID \"".$this->TDBMObject_id.'".');
+            if ($result->rowCount() === 0) {
+                throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \"\".");
             }
 
             $this->dbRow = $result->fetch(\PDO::FETCH_ASSOC);

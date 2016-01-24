@@ -600,6 +600,7 @@ class TDBMService
 
             return [implode(' AND ', $sqlParts), $parameters];
         } elseif ($filter_bag instanceof AbstractTDBMObject) {
+            $sqlParts = [];
             $dbRows = $filter_bag->_getDbRows();
             $dbRow = reset($dbRows);
             $primaryKeys = $dbRow->_getPrimaryKeys();
