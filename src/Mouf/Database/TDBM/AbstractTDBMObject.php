@@ -20,6 +20,8 @@ namespace Mouf\Database\TDBM;
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+use JsonSerializable;
+
 /**
  * Instances of this class represent a "bean". Usually, a bean is mapped to a row of one table.
  * In some special cases (where inheritance is used), beans can be scattered on several tables.
@@ -27,7 +29,7 @@ namespace Mouf\Database\TDBM;
  *
  * @author David Negrier
  */
-abstract class AbstractTDBMObject
+abstract class AbstractTDBMObject implements JsonSerializable
 {
     /**
      * The service this object is bound to.
@@ -175,7 +177,7 @@ abstract class AbstractTDBMObject
         }
     }
 
-    public function get($var, $tableName = null)
+    protected function get($var, $tableName = null)
     {
         if ($tableName === null) {
             if (count($this->dbRows) > 1) {
@@ -196,35 +198,7 @@ abstract class AbstractTDBMObject
         return $this->dbRows[$tableName]->get($var);
     }
 
-    /**
-     * Returns true if a column is set, false otherwise.
-     *
-     * @param string $var
-     *
-     * @return bool
-     */
-    public function has($var, $tableName = null)
-    {
-        if ($tableName === null) {
-            if (count($this->dbRows) > 1) {
-                throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
-            } elseif (count($this->dbRows) === 1) {
-                $tableName = array_keys($this->dbRows)[0];
-            }
-        }
-
-        if (!isset($this->dbRows[$tableName])) {
-            if (count($this->dbRows[$tableName] === 0)) {
-                throw new TDBMException('Object is not yet bound to any table.');
-            } else {
-                throw new TDBMException('Unknown table "'.$tableName.'"" in object.');
-            }
-        }
-
-        return $this->dbRows[$tableName]->has($var);
-    }
-
-    public function set($var, $value, $tableName = null)
+    protected function set($var, $value, $tableName = null)
     {
         if ($tableName === null) {
             if (count($this->dbRows) > 1) {
@@ -250,7 +224,7 @@ abstract class AbstractTDBMObject
      * @param string             $foreignKeyName
      * @param AbstractTDBMObject $bean
      */
-    public function setRef($foreignKeyName, AbstractTDBMObject $bean, $tableName = null)
+    protected function setRef($foreignKeyName, AbstractTDBMObject $bean, $tableName = null)
     {
         if ($tableName === null) {
             if (count($this->dbRows) > 1) {
@@ -277,7 +251,7 @@ abstract class AbstractTDBMObject
      *
      * @return AbstractTDBMObject|null
      */
-    public function getRef($foreignKeyName, $tableName = null)
+    protected function getRef($foreignKeyName, $tableName = null)
     {
         if ($tableName === null) {
             if (count($this->dbRows) > 1) {

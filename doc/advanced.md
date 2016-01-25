@@ -59,7 +59,7 @@ There are many kind of filters in TDBM: A filter can be:
   will return all the users that are French (based on trhe assumption that TDBM can find a way to connect the users 
   table to the country table using foreign keys, see the manual for that point). 
   
-- Any bean (extending the `TDBMObject` class):
+- Any bean (extending the `AbstractTDBMObject` class):
 
   An object can be used as a filter. 
   For instance, we could get the France object and then find any users related to that object using:

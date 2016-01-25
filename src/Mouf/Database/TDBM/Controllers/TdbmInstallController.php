@@ -144,9 +144,7 @@ class TdbmInstallController extends Controller
      *
      * @param string $daonamespace
      * @param string $beannamespace
-     * @param int    $keepSupport
      * @param int    $storeInUtc
-     * @param int    $castDatesToDateTime
      * @param string $selfedit
      *
      * @throws \Mouf\MoufException

@@ -60,6 +60,8 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
 
     private $innerResultIterator;
 
+    private $mode;
+
     public function __construct(ResultIterator $parentResult, $magicSql, array $parameters, $limit, $offset, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode)
     {
         $this->parentResult = $parentResult;

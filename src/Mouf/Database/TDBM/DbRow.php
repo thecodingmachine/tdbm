@@ -324,7 +324,7 @@ class DbRow
         //Let's set the status to detached
         $this->status = TDBMObjectStateEnum::STATE_DETACHED;
 
-        $this->primaryKeys = null;
+        $this->primaryKeys = [];
 
         //Now unset the PK from the row
         if ($this->tdbmService) {

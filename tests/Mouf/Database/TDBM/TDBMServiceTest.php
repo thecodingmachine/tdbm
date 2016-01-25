@@ -91,16 +91,16 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     public function testInsertAndUpdateAndDelete()
     {
         $object = new TDBMObject('users');
-        $object->login = 'john.doe';
-        $object->country_id = 3;
+        $object->setProperty('login', 'john.doe');
+        $object->setProperty('country_id', 3);
 
         $this->tdbmService->save($object);
 
-        $this->assertNotEmpty($object->get('id', 'person'));
-        $this->assertNotEmpty($object->get('id', 'users'));
-        $this->assertEquals($object->get('id', 'person'), $object->get('id', 'users'));
+        $this->assertNotEmpty($object->getProperty('id', 'person'));
+        $this->assertNotEmpty($object->getProperty('id', 'users'));
+        $this->assertEquals($object->getProperty('id', 'person'), $object->getProperty('id', 'users'));
 
-        $object->set('country_id', 2, 'users');
+        $object->setProperty('country_id', 2, 'users');
 
         $this->tdbmService->save($object);
 
@@ -110,22 +110,22 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     public function testInsertMultipleDataAtOnceInInheritance()
     {
         $object = new TDBMObject();
-        $object->set('login', 'jane.doe', 'users');
-        $object->set('name', 'Jane Doe', 'person');
-        $object->set('country_id', 1, 'users');
+        $object->setProperty('login', 'jane.doe', 'users');
+        $object->setProperty('name', 'Jane Doe', 'person');
+        $object->setProperty('country_id', 1, 'users');
 
         $this->tdbmService->save($object);
 
-        $this->assertNotEmpty($object->get('id', 'person'));
-        $this->assertNotEmpty($object->get('id', 'users'));
-        $this->assertEquals($object->get('id', 'person'), $object->get('id', 'users'));
+        $this->assertNotEmpty($object->getProperty('id', 'person'));
+        $this->assertNotEmpty($object->getProperty('id', 'users'));
+        $this->assertEquals($object->getProperty('id', 'person'), $object->getProperty('id', 'users'));
     }
 
     public function testCompleteSave()
     {
         $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe']);
         $jane = $beans[0];
-        $jane->set('country_id', 2, 'users');
+        $jane->setProperty('country_id', 2, 'users');
 
         $this->tdbmService->completeSave();
     }
@@ -135,17 +135,17 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe']);
         $jane = $beans[0];
 
-        $this->assertEquals(2, $jane->get('country_id', 'users'));
+        $this->assertEquals(2, $jane->getProperty('country_id', 'users'));
     }
 
     public function testUpdatePrimaryKey()
     {
         $object = new TDBMObject('rights');
-        $object->label = 'CAN_EDIT_BOUK';
+        $object->setProperty('label', 'CAN_EDIT_BOUK');
 
         $this->tdbmService->save($object);
 
-        $object->label = 'CAN_EDIT_BOOK';
+        $object->setProperty('label', 'CAN_EDIT_BOOK');
 
         $this->tdbmService->save($object);
     }
@@ -158,7 +158,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     public function testCannotDeleteDetachedObjects()
     {
         $object = new TDBMObject('rights');
-        $object->label = 'CAN_DELETE';
+        $object->setProperty('label', 'CAN_DELETE');
 
         $this->tdbmService->delete($object);
     }
@@ -166,7 +166,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     public function testDeleteNewObject()
     {
         $object = new TDBMObject('rights');
-        $object->label = 'CAN_DELETE';
+        $object->setProperty('label', 'CAN_DELETE');
 
         $this->tdbmService->attach($object);
 
@@ -184,11 +184,11 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     public function testDeleteLoadedObject()
     {
         $object = new TDBMObject('rights');
-        $object->label = 'CAN_DELETE';
+        $object->setProperty('label', 'CAN_DELETE');
 
         $this->tdbmService->save($object);
 
-        $object->label = 'CAN_DELETE2';
+        $object->setProperty('label', 'CAN_DELETE2');
 
         $this->tdbmService->delete($object);
 
@@ -229,7 +229,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
         $this->assertTrue(isset($beans[0]));
         $this->assertFalse(isset($beans[42]));
-        $this->assertEquals(1, $beans[0]->get('id', 'person'));
+        $this->assertEquals(1, $beans[0]->getProperty('id', 'person'));
 
         $result1 = [];
         foreach ($beans as $bean) {
@@ -280,7 +280,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $bean = $beans[0];
 
         // we don't specify the table on inheritance table => exception.
-        $bean->get('id');
+        $bean->getProperty('id');
     }
 
     /**
@@ -294,7 +294,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $bean = $beans[0];
 
         // we don't specify the table on inheritance table => exception.
-        $bean->set('name', 'foo');
+        $bean->setProperty('name', 'foo');
     }
 
     public function testTake()
@@ -356,7 +356,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $beans = $this->tdbmService->findObjects('person', null, [], 'person.id ASC');
 
         $results = $beans->map(function ($item) {
-           return $item->get('id', 'person');
+           return $item->getProperty('id', 'person');
         })->toArray();
 
         $this->assertEquals([1, 2, 3, 4, 6], $results);
@@ -365,7 +365,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $page = $beans->take(0, 2);
 
         $results = $page->map(function ($item) {
-            return $item->get('id', 'person');
+            return $item->getProperty('id', 'person');
         })->toArray();
 
         $this->assertEquals([1, 2], $results);
@@ -426,7 +426,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $beanArray = $beans->toArray();
 
         $this->assertCount(1, $beanArray);
-        $this->assertEquals(1, $beanArray[0]->get('id', 'contact'));
+        $this->assertEquals(1, $beanArray[0]->getProperty('id', 'contact'));
     }
 
     public function testCursorMode()
@@ -544,7 +544,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
         $users = $this->tdbmService->findObjects('users', $countryBean);
         $this->assertCount(1, $users);
-        $this->assertEquals('jean.dupont', $users[0]->get('login', 'users'));
+        $this->assertEquals('jean.dupont', $users[0]->getProperty('login', 'users'));
     }
 
     /*

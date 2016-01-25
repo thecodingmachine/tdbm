@@ -25,7 +25,7 @@ namespace Mouf\Database\TDBM;
  *
  * @author David Negrier
  */
-final class TDBMObjectStateEnum extends AbstractTDBMObject
+final class TDBMObjectStateEnum
 {
     const STATE_DETACHED = 'detached';
     const STATE_NEW = 'new';
