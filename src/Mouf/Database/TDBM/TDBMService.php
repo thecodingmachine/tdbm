@@ -110,9 +110,6 @@ class TDBMService
      */
     private $toSaveObjects;
 
-    /// The timestamp of the script startup. Useful to stop execution before time limit is reached and display useful error message.
-    public static $script_start_up_time;
-
     /**
      * The content of the cache variable.
      *
@@ -162,9 +159,6 @@ class TDBMService
         $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, $this->cache, $this->schemaAnalyzer);
         $this->cachePrefix = $this->tdbmSchemaAnalyzer->getCachePrefix();
 
-        if (self::$script_start_up_time === null) {
-            self::$script_start_up_time = microtime(true);
-        }
         $this->toSaveObjects = new \SplObjectStorage();
     }
 
@@ -1353,11 +1347,11 @@ class TDBMService
     /**
      * Returns a unique bean (or null) according to the filters passed in parameter.
      *
-     * @param string      $mainTable             The name of the table queried
-     * @param string|array|null $filter          The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-     * @param array       $parameters
-     * @param array       $additionalTablesFetch
-     * @param string      $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     * @param string            $mainTable             The name of the table queried
+     * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param array             $parameters
+     * @param array             $additionalTablesFetch
+     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
      *
      * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters.
      *
@@ -1381,11 +1375,11 @@ class TDBMService
      * Returns a unique bean according to the filters passed in parameter.
      * Throws a NoBeanFoundException if no bean was found for the filter passed in parameter.
      *
-     * @param string      $mainTable             The name of the table queried
+     * @param string            $mainTable             The name of the table queried
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-     * @param array       $parameters
-     * @param array       $additionalTablesFetch
-     * @param string      $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     * @param array             $parameters
+     * @param array             $additionalTablesFetch
+     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
      *
      * @return AbstractTDBMObject The object we want
      *

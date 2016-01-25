@@ -3,7 +3,6 @@
 namespace Mouf\Database\TDBM\Utils;
 
 use Doctrine\Common\Inflector\Inflector;
-use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
@@ -43,8 +42,8 @@ class TDBMDaoGenerator
     /**
      * Constructor.
      *
-     * @param SchemaAnalyzer $schemaAnalyzer
-     * @param Schema $schema
+     * @param SchemaAnalyzer     $schemaAnalyzer
+     * @param Schema             $schema
      * @param TDBMSchemaAnalyzer $tdbmSchemaAnalyzer
      */
     public function __construct(SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
@@ -101,7 +100,13 @@ class TDBMDaoGenerator
     /**
      * Generates in one method call the daos and the beans for one table.
      *
-     * @param $tableName
+     * @param Table           $table
+     * @param string          $daonamespace
+     * @param string          $beannamespace
+     * @param ClassNameMapper $classNameMapper
+     * @param bool            $storeInUtc
+     *
+     * @throws TDBMException
      */
     public function generateDaoAndBean(Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc)
     {
@@ -223,22 +228,14 @@ class $className extends $baseClassName
     }
 
     /**
-     * Writes the PHP bean DAO with simple functions to create/get/save objects.
+     * Tries to find a @defaultSort annotation in one of the columns.
      *
-     * @param string $className The name of the class
-     * @param string $baseClassName
-     * @param string $beanClassName
      * @param Table $table
-     * @param string $daonamespace
-     * @param string $beannamespace
-     * @param ClassNameMapper $classNameMapper
-     * @throws TDBMException
+     *
+     * @return array First item: column name, Second item: column order (asc/desc)
      */
-    public function generateDao($className, $baseClassName, $beanClassName, Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper)
+    private function getDefaultSortColumnFromAnnotation(Table $table)
     {
-        $tableName = $table->getName();
-        $primaryKeyColumns = $table->getPrimaryKeyColumns();
-
         $defaultSort = null;
         $defaultSortDirection = null;
         foreach ($table->getColumns() as $column) {
@@ -253,6 +250,29 @@ class $className extends $baseClassName
                 }
             }
         }
+
+        return [$defaultSort, $defaultSortDirection];
+    }
+
+    /**
+     * Writes the PHP bean DAO with simple functions to create/get/save objects.
+     *
+     * @param string          $className       The name of the class
+     * @param string          $baseClassName
+     * @param string          $beanClassName
+     * @param Table           $table
+     * @param string          $daonamespace
+     * @param string          $beannamespace
+     * @param ClassNameMapper $classNameMapper
+     *
+     * @throws TDBMException
+     */
+    public function generateDao($className, $baseClassName, $beanClassName, Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper)
+    {
+        $tableName = $table->getName();
+        $primaryKeyColumns = $table->getPrimaryKeyColumns();
+
+        list($defaultSort, $defaultSortDirection) = $this->getDefaultSortColumnFromAnnotation($table);
 
         // FIXME: lowercase tables with _ in the name should work!
         $tableCamel = self::toSingular(self::toCamelCase($tableName));

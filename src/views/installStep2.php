@@ -11,7 +11,8 @@
     ?>
 <div class="alert">Warning! TDBM could not detect the autoload section of your composer.json file.
 Unless you are developing your own autoload system, you should configure <strong>composer.json</strong> to <a href="http://getcomposer.org/doc/01-basic-usage.md#autoloading" target="_blank">define a source directory and a root namespace using PSR-0</a>.</div>
-<?php 
+<?php
+
 } ?>
 
 <div class="control-group">
