@@ -134,7 +134,6 @@ class BeanDescriptor
                 }
                 $properties[$name] = $property;
             }
-            //$properties = array_merge($properties, $localProperties);
         } else {
             $properties = $this->getPropertiesForTable($table);
         }
@@ -283,7 +282,7 @@ class BeanDescriptor
                 }
             } else {
                 $methodName = 'get'.TDBMDaoGenerator::toCamelCase($fksForTable[0]->getLocalTableName());
-                $fksByMethodName[$methodName] = $fk;
+                $fksByMethodName[$methodName] = $fksForTable[0];
             }
         }
 
@@ -344,7 +343,7 @@ class BeanDescriptor
     /**
      * Generate code section about pivot tables.
      *
-     * @return string;
+     * @return string
      */
     public function generatePivotTableCode()
     {

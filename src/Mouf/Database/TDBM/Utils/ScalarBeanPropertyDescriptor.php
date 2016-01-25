@@ -24,9 +24,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
-     * Returns the foreignkey the column is part of, if any. null otherwise.
-     *
-     * @param Column $column
+     * Returns the foreign-key the column is part of, if any. null otherwise.
      *
      * @return ForeignKeyConstraint|null
      */

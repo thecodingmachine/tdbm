@@ -72,15 +72,6 @@ class TDBMService
     private $cachePrefix;
 
     /**
-     * The default autosave mode for the objects
-     * True to automatically save the object.
-     * If false, the user must explicitly call the save() method to save the object.
-     *
-     * @var bool
-     */
-    //private $autosave_default = false;
-
-    /**
      * Cache of table of primary keys.
      * Primary keys are stored by tables, as an array of column.
      * For instance $primary_key['my_table'][0] will return the first column of the primary key of table 'my_table'.
@@ -129,8 +120,6 @@ class TDBMService
      */
     private $cache;
 
-    private $cacheKey = '__TDBM_Cache__';
-
     /**
      * Map associating a table name to a fully qualified Bean class name.
      *
@@ -141,7 +130,7 @@ class TDBMService
     /**
      * @var \ReflectionClass[]
      */
-    private $reflectionClassCache;
+    private $reflectionClassCache = array();
 
     /**
      * @param Connection     $connection     The DBAL DB connection to use
@@ -151,7 +140,6 @@ class TDBMService
      */
     public function __construct(Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null)
     {
-        //register_shutdown_function(array($this,"completeSaveOnExit"));
         if (extension_loaded('weakref')) {
             $this->objectStorage = new WeakrefObjectStorage();
         } else {
@@ -201,7 +189,7 @@ class TDBMService
     }
 
     /**
-     * Sets the default fetch mode of the result sets returned by `getObjects`.
+     * Sets the default fetch mode of the result sets returned by `findObjects`.
      * Can be one of: TDBMObjectArray::MODE_CURSOR or TDBMObjectArray::MODE_ARRAY.
      *
      * In 'MODE_ARRAY' mode (default), the result is a ResultIterator object that behaves like an array. Use this mode by default (unless the list returned is very big).
@@ -227,7 +215,7 @@ class TDBMService
     /**
      * Returns a TDBMObject associated from table "$table_name".
      * If the $filters parameter is an int/string, the object returned will be the object whose primary key = $filters.
-     * $filters can also be a set of TDBM_Filters (see the getObjects method for more details).
+     * $filters can also be a set of TDBM_Filters (see the findObjects method for more details).
      *
      * For instance, if there is a table 'users', with a primary key on column 'user_id' and a column 'user_name', then
      * 			$user = $tdbmService->getObject('users',1);
@@ -260,7 +248,7 @@ class TDBMService
      * Please be sure not to override any method or any property unless you perfectly know what you are doing!
      *
      * @param string $table_name   The name of the table we retrieve an object from.
-     * @param mixed  $filters      If the filter is a string/integer, it will be considered as the id of the object (the value of the primary key). Otherwise, it can be a filter bag (see the filterbag parameter of the getObjects method for more details about filter bags)
+     * @param mixed  $filters      If the filter is a string/integer, it will be considered as the id of the object (the value of the primary key). Otherwise, it can be a filter bag (see the filterbag parameter of the findObjects method for more details about filter bags)
      * @param string $className    Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
      * @param bool   $lazy_loading If set to true, and if the primary key is passed in parameter of getObject, the object will not be queried in database. It will be queried when you first try to access a column. If at that time the object cannot be found in database, an exception will be thrown.
      *
@@ -284,8 +272,8 @@ class TDBMService
             }
 
             if ($isFilterBag == true) {
-                // If a filter bag was passer in parameter, let's perform a getObjects.
-                $objects = $this->getObjects($table_name, $filters, null, null, null, $className);
+                // If a filter bag was passer in parameter, let's perform a findObjects.
+                $objects = $this->findObjects($table_name, $filters, null, null, null, $className);
                 if (count($objects) == 0) {
                     return null;
                 } elseif (count($objects) > 1) {
@@ -379,6 +367,7 @@ class TDBMService
                 foreach ($object->_getDbRows() as $dbRow) {
                     $this->removeFromToSaveObjectList($dbRow);
                 }
+                // And continue deleting...
             case TDBMObjectStateEnum::STATE_NOT_LOADED:
             case TDBMObjectStateEnum::STATE_LOADED:
                 $this->deleteManyToManyRelationships($object);
@@ -471,103 +460,6 @@ class TDBMService
     }
 
     /**
-     * Returns an array of objects of "table_name" kind filtered from the filter bag.
-     *
-     * The getObjects method should be the most used query method in TDBM if you want to query the database for objects.
-     * (Note: if you want to query the database for an object by its primary key, use the getObject method).
-     *
-     * The getObjects method takes in parameter:
-     * 	- table_name: the kinf of TDBMObject you want to retrieve. In TDBM, a TDBMObject matches a database row, so the
-     * 			$table_name parameter should be the name of an existing table in database.
-     *  - filter_bag: The filter bag is anything that you can use to filter your request. It can be a SQL Where clause,
-     * 			a series of TDBM_Filter objects, or even TDBMObjects or TDBMObjectArrays that you will use as filters.
-     *  - order_bag: The order bag is anything that will be used to order the data that is passed back to you.
-     * 			A SQL Order by clause can be used as an order bag for instance, or a OrderByColumn object
-     * 	- from (optionnal): The offset from which the query should be performed. For instance, if $from=5, the getObjects method
-     * 			will return objects from the 6th rows.
-     * 	- limit (optionnal): The maximum number of objects to return. Used together with $from, you can implement
-     * 			paging mechanisms.
-     *  - hint_path (optionnal): EXPERTS ONLY! The path the request should use if not the most obvious one. This parameter
-     * 			should be used only if you perfectly know what you are doing.
-     *
-     * The getObjects method will return a TDBMObjectArray. A TDBMObjectArray is an array of TDBMObjects that does behave as
-     * a single TDBMObject if the array has only one member. Refer to the documentation of TDBMObjectArray and TDBMObject
-     * to learn more.
-     *
-     * More about the filter bag:
-     * A filter is anything that can change the set of objects returned by getObjects.
-     * There are many kind of filters in TDBM:
-     * A filter can be:
-     * 	- A SQL WHERE clause:
-     * 		The clause is specified without the "WHERE" keyword. For instance:
-     * 			$filter = "users.first_name LIKE 'J%'";
-     *     	is a valid filter.
-     * 	   	The only difference with SQL is that when you specify a column name, it should always be fully qualified with
-     * 		the table name: "country_name='France'" is not valid, while "countries.country_name='France'" is valid (if
-     * 		"countries" is a table and "country_name" a column in that table, sure.
-     * 		For instance,
-     * 				$french_users = TDBMObject::getObjects("users", "countries.country_name='France'");
-     * 		will return all the users that are French (based on trhe assumption that TDBM can find a way to connect the users
-     * 		table to the country table using foreign keys, see the manual for that point).
-     * 	- A TDBMObject:
-     * 		An object can be used as a filter. For instance, we could get the France object and then find any users related to
-     * 		that object using:
-     * 				$france = TDBMObject::getObjects("country", "countries.country_name='France'");
-     * 				$french_users = TDBMObject::getObjects("users", $france);
-     *  - A TDBMObjectArray can be used as a filter too.
-     * 		For instance:
-     * 				$french_groups = TDBMObject::getObjects("groups", $french_users);
-     * 		might return all the groups in which french users can be found.
-     *  - Finally, TDBM_xxxFilter instances can be used.
-     * 		TDBM provides the developer a set of TDBM_xxxFilters that can be used to model a SQL Where query.
-     * 		Using the appropriate filter object, you can model the operations =,<,<=,>,>=,IN,LIKE,AND,OR, IS NULL and NOT
-     * 		For instance:
-     * 				$french_users = TDBMObject::getObjects("users", new EqualFilter('countries','country_name','France');
-     * 		Refer to the documentation of the appropriate filters for more information.
-     *
-     * The nice thing about a filter bag is that it can be any filter, or any array of filters. In that case, filters are
-     * 'ANDed' together.
-     * So a request like this is valid:
-     * 				$france = TDBMObject::getObjects("country", "countries.country_name='France'");
-     * 				$french_administrators = TDBMObject::getObjects("users", array($france,"role.role_name='Administrators'");
-     * This requests would return the users that are both French and administrators.
-     *
-     * Finally, if filter_bag is null, the whole table is returned.
-     *
-     * More about the order bag:
-     * The order bag contains anything that can be used to order the data that is passed back to you.
-     * The order bag can contain two kinds of objects:
-     * 	- A SQL ORDER BY clause:
-     * 		The clause is specified without the "ORDER BY" keyword. For instance:
-     * 			$orderby = "users.last_name ASC, users.first_name ASC";
-     *     	is a valid order bag.
-     * 		The only difference with SQL is that when you specify a column name, it should always be fully qualified with
-     * 		the table name: "country_name ASC" is not valid, while "countries.country_name ASC" is valid (if
-     * 		"countries" is a table and "country_name" a column in that table, sure.
-     * 		For instance,
-     * 				$french_users = TDBMObject::getObjects("users", null, "countries.country_name ASC");
-     * 		will return all the users sorted by country.
-     *  - A OrderByColumn object
-     * 		This object models a single column in a database.
-     *
-     * @param string       $table_name  The name of the table queried
-     * @param mixed        $filter_bag  The filter bag (see above for complete description)
-     * @param mixed        $orderby_bag The order bag (see above for complete description)
-     * @param int          $from        The offset
-     * @param int          $limit       The maximum number of rows returned
-     * @param string       $className   Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-     * @param unknown_type $hint_path   Hints to get the path for the query (expert parameter, you should leave it to null).
-     *
-     * @return TDBMObjectArray A TDBMObjectArray containing the resulting objects of the query.
-     */
-/*	public function getObjects($table_name, $filter_bag=null, $orderby_bag=null, $from=null, $limit=null, $className=null, $hint_path=null) {
-        if ($this->connection == null) {
-            throw new TDBMException("Error while calling TDBMObject::getObject(): No connection has been established on the database!");
-        }
-        return $this->getObjectsByMode('getObjects', $table_name, $filter_bag, $orderby_bag, $from, $limit, $className, $hint_path);
-    }*/
-
-    /**
      * Takes in input a filter_bag (which can be about anything from a string to an array of TDBMObjects... see above from documentation),
      * and gives back a proper Filter object.
      *
@@ -601,6 +493,7 @@ class TDBMService
             return [implode(' AND ', $sqlParts), $parameters];
         } elseif ($filter_bag instanceof AbstractTDBMObject) {
             $sqlParts = [];
+            $parameters = [];
             $dbRows = $filter_bag->_getDbRows();
             $dbRow = reset($dbRows);
             $primaryKeys = $dbRow->_getPrimaryKeys();
@@ -618,62 +511,6 @@ class TDBMService
         } else {
             throw new TDBMException('Error in filter. An object has been passed that is neither a SQL string, nor an array, nor a bean, nor null.');
         }
-
-//		// First filter_bag should be an array, if it is a singleton, let's put it in an array.
-//		if ($filter_bag === null) {
-//			$filter_bag = array();
-//		} elseif (!is_array($filter_bag)) {
-//			$filter_bag = array($filter_bag);
-//		}
-//		elseif (is_a($filter_bag, 'Mouf\\Database\\TDBM\\TDBMObjectArray')) {
-//			$filter_bag = array($filter_bag);
-//		}
-//
-//		// Second, let's take all the objects out of the filter bag, and let's make filters from them
-//		$filter_bag2 = array();
-//		foreach ($filter_bag as $thing) {
-//			if (is_a($thing,'Mouf\\Database\\TDBM\\Filters\\FilterInterface')) {
-//				$filter_bag2[] = $thing;
-//			} elseif (is_string($thing)) {
-//				$filter_bag2[] = new SqlStringFilter($thing);
-//			} elseif (is_a($thing,'Mouf\\Database\\TDBM\\TDBMObjectArray') && count($thing)>0) {
-//				// Get table_name and column_name
-//				$filter_table_name = $thing[0]->_getDbTableName();
-//				$filter_column_names = $thing[0]->getPrimaryKey();
-//
-//				// If there is only one primary key, we can use the InFilter
-//				if (count($filter_column_names)==1) {
-//					$primary_keys_array = array();
-//					$filter_column_name = $filter_column_names[0];
-//					foreach ($thing as $TDBMObject) {
-//						$primary_keys_array[] = $TDBMObject->$filter_column_name;
-//					}
-//					$filter_bag2[] = new InFilter($filter_table_name, $filter_column_name, $primary_keys_array);
-//				}
-//				// else, we must use a (xxx AND xxx AND xxx) OR (xxx AND xxx AND xxx) OR (xxx AND xxx AND xxx)...
-//				else
-//				{
-//					$filter_bag_and = array();
-//					foreach ($thing as $TDBMObject) {
-//						$filter_bag_temp_and=array();
-//						foreach ($filter_column_names as $pk) {
-//							$filter_bag_temp_and[] = new EqualFilter($TDBMObject->_getDbTableName(), $pk, $TDBMObject->$pk);
-//						}
-//						$filter_bag_and[] = new AndFilter($filter_bag_temp_and);
-//					}
-//					$filter_bag2[] = new OrFilter($filter_bag_and);
-//				}
-//
-//
-//			} elseif (!is_a($thing,'Mouf\\Database\\TDBM\\TDBMObjectArray') && $thing!==null) {
-//				throw new TDBMException("Error in filter bag in getObjectsByFilter. An object has been passed that is neither a filter, nor a TDBMObject, nor a TDBMObjectArray, nor a string, nor null.");
-//			}
-//		}
-//
-//		// Third, let's take all the filters and let's apply a huge AND filter
-//		$filter = new AndFilter($filter_bag2);
-//
-//		return $filter;
     }
 
     /**
@@ -1224,7 +1061,6 @@ class TDBMService
 
         foreach ($tables as $currentTable) {
             $allParents = [$currentTable];
-            $currentFk = null;
             while ($currentFk = $schemaAnalyzer->getParentRelationship($currentTable)) {
                 $currentTable = $currentFk->getForeignTableName();
                 $allParents[] = $currentTable;
@@ -1354,12 +1190,34 @@ class TDBMService
     }
 
     /**
+     * Returns a `ResultIterator` object representing filtered records of "$mainTable" .
+     *
+     * The findObjects method should be the most used query method in TDBM if you want to query the database for objects.
+     * (Note: if you want to query the database for an object by its primary key, use the findObjectByPk method).
+     *
+     * The findObjects method takes in parameter:
+     * 	- mainTable: the kind of bean you want to retrieve. In TDBM, a bean matches a database row, so the
+     * 			`$mainTable` parameter should be the name of an existing table in database.
+     *  - filter: The filter is a filter bag. It is what you use to filter your request (the WHERE part in SQL).
+     *          It can be a string (SQL Where clause), or even a bean or an associative array (key = column to filter, value = value to find)
+     *  - parameters: The parameters used in the filter. If you pass a SQL string as a filter, be sure to avoid
+     *          concatenating parameters in the string (this leads to SQL injection and also to poor caching performance).
+     *          Instead, please consider passing parameters (see documentation for more details).
+     *  - additionalTablesFetch: An array of SQL tables names. The beans related to those tables will be fetched along
+     *          the main table. This is useful to avoid hitting the database with numerous subqueries.
+     *  - mode: The fetch mode of the result. See `setFetchMode()` method for more details.
+     *
+     * The `findObjects` method will return a `ResultIterator`. A `ResultIterator` is an object that behaves as an array
+     * (in ARRAY mode) at least. It can be iterated using a `foreach` loop.
+     *
+     * Finally, if filter_bag is null, the whole table is returned.
+     *
      * @param string            $mainTable             The name of the table queried
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param array             $parameters
      * @param string|null       $orderString           The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
      * @param array             $additionalTablesFetch
-     * @param string            $mode
+     * @param int               $mode
      * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
      *
      * @return ResultIterator An object representing an array of results.
@@ -1478,11 +1336,11 @@ class TDBMService
                 }
 
                 // Let's construct the bean
-                if (!isset($reflectionClassCache[$className])) {
-                    $reflectionClassCache[$className] = new \ReflectionClass($className);
+                if (!isset($this->reflectionClassCache[$className])) {
+                    $this->reflectionClassCache[$className] = new \ReflectionClass($className);
                 }
                 // Let's bypass the constructor when creating the bean!
-                $bean = $reflectionClassCache[$className]->newInstanceWithoutConstructor();
+                $bean = $this->reflectionClassCache[$className]->newInstanceWithoutConstructor();
                 /* @var $bean AbstractTDBMObject */
                 $bean->_constructLazy($table, $primaryKeys, $this);
             }
@@ -1496,7 +1354,7 @@ class TDBMService
      * Returns a unique bean (or null) according to the filters passed in parameter.
      *
      * @param string      $mainTable             The name of the table queried
-     * @param string|null $filterString          The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param string|array|null $filter          The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param array       $parameters
      * @param array       $additionalTablesFetch
      * @param string      $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
@@ -1505,9 +1363,9 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObject($mainTable, $filterString = null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null)
+    public function findObject($mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null)
     {
-        $objects = $this->findObjects($mainTable, $filterString, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
+        $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
         $page = $objects->take(0, 2);
         $count = $page->count();
         if ($count > 1) {
@@ -1524,7 +1382,7 @@ class TDBMService
      * Throws a NoBeanFoundException if no bean was found for the filter passed in parameter.
      *
      * @param string      $mainTable             The name of the table queried
-     * @param string|null $filterString          The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param array       $parameters
      * @param array       $additionalTablesFetch
      * @param string      $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
@@ -1533,9 +1391,9 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectOrFail($mainTable, $filterString = null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null)
+    public function findObjectOrFail($mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null)
     {
-        $bean = $this->findObject($mainTable, $filterString, $parameters, $additionalTablesFetch, $className);
+        $bean = $this->findObject($mainTable, $filter, $parameters, $additionalTablesFetch, $className);
         if ($bean === null) {
             throw new NoBeanFoundException("No result found for query on table '".$mainTable."'");
         }
@@ -1553,8 +1411,8 @@ class TDBMService
         if (count($beanData) === 1) {
             $tableName = array_keys($beanData)[0];
         } else {
+            $tables = [];
             foreach ($beanData as $table => $row) {
-                $tables = [];
                 $primaryKeyColumns = $this->getPrimaryKeyColumns($table);
                 $pkSet = false;
                 foreach ($primaryKeyColumns as $columnName) {

@@ -56,8 +56,6 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
     private $databasePlatform;
 
-    private $totalCount;
-
     public function __construct($magicSql, array $parameters, $limit, $offset, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery)
     {
         $this->magicSql = $magicSql;
@@ -135,6 +133,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
                 $beansData[$columnDescriptor['tableGroup']][$columnDescriptor['table']][$columnDescriptor['column']] = $value;
             }
 
+            $reflectionClassCache = [];
             $firstBean = true;
             foreach ($beansData as $beanData) {
 
@@ -197,33 +196,6 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
     {
         return $this->current !== null;
     }
-
-    /**
-     * Fetches all records (this could impact into your site performance) and rewinds the cursor.
-     *
-     * @param bool $asRecords Bind into record class?
-     *
-     * @return array[Record_PDO]|array[array] Array of records or arrays (depends on $asRecords)
-     */
-    /*public function getAll($asRecords = true)
-    {
-        $all = array();
-        $this->rewind();
-        foreach ($this->pdoStatement as $id => $doc) {
-            if ($asRecords)
-                $all[$id] = $this->cast($doc);
-            else
-                $all[$id] = $doc;
-        }
-        return $all;
-    }*/
-    /**
-     * @return PDOStatement
-     */
-    /*public function getPDOStatement()
-    {
-        return $this->pdoStatement;
-    }*/
 
     /**
      * Whether a offset exists.

@@ -43,7 +43,9 @@ class TDBMDaoGenerator
     /**
      * Constructor.
      *
-     * @param Connection $dbConnection The connection to the database.
+     * @param SchemaAnalyzer $schemaAnalyzer
+     * @param Schema $schema
+     * @param TDBMSchemaAnalyzer $tdbmSchemaAnalyzer
      */
     public function __construct(SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
     {
@@ -223,9 +225,14 @@ class $className extends $baseClassName
     /**
      * Writes the PHP bean DAO with simple functions to create/get/save objects.
      *
-     * @param string $fileName  The file that will be written (without the directory)
      * @param string $className The name of the class
-     * @param string $tableName The name of the table
+     * @param string $baseClassName
+     * @param string $beanClassName
+     * @param Table $table
+     * @param string $daonamespace
+     * @param string $beannamespace
+     * @param ClassNameMapper $classNameMapper
+     * @throws TDBMException
      */
     public function generateDao($className, $baseClassName, $beanClassName, Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper)
     {
@@ -233,12 +240,13 @@ class $className extends $baseClassName
         $primaryKeyColumns = $table->getPrimaryKeyColumns();
 
         $defaultSort = null;
+        $defaultSortDirection = null;
         foreach ($table->getColumns() as $column) {
             $comments = $column->getComment();
             $matches = array();
             if (preg_match('/@defaultSort(\((desc|asc)\))*/', $comments, $matches) != 0) {
-                $defaultSort = $data['column_name'];
-                if (count($matches == 3)) {
+                $defaultSort = $column->getName();
+                if (count($matches) === 3) {
                     $defaultSortDirection = $matches[2];
                 } else {
                     $defaultSortDirection = 'ASC';
@@ -302,16 +310,6 @@ class $baseClassName
     {
         \$this->tdbmService = \$tdbmService;
     }
-
-    /**
-     * Return a new instance of $beanClassWithoutNameSpace object, that will be persisted in database.
-     *
-     * @return $beanClassWithoutNameSpace
-     */// TODO!
-    /*public function create()
-    {
-        return \$this->tdbmService->getNewObject('$tableName', true);
-    }*/
 
     /**
      * Persist the $beanClassWithoutNameSpace instance.
@@ -420,7 +418,7 @@ class $baseClassName
 ';
 
         $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($daonamespace.'\\'.$baseClassName);
-        if (!$possibleBaseFileNames) {
+        if (empty($possibleBaseFileNames)) {
             // @codeCoverageIgnoreStart
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$baseClassName.'" is not autoloadable.');
             // @codeCoverageIgnoreEnd
