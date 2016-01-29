@@ -241,7 +241,7 @@ class $className extends $baseClassName
         $defaultSortDirection = null;
         foreach ($table->getColumns() as $column) {
             $comments = $column->getComment();
-            $matches = array();
+            $matches = [];
             if (preg_match('/@defaultSort(\((desc|asc)\))*/', $comments, $matches) != 0) {
                 $defaultSort = $column->getName();
                 if (count($matches) === 3) {
@@ -282,6 +282,15 @@ class $className extends $baseClassName
         $beanClassWithoutNameSpace = $beanClassName;
         $beanClassName = $beannamespace.'\\'.$beanClassName;
 
+        list($usedBeans, $findByDaoCode) = $beanDescriptor->generateFindByDaoCode($beannamespace, $beanClassWithoutNameSpace);
+
+        $usedBeans[] = $beanClassName;
+        // Let's suppress duplicates in used beans (if any)
+        $usedBeans = array_flip(array_flip($usedBeans));
+        $useStatements = array_map(function ($usedBean) {
+            return "use $usedBean;\n";
+        }, $usedBeans);
+
         $str = "<?php
 
 /*
@@ -295,7 +304,7 @@ namespace {$daonamespace};
 use Mouf\\Database\\TDBM\\TDBMService;
 use Mouf\\Database\\TDBM\\ResultIterator;
 use Mouf\\Database\\TDBM\\ArrayIterator;
-use $beanClassName;
+".implode('', $useStatements)."
 
 /**
  * The $baseClassName class will maintain the persistence of $beanClassWithoutNameSpace class into the $tableName table.
@@ -399,17 +408,17 @@ class $baseClassName
      *
      * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
      * @param array \$parameters The parameters associated with the filter
-     * @param mixed \$orderby The order string
+     * @param mixed \$orderBy The order string
      * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
      * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
-    protected function find(\$filter=null, array \$parameters = [], \$orderby=null, array \$additionalTablesFetch = array(), \$mode = null)
+    protected function find(\$filter = null, array \$parameters = [], \$orderBy=null, array \$additionalTablesFetch = [], \$mode = null)
     {
-        if (\$this->defaultSort && \$orderby == null) {
-            \$orderby = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
+        if (\$this->defaultSort && \$orderBy == null) {
+            \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
         }
-        return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderby, \$additionalTablesFetch, \$mode);
+        return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderBy, \$additionalTablesFetch, \$mode);
     }
 
     /**
@@ -433,11 +442,10 @@ class $baseClassName
     {
         \$this->defaultSort = \$defaultSort;
     }
-    ";
+";
 
-        $str .= $beanDescriptor->generateFindByDaoCode();
-        $str .= '
-}
+        $str .= $findByDaoCode;
+        $str .= '}
 ';
 
         $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($daonamespace.'\\'.$baseClassName);

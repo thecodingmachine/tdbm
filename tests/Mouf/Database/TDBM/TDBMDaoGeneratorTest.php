@@ -650,4 +650,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertEquals('bill.shakespeare', $user->getLogin());
         $this->assertEquals('Bill Shakespeare', $user->getName());
     }
+
+    public function testMultiColumnsIndexBasedSearch()
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $userDao = new UserDao($this->tdbmService);
+        $users = $userDao->findByStatusAndCountry('on', $countryDao->getById(1));
+
+        $this->assertEquals('jean.dupont', $users[0]->getLogin());
+    }
 }

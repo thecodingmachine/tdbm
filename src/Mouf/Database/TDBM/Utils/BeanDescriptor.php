@@ -567,21 +567,38 @@ class $baseClassName extends $extends implements \\JsonSerializable
         return $str;
     }
 
-    public function generateFindByDaoCode()
+    /**
+     * @param string $beanNamespace
+     * @param string $beanClassName
+     *
+     * @return array first element: list of used beans, second item: PHP code as a string
+     */
+    public function generateFindByDaoCode($beanNamespace, $beanClassName)
     {
         $code = '';
+        $usedBeans = [];
         foreach ($this->table->getIndexes() as $index) {
             if (!$index->isPrimary()) {
-                $code .= $this->generateFindByDaoCodeForIndex($index);
+                list($usedBeansForIndex, $codeForIndex) = $this->generateFindByDaoCodeForIndex($index, $beanNamespace, $beanClassName);
+                $code .= $codeForIndex;
+                $usedBeans = array_merge($usedBeans, $usedBeansForIndex);
             }
         }
 
-        return $code;
+        return [$usedBeans, $code];
     }
 
-    private function generateFindByDaoCodeForIndex(Index $index)
+    /**
+     * @param Index  $index
+     * @param string $beanNamespace
+     * @param string $beanClassName
+     *
+     * @return array first element: list of used beans, second item: PHP code as a string
+     */
+    private function generateFindByDaoCodeForIndex(Index $index, $beanNamespace, $beanClassName)
     {
         $columns = $index->getColumns();
+        $usedBeans = [];
 
         /*
          * The list of elements building this index (expressed as columns or foreign keys)
@@ -602,7 +619,7 @@ class $baseClassName extends $extends implements \\JsonSerializable
 
         // If the index is actually only a foreign key, let's bypass it entirely.
         if (count($elements) === 1 && $elements[0] instanceof ObjectBeanPropertyDescriptor) {
-            return '';
+            return [[], ''];
         }
 
         $methodNameComponent = [];
@@ -612,12 +629,14 @@ class $baseClassName extends $extends implements \\JsonSerializable
             $methodNameComponent[] = $element->getUpperCamelCaseName();
             $functionParameter = $element->getClassName();
             if ($functionParameter) {
-                $functionParameter .= '';
+                $usedBeans[] = $beanNamespace.'\\'.$functionParameter;
+                $functionParameter .= ' ';
             }
             $functionParameter .= $element->getVariableName();
             if ($first) {
-                $functionParameter .= ' = null';
                 $first = false;
+            } else {
+                $functionParameter .= ' = null';
             }
             $functionParameters[] = $functionParameter;
         }
@@ -634,6 +653,7 @@ class $baseClassName extends $extends implements \\JsonSerializable
 
         $params = [];
         $filterArrayCode = '';
+        $commentArguments[] = '';
         foreach ($elements as $element) {
             $params[] = $element->getParamAnnotation();
             if ($element instanceof ScalarBeanPropertyDescriptor) {
@@ -642,26 +662,28 @@ class $baseClassName extends $extends implements \\JsonSerializable
                 ++$count;
                 $filterArrayCode .= '            '.$count.' => '.$element->getVariableName().",\n";
             }
+            $commentArguments[] = substr($element->getVariableName(), 1);
         }
         $paramsString = implode("\n", $params);
 
-        $code = "    /**
-     * Get a list of XXX filtered by YYY.
+        $code = "
+    /**
+     * Get a list of $beanClassName filtered by ".implode(', ', $commentArguments).".
      *
 $paramsString
-     * @param mixed \$orderby The order string
+     * @param mixed \$orderBy The order string
      * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
      * @param string \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
-     * @return XXX[]|ResultIterator|ResultArray
+     * @return {$beanClassName}[]|ResultIterator|ResultArray
      */
-    public function $methodName($functionParametersString, \$orderby=null, array \$additionalTablesFetch = array(), \$mode = null)
+    public function $methodName($functionParametersString, \$orderBy = null, array \$additionalTablesFetch = array(), \$mode = null)
     {
         \$filter = [
 ".$filterArrayCode."        ];
-        return \$this->$calledMethod(\$filter, [], \$orderby, \$additionalTablesFetch, \$mode);
+        return \$this->$calledMethod(\$filter, [], \$orderBy, \$additionalTablesFetch, \$mode);
     }
 ";
 
-        return $code;
+        return [$usedBeans, $code];
     }
 }

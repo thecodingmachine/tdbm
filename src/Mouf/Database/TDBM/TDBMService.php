@@ -475,7 +475,7 @@ class TDBMService
             $parameters = [];
             foreach ($filter_bag as $column => $value) {
                 if (is_int($column)) {
-                    list($subSqlPart, $subParameters) = $this->buildFilterFromFilterBag($value);
+                    list($subSqlPart, $subParameters) = $this->buildFilterFromFilterBag($value, $counter);
                     $sqlParts[] = $subSqlPart;
                     $parameters += $subParameters;
                 } else {
@@ -507,7 +507,7 @@ class TDBMService
 
             return [implode(' AND ', $sqlParts), $parameters];
         } elseif ($filter_bag instanceof \Iterator) {
-            return $this->buildFilterFromFilterBag(iterator_to_array($filter_bag));
+            return $this->buildFilterFromFilterBag(iterator_to_array($filter_bag), $counter);
         } else {
             throw new TDBMException('Error in filter. An object has been passed that is neither a SQL string, nor an array, nor a bean, nor null.');
         }
