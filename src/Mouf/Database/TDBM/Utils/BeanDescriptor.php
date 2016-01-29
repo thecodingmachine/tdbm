@@ -653,7 +653,7 @@ class $baseClassName extends $extends implements \\JsonSerializable
 
         $params = [];
         $filterArrayCode = '';
-        $commentArguments[] = '';
+        $commentArguments = [];
         foreach ($elements as $element) {
             $params[] = $element->getParamAnnotation();
             if ($element instanceof ScalarBeanPropertyDescriptor) {
