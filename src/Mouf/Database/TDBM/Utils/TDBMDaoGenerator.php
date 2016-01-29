@@ -173,7 +173,7 @@ class TDBMDaoGenerator
     /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
-     * @param BeanDescriptor $beanDescriptor
+     * @param BeanDescriptor  $beanDescriptor
      * @param string          $className       The name of the class
      * @param string          $baseClassName   The name of the base class which will be extended (name only, no directory)
      * @param Table           $table           The table
@@ -258,7 +258,7 @@ class $className extends $baseClassName
     /**
      * Writes the PHP bean DAO with simple functions to create/get/save objects.
      *
-     * @param BeanDescriptor $beanDescriptor
+     * @param BeanDescriptor  $beanDescriptor
      * @param string          $className       The name of the class
      * @param string          $baseClassName
      * @param string          $beanClassName

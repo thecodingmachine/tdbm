@@ -182,9 +182,11 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * or throws an error.
      *
      * @param string $tableName
+     *
      * @return string
      */
-    private function checkTableName($tableName = null) {
+    private function checkTableName($tableName = null)
+    {
         if ($tableName === null) {
             if (count($this->dbRows) > 1) {
                 throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
@@ -200,6 +202,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
                 throw new TDBMException('Unknown table "'.$tableName.'"" in object.');
             }
         }
+
         return $tableName;
     }
 

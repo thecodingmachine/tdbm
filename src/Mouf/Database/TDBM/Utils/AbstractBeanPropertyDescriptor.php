@@ -53,7 +53,7 @@ abstract class AbstractBeanPropertyDescriptor
 
     public function getVariableName()
     {
-        return '$' . $this->getLowerCamelCaseName();
+        return '$'.$this->getLowerCamelCaseName();
     }
 
     public function getLowerCamelCaseName()
@@ -65,12 +65,12 @@ abstract class AbstractBeanPropertyDescriptor
 
     public function getSetterName()
     {
-        return 'set' . $this->getUpperCamelCaseName();
+        return 'set'.$this->getUpperCamelCaseName();
     }
 
     public function getGetterName()
     {
-        return 'get' . $this->getUpperCamelCaseName();
+        return 'get'.$this->getUpperCamelCaseName();
     }
 
     /**

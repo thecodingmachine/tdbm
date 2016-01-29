@@ -164,7 +164,8 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    public function getColumnName() {
+    public function getColumnName()
+    {
         return $this->column->getName();
     }
 }

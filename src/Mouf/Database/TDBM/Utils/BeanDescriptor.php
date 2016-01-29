@@ -567,18 +567,20 @@ class $baseClassName extends $extends implements \\JsonSerializable
         return $str;
     }
 
-    public function generateFindByDaoCode() {
+    public function generateFindByDaoCode()
+    {
         $code = '';
         foreach ($this->table->getIndexes() as $index) {
             if (!$index->isPrimary()) {
                 $code .= $this->generateFindByDaoCodeForIndex($index);
             }
         }
+
         return $code;
     }
 
-    private function generateFindByDaoCodeForIndex(Index $index) {
-
+    private function generateFindByDaoCodeForIndex(Index $index)
+    {
         $columns = $index->getColumns();
 
         /*
@@ -618,7 +620,6 @@ class $baseClassName extends $extends implements \\JsonSerializable
                 $first = false;
             }
             $functionParameters[] = $functionParameter;
-
         }
         if ($index->isUnique()) {
             $methodName = 'findOneBy'.implode('And', $methodNameComponent);
@@ -627,7 +628,7 @@ class $baseClassName extends $extends implements \\JsonSerializable
             $methodName = 'findBy'.implode('And', $methodNameComponent);
             $calledMethod = 'find';
         }
-        $functionParametersString = implode(', ',$functionParameters);
+        $functionParametersString = implode(', ', $functionParameters);
 
         $count = 0;
 
@@ -636,10 +637,10 @@ class $baseClassName extends $extends implements \\JsonSerializable
         foreach ($elements as $element) {
             $params[] = $element->getParamAnnotation();
             if ($element instanceof ScalarBeanPropertyDescriptor) {
-                $filterArrayCode .= "            ".var_export($element->getColumnName(), true).' => '.$element->getVariableName().",\n";
+                $filterArrayCode .= '            '.var_export($element->getColumnName(), true).' => '.$element->getVariableName().",\n";
             } else {
-                $count++;
-                $filterArrayCode .= "            ".$count.' => '.$element->getVariableName().",\n";
+                ++$count;
+                $filterArrayCode .= '            '.$count.' => '.$element->getVariableName().",\n";
             }
         }
         $paramsString = implode("\n", $params);

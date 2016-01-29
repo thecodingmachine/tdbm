@@ -458,7 +458,7 @@ class TDBMService
      * and gives back a proper Filter object.
      *
      * @param mixed $filter_bag
-     * @param int $counter
+     * @param int   $counter
      *
      * @return array First item: filter string, second item: parameters.
      *

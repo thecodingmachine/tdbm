@@ -550,7 +550,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // Finally, let's test the origin user still exists!
         $user4 = $userDao->getUserByLogin('bill.shakespeare');
         $this->assertEquals('bill.shakespeare', $user4->getLogin());
-
     }
 
     public function testCloneNewBean()
@@ -643,7 +642,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $sanchez->discardChanges();
     }
 
-    public function testUniqueIndexBasedSearch() {
+    public function testUniqueIndexBasedSearch()
+    {
         $userDao = new UserDao($this->tdbmService);
         $user = $userDao->findOneByLogin('bill.shakespeare');
 
