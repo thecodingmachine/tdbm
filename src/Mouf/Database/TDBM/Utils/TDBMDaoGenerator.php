@@ -116,8 +116,10 @@ class TDBMDaoGenerator
         $baseBeanName = $this->getBaseBeanNameFromTableName($tableName);
         $baseDaoName = $this->getBaseDaoNameFromTableName($tableName);
 
-        $this->generateBean($beanName, $baseBeanName, $table, $beannamespace, $classNameMapper, $storeInUtc);
-        $this->generateDao($daoName, $baseDaoName, $beanName, $table, $daonamespace, $beannamespace, $classNameMapper);
+        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer);
+
+        $this->generateBean($beanDescriptor, $beanName, $baseBeanName, $table, $beannamespace, $classNameMapper, $storeInUtc);
+        $this->generateDao($beanDescriptor, $daoName, $baseDaoName, $beanName, $table, $daonamespace, $beannamespace, $classNameMapper);
     }
 
     /**
@@ -171,6 +173,7 @@ class TDBMDaoGenerator
     /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
+     * @param BeanDescriptor $beanDescriptor
      * @param string          $className       The name of the class
      * @param string          $baseClassName   The name of the base class which will be extended (name only, no directory)
      * @param Table           $table           The table
@@ -179,10 +182,8 @@ class TDBMDaoGenerator
      *
      * @throws TDBMException
      */
-    public function generateBean($className, $baseClassName, Table $table, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc)
+    public function generateBean(BeanDescriptor $beanDescriptor, $className, $baseClassName, Table $table, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc)
     {
-        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer);
-
         $str = $beanDescriptor->generatePhpCode($beannamespace);
 
         $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($beannamespace.'\\'.$baseClassName);
@@ -257,6 +258,7 @@ class $className extends $baseClassName
     /**
      * Writes the PHP bean DAO with simple functions to create/get/save objects.
      *
+     * @param BeanDescriptor $beanDescriptor
      * @param string          $className       The name of the class
      * @param string          $baseClassName
      * @param string          $beanClassName
@@ -267,7 +269,7 @@ class $className extends $baseClassName
      *
      * @throws TDBMException
      */
-    public function generateDao($className, $baseClassName, $beanClassName, Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper)
+    public function generateDao(BeanDescriptor $beanDescriptor, $className, $baseClassName, $beanClassName, Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper)
     {
         $tableName = $table->getName();
         $primaryKeyColumns = $table->getPrimaryKeyColumns();
@@ -399,7 +401,7 @@ class $baseClassName
      * @param array \$parameters The parameters associated with the filter
      * @param mixed \$orderby The order string
      * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
-     * @param string \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
+     * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
     protected function find(\$filter=null, array \$parameters = [], \$orderby=null, array \$additionalTablesFetch = array(), \$mode = null)
@@ -433,6 +435,7 @@ class $baseClassName
     }
     ";
 
+        $str .= $beanDescriptor->generateFindByDaoCode();
         $str .= '
 }
 ';

@@ -3,6 +3,7 @@
 namespace Mouf\Database\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
@@ -55,7 +56,7 @@ class BeanDescriptor
     }
 
     /**
-     * Returns the foreignkey the column is part of, if any. null otherwise.
+     * Returns the foreign-key the column is part of, if any. null otherwise.
      *
      * @param Table  $table
      * @param Column $column
@@ -564,5 +565,102 @@ class $baseClassName extends $extends implements \\JsonSerializable
 ';
 
         return $str;
+    }
+
+    public function generateFindByDaoCode() {
+        $code = '';
+        foreach ($this->table->getIndexes() as $index) {
+            if (!$index->isPrimary()) {
+                $code .= $this->generateFindByDaoCodeForIndex($index);
+            }
+        }
+        return $code;
+    }
+
+    private function generateFindByDaoCodeForIndex(Index $index) {
+
+        $columns = $index->getColumns();
+
+        /*
+         * The list of elements building this index (expressed as columns or foreign keys)
+         * @var AbstractBeanPropertyDescriptor[]
+         */
+        $elements = [];
+
+        foreach ($columns as $column) {
+            $fk = $this->isPartOfForeignKey($this->table, $this->table->getColumn($column));
+            if ($fk !== null) {
+                if (!in_array($fk, $elements)) {
+                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->schemaAnalyzer);
+                }
+            } else {
+                $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column));
+            }
+        }
+
+        // If the index is actually only a foreign key, let's bypass it entirely.
+        if (count($elements) === 1 && $elements[0] instanceof ObjectBeanPropertyDescriptor) {
+            return '';
+        }
+
+        $methodNameComponent = [];
+        $functionParameters = [];
+        $first = true;
+        foreach ($elements as $element) {
+            $methodNameComponent[] = $element->getUpperCamelCaseName();
+            $functionParameter = $element->getClassName();
+            if ($functionParameter) {
+                $functionParameter .= '';
+            }
+            $functionParameter .= $element->getVariableName();
+            if ($first) {
+                $functionParameter .= ' = null';
+                $first = false;
+            }
+            $functionParameters[] = $functionParameter;
+
+        }
+        if ($index->isUnique()) {
+            $methodName = 'findOneBy'.implode('And', $methodNameComponent);
+            $calledMethod = 'findOne';
+        } else {
+            $methodName = 'findBy'.implode('And', $methodNameComponent);
+            $calledMethod = 'find';
+        }
+        $functionParametersString = implode(', ',$functionParameters);
+
+        $count = 0;
+
+        $params = [];
+        $filterArrayCode = '';
+        foreach ($elements as $element) {
+            $params[] = $element->getParamAnnotation();
+            if ($element instanceof ScalarBeanPropertyDescriptor) {
+                $filterArrayCode .= "            ".var_export($element->getColumnName(), true).' => '.$element->getVariableName().",\n";
+            } else {
+                $count++;
+                $filterArrayCode .= "            ".$count.' => '.$element->getVariableName().",\n";
+            }
+        }
+        $paramsString = implode("\n", $params);
+
+        $code = "    /**
+     * Get a list of XXX filtered by YYY.
+     *
+$paramsString
+     * @param mixed \$orderby The order string
+     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @param string \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
+     * @return XXX[]|ResultIterator|ResultArray
+     */
+    public function $methodName($functionParametersString, \$orderby=null, array \$additionalTablesFetch = array(), \$mode = null)
+    {
+        \$filter = [
+".$filterArrayCode."        ];
+        return \$this->$calledMethod(\$filter, [], \$orderby, \$additionalTablesFetch, \$mode);
+    }
+";
+
+        return $code;
     }
 }

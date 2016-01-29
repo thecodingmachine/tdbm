@@ -529,6 +529,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $userDao = new TestUserDao($this->tdbmService);
         $user = $userDao->getUserByLogin('bill.shakespeare');
+        $this->assertEquals(4, $user->getId());
         $user2 = clone $user;
         $this->assertNull($user2->getId());
         $this->assertEquals('bill.shakespeare', $user2->getLogin());
@@ -542,10 +543,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $user2->setLogin('william.shakespeare');
         $userDao->save($user2);
 
-        $this->assertNotNull($user2->getId());
-
         $user3 = $userDao->getUserByLogin('william.shakespeare');
+        $this->assertTrue($user3 === $user2);
         $userDao->delete($user3);
+
+        // Finally, let's test the origin user still exists!
+        $user4 = $userDao->getUserByLogin('bill.shakespeare');
+        $this->assertEquals('bill.shakespeare', $user4->getLogin());
+
     }
 
     public function testCloneNewBean()
@@ -636,5 +641,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         // Cannot discard changes on a bean that is already deleted.
         $sanchez->discardChanges();
+    }
+
+    public function testUniqueIndexBasedSearch() {
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->findOneByLogin('bill.shakespeare');
+
+        $this->assertEquals('bill.shakespeare', $user->getLogin());
+        $this->assertEquals('Bill Shakespeare', $user->getName());
     }
 }

@@ -158,4 +158,13 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             return '        $array['.var_export($this->getLowerCamelCaseName(), true).'] = $this->'.$this->getGetterName()."();\n";
         }
     }
+
+    /**
+     * Returns the column name.
+     *
+     * @return string
+     */
+    public function getColumnName() {
+        return $this->column->getName();
+    }
 }

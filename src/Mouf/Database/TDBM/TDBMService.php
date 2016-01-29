@@ -458,14 +458,14 @@ class TDBMService
      * and gives back a proper Filter object.
      *
      * @param mixed $filter_bag
+     * @param int $counter
      *
      * @return array First item: filter string, second item: parameters.
      *
      * @throws TDBMException
      */
-    public function buildFilterFromFilterBag($filter_bag)
+    public function buildFilterFromFilterBag($filter_bag, $counter = 1)
     {
-        $counter = 1;
         if ($filter_bag === null) {
             return ['', []];
         } elseif (is_string($filter_bag)) {
@@ -474,14 +474,20 @@ class TDBMService
             $sqlParts = [];
             $parameters = [];
             foreach ($filter_bag as $column => $value) {
-                $paramName = 'tdbmparam'.$counter;
-                if (is_array($value)) {
-                    $sqlParts[] = $this->connection->quoteIdentifier($column).' IN :'.$paramName;
+                if (is_int($column)) {
+                    list($subSqlPart, $subParameters) = $this->buildFilterFromFilterBag($value);
+                    $sqlParts[] = $subSqlPart;
+                    $parameters += $subParameters;
                 } else {
-                    $sqlParts[] = $this->connection->quoteIdentifier($column).' = :'.$paramName;
+                    $paramName = 'tdbmparam'.$counter;
+                    if (is_array($value)) {
+                        $sqlParts[] = $this->connection->quoteIdentifier($column).' IN :'.$paramName;
+                    } else {
+                        $sqlParts[] = $this->connection->quoteIdentifier($column).' = :'.$paramName;
+                    }
+                    $parameters[$paramName] = $value;
+                    ++$counter;
                 }
-                $parameters[$paramName] = $value;
-                ++$counter;
             }
 
             return [implode(' AND ', $sqlParts), $parameters];

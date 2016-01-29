@@ -405,4 +405,15 @@ class DbRow
     {
         return $this->object;
     }
+
+    /**
+     * Sets the TDBMObject this bean is associated to.
+     * Only used when cloning.
+     *
+     * @param AbstractTDBMObject $object
+     */
+    public function setTDBMObject(AbstractTDBMObject $object)
+    {
+        $this->object = $object;
+    }
 }

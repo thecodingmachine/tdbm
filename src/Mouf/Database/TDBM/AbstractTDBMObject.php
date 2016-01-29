@@ -177,8 +177,14 @@ abstract class AbstractTDBMObject implements JsonSerializable
         }
     }
 
-    protected function get($var, $tableName = null)
-    {
+    /**
+     * Checks that $tableName is ok, or returns the only possible table name if "$tableName = null"
+     * or throws an error.
+     *
+     * @param string $tableName
+     * @return string
+     */
+    private function checkTableName($tableName = null) {
         if ($tableName === null) {
             if (count($this->dbRows) > 1) {
                 throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
@@ -194,6 +200,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
                 throw new TDBMException('Unknown table "'.$tableName.'"" in object.');
             }
         }
+        return $tableName;
+    }
+
+    protected function get($var, $tableName = null)
+    {
+        $tableName = $this->checkTableName($tableName);
 
         return $this->dbRows[$tableName]->get($var);
     }
@@ -253,21 +265,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      */
     protected function getRef($foreignKeyName, $tableName = null)
     {
-        if ($tableName === null) {
-            if (count($this->dbRows) > 1) {
-                throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
-            } elseif (count($this->dbRows) === 1) {
-                $tableName = array_keys($this->dbRows)[0];
-            }
-        }
-
-        if (!isset($this->dbRows[$tableName])) {
-            if (count($this->dbRows[$tableName] === 0)) {
-                throw new TDBMException('Object is not yet bound to any table.');
-            } else {
-                throw new TDBMException('Unknown table "'.$tableName.'"" in object.');
-            }
-        }
+        $tableName = $this->checkTableName($tableName);
 
         return $this->dbRows[$tableName]->getRef($foreignKeyName);
     }
@@ -464,18 +462,19 @@ abstract class AbstractTDBMObject implements JsonSerializable
         foreach ($pivotTableList as $pivotTable) {
             $storage = $this->retrieveRelationshipsStorage($pivotTable);
 
-            // Let's duplicate the reverse side of the relationship
-            foreach ($storage as $remoteBean) {
+            // Let's duplicate the reverse side of the relationship // This is useless: already done by "retrieveRelationshipsStorage"!!!
+            /*foreach ($storage as $remoteBean) {
                 $metadata = $storage[$remoteBean];
 
                 $remoteStorage = $remoteBean->getRelationshipStorage($pivotTable);
                 $remoteStorage->attach($this, ['status' => $metadata['status'], 'reverse' => !$metadata['reverse']]);
-            }
+            }*/
         }
 
         // Let's clone each row
-        foreach ($this->dbRows as $key => $dbRow) {
-            $this->dbRows[$key] = clone $dbRow;
+        foreach ($this->dbRows as $key => &$dbRow) {
+            $dbRow = clone $dbRow;
+            $dbRow->setTDBMObject($this);
         }
 
         // Let's set the status to new (to enter the save function)
