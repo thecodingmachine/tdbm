@@ -27,7 +27,8 @@
 	    "psr/log": "~1.0",
 	    "mouf/mouf": "~2.0.0",
 	  	"doctrine/inflector": "~1.0",
-	    "beberlei/porpaginas": "~1.0"
+	    "beberlei/porpaginas": "~1.0",
+		"mouf/classname-mapper": "~1.0"
 	},
     "require-dev" : {
 	    "phpunit/phpunit": "~4.0",
