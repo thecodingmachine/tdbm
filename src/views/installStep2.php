@@ -40,8 +40,43 @@ Unless you are developing your own autoload system, you should configure <strong
 </div>
 
 <div class="control-group">
+	<label class="control-label">Use the default path (compute with PSR):</label>
+	<div class="controls">
+		<input type="checkbox" id="defaultPath" name="defaultPath" value="1" <?php echo $this->defaultPath ? 'checked="checked"' : '' ?>></input>
+		<span class="help-block">Select this option if you want to use the default folder to store daos and beans.</span>
+	</div>
+</div>
+
+<div class="control-group" id="storePathGroup">
+	<label class="control-label">Location to store daos and beans:</label>
+	<div class="controls">
+		<input type="text" name="storePath" value="<?php echo plainstring_to_htmlprotected($this->storePath) ?>"></input>
+		<span class="help-block">
+			This field is to change the folder of daos and beans. This automatically start with root path.<br />
+			Don't add the psr folder at the end. End with separator /.<br />
+			For exemple: vendor/company/package/src/<br />
+			<b>Caution:</b> The folder filled must be contain a composer.json. The Psr in the composer must be 
+		</span>
+	</div>
+</div>
+
+<div class="control-group">
 	<div class="controls">
 		<button name="action" value="generate" type="submit" class="btn btn-danger">Install TDBM</button>
 	</div>
 </div>
 </form>
+<script>
+	function changeDefaultPath() {
+		if($('#defaultPath').prop('checked')) {
+			$('#storePathGroup').hide();
+		}
+		else {
+			$('#storePathGroup').show();
+		}
+	}
+	$(document).ready(function () {
+		$('#defaultPath').on('change', changeDefaultPath);
+		changeDefaultPath();
+	})
+</script>

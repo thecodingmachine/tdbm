@@ -649,6 +649,14 @@ class $daoFactoryClassName
     }
 
     /**
+     * @return string
+     */
+    public function getRootPath()
+    {
+        return $this->rootPath;
+    }
+    
+    /**
      * Transforms a DBAL type into a PHP type (for PHPDoc purpose).
      *
      * @param Type $type The DBAL type

@@ -629,14 +629,15 @@ class TDBMService
      * @param string $daonamespace        The namespace for the DAOs, without trailing \
      * @param string $beannamespace       The Namespace for the beans, without trailing \
      * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone.
+     * @param string $storePath           If it's set, the path to generate daos and beans. By default it's locate with rootPath.
      *
      * @return \string[] the list of tables
      */
-    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc)
+    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc, $storePath = null)
     {
         $tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer);
-
-        return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
+        $tdbmDaoGenerator->setRootPath($tdbmDaoGenerator->getRootPath().$storePath);
+        return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc, $storePath);
     }
 
     /**

@@ -124,6 +124,8 @@ class TdbmInstallController extends Controller
         } else {
             $this->autoloadDetected = true;
         }
+        $this->defaultPath = true;
+        $this->storePath = '';
 
         $this->castDatesToDateTime = true;
 
@@ -143,7 +145,7 @@ class TdbmInstallController extends Controller
      *
      * @throws \Mouf\MoufException
      */
-    public function generate($daonamespace, $beannamespace, $storeInUtc = 0, $selfedit = 'false')
+    public function generate($daonamespace, $beannamespace, $storeInUtc = 0, $selfedit = 'false', $defaultPath = false, $storePath = '')
     {
         $this->selfedit = $selfedit;
 
@@ -168,7 +170,7 @@ class TdbmInstallController extends Controller
 
         $this->moufManager->rewriteMouf();
 
-        TdbmController::generateDaos($this->moufManager, 'tdbmService', $daonamespace, $beannamespace, 'DaoFactory', 'daoFactory', $selfedit, $storeInUtc);
+        TdbmController::generateDaos($this->moufManager, 'tdbmService', $daonamespace, $beannamespace, 'DaoFactory', 'daoFactory', $selfedit, $storeInUtc, $defaultPath, $storePath);
 
         InstallUtils::continueInstall($selfedit == 'true');
     }
