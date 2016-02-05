@@ -1,9 +1,9 @@
 <?php
 
-
 namespace Mouf\Database\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
@@ -12,7 +12,7 @@ use Mouf\Database\TDBM\TDBMException;
 use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
 
 /**
- * This class represents a bean
+ * This class represents a bean.
  */
 class BeanDescriptor
 {
@@ -41,7 +41,8 @@ class BeanDescriptor
      */
     private $tdbmSchemaAnalyzer;
 
-    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer) {
+    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
+    {
         $this->table = $table;
         $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schema = $schema;
@@ -49,18 +50,21 @@ class BeanDescriptor
         $this->initBeanPropertyDescriptors();
     }
 
-    private function initBeanPropertyDescriptors() {
+    private function initBeanPropertyDescriptors()
+    {
         $this->beanPropertyDescriptors = $this->getProperties($this->table);
     }
 
     /**
-     * Returns the foreignkey the column is part of, if any. null otherwise.
+     * Returns the foreign-key the column is part of, if any. null otherwise.
      *
-     * @param Table $table
+     * @param Table  $table
      * @param Column $column
+     *
      * @return ForeignKeyConstraint|null
      */
-    private function isPartOfForeignKey(Table $table, Column $column) {
+    private function isPartOfForeignKey(Table $table, Column $column)
+    {
         $localColumnName = $column->getName();
         foreach ($table->getForeignKeys() as $foreignKey) {
             foreach ($foreignKey->getColumns() as $columnName) {
@@ -69,7 +73,8 @@ class BeanDescriptor
                 }
             }
         }
-        return null;
+
+        return;
     }
 
     /**
@@ -85,9 +90,9 @@ class BeanDescriptor
      *
      * @return AbstractBeanPropertyDescriptor[]
      */
-    public function getConstructorProperties() {
-
-        $constructorProperties = array_filter($this->beanPropertyDescriptors, function(AbstractBeanPropertyDescriptor $property) {
+    public function getConstructorProperties()
+    {
+        $constructorProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
            return $property->isCompulsory();
         });
 
@@ -99,8 +104,9 @@ class BeanDescriptor
      *
      * @return AbstractBeanPropertyDescriptor[]
      */
-    public function getExposedProperties() {
-        $exposedProperties = array_filter($this->beanPropertyDescriptors, function(AbstractBeanPropertyDescriptor $property) {
+    public function getExposedProperties()
+    {
+        $exposedProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
             return $property->getTable()->getName() == $this->table->getName();
         });
 
@@ -111,6 +117,7 @@ class BeanDescriptor
      * Returns the list of properties for this table (including parent tables).
      *
      * @param Table $table
+     *
      * @return AbstractBeanPropertyDescriptor[]
      */
     private function getProperties(Table $table)
@@ -128,8 +135,6 @@ class BeanDescriptor
                 }
                 $properties[$name] = $property;
             }
-            //$properties = array_merge($properties, $localProperties);
-
         } else {
             $properties = $this->getPropertiesForTable($table);
         }
@@ -137,10 +142,11 @@ class BeanDescriptor
         return $properties;
     }
 
-        /**
+    /**
      * Returns the list of properties for this table (ignoring parent tables).
      *
      * @param Table $table
+     *
      * @return AbstractBeanPropertyDescriptor[]
      */
     private function getPropertiesForTable(Table $table)
@@ -197,7 +203,7 @@ class BeanDescriptor
         foreach ($beanPropertyDescriptors as $beanDescriptor) {
             $name = $beanDescriptor->getUpperCamelCaseName();
             if (isset($names[$name])) {
-                throw new TDBMException("Unsolvable name conflict while generating method name");
+                throw new TDBMException('Unsolvable name conflict while generating method name');
             } else {
                 $names[$name] = $beanDescriptor;
             }
@@ -212,10 +218,11 @@ class BeanDescriptor
         return $beanPropertyDescriptorsMap;
     }
 
-    public function generateBeanConstructor() {
+    public function generateBeanConstructor()
+    {
         $constructorProperties = $this->getConstructorProperties();
 
-        $constructorCode = "    /**
+        $constructorCode = '    /**
      * The constructor takes all compulsory arguments.
      *
 %s
@@ -223,7 +230,7 @@ class BeanDescriptor
     public function __construct(%s) {
 %s%s
     }
-    ";
+    ';
 
         $paramAnnotations = [];
         $arguments = [];
@@ -247,10 +254,11 @@ class BeanDescriptor
 
         $parentConstrutorCode = sprintf("        parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
 
-        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(", ", $arguments), $parentConstrutorCode, implode("\n", $assigns));
+        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstrutorCode, implode("\n", $assigns));
     }
 
-    public function generateDirectForeignKeysCode() {
+    public function generateDirectForeignKeysCode()
+    {
         $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($this->table->getName());
 
         $fksByTable = [];
@@ -275,7 +283,7 @@ class BeanDescriptor
                 }
             } else {
                 $methodName = 'get'.TDBMDaoGenerator::toCamelCase($fksForTable[0]->getLocalTableName());
-                $fksByMethodName[$methodName] = $fk;
+                $fksByMethodName[$methodName] = $fksForTable[0];
             }
         }
 
@@ -311,7 +319,8 @@ class BeanDescriptor
         return $code;
     }
 
-    private function getFilters(ForeignKeyConstraint $fk) {
+    private function getFilters(ForeignKeyConstraint $fk)
+    {
         $sqlParts = [];
         $counter = 0;
         $parameters = [];
@@ -319,12 +328,12 @@ class BeanDescriptor
         $pkColumns = $this->table->getPrimaryKeyColumns();
 
         foreach ($fk->getLocalColumns() as $columnName) {
-            $paramName = "tdbmparam".$counter;
-            $sqlParts[] = $fk->getLocalTableName().'.'.$columnName." = :".$paramName;
+            $paramName = 'tdbmparam'.$counter;
+            $sqlParts[] = $fk->getLocalTableName().'.'.$columnName.' = :'.$paramName;
 
             $pkColumn = $pkColumns[$counter];
             $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($paramName, true), var_export($pkColumn, true), var_export($this->table->getName(), true));
-            $counter++;
+            ++$counter;
         }
         $sql = "'".implode(' AND ', $sqlParts)."'";
         $parametersCode = '[ '.implode(', ', $parameters).' ]';
@@ -333,12 +342,12 @@ class BeanDescriptor
     }
 
     /**
-     * Generate code section about pivot tables
+     * Generate code section about pivot tables.
      *
-     * @return string;
+     * @return string
      */
-    public function generatePivotTableCode() {
-
+    public function generatePivotTableCode()
+    {
         $finalDescs = $this->getPivotTableDescriptors();
 
         $code = '';
@@ -350,7 +359,8 @@ class BeanDescriptor
         return $code;
     }
 
-    private function getPivotTableDescriptors() {
+    private function getPivotTableDescriptors()
+    {
         $descs = [];
         foreach ($this->schemaAnalyzer->detectJunctionTables() as $table) {
             // There are exactly 2 FKs since this is a pivot table.
@@ -369,16 +379,15 @@ class BeanDescriptor
             $descs[$remoteFK->getForeignTableName()][] = [
                 'table' => $table,
                 'localFK' => $localFK,
-                'remoteFK' => $remoteFK
+                'remoteFK' => $remoteFK,
             ];
-
         }
 
         $finalDescs = [];
         foreach ($descs as $descArray) {
             if (count($descArray) > 1) {
                 foreach ($descArray as $desc) {
-                    $desc['name'] = TDBMDaoGenerator::toCamelCase($desc['remoteFK']->getForeignTableName())."By".TDBMDaoGenerator::toCamelCase($desc['table']->getName());
+                    $desc['name'] = TDBMDaoGenerator::toCamelCase($desc['remoteFK']->getForeignTableName()).'By'.TDBMDaoGenerator::toCamelCase($desc['table']->getName());
                     $finalDescs[] = $desc;
                 }
             } else {
@@ -391,7 +400,8 @@ class BeanDescriptor
         return $finalDescs;
     }
 
-    public function getPivotTableCode($name, Table $table, ForeignKeyConstraint $localFK, ForeignKeyConstraint $remoteFK) {
+    public function getPivotTableCode($name, Table $table, ForeignKeyConstraint $localFK, ForeignKeyConstraint $remoteFK)
+    {
         $singularName = TDBMDaoGenerator::toSingular($name);
         $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($remoteFK->getForeignTableName());
         $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
@@ -445,13 +455,13 @@ class BeanDescriptor
 
         $hasCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $variableName, $singularName, $remoteBeanName, $variableName, var_export($remoteFK->getLocalTableName(), true), $variableName);
 
-
         $code = $getterCode.$adderCode.$removerCode.$hasCode;
 
         return $code;
     }
 
-    public function generateJsonSerialize() {
+    public function generateJsonSerialize()
+    {
         $tableName = $this->table->getName();
         $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
         if ($parentFk !== null) {
@@ -508,7 +518,8 @@ class BeanDescriptor
      *
      * @param string $beannamespace The namespace of the bean
      */
-    public function generatePhpCode($beannamespace) {
+    public function generatePhpCode($beannamespace)
+    {
         $baseClassName = TDBMDaoGenerator::getBaseBeanNameFromTableName($this->table->getName());
         $className = TDBMDaoGenerator::getBeanNameFromTableName($this->table->getName());
         $tableName = $this->table->getName();
@@ -516,9 +527,9 @@ class BeanDescriptor
         $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
         if ($parentFk !== null) {
             $extends = TDBMDaoGenerator::getBeanNameFromTableName($parentFk->getForeignTableName());
-            $use = "";
+            $use = '';
         } else {
-            $extends = "AbstractTDBMObject";
+            $extends = 'AbstractTDBMObject';
             $use = "use Mouf\\Database\\TDBM\\AbstractTDBMObject;\n\n";
         }
 
@@ -542,8 +553,6 @@ class $baseClassName extends $extends implements \\JsonSerializable
 
         $str .= $this->generateBeanConstructor();
 
-
-
         foreach ($this->getExposedProperties() as $property) {
             $str .= $property->getGetterSetterCode();
         }
@@ -552,8 +561,129 @@ class $baseClassName extends $extends implements \\JsonSerializable
         $str .= $this->generatePivotTableCode();
         $str .= $this->generateJsonSerialize();
 
-        $str .= "}
-";
+        $str .= '}
+';
+
         return $str;
+    }
+
+    /**
+     * @param string $beanNamespace
+     * @param string $beanClassName
+     *
+     * @return array first element: list of used beans, second item: PHP code as a string
+     */
+    public function generateFindByDaoCode($beanNamespace, $beanClassName)
+    {
+        $code = '';
+        $usedBeans = [];
+        foreach ($this->table->getIndexes() as $index) {
+            if (!$index->isPrimary()) {
+                list($usedBeansForIndex, $codeForIndex) = $this->generateFindByDaoCodeForIndex($index, $beanNamespace, $beanClassName);
+                $code .= $codeForIndex;
+                $usedBeans = array_merge($usedBeans, $usedBeansForIndex);
+            }
+        }
+
+        return [$usedBeans, $code];
+    }
+
+    /**
+     * @param Index  $index
+     * @param string $beanNamespace
+     * @param string $beanClassName
+     *
+     * @return array first element: list of used beans, second item: PHP code as a string
+     */
+    private function generateFindByDaoCodeForIndex(Index $index, $beanNamespace, $beanClassName)
+    {
+        $columns = $index->getColumns();
+        $usedBeans = [];
+
+        /*
+         * The list of elements building this index (expressed as columns or foreign keys)
+         * @var AbstractBeanPropertyDescriptor[]
+         */
+        $elements = [];
+
+        foreach ($columns as $column) {
+            $fk = $this->isPartOfForeignKey($this->table, $this->table->getColumn($column));
+            if ($fk !== null) {
+                if (!in_array($fk, $elements)) {
+                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->schemaAnalyzer);
+                }
+            } else {
+                $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column));
+            }
+        }
+
+        // If the index is actually only a foreign key, let's bypass it entirely.
+        if (count($elements) === 1 && $elements[0] instanceof ObjectBeanPropertyDescriptor) {
+            return [[], ''];
+        }
+
+        $methodNameComponent = [];
+        $functionParameters = [];
+        $first = true;
+        foreach ($elements as $element) {
+            $methodNameComponent[] = $element->getUpperCamelCaseName();
+            $functionParameter = $element->getClassName();
+            if ($functionParameter) {
+                $usedBeans[] = $beanNamespace.'\\'.$functionParameter;
+                $functionParameter .= ' ';
+            }
+            $functionParameter .= $element->getVariableName();
+            if ($first) {
+                $first = false;
+            } else {
+                $functionParameter .= ' = null';
+            }
+            $functionParameters[] = $functionParameter;
+        }
+        if ($index->isUnique()) {
+            $methodName = 'findOneBy'.implode('And', $methodNameComponent);
+            $calledMethod = 'findOne';
+        } else {
+            $methodName = 'findBy'.implode('And', $methodNameComponent);
+            $calledMethod = 'find';
+        }
+        $functionParametersString = implode(', ', $functionParameters);
+
+        $count = 0;
+
+        $params = [];
+        $filterArrayCode = '';
+        $commentArguments = [];
+        foreach ($elements as $element) {
+            $params[] = $element->getParamAnnotation();
+            if ($element instanceof ScalarBeanPropertyDescriptor) {
+                $filterArrayCode .= '            '.var_export($element->getColumnName(), true).' => '.$element->getVariableName().",\n";
+            } else {
+                ++$count;
+                $filterArrayCode .= '            '.$count.' => '.$element->getVariableName().",\n";
+            }
+            $commentArguments[] = substr($element->getVariableName(), 1);
+        }
+        $paramsString = implode("\n", $params);
+
+        $code = "
+    /**
+     * Get a list of $beanClassName filtered by ".implode(', ', $commentArguments).".
+     *
+$paramsString
+     * @param mixed \$orderBy The order string
+     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @param string \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
+     * @return {$beanClassName}[]|ResultIterator|ResultArray
+     */
+    public function $methodName($functionParametersString, \$orderBy = null, array \$additionalTablesFetch = array(), \$mode = null)
+    {
+        \$filter = [
+".$filterArrayCode."        ];
+        return \$this->$calledMethod(\$filter, [], \$orderBy, \$additionalTablesFetch, \$mode);
+    }
+";
+
+        return [$usedBeans, $code];
     }
 }

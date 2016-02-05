@@ -1,4 +1,5 @@
 <?php
+
 /*
  Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE
 
@@ -22,24 +23,25 @@ namespace Mouf\Database\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 
-
 /**
  */
-class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest {
-
+class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
+{
     /**
      * @var TDBMSchemaAnalyzer
      */
     protected $tdbmSchemaAnalyzer;
 
-    protected function setUp() {
+    protected function setUp()
+    {
         parent::setUp();
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), "prefix_");
+        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
         $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, new ArrayCache(), $schemaAnalyzer);
     }
 
-    public function testGetSchema() {
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), "prefix_");
+    public function testGetSchema()
+    {
+        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
         $tdbmSchemaAnalyzer1 = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
         $tdbmSchemaAnalyzer2 = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
@@ -51,34 +53,36 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest {
         $this->assertTrue($schema1 === $schema2);
     }
 
-    public function testGetIncomingForeignKeys() {
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), "prefix_");
+    public function testGetIncomingForeignKeys()
+    {
+        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
 
-        $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys("users");
+        $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('users');
         $this->assertCount(0, $fks);
     }
 
-    public function testGetIncomingForeignKeys2() {
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), "prefix_");
+    public function testGetIncomingForeignKeys2()
+    {
+        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
 
-        $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys("contact");
+        $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('contact');
         $this->assertCount(0, $fks);
     }
 
-    public function testGetIncomingForeignKeys3() {
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), "prefix_");
+    public function testGetIncomingForeignKeys3()
+    {
+        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
 
-        $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys("country");
+        $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('country');
         $this->assertCount(1, $fks);
         $this->assertEquals('users', $fks[0]->getLocalTableName());
     }
-
 
     /*public function testGetCompulsoryColumnsWithNoInheritance() {
         $table = $this->tdbmSchemaAnalyzer->getSchema()->getTable('country');
@@ -93,5 +97,4 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest {
         $this->assertCount(5, $compulsoryColumns);
         $this->assertEquals(['name', 'created_at', 'email', 'country_id', 'login'], array_keys($compulsoryColumns));
     }*/
-
 }

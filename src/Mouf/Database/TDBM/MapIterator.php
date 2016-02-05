@@ -1,14 +1,14 @@
 <?php
+
 namespace Mouf\Database\TDBM;
 
 use Iterator;
 
-
 /**
  * An iterator that maps element of another iterator by calling a callback on it.
  */
-class MapIterator implements Iterator {
-
+class MapIterator implements Iterator
+{
     /**
      * @var Iterator
      */
@@ -22,18 +22,16 @@ class MapIterator implements Iterator {
     /**
      * @param $iterator Iterator|array
      * @param $callable callable This can have two parameters
+     *
      * @throws TDBMException
      */
-    public function __construct($iterator, callable $callable) {
+    public function __construct($iterator, callable $callable)
+    {
         if (is_array($iterator)) {
             $this->iterator = new \ArrayIterator($iterator);
-        }
-        elseif (!($iterator instanceof Iterator))
-        {
+        } elseif (!($iterator instanceof Iterator)) {
             throw new TDBMException("\$iterator parameter must be an instance of Iterator");
-        }
-        else
-        {
+        } else {
             $this->iterator = $iterator;
         }
 
@@ -54,11 +52,13 @@ class MapIterator implements Iterator {
     /**
      * Alters the current item with $this->callable and returns a new item.
      * Be careful with your types as we can't do static type checking here!
+     *
      * @return mixed
      */
     public function current()
     {
         $callable = $this->callable;
+
         return $callable($this->iterator->current());
     }
 
@@ -87,7 +87,8 @@ class MapIterator implements Iterator {
      *
      * @return array
      */
-    public function toArray() {
+    public function toArray()
+    {
         return iterator_to_array($this);
     }
 }

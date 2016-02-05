@@ -105,6 +105,56 @@ The `findAll` method will return the list of beans.
 Of course, most of the time, you don't want all the rows in a database.
 You want to perform a query with filters.
 
+###Querying the database on indexed columns
+
+TDBM will do its best to help you query your database easily. In particular, if you put an index on one or many columns,
+it is likely that you will want to perform a query on this index. TDBM will detect the index and generate a method in 
+the DAO.
+
+Here is a sample:
+
+```sql
+CREATE INDEX users_status_idx ON users (status);
+```
+
+The `users` table has an index on the `status` column.
+
+Automatically, TDBM will generate a `findByStatus` method in the `UserBaseDao` class:
+
+```
+$users = $userDao->findByStatus('on');
+```
+
+See how cool this is?
+
+But wait, there is more! What about unique indexes?
+
+```sql
+CREATE UNIQUE INDEX users_login_idx ON users (login);
+```
+
+TDBM will generate a `findOneByLogin` method:
+
+```
+$user = $userDao->findOneByLogin('alice');
+```
+
+Please note how a **unique** index generates a `findOneBy...` method instead of a `findBy...` method.
+
+Finally, TDBM can also deal with multi-columns indexes, or indexes on foreign keys:
+
+```sql
+CREATE INDEX users_status_country_idx ON users (status, country_id);
+```
+
+This index on both the `status` and the `country_id` column will be turned into a `findByLoginAndCountry` method:
+ 
+```
+$country = $countryDao->getById(1);
+$user = $userDao->findByLoginAndCountry('on', $country);
+```
+
+Notice how the parameter passed for the for foreign key is a bean and not an ID.
 
 ###Querying the database with filters
 

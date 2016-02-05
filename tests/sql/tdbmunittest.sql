@@ -152,6 +152,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) NOT NULL,
   `login` varchar(255) NOT NULL,
   `password` varchar(255) DEFAULT NULL,
+  `status` varchar(10) DEFAULT NULL,
   `country_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -159,11 +160,11 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `login`, `password`, `country_id`) VALUES
-  (1, 'john.smith', NULL, 2),
-  (2, 'jean.dupont', NULL, 1),
-  (3, 'robert.marley', NULL, 3),
-  (4, 'bill.shakespeare', NULL, 2);
+INSERT INTO `users` (`id`, `login`, `password`, `status`, `country_id`) VALUES
+  (1, 'john.smith', NULL, 'on', 2),
+  (2, 'jean.dupont', NULL, 'on', 1),
+  (3, 'robert.marley', NULL, 'off', 3),
+  (4, 'bill.shakespeare', NULL, 'off', 2);
 
 -- --------------------------------------------------------
 
@@ -294,6 +295,11 @@ ADD CONSTRAINT `users_ibfk_2` FOREIGN KEY (`id`) REFERENCES `contact` (`id`);
 ALTER TABLE `users_roles`
 ADD CONSTRAINT `users_roles_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`),
 ADD CONSTRAINT `users_roles_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+-- Add index
+CREATE UNIQUE INDEX users_login_idx ON users (login);
+CREATE INDEX users_status_country_idx ON users (status, country_id);
+
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

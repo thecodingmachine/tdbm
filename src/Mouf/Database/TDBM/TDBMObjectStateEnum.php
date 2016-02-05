@@ -1,4 +1,5 @@
 <?php
+
 namespace Mouf\Database\TDBM;
 
 /*
@@ -24,11 +25,12 @@ namespace Mouf\Database\TDBM;
  *
  * @author David Negrier
  */
-final class TDBMObjectStateEnum extends AbstractTDBMObject {
-    const STATE_DETACHED = "detached";
-    const STATE_NEW = "new";
-    const STATE_NOT_LOADED = "not loaded";
-    const STATE_LOADED = "loaded";
-    const STATE_DIRTY = "dirty";
-    const STATE_DELETED = "deleted";
+final class TDBMObjectStateEnum
+{
+    const STATE_DETACHED = 'detached';
+    const STATE_NEW = 'new';
+    const STATE_NOT_LOADED = 'not loaded';
+    const STATE_LOADED = 'loaded';
+    const STATE_DIRTY = 'dirty';
+    const STATE_DELETED = 'deleted';
 }

@@ -1,18 +1,14 @@
 <?php
 
-
 namespace Mouf\Database\TDBM\Utils;
 
-use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 
 /**
- * This class represent a property in a bean (a property has a getter, a setter, etc...)
+ * This class represent a property in a bean (a property has a getter, a setter, etc...).
  */
 abstract class AbstractBeanPropertyDescriptor
 {
-
     /**
      * @var Table
      */
@@ -20,6 +16,7 @@ abstract class AbstractBeanPropertyDescriptor
 
     /**
      * Whether to use the more complex name in case of conflict.
+     *
      * @var bool
      */
     protected $alternativeName = false;
@@ -32,7 +29,6 @@ abstract class AbstractBeanPropertyDescriptor
         $this->table = $table;
     }
 
-
     /**
      * Use the more complex name in case of conflict.
      */
@@ -42,7 +38,8 @@ abstract class AbstractBeanPropertyDescriptor
     }
 
     /**
-     * Returns the name of the class linked to this property or null if this is not a foreign key
+     * Returns the name of the class linked to this property or null if this is not a foreign key.
+     *
      * @return null|string
      */
     abstract public function getClassName();
@@ -54,41 +51,50 @@ abstract class AbstractBeanPropertyDescriptor
      */
     abstract public function getParamAnnotation();
 
-    public function getVariableName() {
+    public function getVariableName()
+    {
         return '$'.$this->getLowerCamelCaseName();
     }
 
-    public function getLowerCamelCaseName() {
+    public function getLowerCamelCaseName()
+    {
         return TDBMDaoGenerator::toVariableName($this->getUpperCamelCaseName());
     }
 
     abstract public function getUpperCamelCaseName();
 
-    public function getSetterName() {
+    public function getSetterName()
+    {
         return 'set'.$this->getUpperCamelCaseName();
     }
 
-    public function getGetterName() {
+    public function getGetterName()
+    {
         return 'get'.$this->getUpperCamelCaseName();
     }
 
     /**
      * Returns the PHP code used in the ben constructor for this property.
+     *
      * @return string
      */
-    public function getConstructorAssignCode() {
+    public function getConstructorAssignCode()
+    {
         $str = '        $this->%s(%s);';
+
         return sprintf($str, $this->getSetterName(), $this->getVariableName());
     }
 
     /**
      * Returns true if the property is compulsory (and therefore should be fetched in the constructor).
+     *
      * @return bool
      */
     abstract public function isCompulsory();
 
     /**
-     * Returns true if the property is the primary key
+     * Returns true if the property is the primary key.
+     *
      * @return bool
      */
     abstract public function isPrimaryKey();
@@ -102,7 +108,8 @@ abstract class AbstractBeanPropertyDescriptor
     }
 
     /**
-     * Returns the PHP code for getters and setters
+     * Returns the PHP code for getters and setters.
+     *
      * @return string
      */
     abstract public function getGetterSetterCode();

@@ -1,4 +1,5 @@
 <?php
+
 /*
  Copyright (C) 2006-2016 David Négrier - THE CODING MACHINE
 
@@ -22,7 +23,6 @@ namespace Mouf\Database\TDBM;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
@@ -31,8 +31,6 @@ use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Filters\OrderBySQLString;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
-use Mouf\Utils\Cache\CacheInterface;
-use SQLParser\Node\ColRef;
 
 /**
  * The TDBMService class is the main TDBM class. It provides methods to retrieve TDBMObject instances
@@ -41,359 +39,356 @@ use SQLParser\Node\ColRef;
  * @author David Negrier
  * @ExtendedAction {"name":"Generate DAOs", "url":"tdbmadmin/", "default":false}
  */
-class TDBMService {
-	
-	const MODE_CURSOR = 1;
-	const MODE_ARRAY = 2;
-	
-	/**
-	 * The database connection.
-	 *
-	 * @var Connection
-	 */
-	private $connection;
+class TDBMService
+{
+    const MODE_CURSOR = 1;
+    const MODE_ARRAY = 2;
 
-	/**
-	 * @var SchemaAnalyzer
-	 */
-	private $schemaAnalyzer;
+    /**
+     * The database connection.
+     *
+     * @var Connection
+     */
+    private $connection;
 
-	/**
-	 * @var MagicQuery
-	 */
-	private $magicQuery;
+    /**
+     * @var SchemaAnalyzer
+     */
+    private $schemaAnalyzer;
 
-	/**
-	 * @var TDBMSchemaAnalyzer
-	 */
-	private $tdbmSchemaAnalyzer;
+    /**
+     * @var MagicQuery
+     */
+    private $magicQuery;
 
-	/**
-	 * @var string
-	 */
-	private $cachePrefix;
+    /**
+     * @var TDBMSchemaAnalyzer
+     */
+    private $tdbmSchemaAnalyzer;
 
-	/**
-	 * The default autosave mode for the objects
-	 * True to automatically save the object.
-	 * If false, the user must explicitly call the save() method to save the object.
-	 *
-	 * @var boolean
-	 */
-	//private $autosave_default = false;
+    /**
+     * @var string
+     */
+    private $cachePrefix;
 
-	/**
-	 * Cache of table of primary keys.
-	 * Primary keys are stored by tables, as an array of column.
-	 * For instance $primary_key['my_table'][0] will return the first column of the primary key of table 'my_table'.
-	 *
-	 * @var string[]
-	 */
-	private $primaryKeysColumns;
+    /**
+     * Cache of table of primary keys.
+     * Primary keys are stored by tables, as an array of column.
+     * For instance $primary_key['my_table'][0] will return the first column of the primary key of table 'my_table'.
+     *
+     * @var string[]
+     */
+    private $primaryKeysColumns;
 
-	/**
-	 * Service storing objects in memory.
-	 * Access is done by table name and then by primary key.
-	 * If the primary key is split on several columns, access is done by an array of columns, serialized.
-	 * 
-	 * @var StandardObjectStorage|WeakrefObjectStorage
-	 */
-	private $objectStorage;
-	
-	/**
-	 * The fetch mode of the result sets returned by `getObjects`.
-	 * Can be one of: TDBMObjectArray::MODE_CURSOR or TDBMObjectArray::MODE_ARRAY or TDBMObjectArray::MODE_COMPATIBLE_ARRAY
-	 *
-	 * In 'MODE_ARRAY' mode (default), the result is an array. Use this mode by default (unless the list returned is very big).
-	 * In 'MODE_CURSOR' mode, the result is a Generator which is an iterable collection that can be scanned only once (only one "foreach") on it,
-	 * and it cannot be accessed via key. Use this mode for large datasets processed by batch.
-	 * In 'MODE_COMPATIBLE_ARRAY' mode, the result is an old TDBMObjectArray (used up to TDBM 3.2). 
-	 * You can access the array by key, or using foreach, several times.
-	 *
-	 * @var int
-	 */
-	private $mode = self::MODE_ARRAY;
+    /**
+     * Service storing objects in memory.
+     * Access is done by table name and then by primary key.
+     * If the primary key is split on several columns, access is done by an array of columns, serialized.
+     *
+     * @var StandardObjectStorage|WeakrefObjectStorage
+     */
+    private $objectStorage;
 
-	/**
-	 * Table of new objects not yet inserted in database or objects modified that must be saved.
-	 * @var \SplObjectStorage of DbRow objects
-	 */
-	private $toSaveObjects;
+    /**
+     * The fetch mode of the result sets returned by `getObjects`.
+     * Can be one of: TDBMObjectArray::MODE_CURSOR or TDBMObjectArray::MODE_ARRAY or TDBMObjectArray::MODE_COMPATIBLE_ARRAY.
+     *
+     * In 'MODE_ARRAY' mode (default), the result is an array. Use this mode by default (unless the list returned is very big).
+     * In 'MODE_CURSOR' mode, the result is a Generator which is an iterable collection that can be scanned only once (only one "foreach") on it,
+     * and it cannot be accessed via key. Use this mode for large datasets processed by batch.
+     * In 'MODE_COMPATIBLE_ARRAY' mode, the result is an old TDBMObjectArray (used up to TDBM 3.2).
+     * You can access the array by key, or using foreach, several times.
+     *
+     * @var int
+     */
+    private $mode = self::MODE_ARRAY;
 
-	/// The timestamp of the script startup. Useful to stop execution before time limit is reached and display useful error message.
-	public static $script_start_up_time;
+    /**
+     * Table of new objects not yet inserted in database or objects modified that must be saved.
+     *
+     * @var \SplObjectStorage of DbRow objects
+     */
+    private $toSaveObjects;
 
-	/**
-	 * The content of the cache variable.
-	 *
-	 * @var array<string, mixed>
-	 */
-	private $cache;
+    /**
+     * The content of the cache variable.
+     *
+     * @var array<string, mixed>
+     */
+    private $cache;
 
-	private $cacheKey = "__TDBM_Cache__";
+    /**
+     * Map associating a table name to a fully qualified Bean class name.
+     *
+     * @var array
+     */
+    private $tableToBeanMap = [];
 
-	/**
-	 * Map associating a table name to a fully qualified Bean class name
-	 * @var array
-	 */
-	private $tableToBeanMap = [];
+    /**
+     * @var \ReflectionClass[]
+     */
+    private $reflectionClassCache = array();
 
-	/**
-	 * @var \ReflectionClass[]
-	 */
-	private $reflectionClassCache;
+    /**
+     * @param Connection     $connection     The DBAL DB connection to use
+     * @param Cache|null     $cache          A cache service to be used
+     * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
+     *                                       Will be automatically created if not passed.
+     */
+    public function __construct(Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null)
+    {
+        if (extension_loaded('weakref')) {
+            $this->objectStorage = new WeakrefObjectStorage();
+        } else {
+            $this->objectStorage = new StandardObjectStorage();
+        }
+        $this->connection = $connection;
+        if ($cache !== null) {
+            $this->cache = $cache;
+        } else {
+            $this->cache = new VoidCache();
+        }
+        if ($schemaAnalyzer) {
+            $this->schemaAnalyzer = $schemaAnalyzer;
+        } else {
+            $this->schemaAnalyzer = new SchemaAnalyzer($this->connection->getSchemaManager(), $this->cache, $this->getConnectionUniqueId());
+        }
 
-	/**
-	 * @param Connection $connection The DBAL DB connection to use
-	 * @param Cache|null $cache A cache service to be used
-	 * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
-	 * 										 Will be automatically created if not passed.
-	 */
-	public function __construct(Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null) {
-		//register_shutdown_function(array($this,"completeSaveOnExit"));
-		if (extension_loaded('weakref')) {
-			$this->objectStorage = new WeakrefObjectStorage();
-		} else {
-			$this->objectStorage = new StandardObjectStorage();
-		}
-		$this->connection = $connection;
-		if ($cache !== null) {
-			$this->cache = $cache;
-		} else {
-			$this->cache = new VoidCache();
-		}
-		if ($schemaAnalyzer) {
-			$this->schemaAnalyzer = $schemaAnalyzer;
-		} else {
-			$this->schemaAnalyzer = new SchemaAnalyzer($this->connection->getSchemaManager(), $this->cache, $this->getConnectionUniqueId());
-		}
+        $this->magicQuery = new MagicQuery($this->connection, $this->cache, $this->schemaAnalyzer);
 
-		$this->magicQuery = new MagicQuery($this->connection, $this->cache, $this->schemaAnalyzer);
+        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, $this->cache, $this->schemaAnalyzer);
+        $this->cachePrefix = $this->tdbmSchemaAnalyzer->getCachePrefix();
 
-		$this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, $this->cache, $this->schemaAnalyzer);
-		$this->cachePrefix = $this->tdbmSchemaAnalyzer->getCachePrefix();
+        $this->toSaveObjects = new \SplObjectStorage();
+    }
 
-		if (self::$script_start_up_time === null) {
-			self::$script_start_up_time = microtime(true);
-		}
-		$this->toSaveObjects = new \SplObjectStorage();
-	}
+    /**
+     * Returns the object used to connect to the database.
+     *
+     * @return Connection
+     */
+    public function getConnection()
+    {
+        return $this->connection;
+    }
 
+    /**
+     * Creates a unique cache key for the current connection.
+     *
+     * @return string
+     */
+    private function getConnectionUniqueId()
+    {
+        return hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
+    }
 
-	/**
-	 * Returns the object used to connect to the database.
-	 *
-	 * @return Connection
-	 */
-	public function getConnection() {
-		return $this->connection;
-	}
+    /**
+     * Sets the default fetch mode of the result sets returned by `findObjects`.
+     * Can be one of: TDBMObjectArray::MODE_CURSOR or TDBMObjectArray::MODE_ARRAY.
+     *
+     * In 'MODE_ARRAY' mode (default), the result is a ResultIterator object that behaves like an array. Use this mode by default (unless the list returned is very big).
+     * In 'MODE_CURSOR' mode, the result is a ResultIterator object. If you scan it many times (by calling several time a foreach loop), the query will be run
+     * several times. In cursor mode, you cannot access the result set by key. Use this mode for large datasets processed by batch.
+     *
+     * @param int $mode
+     *
+     * @return $this
+     *
+     * @throws TDBMException
+     */
+    public function setFetchMode($mode)
+    {
+        if ($mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
+            throw new TDBMException("Unknown fetch mode: '".$this->mode."'");
+        }
+        $this->mode = $mode;
 
-	/**
-	 * Creates a unique cache key for the current connection.
-	 * @return string
-	 */
-	private function getConnectionUniqueId() {
-		return hash('md4', $this->connection->getHost()."-".$this->connection->getPort()."-".$this->connection->getDatabase()."-".$this->connection->getDriver()->getName());
-	}
+        return $this;
+    }
 
-	/**
-	 * Sets the default fetch mode of the result sets returned by `getObjects`.
-	 * Can be one of: TDBMObjectArray::MODE_CURSOR or TDBMObjectArray::MODE_ARRAY.
-	 *
-	 * In 'MODE_ARRAY' mode (default), the result is a ResultIterator object that behaves like an array. Use this mode by default (unless the list returned is very big).
-	 * In 'MODE_CURSOR' mode, the result is a ResultIterator object. If you scan it many times (by calling several time a foreach loop), the query will be run
-	 * several times. In cursor mode, you cannot access the result set by key. Use this mode for large datasets processed by batch.
-	 *
-	 * @param int $mode
-	 * @return $this
-	 * @throws TDBMException
-	 */
-	public function setFetchMode($mode) {
-		if ($mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
-			throw new TDBMException("Unknown fetch mode: '".$this->mode."'");
-		}
-		$this->mode = $mode;
-		return $this;
-	}
-
-	/**
-	 * Returns a TDBMObject associated from table "$table_name".
-	 * If the $filters parameter is an int/string, the object returned will be the object whose primary key = $filters.
-	 * $filters can also be a set of TDBM_Filters (see the getObjects method for more details).
-	 *
-	 * For instance, if there is a table 'users', with a primary key on column 'user_id' and a column 'user_name', then
-	 * 			$user = $tdbmService->getObject('users',1);
-	 * 			echo $user->name;
-	 * will return the name of the user whose user_id is one.
-	 *
-	 * If a table has a primary key over several columns, you should pass to $id an array containing the the value of the various columns.
-	 * For instance:
-	 * 			$group = $tdbmService->getObject('groups',array(1,2));
-	 *
-	 * Note that TDBMObject performs caching for you. If you get twice the same object, the reference of the object you will get
-	 * will be the same.
-	 *
-	 * For instance:
-	 * 			$user1 = $tdbmService->getObject('users',1);
-	 * 			$user2 = $tdbmService->getObject('users',1);
-	 * 			$user1->name = 'John Doe';
-	 * 			echo $user2->name;
-	 * will return 'John Doe'.
-	 *
-	 * You can use filters instead of passing the primary key. For instance:
-	 * 			$user = $tdbmService->getObject('users',new EqualFilter('users', 'login', 'jdoe'));
-	 * This will return the user whose login is 'jdoe'.
-	 * Please note that if 2 users have the jdoe login in database, the method will throw a TDBM_DuplicateRowException.
-	 *
-	 * Also, you can specify the return class for the object (provided the return class extends TDBMObject).
-	 * For instance:
-	 *  	$user = $tdbmService->getObject('users',1,'User');
-	 * will return an object from the "User" class. The "User" class must extend the "TDBMObject" class.
-	 * Please be sure not to override any method or any property unless you perfectly know what you are doing!
-	 *
-	 * @param string $table_name The name of the table we retrieve an object from.
-	 * @param mixed $filters If the filter is a string/integer, it will be considered as the id of the object (the value of the primary key). Otherwise, it can be a filter bag (see the filterbag parameter of the getObjects method for more details about filter bags)
-	 * @param string $className Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-	 * @param boolean $lazy_loading If set to true, and if the primary key is passed in parameter of getObject, the object will not be queried in database. It will be queried when you first try to access a column. If at that time the object cannot be found in database, an exception will be thrown.
-	 * @return TDBMObject
-	 */
+    /**
+     * Returns a TDBMObject associated from table "$table_name".
+     * If the $filters parameter is an int/string, the object returned will be the object whose primary key = $filters.
+     * $filters can also be a set of TDBM_Filters (see the findObjects method for more details).
+     *
+     * For instance, if there is a table 'users', with a primary key on column 'user_id' and a column 'user_name', then
+     * 			$user = $tdbmService->getObject('users',1);
+     * 			echo $user->name;
+     * will return the name of the user whose user_id is one.
+     *
+     * If a table has a primary key over several columns, you should pass to $id an array containing the the value of the various columns.
+     * For instance:
+     * 			$group = $tdbmService->getObject('groups',array(1,2));
+     *
+     * Note that TDBMObject performs caching for you. If you get twice the same object, the reference of the object you will get
+     * will be the same.
+     *
+     * For instance:
+     * 			$user1 = $tdbmService->getObject('users',1);
+     * 			$user2 = $tdbmService->getObject('users',1);
+     * 			$user1->name = 'John Doe';
+     * 			echo $user2->name;
+     * will return 'John Doe'.
+     *
+     * You can use filters instead of passing the primary key. For instance:
+     * 			$user = $tdbmService->getObject('users',new EqualFilter('users', 'login', 'jdoe'));
+     * This will return the user whose login is 'jdoe'.
+     * Please note that if 2 users have the jdoe login in database, the method will throw a TDBM_DuplicateRowException.
+     *
+     * Also, you can specify the return class for the object (provided the return class extends TDBMObject).
+     * For instance:
+     *  	$user = $tdbmService->getObject('users',1,'User');
+     * will return an object from the "User" class. The "User" class must extend the "TDBMObject" class.
+     * Please be sure not to override any method or any property unless you perfectly know what you are doing!
+     *
+     * @param string $table_name   The name of the table we retrieve an object from.
+     * @param mixed  $filters      If the filter is a string/integer, it will be considered as the id of the object (the value of the primary key). Otherwise, it can be a filter bag (see the filterbag parameter of the findObjects method for more details about filter bags)
+     * @param string $className    Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     * @param bool   $lazy_loading If set to true, and if the primary key is passed in parameter of getObject, the object will not be queried in database. It will be queried when you first try to access a column. If at that time the object cannot be found in database, an exception will be thrown.
+     *
+     * @return TDBMObject
+     */
 /*	public function getObject($table_name, $filters, $className = null, $lazy_loading = false) {
 
-		if (is_array($filters) || $filters instanceof FilterInterface) {
-			$isFilterBag = false;
-			if (is_array($filters)) {
-				// Is this a multiple primary key or a filter bag?
-				// Let's have a look at the first item of the array to decide.
-				foreach ($filters as $filter) {
-					if (is_array($filter) || $filter instanceof FilterInterface) {
-						$isFilterBag = true;
-					}
-					break;
-				}
-			} else {
-				$isFilterBag = true;
-			}
-				
-			if ($isFilterBag == true) {
-				// If a filter bag was passer in parameter, let's perform a getObjects.
-				$objects = $this->getObjects($table_name, $filters, null, null, null, $className);
-				if (count($objects) == 0) {
-					return null;
-				} elseif (count($objects) > 1) {
-					throw new DuplicateRowException("Error while querying an object for table '$table_name': ".count($objects)." rows have been returned, but we should have received at most one.");
-				}
-				// Return the first and only object.
-				if ($objects instanceof \Generator) {
-					return $objects->current();
-				} else {
-					return $objects[0];
-				}
-			}
-		}
-		$id = $filters;
-		if ($this->connection == null) {
-			throw new TDBMException("Error while calling TdbmService->getObject(): No connection has been established on the database!");
-		}
-		$table_name = $this->connection->toStandardcase($table_name);
+        if (is_array($filters) || $filters instanceof FilterInterface) {
+            $isFilterBag = false;
+            if (is_array($filters)) {
+                // Is this a multiple primary key or a filter bag?
+                // Let's have a look at the first item of the array to decide.
+                foreach ($filters as $filter) {
+                    if (is_array($filter) || $filter instanceof FilterInterface) {
+                        $isFilterBag = true;
+                    }
+                    break;
+                }
+            } else {
+                $isFilterBag = true;
+            }
 
-		// If the ID is null, let's throw an exception
-		if ($id === null) {
-			throw new TDBMException("The ID you passed to TdbmService->getObject is null for the object of type '$table_name'. Objects primary keys cannot be null.");
-		}
+            if ($isFilterBag == true) {
+                // If a filter bag was passer in parameter, let's perform a findObjects.
+                $objects = $this->findObjects($table_name, $filters, null, null, null, $className);
+                if (count($objects) == 0) {
+                    return null;
+                } elseif (count($objects) > 1) {
+                    throw new DuplicateRowException("Error while querying an object for table '$table_name': ".count($objects)." rows have been returned, but we should have received at most one.");
+                }
+                // Return the first and only object.
+                if ($objects instanceof \Generator) {
+                    return $objects->current();
+                } else {
+                    return $objects[0];
+                }
+            }
+        }
+        $id = $filters;
+        if ($this->connection == null) {
+            throw new TDBMException("Error while calling TdbmService->getObject(): No connection has been established on the database!");
+        }
+        $table_name = $this->connection->toStandardcase($table_name);
 
-		// If the primary key is split over many columns, the IDs are passed in an array. Let's serialize this array to store it.
-		if (is_array($id)) {
-			$id = serialize($id);
-		}
+        // If the ID is null, let's throw an exception
+        if ($id === null) {
+            throw new TDBMException("The ID you passed to TdbmService->getObject is null for the object of type '$table_name'. Objects primary keys cannot be null.");
+        }
 
-		if ($className === null) {
-			if (isset($this->tableToBeanMap[$table_name])) {
-				$className = $this->tableToBeanMap[$table_name];
-			} else {
-				$className = "Mouf\\Database\\TDBM\\TDBMObject";
-			}
-		}
+        // If the primary key is split over many columns, the IDs are passed in an array. Let's serialize this array to store it.
+        if (is_array($id)) {
+            $id = serialize($id);
+        }
 
-		if ($this->objectStorage->has($table_name, $id)) {
-			$obj = $this->objectStorage->get($table_name, $id);
-			if (is_a($obj, $className)) {
-				return $obj;
-			} else {
-				throw new TDBMException("Error! The object with ID '$id' for table '$table_name' has already been retrieved. The type for this object is '".get_class($obj)."'' which is not a subtype of '$className'");
-			}
-		}
+        if ($className === null) {
+            if (isset($this->tableToBeanMap[$table_name])) {
+                $className = $this->tableToBeanMap[$table_name];
+            } else {
+                $className = "Mouf\\Database\\TDBM\\TDBMObject";
+            }
+        }
 
-		if ($className != "Mouf\\Database\\TDBM\\TDBMObject" && !is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
-			if (!class_exists($className)) {
-				throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." does not exist.");
-			} else {
-				throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." should extend TDBMObject.");
-			}
-		}
-		$obj = new $className($this, $table_name, $id);
+        if ($this->objectStorage->has($table_name, $id)) {
+            $obj = $this->objectStorage->get($table_name, $id);
+            if (is_a($obj, $className)) {
+                return $obj;
+            } else {
+                throw new TDBMException("Error! The object with ID '$id' for table '$table_name' has already been retrieved. The type for this object is '".get_class($obj)."'' which is not a subtype of '$className'");
+            }
+        }
 
-		if ($lazy_loading == false) {
-			// If we are not doing lazy loading, let's load the object:
-			$obj->_dbLoadIfNotLoaded();
-		}
+        if ($className != "Mouf\\Database\\TDBM\\TDBMObject" && !is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
+            if (!class_exists($className)) {
+                throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." does not exist.");
+            } else {
+                throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." should extend TDBMObject.");
+            }
+        }
+        $obj = new $className($this, $table_name, $id);
 
-		$this->objectStorage->set($table_name, $id, $obj);
+        if ($lazy_loading == false) {
+            // If we are not doing lazy loading, let's load the object:
+            $obj->_dbLoadIfNotLoaded();
+        }
 
-		return $obj;
-	}*/
+        $this->objectStorage->set($table_name, $id, $obj);
 
-	/**
-	 * Removes the given object from database.
-	 * This cannot be called on an object that is not attached to this TDBMService
-	 * (will throw a TDBMInvalidOperationException)
-	 *
-	 * @param AbstractTDBMObject $object the object to delete.
-	 * @throws TDBMException
-	 * @throws TDBMInvalidOperationException
-	 */
-	public function delete(AbstractTDBMObject $object) {
-		switch ($object->_getStatus()) {
-			case TDBMObjectStateEnum::STATE_DELETED:
-				// Nothing to do, object already deleted.
-				return;
-			case TDBMObjectStateEnum::STATE_DETACHED:
-				throw new TDBMInvalidOperationException('Cannot delete a detached object');
-			case TDBMObjectStateEnum::STATE_NEW:
+        return $obj;
+    }*/
+
+    /**
+     * Removes the given object from database.
+     * This cannot be called on an object that is not attached to this TDBMService
+     * (will throw a TDBMInvalidOperationException).
+     *
+     * @param AbstractTDBMObject $object the object to delete.
+     *
+     * @throws TDBMException
+     * @throws TDBMInvalidOperationException
+     */
+    public function delete(AbstractTDBMObject $object)
+    {
+        switch ($object->_getStatus()) {
+            case TDBMObjectStateEnum::STATE_DELETED:
+                // Nothing to do, object already deleted.
+                return;
+            case TDBMObjectStateEnum::STATE_DETACHED:
+                throw new TDBMInvalidOperationException('Cannot delete a detached object');
+            case TDBMObjectStateEnum::STATE_NEW:
                 $this->deleteManyToManyRelationships($object);
-				foreach ($object->_getDbRows() as $dbRow) {
-					$this->removeFromToSaveObjectList($dbRow);
-				}
-				break;
-			case TDBMObjectStateEnum::STATE_DIRTY:
-				foreach ($object->_getDbRows() as $dbRow) {
-					$this->removeFromToSaveObjectList($dbRow);
-				}
-			case TDBMObjectStateEnum::STATE_NOT_LOADED:
-			case TDBMObjectStateEnum::STATE_LOADED:
+                foreach ($object->_getDbRows() as $dbRow) {
+                    $this->removeFromToSaveObjectList($dbRow);
+                }
+                break;
+            case TDBMObjectStateEnum::STATE_DIRTY:
+                foreach ($object->_getDbRows() as $dbRow) {
+                    $this->removeFromToSaveObjectList($dbRow);
+                }
+                // And continue deleting...
+            case TDBMObjectStateEnum::STATE_NOT_LOADED:
+            case TDBMObjectStateEnum::STATE_LOADED:
                 $this->deleteManyToManyRelationships($object);
-				// Let's delete db rows, in reverse order.
-				foreach (array_reverse($object->_getDbRows()) as $dbRow) {
-					$tableName = $dbRow->_getDbTableName();
-					$primaryKeys = $dbRow->_getPrimaryKeys();
-					$this->connection->delete($tableName, $primaryKeys);
-					$this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
-				}
-				break;
-			// @codeCoverageIgnoreStart
-			default:
-				throw new TDBMInvalidOperationException('Unexpected status for bean');
-			// @codeCoverageIgnoreEnd
-		}
+                // Let's delete db rows, in reverse order.
+                foreach (array_reverse($object->_getDbRows()) as $dbRow) {
+                    $tableName = $dbRow->_getDbTableName();
+                    $primaryKeys = $dbRow->_getPrimaryKeys();
+                    $this->connection->delete($tableName, $primaryKeys);
+                    $this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
+                }
+                break;
+            // @codeCoverageIgnoreStart
+            default:
+                throw new TDBMInvalidOperationException('Unexpected status for bean');
+            // @codeCoverageIgnoreEnd
+        }
 
-		$object->_setStatus(TDBMObjectStateEnum::STATE_DELETED);
-	}
+        $object->_setStatus(TDBMObjectStateEnum::STATE_DELETED);
+    }
 
     /**
      * Removes all many to many relationships for this object.
+     *
      * @param AbstractTDBMObject $object
      */
-    private function deleteManyToManyRelationships(AbstractTDBMObject $object) {
+    private function deleteManyToManyRelationships(AbstractTDBMObject $object)
+    {
         foreach ($object->_getDbRows() as $tableName => $dbRow) {
             $pivotTables = $this->tdbmSchemaAnalyzer->getPivotTableLinkedToTable($tableName);
             foreach ($pivotTables as $pivotTable) {
@@ -406,7 +401,6 @@ class TDBMService {
         $this->persistManyToManyRelationships($object);
     }
 
-
     /**
      * This function removes the given object from the database. It will also remove all objects relied to the one given
      * by parameter before all.
@@ -415,426 +409,299 @@ class TDBMService {
      *
      * @param AbstractTDBMObject $objToDelete
      */
-    public function deleteCascade(AbstractTDBMObject $objToDelete) {
+    public function deleteCascade(AbstractTDBMObject $objToDelete)
+    {
         $this->deleteAllConstraintWithThisObject($objToDelete);
         $this->delete($objToDelete);
     }
 
     /**
      * This function is used only in TDBMService (private function)
-     * It will call deleteCascade function foreach object relied with a foreign key to the object given by parameter
+     * It will call deleteCascade function foreach object relied with a foreign key to the object given by parameter.
      *
      * @param AbstractTDBMObject $obj
      */
-    private function deleteAllConstraintWithThisObject(AbstractTDBMObject $obj) {
-		$dbRows = $obj->_getDbRows();
-		foreach ($dbRows as $dbRow) {
-			$tableName = $dbRow->_getDbTableName();
-			$pks = array_values($dbRow->_getPrimaryKeys());
-			if (!empty($pks)) {
-				$incomingFks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($tableName);
+    private function deleteAllConstraintWithThisObject(AbstractTDBMObject $obj)
+    {
+        $dbRows = $obj->_getDbRows();
+        foreach ($dbRows as $dbRow) {
+            $tableName = $dbRow->_getDbTableName();
+            $pks = array_values($dbRow->_getPrimaryKeys());
+            if (!empty($pks)) {
+                $incomingFks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($tableName);
 
-				foreach ($incomingFks as $incomingFk) {
-					$filter = array_combine($incomingFk->getLocalColumns(), $pks);
+                foreach ($incomingFks as $incomingFk) {
+                    $filter = array_combine($incomingFk->getLocalColumns(), $pks);
 
-					$results = $this->findObjects($incomingFk->getLocalTableName(), $filter);
+                    $results = $this->findObjects($incomingFk->getLocalTableName(), $filter);
 
-					foreach ($results as $bean) {
-						$this->deleteCascade($bean);
-					}
-				}
-			}
-		}
+                    foreach ($results as $bean) {
+                        $this->deleteCascade($bean);
+                    }
+                }
+            }
+        }
     }
 
-	/**
-	 * This function performs a save() of all the objects that have been modified.
-	 */
-	public function completeSave() {
+    /**
+     * This function performs a save() of all the objects that have been modified.
+     */
+    public function completeSave()
+    {
+        foreach ($this->toSaveObjects as $dbRow) {
+            $this->save($dbRow->getTDBMObject());
+        }
+    }
 
-		foreach ($this->toSaveObjects as $dbRow)
-		{
-			$this->save($dbRow->getTDBMObject());
-		}
+    /**
+     * Takes in input a filter_bag (which can be about anything from a string to an array of TDBMObjects... see above from documentation),
+     * and gives back a proper Filter object.
+     *
+     * @param mixed $filter_bag
+     * @param int   $counter
+     *
+     * @return array First item: filter string, second item: parameters.
+     *
+     * @throws TDBMException
+     */
+    public function buildFilterFromFilterBag($filter_bag, $counter = 1)
+    {
+        if ($filter_bag === null) {
+            return ['', []];
+        } elseif (is_string($filter_bag)) {
+            return [$filter_bag, []];
+        } elseif (is_array($filter_bag)) {
+            $sqlParts = [];
+            $parameters = [];
+            foreach ($filter_bag as $column => $value) {
+                if (is_int($column)) {
+                    list($subSqlPart, $subParameters) = $this->buildFilterFromFilterBag($value, $counter);
+                    $sqlParts[] = $subSqlPart;
+                    $parameters += $subParameters;
+                } else {
+                    $paramName = 'tdbmparam'.$counter;
+                    if (is_array($value)) {
+                        $sqlParts[] = $this->connection->quoteIdentifier($column).' IN :'.$paramName;
+                    } else {
+                        $sqlParts[] = $this->connection->quoteIdentifier($column).' = :'.$paramName;
+                    }
+                    $parameters[$paramName] = $value;
+                    ++$counter;
+                }
+            }
 
-	}
+            return [implode(' AND ', $sqlParts), $parameters];
+        } elseif ($filter_bag instanceof AbstractTDBMObject) {
+            $sqlParts = [];
+            $parameters = [];
+            $dbRows = $filter_bag->_getDbRows();
+            $dbRow = reset($dbRows);
+            $primaryKeys = $dbRow->_getPrimaryKeys();
 
-	/**
-	 * Returns an array of objects of "table_name" kind filtered from the filter bag.
-	 *
-	 * The getObjects method should be the most used query method in TDBM if you want to query the database for objects.
-	 * (Note: if you want to query the database for an object by its primary key, use the getObject method).
-	 *
-	 * The getObjects method takes in parameter:
-	 * 	- table_name: the kinf of TDBMObject you want to retrieve. In TDBM, a TDBMObject matches a database row, so the
-	 * 			$table_name parameter should be the name of an existing table in database.
-	 *  - filter_bag: The filter bag is anything that you can use to filter your request. It can be a SQL Where clause,
-	 * 			a series of TDBM_Filter objects, or even TDBMObjects or TDBMObjectArrays that you will use as filters.
-	 *  - order_bag: The order bag is anything that will be used to order the data that is passed back to you.
-	 * 			A SQL Order by clause can be used as an order bag for instance, or a OrderByColumn object
-	 * 	- from (optionnal): The offset from which the query should be performed. For instance, if $from=5, the getObjects method
-	 * 			will return objects from the 6th rows.
-	 * 	- limit (optionnal): The maximum number of objects to return. Used together with $from, you can implement
-	 * 			paging mechanisms.
-	 *  - hint_path (optionnal): EXPERTS ONLY! The path the request should use if not the most obvious one. This parameter
-	 * 			should be used only if you perfectly know what you are doing.
-	 *
-	 * The getObjects method will return a TDBMObjectArray. A TDBMObjectArray is an array of TDBMObjects that does behave as
-	 * a single TDBMObject if the array has only one member. Refer to the documentation of TDBMObjectArray and TDBMObject
-	 * to learn more.
-	 *
-	 * More about the filter bag:
-	 * A filter is anything that can change the set of objects returned by getObjects.
-	 * There are many kind of filters in TDBM:
-	 * A filter can be:
-	 * 	- A SQL WHERE clause:
-	 * 		The clause is specified without the "WHERE" keyword. For instance:
-	 * 			$filter = "users.first_name LIKE 'J%'";
-	 *     	is a valid filter.
-	 * 	   	The only difference with SQL is that when you specify a column name, it should always be fully qualified with
-	 * 		the table name: "country_name='France'" is not valid, while "countries.country_name='France'" is valid (if
-	 * 		"countries" is a table and "country_name" a column in that table, sure.
-	 * 		For instance,
-	 * 				$french_users = TDBMObject::getObjects("users", "countries.country_name='France'");
-	 * 		will return all the users that are French (based on trhe assumption that TDBM can find a way to connect the users
-	 * 		table to the country table using foreign keys, see the manual for that point).
-	 * 	- A TDBMObject:
-	 * 		An object can be used as a filter. For instance, we could get the France object and then find any users related to
-	 * 		that object using:
-	 * 				$france = TDBMObject::getObjects("country", "countries.country_name='France'");
-	 * 				$french_users = TDBMObject::getObjects("users", $france);
-	 *  - A TDBMObjectArray can be used as a filter too.
-	 * 		For instance:
-	 * 				$french_groups = TDBMObject::getObjects("groups", $french_users);
-	 * 		might return all the groups in which french users can be found.
-	 *  - Finally, TDBM_xxxFilter instances can be used.
-	 * 		TDBM provides the developer a set of TDBM_xxxFilters that can be used to model a SQL Where query.
-	 * 		Using the appropriate filter object, you can model the operations =,<,<=,>,>=,IN,LIKE,AND,OR, IS NULL and NOT
-	 * 		For instance:
-	 * 				$french_users = TDBMObject::getObjects("users", new EqualFilter('countries','country_name','France');
-	 * 		Refer to the documentation of the appropriate filters for more information.
-	 *
-	 * The nice thing about a filter bag is that it can be any filter, or any array of filters. In that case, filters are
-	 * 'ANDed' together.
-	 * So a request like this is valid:
-	 * 				$france = TDBMObject::getObjects("country", "countries.country_name='France'");
-	 * 				$french_administrators = TDBMObject::getObjects("users", array($france,"role.role_name='Administrators'");
-	 * This requests would return the users that are both French and administrators.
-	 *
-	 * Finally, if filter_bag is null, the whole table is returned.
-	 *
-	 * More about the order bag:
-	 * The order bag contains anything that can be used to order the data that is passed back to you.
-	 * The order bag can contain two kinds of objects:
-	 * 	- A SQL ORDER BY clause:
-	 * 		The clause is specified without the "ORDER BY" keyword. For instance:
-	 * 			$orderby = "users.last_name ASC, users.first_name ASC";
-	 *     	is a valid order bag.
-	 * 		The only difference with SQL is that when you specify a column name, it should always be fully qualified with
-	 * 		the table name: "country_name ASC" is not valid, while "countries.country_name ASC" is valid (if
-	 * 		"countries" is a table and "country_name" a column in that table, sure.
-	 * 		For instance,
-	 * 				$french_users = TDBMObject::getObjects("users", null, "countries.country_name ASC");
-	 * 		will return all the users sorted by country.
-	 *  - A OrderByColumn object
-	 * 		This object models a single column in a database.
-	 *
-	 * @param string $table_name The name of the table queried
-	 * @param mixed $filter_bag The filter bag (see above for complete description)
-	 * @param mixed $orderby_bag The order bag (see above for complete description)
-	 * @param integer $from The offset
-	 * @param integer $limit The maximum number of rows returned
-	 * @param string $className Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-	 * @param unknown_type $hint_path Hints to get the path for the query (expert parameter, you should leave it to null).
-	 * @return TDBMObjectArray A TDBMObjectArray containing the resulting objects of the query.
-	 */
-/*	public function getObjects($table_name, $filter_bag=null, $orderby_bag=null, $from=null, $limit=null, $className=null, $hint_path=null) {
-		if ($this->connection == null) {
-			throw new TDBMException("Error while calling TDBMObject::getObject(): No connection has been established on the database!");
-		}
-		return $this->getObjectsByMode('getObjects', $table_name, $filter_bag, $orderby_bag, $from, $limit, $className, $hint_path);
-	}*/
+            foreach ($primaryKeys as $column => $value) {
+                $paramName = 'tdbmparam'.$counter;
+                $sqlParts[] = $this->connection->quoteIdentifier($dbRow->_getDbTableName()).'.'.$this->connection->quoteIdentifier($column).' = :'.$paramName;
+                $parameters[$paramName] = $value;
+                ++$counter;
+            }
 
+            return [implode(' AND ', $sqlParts), $parameters];
+        } elseif ($filter_bag instanceof \Iterator) {
+            return $this->buildFilterFromFilterBag(iterator_to_array($filter_bag), $counter);
+        } else {
+            throw new TDBMException('Error in filter. An object has been passed that is neither a SQL string, nor an array, nor a bean, nor null.');
+        }
+    }
 
-	/**
-	 * Takes in input a filter_bag (which can be about anything from a string to an array of TDBMObjects... see above from documentation),
-	 * and gives back a proper Filter object.
-	 *
-	 * @param mixed $filter_bag
-	 * @return array First item: filter string, second item: parameters.
-	 * @throws TDBMException
-	 */
-	public function buildFilterFromFilterBag($filter_bag) {
-		$counter = 1;
-		if ($filter_bag === null) {
-			return ['', []];
-		} elseif (is_string($filter_bag)) {
-			return [$filter_bag, []];
-		} elseif (is_array($filter_bag)) {
-			$sqlParts = [];
-			$parameters = [];
-			foreach ($filter_bag as $column => $value) {
-				$paramName = "tdbmparam".$counter;
-				if (is_array($value)) {
-					$sqlParts[] = $this->connection->quoteIdentifier($column)." IN :".$paramName;
-				} else {
-					$sqlParts[] = $this->connection->quoteIdentifier($column)." = :".$paramName;
-				}
-				$parameters[$paramName] = $value;
-				$counter++;
-			}
-			return [implode(' AND ', $sqlParts), $parameters];
-		} elseif ($filter_bag instanceof AbstractTDBMObject) {
-			$dbRows = $filter_bag->_getDbRows();
-			$dbRow = reset($dbRows);
-			$primaryKeys = $dbRow->_getPrimaryKeys();
+    /**
+     * Takes in input an order_bag (which can be about anything from a string to an array of OrderByColumn objects... see above from documentation),
+     * and gives back an array of OrderByColumn / OrderBySQLString objects.
+     *
+     * @param unknown_type $orderby_bag
+     *
+     * @return array
+     */
+    public function buildOrderArrayFromOrderBag($orderby_bag)
+    {
+        // Fourth, let's apply the same steps to the orderby_bag
+        // 4-1 orderby_bag should be an array, if it is a singleton, let's put it in an array.
 
-			foreach ($primaryKeys as $column => $value) {
-				$paramName = "tdbmparam".$counter;
-				$sqlParts[] = $this->connection->quoteIdentifier($dbRow->_getDbTableName()).'.'.$this->connection->quoteIdentifier($column)." = :".$paramName;
-				$parameters[$paramName] = $value;
-				$counter++;
-			}
-			return [implode(' AND ', $sqlParts), $parameters];
-		} elseif ($filter_bag instanceof \Iterator) {
-			return $this->buildFilterFromFilterBag(iterator_to_array($filter_bag));
-		} else {
-			throw new TDBMException("Error in filter. An object has been passed that is neither a SQL string, nor an array, nor a bean, nor null.");
-		}
+        if (!is_array($orderby_bag)) {
+            $orderby_bag = array($orderby_bag);
+        }
 
-//		// First filter_bag should be an array, if it is a singleton, let's put it in an array.
-//		if ($filter_bag === null) {
-//			$filter_bag = array();
-//		} elseif (!is_array($filter_bag)) {
-//			$filter_bag = array($filter_bag);
-//		}
-//		elseif (is_a($filter_bag, 'Mouf\\Database\\TDBM\\TDBMObjectArray')) {
-//			$filter_bag = array($filter_bag);
-//		}
-//
-//		// Second, let's take all the objects out of the filter bag, and let's make filters from them
-//		$filter_bag2 = array();
-//		foreach ($filter_bag as $thing) {
-//			if (is_a($thing,'Mouf\\Database\\TDBM\\Filters\\FilterInterface')) {
-//				$filter_bag2[] = $thing;
-//			} elseif (is_string($thing)) {
-//				$filter_bag2[] = new SqlStringFilter($thing);
-//			} elseif (is_a($thing,'Mouf\\Database\\TDBM\\TDBMObjectArray') && count($thing)>0) {
-//				// Get table_name and column_name
-//				$filter_table_name = $thing[0]->_getDbTableName();
-//				$filter_column_names = $thing[0]->getPrimaryKey();
-//
-//				// If there is only one primary key, we can use the InFilter
-//				if (count($filter_column_names)==1) {
-//					$primary_keys_array = array();
-//					$filter_column_name = $filter_column_names[0];
-//					foreach ($thing as $TDBMObject) {
-//						$primary_keys_array[] = $TDBMObject->$filter_column_name;
-//					}
-//					$filter_bag2[] = new InFilter($filter_table_name, $filter_column_name, $primary_keys_array);
-//				}
-//				// else, we must use a (xxx AND xxx AND xxx) OR (xxx AND xxx AND xxx) OR (xxx AND xxx AND xxx)...
-//				else
-//				{
-//					$filter_bag_and = array();
-//					foreach ($thing as $TDBMObject) {
-//						$filter_bag_temp_and=array();
-//						foreach ($filter_column_names as $pk) {
-//							$filter_bag_temp_and[] = new EqualFilter($TDBMObject->_getDbTableName(), $pk, $TDBMObject->$pk);
-//						}
-//						$filter_bag_and[] = new AndFilter($filter_bag_temp_and);
-//					}
-//					$filter_bag2[] = new OrFilter($filter_bag_and);
-//				}
-//
-//
-//			} elseif (!is_a($thing,'Mouf\\Database\\TDBM\\TDBMObjectArray') && $thing!==null) {
-//				throw new TDBMException("Error in filter bag in getObjectsByFilter. An object has been passed that is neither a filter, nor a TDBMObject, nor a TDBMObjectArray, nor a string, nor null.");
-//			}
-//		}
-//
-//		// Third, let's take all the filters and let's apply a huge AND filter
-//		$filter = new AndFilter($filter_bag2);
-//
-//		return $filter;
-	}
+        // 4-2, let's take all the objects out of the orderby bag, and let's make objects from them
+        $orderby_bag2 = array();
+        foreach ($orderby_bag as $thing) {
+            if (is_a($thing, 'Mouf\\Database\\TDBM\\Filters\\OrderBySQLString')) {
+                $orderby_bag2[] = $thing;
+            } elseif (is_a($thing, 'Mouf\\Database\\TDBM\\Filters\\OrderByColumn')) {
+                $orderby_bag2[] = $thing;
+            } elseif (is_string($thing)) {
+                $orderby_bag2[] = new OrderBySQLString($thing);
+            } elseif ($thing !== null) {
+                throw new TDBMException('Error in orderby bag in getObjectsByFilter. An object has been passed that is neither a OrderBySQLString, nor a OrderByColumn, nor a string, nor null.');
+            }
+        }
 
-	/**
-	 * Takes in input an order_bag (which can be about anything from a string to an array of OrderByColumn objects... see above from documentation),
-	 * and gives back an array of OrderByColumn / OrderBySQLString objects.
-	 *
-	 * @param unknown_type $orderby_bag
-	 * @return array
-	 */
-	public function buildOrderArrayFromOrderBag($orderby_bag) {
-		// Fourth, let's apply the same steps to the orderby_bag
-		// 4-1 orderby_bag should be an array, if it is a singleton, let's put it in an array.
+        return $orderby_bag2;
+    }
 
-		if (!is_array($orderby_bag))
-		$orderby_bag = array($orderby_bag);
+    /**
+     * @param string $table
+     *
+     * @return string[]
+     */
+    public function getPrimaryKeyColumns($table)
+    {
+        if (!isset($this->primaryKeysColumns[$table])) {
+            $this->primaryKeysColumns[$table] = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKeyColumns();
 
-		// 4-2, let's take all the objects out of the orderby bag, and let's make objects from them
-		$orderby_bag2 = array();
-		foreach ($orderby_bag as $thing) {
-			if (is_a($thing,'Mouf\\Database\\TDBM\\Filters\\OrderBySQLString')) {
-				$orderby_bag2[] = $thing;
-			} elseif (is_a($thing,'Mouf\\Database\\TDBM\\Filters\\OrderByColumn')) {
-				$orderby_bag2[] = $thing;
-			} elseif (is_string($thing)) {
-				$orderby_bag2[] = new OrderBySQLString($thing);
-			} elseif ($thing !== null) {
-				throw new TDBMException("Error in orderby bag in getObjectsByFilter. An object has been passed that is neither a OrderBySQLString, nor a OrderByColumn, nor a string, nor null.");
-			}
-		}
-		return $orderby_bag2;
-	}
+            // TODO TDBM4: See if we need to improve error reporting if table name does not exist.
 
-	/**
-	 * @param string $table
-	 * @return string[]
-	 */
-	public function getPrimaryKeyColumns($table) {
-		if (!isset($this->primaryKeysColumns[$table]))
-		{
-			$this->primaryKeysColumns[$table] = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKeyColumns();
+            /*$arr = array();
+            foreach ($this->connection->getPrimaryKey($table) as $col) {
+                $arr[] = $col->name;
+            }
+            // The primaryKeysColumns contains only the column's name, not the DB_Column object.
+            $this->primaryKeysColumns[$table] = $arr;
+            if (empty($this->primaryKeysColumns[$table]))
+            {
+                // Unable to find primary key.... this is an error
+                // Let's try to be precise in error reporting. Let's try to find the table.
+                $tables = $this->connection->checkTableExist($table);
+                if ($tables === true)
+                throw new TDBMException("Could not find table primary key for table '$table'. Please define a primary key for this table.");
+                elseif ($tables !== null) {
+                    if (count($tables)==1)
+                    $str = "Could not find table '$table'. Maybe you meant this table: '".$tables[0]."'";
+                    else
+                    $str = "Could not find table '$table'. Maybe you meant one of those tables: '".implode("', '",$tables)."'";
+                    throw new TDBMException($str);
+                }
+            }*/
+        }
 
-			// TODO TDBM4: See if we need to improve error reporting if table name does not exist.
+        return $this->primaryKeysColumns[$table];
+    }
 
-			/*$arr = array();
-			foreach ($this->connection->getPrimaryKey($table) as $col) {
-				$arr[] = $col->name;
-			}
-			// The primaryKeysColumns contains only the column's name, not the DB_Column object.
-			$this->primaryKeysColumns[$table] = $arr;
-			if (empty($this->primaryKeysColumns[$table]))
-			{
-				// Unable to find primary key.... this is an error
-				// Let's try to be precise in error reporting. Let's try to find the table.
-				$tables = $this->connection->checkTableExist($table);
-				if ($tables === true)
-				throw new TDBMException("Could not find table primary key for table '$table'. Please define a primary key for this table.");
-				elseif ($tables !== null) {
-					if (count($tables)==1)
-					$str = "Could not find table '$table'. Maybe you meant this table: '".$tables[0]."'";
-					else
-					$str = "Could not find table '$table'. Maybe you meant one of those tables: '".implode("', '",$tables)."'";
-					throw new TDBMException($str);
-				}
-			}*/
-		}
-		return $this->primaryKeysColumns[$table];
-	}
+    /**
+     * This is an internal function, you should not use it in your application.
+     * This is used internally by TDBM to add an object to the object cache.
+     *
+     * @param DbRow $dbRow
+     */
+    public function _addToCache(DbRow $dbRow)
+    {
+        $primaryKey = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
+        $hash = $this->getObjectHash($primaryKey);
+        $this->objectStorage->set($dbRow->_getDbTableName(), $hash, $dbRow);
+    }
 
-	/**
-	 * This is an internal function, you should not use it in your application.
-	 * This is used internally by TDBM to add an object to the object cache.
-	 *
-	 * @param DbRow $dbRow
-	 */
-	public function _addToCache(DbRow $dbRow) {
-		$primaryKey = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
-		$hash = $this->getObjectHash($primaryKey);
-		$this->objectStorage->set($dbRow->_getDbTableName(), $hash, $dbRow);
-	}
+    /**
+     * This is an internal function, you should not use it in your application.
+     * This is used internally by TDBM to remove the object from the list of objects that have been
+     * created/updated but not saved yet.
+     *
+     * @param DbRow $myObject
+     */
+    private function removeFromToSaveObjectList(DbRow $myObject)
+    {
+        unset($this->toSaveObjects[$myObject]);
+    }
 
-	/**
-	 * This is an internal function, you should not use it in your application.
-	 * This is used internally by TDBM to remove the object from the list of objects that have been
-	 * created/updated but not saved yet.
-	 *
-	 * @param DbRow $myObject
-	 */
-	private function removeFromToSaveObjectList(DbRow $myObject) {
-		unset($this->toSaveObjects[$myObject]);
-	}
+    /**
+     * This is an internal function, you should not use it in your application.
+     * This is used internally by TDBM to add an object to the list of objects that have been
+     * created/updated but not saved yet.
+     *
+     * @param AbstractTDBMObject $myObject
+     */
+    public function _addToToSaveObjectList(DbRow $myObject)
+    {
+        $this->toSaveObjects[$myObject] = true;
+    }
 
-	/**
-	 * This is an internal function, you should not use it in your application.
-	 * This is used internally by TDBM to add an object to the list of objects that have been
-	 * created/updated but not saved yet.
-	 *
-	 * @param AbstractTDBMObject $myObject
-	 */
-	public function _addToToSaveObjectList(DbRow $myObject) {
-		$this->toSaveObjects[$myObject] = true;
-	}
+    /**
+     * Generates all the daos and beans.
+     *
+     * @param string $daoFactoryClassName The classe name of the DAO factory
+     * @param string $daonamespace        The namespace for the DAOs, without trailing \
+     * @param string $beannamespace       The Namespace for the beans, without trailing \
+     * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone.
+     *
+     * @return \string[] the list of tables
+     */
+    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc)
+    {
+        $tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer);
 
-	/**
-	 * Generates all the daos and beans.
-	 *
-	 * @param string $daoFactoryClassName The classe name of the DAO factory
-	 * @param string $daonamespace The namespace for the DAOs, without trailing \
-	 * @param string $beannamespace The Namespace for the beans, without trailing \
-	 * @param bool $storeInUtc If the generated daos should store the date in UTC timezone instead of user's timezone.
-	 * @return \string[] the list of tables
-	 */
-	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc) {
-		$tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer);
-		return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
-	}
+        return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
+    }
 
-	/**
- 	* @param array<string, string> $tableToBeanMap
- 	*/
-	public function setTableToBeanMap(array $tableToBeanMap) {
-		$this->tableToBeanMap = $tableToBeanMap;
-	}
+    /**
+     * @param array<string, string> $tableToBeanMap
+     */
+    public function setTableToBeanMap(array $tableToBeanMap)
+    {
+        $this->tableToBeanMap = $tableToBeanMap;
+    }
 
-	/**
-	 * Saves $object by INSERTing or UPDAT(E)ing it in the database.
-	 *
-	 * @param AbstractTDBMObject $object
-	 * @throws TDBMException
-	 */
-	public function save(AbstractTDBMObject $object) {
-		$status = $object->_getStatus();
+    /**
+     * Saves $object by INSERTing or UPDAT(E)ing it in the database.
+     *
+     * @param AbstractTDBMObject $object
+     *
+     * @throws TDBMException
+     */
+    public function save(AbstractTDBMObject $object)
+    {
+        $status = $object->_getStatus();
 
-		// Let's attach this object if it is in detached state.
-		if ($status === TDBMObjectStateEnum::STATE_DETACHED) {
-			$object->_attach($this);
-			$status = $object->_getStatus();
-		}
+        // Let's attach this object if it is in detached state.
+        if ($status === TDBMObjectStateEnum::STATE_DETACHED) {
+            $object->_attach($this);
+            $status = $object->_getStatus();
+        }
 
-		if ($status === TDBMObjectStateEnum::STATE_NEW) {
-			$dbRows = $object->_getDbRows();
+        if ($status === TDBMObjectStateEnum::STATE_NEW) {
+            $dbRows = $object->_getDbRows();
 
-			$unindexedPrimaryKeys = array();
+            $unindexedPrimaryKeys = array();
 
-			foreach ($dbRows as $dbRow) {
+            foreach ($dbRows as $dbRow) {
+                $tableName = $dbRow->_getDbTableName();
 
-				$tableName = $dbRow->_getDbTableName();
+                $schema = $this->tdbmSchemaAnalyzer->getSchema();
+                $tableDescriptor = $schema->getTable($tableName);
 
-				$schema = $this->tdbmSchemaAnalyzer->getSchema();
-				$tableDescriptor = $schema->getTable($tableName);
+                $primaryKeyColumns = $this->getPrimaryKeyColumns($tableName);
 
-				$primaryKeyColumns = $this->getPrimaryKeyColumns($tableName);
+                if (empty($unindexedPrimaryKeys)) {
+                    $primaryKeys = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
+                } else {
+                    // First insert, the children must have the same primary key as the parent.
+                    $primaryKeys = $this->_getPrimaryKeysFromIndexedPrimaryKeys($tableName, $unindexedPrimaryKeys);
+                    $dbRow->_setPrimaryKeys($primaryKeys);
+                }
 
-				if (empty($unindexedPrimaryKeys)) {
-					$primaryKeys = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
-				} else {
-					// First insert, the children must have the same primary key as the parent.
-					$primaryKeys = $this->_getPrimaryKeysFromIndexedPrimaryKeys($tableName, $unindexedPrimaryKeys);
-					$dbRow->_setPrimaryKeys($primaryKeys);
-				}
+                $references = $dbRow->_getReferences();
 
-				$references = $dbRow->_getReferences();
-
-				// Let's save all references in NEW or DETACHED state (we need their primary key)
-				foreach ($references as $fkName => $reference) {
+                // Let's save all references in NEW or DETACHED state (we need their primary key)
+                foreach ($references as $fkName => $reference) {
                     $refStatus = $reference->_getStatus();
-					if ($refStatus === TDBMObjectStateEnum::STATE_NEW || $refStatus === TDBMObjectStateEnum::STATE_DETACHED) {
-						$this->save($reference);
-					}
-				}
+                    if ($refStatus === TDBMObjectStateEnum::STATE_NEW || $refStatus === TDBMObjectStateEnum::STATE_DETACHED) {
+                        $this->save($reference);
+                    }
+                }
 
-				$dbRowData = $dbRow->_getDbRow();
+                $dbRowData = $dbRow->_getDbRow();
 
-				// Let's see if the columns for primary key have been set before inserting.
-				// We assume that if one of the value of the PK has been set, the PK is set.
-				$isPkSet = !empty($primaryKeys);
+                // Let's see if the columns for primary key have been set before inserting.
+                // We assume that if one of the value of the PK has been set, the PK is set.
+                $isPkSet = !empty($primaryKeys);
 
-
-				/*if (!$isPkSet) {
+                /*if (!$isPkSet) {
                     // if there is no autoincrement and no pk set, let's go in error.
                     $isAutoIncrement = true;
 
@@ -852,28 +719,25 @@ class TDBMService {
 
                 }*/
 
-				$types = [];
+                $types = [];
 
-				foreach ($dbRowData as $columnName => $value) {
-					$columnDescriptor = $tableDescriptor->getColumn($columnName);
-					$types[] = $columnDescriptor->getType();
-				}
+                foreach ($dbRowData as $columnName => $value) {
+                    $columnDescriptor = $tableDescriptor->getColumn($columnName);
+                    $types[] = $columnDescriptor->getType();
+                }
 
-				$this->connection->insert($tableName, $dbRowData, $types);
+                $this->connection->insert($tableName, $dbRowData, $types);
 
-				if (!$isPkSet && count($primaryKeyColumns) == 1) {
-					$id = $this->connection->lastInsertId();
-					$primaryKeys[$primaryKeyColumns[0]] = $id;
-				}
+                if (!$isPkSet && count($primaryKeyColumns) == 1) {
+                    $id = $this->connection->lastInsertId();
+                    $primaryKeys[$primaryKeyColumns[0]] = $id;
+                }
 
-				// TODO: change this to some private magic accessor in future
-				$dbRow->_setPrimaryKeys($primaryKeys);
-				$unindexedPrimaryKeys = array_values($primaryKeys);
+                // TODO: change this to some private magic accessor in future
+                $dbRow->_setPrimaryKeys($primaryKeys);
+                $unindexedPrimaryKeys = array_values($primaryKeys);
 
-
-
-
-				/*
+                /*
                  * When attached, on "save", we check if the column updated is part of a primary key
                  * If this is part of a primary key, we call the _update_id method that updates the id in the list of known objects.
                  * This method should first verify that the id is not already used (and is not auto-incremented)
@@ -883,8 +747,7 @@ class TDBMService {
                  *
                  */
 
-
-				/*try {
+                /*try {
                     $this->db_connection->exec($sql);
                 } catch (TDBMException $e) {
                     $this->db_onerror = true;
@@ -903,88 +766,85 @@ class TDBMService {
                     }
                 }*/
 
-				// Let's remove this object from the $new_objects static table.
-				$this->removeFromToSaveObjectList($dbRow);
+                // Let's remove this object from the $new_objects static table.
+                $this->removeFromToSaveObjectList($dbRow);
 
-				// TODO: change this behaviour to something more sensible performance-wise
-				// Maybe a setting to trigger this globally?
-				//$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
-				//$this->db_modified_state = false;
-				//$dbRow = array();
+                // TODO: change this behaviour to something more sensible performance-wise
+                // Maybe a setting to trigger this globally?
+                //$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
+                //$this->db_modified_state = false;
+                //$dbRow = array();
 
-				// Let's add this object to the list of objects in cache.
-				$this->_addToCache($dbRow);
-			}
+                // Let's add this object to the list of objects in cache.
+                $this->_addToCache($dbRow);
+            }
 
+            $object->_setStatus(TDBMObjectStateEnum::STATE_LOADED);
+        } elseif ($status === TDBMObjectStateEnum::STATE_DIRTY) {
+            $dbRows = $object->_getDbRows();
 
+            foreach ($dbRows as $dbRow) {
+                $references = $dbRow->_getReferences();
 
+                // Let's save all references in NEW state (we need their primary key)
+                foreach ($references as $fkName => $reference) {
+                    if ($reference->_getStatus() === TDBMObjectStateEnum::STATE_NEW) {
+                        $this->save($reference);
+                    }
+                }
 
-			$object->_setStatus(TDBMObjectStateEnum::STATE_LOADED);
-		} elseif ($status === TDBMObjectStateEnum::STATE_DIRTY) {
-			$dbRows = $object->_getDbRows();
+                // Let's first get the primary keys
+                $tableName = $dbRow->_getDbTableName();
+                $dbRowData = $dbRow->_getDbRow();
 
-			foreach ($dbRows as $dbRow) {
-				$references = $dbRow->_getReferences();
+                $schema = $this->tdbmSchemaAnalyzer->getSchema();
+                $tableDescriptor = $schema->getTable($tableName);
 
-				// Let's save all references in NEW state (we need their primary key)
-				foreach ($references as $fkName => $reference) {
-					if ($reference->_getStatus() === TDBMObjectStateEnum::STATE_NEW) {
-						$this->save($reference);
-					}
-				}
+                $primaryKeys = $dbRow->_getPrimaryKeys();
 
-				// Let's first get the primary keys
-				$tableName = $dbRow->_getDbTableName();
-				$dbRowData = $dbRow->_getDbRow();
+                $types = [];
 
-				$schema = $this->tdbmSchemaAnalyzer->getSchema();
-				$tableDescriptor = $schema->getTable($tableName);
+                foreach ($dbRowData as $columnName => $value) {
+                    $columnDescriptor = $tableDescriptor->getColumn($columnName);
+                    $types[] = $columnDescriptor->getType();
+                }
+                foreach ($primaryKeys as $columnName => $value) {
+                    $columnDescriptor = $tableDescriptor->getColumn($columnName);
+                    $types[] = $columnDescriptor->getType();
+                }
 
-				$primaryKeys = $dbRow->_getPrimaryKeys();
+                $this->connection->update($tableName, $dbRowData, $primaryKeys, $types);
 
-				$types = [];
+                // Let's check if the primary key has been updated...
+                $needsUpdatePk = false;
+                foreach ($primaryKeys as $column => $value) {
+                    if (!isset($dbRowData[$column]) || $dbRowData[$column] != $value) {
+                        $needsUpdatePk = true;
+                        break;
+                    }
+                }
+                if ($needsUpdatePk) {
+                    $this->objectStorage->remove($tableName, $this->getObjectHash($primaryKeys));
+                    $newPrimaryKeys = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
+                    $dbRow->_setPrimaryKeys($newPrimaryKeys);
+                    $this->objectStorage->set($tableName, $this->getObjectHash($primaryKeys), $dbRow);
+                }
 
-				foreach ($dbRowData as $columnName => $value) {
-					$columnDescriptor = $tableDescriptor->getColumn($columnName);
-					$types[] = $columnDescriptor->getType();
-				}
-				foreach ($primaryKeys as $columnName => $value) {
-					$columnDescriptor = $tableDescriptor->getColumn($columnName);
-					$types[] = $columnDescriptor->getType();
-				}
+                // Let's remove this object from the list of objects to save.
+                $this->removeFromToSaveObjectList($dbRow);
+            }
 
-				$this->connection->update($tableName, $dbRowData, $primaryKeys, $types);
-
-				// Let's check if the primary key has been updated...
-				$needsUpdatePk = false;
-				foreach ($primaryKeys as $column => $value) {
-					if (!isset($dbRowData[$column]) || $dbRowData[$column] != $value) {
-						$needsUpdatePk = true;
-						break;
-					}
-				}
-				if ($needsUpdatePk) {
-					$this->objectStorage->remove($tableName, $this->getObjectHash($primaryKeys));
-					$newPrimaryKeys = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
-					$dbRow->_setPrimaryKeys($newPrimaryKeys);
-					$this->objectStorage->set($tableName, $this->getObjectHash($primaryKeys), $dbRow);
-				}
-
-				// Let's remove this object from the list of objects to save.
-				$this->removeFromToSaveObjectList($dbRow);
-			}
-
-			$object->_setStatus(TDBMObjectStateEnum::STATE_LOADED);
-
-		} elseif ($status === TDBMObjectStateEnum::STATE_DELETED) {
-			throw new TDBMInvalidOperationException("This object has been deleted. It cannot be saved.");
-		}
+            $object->_setStatus(TDBMObjectStateEnum::STATE_LOADED);
+        } elseif ($status === TDBMObjectStateEnum::STATE_DELETED) {
+            throw new TDBMInvalidOperationException('This object has been deleted. It cannot be saved.');
+        }
 
         // Finally, let's save all the many to many relationships to this bean.
         $this->persistManyToManyRelationships($object);
-	}
+    }
 
-    private function persistManyToManyRelationships(AbstractTDBMObject $object) {
+    private function persistManyToManyRelationships(AbstractTDBMObject $object)
+    {
         foreach ($object->_getCachedRelationships() as $pivotTableName => $storage) {
             $tableDescriptor = $this->tdbmSchemaAnalyzer->getSchema()->getTable($pivotTableName);
             list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $object);
@@ -1023,7 +883,6 @@ class TDBMService {
                     $remoteStatusArr = $remoteStorage[$object];
                     $remoteStatusArr['status'] = 'loaded';
                     $remoteStorage[$object] = $remoteStatusArr;
-
                 } elseif ($status === 'delete') {
                     $filters = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk);
 
@@ -1044,7 +903,8 @@ class TDBMService {
         }
     }
 
-    private function getPivotFilters(AbstractTDBMObject $localBean, AbstractTDBMObject $remoteBean, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk) {
+    private function getPivotFilters(AbstractTDBMObject $localBean, AbstractTDBMObject $remoteBean, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk)
+    {
         $localBeanPk = $this->getPrimaryKeyValues($localBean);
         $remoteBeanPk = $this->getPrimaryKeyValues($remoteBean);
         $localColumns = $localFk->getLocalColumns();
@@ -1061,520 +921,592 @@ class TDBMService {
      * This returns the primary key from the $primaryKey attribute, not the one stored in the columns.
      *
      * @param AbstractTDBMObject $bean
+     *
      * @return array numerically indexed array of values.
      */
-    private function getPrimaryKeyValues(AbstractTDBMObject $bean) {
+    private function getPrimaryKeyValues(AbstractTDBMObject $bean)
+    {
         $dbRows = $bean->_getDbRows();
         $dbRow = reset($dbRows);
+
         return array_values($dbRow->_getPrimaryKeys());
     }
 
-	/**
-	 * Returns a unique hash used to store the object based on its primary key.
-	 * If the array contains only one value, then the value is returned.
-	 * Otherwise, a hash representing the array is returned.
-	 *
-	 * @param array $primaryKeys An array of columns => values forming the primary key
-	 * @return string
-	 */
-	public function getObjectHash(array $primaryKeys) {
-		if (count($primaryKeys) === 1) {
-			return reset($primaryKeys);
-		} else {
-			ksort($primaryKeys);
-			return md5(json_encode($primaryKeys));
-		}
-	}
+    /**
+     * Returns a unique hash used to store the object based on its primary key.
+     * If the array contains only one value, then the value is returned.
+     * Otherwise, a hash representing the array is returned.
+     *
+     * @param array $primaryKeys An array of columns => values forming the primary key
+     *
+     * @return string
+     */
+    public function getObjectHash(array $primaryKeys)
+    {
+        if (count($primaryKeys) === 1) {
+            return reset($primaryKeys);
+        } else {
+            ksort($primaryKeys);
 
-	/**
-	 * Returns an array of primary keys from the object.
-	 * The primary keys are extracted from the object columns and not from the primary keys stored in the
-	 * $primaryKeys variable of the object.
-	 *
-	 * @param DbRow $dbRow
-	 * @return array Returns an array of column => value
-	 */
-	public function getPrimaryKeysForObjectFromDbRow(DbRow $dbRow) {
-		$table = $dbRow->_getDbTableName();
-		$dbRowData = $dbRow->_getDbRow();
-		return $this->_getPrimaryKeysFromObjectData($table, $dbRowData);
-	}
+            return md5(json_encode($primaryKeys));
+        }
+    }
 
-	/**
-	 * Returns an array of primary keys for the given row.
-	 * The primary keys are extracted from the object columns.
-	 *
-	 * @param $table
-	 * @param array $columns
-	 * @return array
-	 */
-	public function _getPrimaryKeysFromObjectData($table, array $columns) {
-		$primaryKeyColumns = $this->getPrimaryKeyColumns($table);
-		$values = array();
-		foreach ($primaryKeyColumns as $column) {
-			if (isset($columns[$column])) {
-				$values[$column] = $columns[$column];
-			}
-		}
-		return $values;
-	}
+    /**
+     * Returns an array of primary keys from the object.
+     * The primary keys are extracted from the object columns and not from the primary keys stored in the
+     * $primaryKeys variable of the object.
+     *
+     * @param DbRow $dbRow
+     *
+     * @return array Returns an array of column => value
+     */
+    public function getPrimaryKeysForObjectFromDbRow(DbRow $dbRow)
+    {
+        $table = $dbRow->_getDbTableName();
+        $dbRowData = $dbRow->_getDbRow();
 
-	/**
-	 * Attaches $object to this TDBMService.
-	 * The $object must be in DETACHED state and will pass in NEW state.
-	 *
-	 * @param AbstractTDBMObject $object
-	 * @throws TDBMInvalidOperationException
-	 */
-	public function attach(AbstractTDBMObject $object) {
-		$object->_attach($this);
-	}
+        return $this->_getPrimaryKeysFromObjectData($table, $dbRowData);
+    }
 
-	/**
-	 * Returns an associative array (column => value) for the primary keys from the table name and an
-	 * indexed array of primary key values.
-	 *
-	 * @param string $tableName
-	 * @param array $indexedPrimaryKeys
-	 */
-	public function _getPrimaryKeysFromIndexedPrimaryKeys($tableName, array $indexedPrimaryKeys) {
-		$primaryKeyColumns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getPrimaryKeyColumns();
+    /**
+     * Returns an array of primary keys for the given row.
+     * The primary keys are extracted from the object columns.
+     *
+     * @param $table
+     * @param array $columns
+     *
+     * @return array
+     */
+    public function _getPrimaryKeysFromObjectData($table, array $columns)
+    {
+        $primaryKeyColumns = $this->getPrimaryKeyColumns($table);
+        $values = array();
+        foreach ($primaryKeyColumns as $column) {
+            if (isset($columns[$column])) {
+                $values[$column] = $columns[$column];
+            }
+        }
 
-		if (count($primaryKeyColumns) !== count($indexedPrimaryKeys)) {
-			throw new TDBMException(sprintf('Wrong number of columns passed for primary key. Expected %s columns for table "%s",
+        return $values;
+    }
+
+    /**
+     * Attaches $object to this TDBMService.
+     * The $object must be in DETACHED state and will pass in NEW state.
+     *
+     * @param AbstractTDBMObject $object
+     *
+     * @throws TDBMInvalidOperationException
+     */
+    public function attach(AbstractTDBMObject $object)
+    {
+        $object->_attach($this);
+    }
+
+    /**
+     * Returns an associative array (column => value) for the primary keys from the table name and an
+     * indexed array of primary key values.
+     *
+     * @param string $tableName
+     * @param array  $indexedPrimaryKeys
+     */
+    public function _getPrimaryKeysFromIndexedPrimaryKeys($tableName, array $indexedPrimaryKeys)
+    {
+        $primaryKeyColumns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getPrimaryKeyColumns();
+
+        if (count($primaryKeyColumns) !== count($indexedPrimaryKeys)) {
+            throw new TDBMException(sprintf('Wrong number of columns passed for primary key. Expected %s columns for table "%s",
 			got %s instead.', count($primaryKeyColumns), $tableName, count($indexedPrimaryKeys)));
-		}
+        }
 
-		return array_combine($primaryKeyColumns, $indexedPrimaryKeys);
-	}
+        return array_combine($primaryKeyColumns, $indexedPrimaryKeys);
+    }
 
-	/**
-	 * Return the list of tables (from child to parent) joining the tables passed in parameter.
-	 * Tables must be in a single line of inheritance. The method will find missing tables.
-	 *
-	 * Algorithm: one of those tables is the ultimate child. From this child, by recursively getting the parent,
-	 * we must be able to find all other tables.
-	 *
-	 * @param string[] $tables
-	 * @return string[]
-	 */
-	public function _getLinkBetweenInheritedTables(array $tables)
-	{
-		sort($tables);
-		return $this->fromCache($this->cachePrefix.'_linkbetweeninheritedtables_'.implode('__split__', $tables),
-			function() use ($tables) {
-				return $this->_getLinkBetweenInheritedTablesWithoutCache($tables);
-			});
-	}
+    /**
+     * Return the list of tables (from child to parent) joining the tables passed in parameter.
+     * Tables must be in a single line of inheritance. The method will find missing tables.
+     *
+     * Algorithm: one of those tables is the ultimate child. From this child, by recursively getting the parent,
+     * we must be able to find all other tables.
+     *
+     * @param string[] $tables
+     *
+     * @return string[]
+     */
+    public function _getLinkBetweenInheritedTables(array $tables)
+    {
+        sort($tables);
 
-	/**
-	 * Return the list of tables (from child to parent) joining the tables passed in parameter.
-	 * Tables must be in a single line of inheritance. The method will find missing tables.
-	 *
-	 * Algorithm: one of those tables is the ultimate child. From this child, by recursively getting the parent,
-	 * we must be able to find all other tables.
-	 *
-	 * @param string[] $tables
-	 * @return string[]
-	 */
-	private function _getLinkBetweenInheritedTablesWithoutCache(array $tables) {
-		$schemaAnalyzer = $this->schemaAnalyzer;
+        return $this->fromCache($this->cachePrefix.'_linkbetweeninheritedtables_'.implode('__split__', $tables),
+            function () use ($tables) {
+                return $this->_getLinkBetweenInheritedTablesWithoutCache($tables);
+            });
+    }
 
-		foreach ($tables as $currentTable) {
-			$allParents = [ $currentTable ];
-			$currentFk = null;
-			while ($currentFk = $schemaAnalyzer->getParentRelationship($currentTable)) {
-				$currentTable = $currentFk->getForeignTableName();
-				$allParents[] = $currentTable;
-			};
+    /**
+     * Return the list of tables (from child to parent) joining the tables passed in parameter.
+     * Tables must be in a single line of inheritance. The method will find missing tables.
+     *
+     * Algorithm: one of those tables is the ultimate child. From this child, by recursively getting the parent,
+     * we must be able to find all other tables.
+     *
+     * @param string[] $tables
+     *
+     * @return string[]
+     */
+    private function _getLinkBetweenInheritedTablesWithoutCache(array $tables)
+    {
+        $schemaAnalyzer = $this->schemaAnalyzer;
 
-			// Now, does the $allParents contain all the tables we want?
-			$notFoundTables = array_diff($tables, $allParents);
-			if (empty($notFoundTables)) {
-				// We have a winner!
-				return $allParents;
-			}
-		}
+        foreach ($tables as $currentTable) {
+            $allParents = [$currentTable];
+            while ($currentFk = $schemaAnalyzer->getParentRelationship($currentTable)) {
+                $currentTable = $currentFk->getForeignTableName();
+                $allParents[] = $currentTable;
+            };
 
-		throw new TDBMException(sprintf("The tables (%s) cannot be linked by an inheritance relationship.", implode(', ', $tables)));
-	}
+            // Now, does the $allParents contain all the tables we want?
+            $notFoundTables = array_diff($tables, $allParents);
+            if (empty($notFoundTables)) {
+                // We have a winner!
+                return $allParents;
+            }
+        }
 
-	/**
-	 * Returns the list of tables related to this table (via a parent or child inheritance relationship)
-	 * @param string $table
-	 * @return string[]
-	 */
-	public function _getRelatedTablesByInheritance($table)
-	{
-		return $this->fromCache($this->cachePrefix."_relatedtables_".$table, function() use ($table) {
-			return $this->_getRelatedTablesByInheritanceWithoutCache($table);
-		});
-	}
+        throw new TDBMException(sprintf('The tables (%s) cannot be linked by an inheritance relationship.', implode(', ', $tables)));
+    }
 
-	/**
-	 * Returns the list of tables related to this table (via a parent or child inheritance relationship)
-	 * @param string $table
-	 * @return string[]
-	 */
-	private function _getRelatedTablesByInheritanceWithoutCache($table) {
-		$schemaAnalyzer = $this->schemaAnalyzer;
+    /**
+     * Returns the list of tables related to this table (via a parent or child inheritance relationship).
+     *
+     * @param string $table
+     *
+     * @return string[]
+     */
+    public function _getRelatedTablesByInheritance($table)
+    {
+        return $this->fromCache($this->cachePrefix.'_relatedtables_'.$table, function () use ($table) {
+            return $this->_getRelatedTablesByInheritanceWithoutCache($table);
+        });
+    }
 
+    /**
+     * Returns the list of tables related to this table (via a parent or child inheritance relationship).
+     *
+     * @param string $table
+     *
+     * @return string[]
+     */
+    private function _getRelatedTablesByInheritanceWithoutCache($table)
+    {
+        $schemaAnalyzer = $this->schemaAnalyzer;
 
-		// Let's scan the parent tables
-		$currentTable = $table;
+        // Let's scan the parent tables
+        $currentTable = $table;
 
-		$parentTables = [ ];
+        $parentTables = [];
 
-		// Get parent relationship
-		while ($currentFk = $schemaAnalyzer->getParentRelationship($currentTable)) {
-			$currentTable = $currentFk->getForeignTableName();
-			$parentTables[] = $currentTable;
-		};
+        // Get parent relationship
+        while ($currentFk = $schemaAnalyzer->getParentRelationship($currentTable)) {
+            $currentTable = $currentFk->getForeignTableName();
+            $parentTables[] = $currentTable;
+        };
 
-		// Let's recurse in children
-		$childrenTables = $this->exploreChildrenTablesRelationships($schemaAnalyzer, $table);
+        // Let's recurse in children
+        $childrenTables = $this->exploreChildrenTablesRelationships($schemaAnalyzer, $table);
 
-		return array_merge(array_reverse($parentTables), $childrenTables);
-	}
+        return array_merge(array_reverse($parentTables), $childrenTables);
+    }
 
-	/**
-	 * Explore all the children and descendant of $table and returns ForeignKeyConstraints on those.
-	 *
-	 * @param string $table
-	 * @return string[]
-	 */
-	private function exploreChildrenTablesRelationships(SchemaAnalyzer $schemaAnalyzer, $table) {
-		$tables = [$table];
-		$keys = $schemaAnalyzer->getChildrenRelationships($table);
+    /**
+     * Explore all the children and descendant of $table and returns ForeignKeyConstraints on those.
+     *
+     * @param string $table
+     *
+     * @return string[]
+     */
+    private function exploreChildrenTablesRelationships(SchemaAnalyzer $schemaAnalyzer, $table)
+    {
+        $tables = [$table];
+        $keys = $schemaAnalyzer->getChildrenRelationships($table);
 
-		foreach ($keys as $key) {
-			$tables = array_merge($tables, $this->exploreChildrenTablesRelationships($schemaAnalyzer, $key->getLocalTableName()));
-		}
+        foreach ($keys as $key) {
+            $tables = array_merge($tables, $this->exploreChildrenTablesRelationships($schemaAnalyzer, $key->getLocalTableName()));
+        }
 
-		return $tables;
-	}
+        return $tables;
+    }
 
-	/**
-	 * Casts a foreign key into SQL, assuming table name is used with no alias.
-	 * The returned value does contain only one table. For instance:
-	 *
-	 * " LEFT JOIN table2 ON table1.id = table2.table1_id"
-	 *
-	 * @param ForeignKeyConstraint $fk
-	 * @param bool $leftTableIsLocal
-	 * @return string
-	 */
-	/*private function foreignKeyToSql(ForeignKeyConstraint $fk, $leftTableIsLocal) {
-		$onClauses = [];
-		$foreignTableName = $this->connection->quoteIdentifier($fk->getForeignTableName());
-		$foreignColumns = $fk->getForeignColumns();
-		$localTableName = $this->connection->quoteIdentifier($fk->getLocalTableName());
-		$localColumns = $fk->getLocalColumns();
-		$columnCount = count($localTableName);
+    /**
+     * Casts a foreign key into SQL, assuming table name is used with no alias.
+     * The returned value does contain only one table. For instance:.
+     *
+     * " LEFT JOIN table2 ON table1.id = table2.table1_id"
+     *
+     * @param ForeignKeyConstraint $fk
+     * @param bool                 $leftTableIsLocal
+     *
+     * @return string
+     */
+    /*private function foreignKeyToSql(ForeignKeyConstraint $fk, $leftTableIsLocal) {
+        $onClauses = [];
+        $foreignTableName = $this->connection->quoteIdentifier($fk->getForeignTableName());
+        $foreignColumns = $fk->getForeignColumns();
+        $localTableName = $this->connection->quoteIdentifier($fk->getLocalTableName());
+        $localColumns = $fk->getLocalColumns();
+        $columnCount = count($localTableName);
 
-		for ($i = 0; $i < $columnCount; $i++) {
-			$onClauses[] = sprintf("%s.%s = %s.%s",
-				$localTableName,
-				$this->connection->quoteIdentifier($localColumns[$i]),
-				$foreignColumns,
-				$this->connection->quoteIdentifier($foreignColumns[$i])
-				);
-		}
+        for ($i = 0; $i < $columnCount; $i++) {
+            $onClauses[] = sprintf("%s.%s = %s.%s",
+                $localTableName,
+                $this->connection->quoteIdentifier($localColumns[$i]),
+                $foreignColumns,
+                $this->connection->quoteIdentifier($foreignColumns[$i])
+                );
+        }
 
-		$onClause = implode(' AND ', $onClauses);
+        $onClause = implode(' AND ', $onClauses);
 
-		if ($leftTableIsLocal) {
-			return sprintf(" LEFT JOIN %s ON (%s)", $foreignTableName, $onClause);
-		} else {
-			return sprintf(" LEFT JOIN %s ON (%s)", $localTableName, $onClause);
-		}
-	}*/
+        if ($leftTableIsLocal) {
+            return sprintf(" LEFT JOIN %s ON (%s)", $foreignTableName, $onClause);
+        } else {
+            return sprintf(" LEFT JOIN %s ON (%s)", $localTableName, $onClause);
+        }
+    }*/
 
-	/**
-	 * Returns an identifier for the group of tables passed in parameter.
-	 *
-	 * @param string[] $relatedTables
-	 * @return string
-	 */
-	private function getTableGroupName(array $relatedTables) {
-		sort($relatedTables);
-		return implode('_``_', $relatedTables);
-	}
+    /**
+     * Returns an identifier for the group of tables passed in parameter.
+     *
+     * @param string[] $relatedTables
+     *
+     * @return string
+     */
+    private function getTableGroupName(array $relatedTables)
+    {
+        sort($relatedTables);
 
-	/**
-	 *
-	 * @param string $mainTable The name of the table queried
-	 * @param string|array|null $filter The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-	 * @param array $parameters
-	 * @param string|null $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
-	 * @param array $additionalTablesFetch
-	 * @param string $mode
-	 * @param string $className Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-	 * @return ResultIterator An object representing an array of results.
-	 * @throws TDBMException
-	 */
-	public function findObjects($mainTable, $filter=null, array $parameters = array(), $orderString=null, array $additionalTablesFetch = array(), $mode = null, $className=null) {
-		// $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
-		if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
-			throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
-		}
+        return implode('_``_', $relatedTables);
+    }
 
-		list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter);
+    /**
+     * Returns a `ResultIterator` object representing filtered records of "$mainTable" .
+     *
+     * The findObjects method should be the most used query method in TDBM if you want to query the database for objects.
+     * (Note: if you want to query the database for an object by its primary key, use the findObjectByPk method).
+     *
+     * The findObjects method takes in parameter:
+     * 	- mainTable: the kind of bean you want to retrieve. In TDBM, a bean matches a database row, so the
+     * 			`$mainTable` parameter should be the name of an existing table in database.
+     *  - filter: The filter is a filter bag. It is what you use to filter your request (the WHERE part in SQL).
+     *          It can be a string (SQL Where clause), or even a bean or an associative array (key = column to filter, value = value to find)
+     *  - parameters: The parameters used in the filter. If you pass a SQL string as a filter, be sure to avoid
+     *          concatenating parameters in the string (this leads to SQL injection and also to poor caching performance).
+     *          Instead, please consider passing parameters (see documentation for more details).
+     *  - additionalTablesFetch: An array of SQL tables names. The beans related to those tables will be fetched along
+     *          the main table. This is useful to avoid hitting the database with numerous subqueries.
+     *  - mode: The fetch mode of the result. See `setFetchMode()` method for more details.
+     *
+     * The `findObjects` method will return a `ResultIterator`. A `ResultIterator` is an object that behaves as an array
+     * (in ARRAY mode) at least. It can be iterated using a `foreach` loop.
+     *
+     * Finally, if filter_bag is null, the whole table is returned.
+     *
+     * @param string            $mainTable             The name of the table queried
+     * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param array             $parameters
+     * @param string|null       $orderString           The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
+     * @param array             $additionalTablesFetch
+     * @param int               $mode
+     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     *
+     * @return ResultIterator An object representing an array of results.
+     *
+     * @throws TDBMException
+     */
+    public function findObjects($mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), $mode = null, $className = null)
+    {
+        // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
+            throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
+        }
 
-		$parameters = array_merge($parameters, $additionalParameters);
+        list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter);
 
-		// From the table name and the additional tables we want to fetch, let's build a list of all tables
-		// that must be part of the select columns.
+        $parameters = array_merge($parameters, $additionalParameters);
 
-		$tableGroups = [];
-		$allFetchedTables = $this->_getRelatedTablesByInheritance($mainTable);
-		$tableGroupName = $this->getTableGroupName($allFetchedTables);
-		foreach ($allFetchedTables as $table) {
-			$tableGroups[$table] = $tableGroupName;
-		}
+        // From the table name and the additional tables we want to fetch, let's build a list of all tables
+        // that must be part of the select columns.
 
-		foreach ($additionalTablesFetch as $additionalTable) {
-			$relatedTables = $this->_getRelatedTablesByInheritance($additionalTable);
-			$tableGroupName = $this->getTableGroupName($relatedTables);
-			foreach ($relatedTables as $table) {
-				$tableGroups[$table] = $tableGroupName;
-			}
-			$allFetchedTables = array_merge($allFetchedTables, $relatedTables);
-		}
+        $tableGroups = [];
+        $allFetchedTables = $this->_getRelatedTablesByInheritance($mainTable);
+        $tableGroupName = $this->getTableGroupName($allFetchedTables);
+        foreach ($allFetchedTables as $table) {
+            $tableGroups[$table] = $tableGroupName;
+        }
 
-		// Let's remove any duplicate
-		$allFetchedTables = array_flip(array_flip($allFetchedTables));
+        foreach ($additionalTablesFetch as $additionalTable) {
+            $relatedTables = $this->_getRelatedTablesByInheritance($additionalTable);
+            $tableGroupName = $this->getTableGroupName($relatedTables);
+            foreach ($relatedTables as $table) {
+                $tableGroups[$table] = $tableGroupName;
+            }
+            $allFetchedTables = array_merge($allFetchedTables, $relatedTables);
+        }
 
-		$columnsList = [];
-		$columnDescList = [];
-		$schema = $this->tdbmSchemaAnalyzer->getSchema();
+        // Let's remove any duplicate
+        $allFetchedTables = array_flip(array_flip($allFetchedTables));
 
-		// Now, let's build the column list
-		foreach ($allFetchedTables as $table) {
-			foreach ($schema->getTable($table)->getColumns() as $column) {
-				$columnName = $column->getName();
-				$columnDescList[] = [
-					'as' => $table.'____'.$columnName,
-					'table' => $table,
-					'column' => $columnName,
-					'type' => $column->getType(),
-					'tableGroup' => $tableGroups[$table]
-				];
-				$columnsList[] = $this->connection->quoteIdentifier($table).'.'.$this->connection->quoteIdentifier($columnName).' as '.
-					$this->connection->quoteIdentifier($table.'____'.$columnName);
-			}
-		}
+        $columnsList = [];
+        $columnDescList = [];
+        $schema = $this->tdbmSchemaAnalyzer->getSchema();
 
-		$sql = "SELECT DISTINCT ".implode(', ', $columnsList)." FROM MAGICJOIN(".$mainTable.")";
-		$countSql = "SELECT COUNT(1) FROM MAGICJOIN(".$mainTable.")";
+        // Now, let's build the column list
+        foreach ($allFetchedTables as $table) {
+            foreach ($schema->getTable($table)->getColumns() as $column) {
+                $columnName = $column->getName();
+                $columnDescList[] = [
+                    'as' => $table.'____'.$columnName,
+                    'table' => $table,
+                    'column' => $columnName,
+                    'type' => $column->getType(),
+                    'tableGroup' => $tableGroups[$table],
+                ];
+                $columnsList[] = $this->connection->quoteIdentifier($table).'.'.$this->connection->quoteIdentifier($columnName).' as '.
+                    $this->connection->quoteIdentifier($table.'____'.$columnName);
+            }
+        }
 
-		if (!empty($filterString)) {
-			$sql .= " WHERE ".$filterString;
-			$countSql .= " WHERE ".$filterString;
-		}
+        $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$mainTable.')';
+        $countSql = 'SELECT COUNT(1) FROM MAGICJOIN('.$mainTable.')';
 
-		if (!empty($orderString)) {
-			$sql .= " ORDER BY ".$orderString;
-			$countSql .= " ORDER BY ".$orderString;
-		}
+        if (!empty($filterString)) {
+            $sql .= ' WHERE '.$filterString;
+            $countSql .= ' WHERE '.$filterString;
+        }
 
-		if ($mode !== null && $mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
-			throw new TDBMException("Unknown fetch mode: '".$this->mode."'");
-		}
+        if (!empty($orderString)) {
+            $sql .= ' ORDER BY '.$orderString;
+            $countSql .= ' ORDER BY '.$orderString;
+        }
 
-		$mode = $mode?:$this->mode;
+        if ($mode !== null && $mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
+            throw new TDBMException("Unknown fetch mode: '".$this->mode."'");
+        }
 
-		return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode);
-	}
+        $mode = $mode ?: $this->mode;
 
-	/**
-	 * @param $table
-	 * @param array $primaryKeys
-	 * @param array $additionalTablesFetch
-	 * @param bool $lazy Whether to perform lazy loading on this object or not.
-	 * @param string $className
-	 * @return AbstractTDBMObject
-	 * @throws TDBMException
-	 */
-	public function findObjectByPk($table, array $primaryKeys, array $additionalTablesFetch = array(), $lazy = false, $className=null) {
-		$primaryKeys = $this->_getPrimaryKeysFromObjectData($table, $primaryKeys);
-		$hash = $this->getObjectHash($primaryKeys);
+        return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode);
+    }
 
-		if ($this->objectStorage->has($table, $hash)) {
-			$dbRow = $this->objectStorage->get($table, $hash);
-			$bean = $dbRow->getTDBMObject();
-			if ($className !== null && !is_a($bean, $className)) {
-				throw new TDBMException("TDBM cannot create a bean of class '".$className."'. The requested object was already loaded and its class is '".get_class($bean)."'");
-			}
-			return $bean;
-		}
+    /**
+     * @param $table
+     * @param array  $primaryKeys
+     * @param array  $additionalTablesFetch
+     * @param bool   $lazy                  Whether to perform lazy loading on this object or not.
+     * @param string $className
+     *
+     * @return AbstractTDBMObject
+     *
+     * @throws TDBMException
+     */
+    public function findObjectByPk($table, array $primaryKeys, array $additionalTablesFetch = array(), $lazy = false, $className = null)
+    {
+        $primaryKeys = $this->_getPrimaryKeysFromObjectData($table, $primaryKeys);
+        $hash = $this->getObjectHash($primaryKeys);
 
-		// Are we performing lazy fetching?
-		if ($lazy === true) {
-			// Can we perform lazy fetching?
-			$tables = $this->_getRelatedTablesByInheritance($table);
-			// Only allowed if no inheritance.
-			if (count($tables) === 1) {
-				if ($className === null) {
-					$className = isset($this->tableToBeanMap[$table])?$this->tableToBeanMap[$table]:"Mouf\\Database\\TDBM\\TDBMObject";
-				}
+        if ($this->objectStorage->has($table, $hash)) {
+            $dbRow = $this->objectStorage->get($table, $hash);
+            $bean = $dbRow->getTDBMObject();
+            if ($className !== null && !is_a($bean, $className)) {
+                throw new TDBMException("TDBM cannot create a bean of class '".$className."'. The requested object was already loaded and its class is '".get_class($bean)."'");
+            }
 
-				// Let's construct the bean
-				if (!isset($reflectionClassCache[$className])) {
-					$reflectionClassCache[$className] = new \ReflectionClass($className);
-				}
-				// Let's bypass the constructor when creating the bean!
-				$bean = $reflectionClassCache[$className]->newInstanceWithoutConstructor();
-				/* @var $bean AbstractTDBMObject */
-				$bean->_constructLazy($table, $primaryKeys, $this);
-			}
-		}
+            return $bean;
+        }
 
-		// Did not find the object in cache? Let's query it!
-		return $this->findObjectOrFail($table, $primaryKeys, [], $additionalTablesFetch, $className);
-	}
+        // Are we performing lazy fetching?
+        if ($lazy === true) {
+            // Can we perform lazy fetching?
+            $tables = $this->_getRelatedTablesByInheritance($table);
+            // Only allowed if no inheritance.
+            if (count($tables) === 1) {
+                if ($className === null) {
+                    $className = isset($this->tableToBeanMap[$table]) ? $this->tableToBeanMap[$table] : 'Mouf\\Database\\TDBM\\TDBMObject';
+                }
 
-	/**
-	 * Returns a unique bean (or null) according to the filters passed in parameter.
-	 *
-	 * @param string $mainTable The name of the table queried
-	 * @param string|null $filterString The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-	 * @param array $parameters
-	 * @param array $additionalTablesFetch
-	 * @param string $className Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-	 * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters.
-	 * @throws TDBMException
-	 */
-	public function findObject($mainTable, $filterString=null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null) {
-		$objects = $this->findObjects($mainTable, $filterString, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
-		$page = $objects->take(0, 2);
-		$count = $page->count();
-		if ($count > 1) {
-			throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
-		} elseif ($count === 0) {
-			return null;
-		}
-		return $objects[0];
-	}
+                // Let's construct the bean
+                if (!isset($this->reflectionClassCache[$className])) {
+                    $this->reflectionClassCache[$className] = new \ReflectionClass($className);
+                }
+                // Let's bypass the constructor when creating the bean!
+                $bean = $this->reflectionClassCache[$className]->newInstanceWithoutConstructor();
+                /* @var $bean AbstractTDBMObject */
+                $bean->_constructLazy($table, $primaryKeys, $this);
+            }
+        }
 
-	/**
-	 * Returns a unique bean according to the filters passed in parameter.
-	 * Throws a NoBeanFoundException if no bean was found for the filter passed in parameter.
-	 *
-	 * @param string $mainTable The name of the table queried
-	 * @param string|null $filterString The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-	 * @param array $parameters
-	 * @param array $additionalTablesFetch
-	 * @param string $className Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-	 * @return AbstractTDBMObject The object we want
-	 * @throws TDBMException
-	 */
-	public function findObjectOrFail($mainTable, $filterString=null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null) {
-		$bean = $this->findObject($mainTable, $filterString, $parameters, $additionalTablesFetch, $className);
-		if ($bean === null) {
-			throw new NoBeanFoundException("No result found for query on table '".$mainTable."'");
-		}
-		return $bean;
-	}
+        // Did not find the object in cache? Let's query it!
+        return $this->findObjectOrFail($table, $primaryKeys, [], $additionalTablesFetch, $className);
+    }
 
-	/**
-	 * @param array $beanData An array of data: array<table, array<column, value>>
-	 * @return array an array with first item = class name and second item = table name
-	 */
-	public function _getClassNameFromBeanData(array $beanData) {
-		if (count($beanData) === 1) {
-			$tableName = array_keys($beanData)[0];
-		} else {
-			foreach ($beanData as $table => $row) {
-				$tables = [];
-				$primaryKeyColumns = $this->getPrimaryKeyColumns($table);
-				$pkSet = false;
-				foreach ($primaryKeyColumns as $columnName) {
-					if ($row[$columnName] !== null) {
-						$pkSet = true;
-						break;
-					}
-				}
-				if ($pkSet) {
-					$tables[] = $table;
-				}
-			}
+    /**
+     * Returns a unique bean (or null) according to the filters passed in parameter.
+     *
+     * @param string            $mainTable             The name of the table queried
+     * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param array             $parameters
+     * @param array             $additionalTablesFetch
+     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     *
+     * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters.
+     *
+     * @throws TDBMException
+     */
+    public function findObject($mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null)
+    {
+        $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
+        $page = $objects->take(0, 2);
+        $count = $page->count();
+        if ($count > 1) {
+            throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
+        } elseif ($count === 0) {
+            return;
+        }
 
-			// $tables contains the tables for this bean. Let's view the top most part of the hierarchy
-			$allTables = $this->_getLinkBetweenInheritedTables($tables);
-			$tableName = $allTables[0];
-		}
+        return $objects[0];
+    }
 
-		// Only one table in this bean. Life is sweat, let's look at its type:
-		if (isset($this->tableToBeanMap[$tableName])) {
-			return [$this->tableToBeanMap[$tableName], $tableName];
-		} else {
-			return ["Mouf\\Database\\TDBM\\TDBMObject", $tableName];
-		}
-	}
+    /**
+     * Returns a unique bean according to the filters passed in parameter.
+     * Throws a NoBeanFoundException if no bean was found for the filter passed in parameter.
+     *
+     * @param string            $mainTable             The name of the table queried
+     * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param array             $parameters
+     * @param array             $additionalTablesFetch
+     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     *
+     * @return AbstractTDBMObject The object we want
+     *
+     * @throws TDBMException
+     */
+    public function findObjectOrFail($mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null)
+    {
+        $bean = $this->findObject($mainTable, $filter, $parameters, $additionalTablesFetch, $className);
+        if ($bean === null) {
+            throw new NoBeanFoundException("No result found for query on table '".$mainTable."'");
+        }
 
-	/**
-	 * Returns an item from cache or computes it using $closure and puts it in cache.
-	 *
-	 * @param string   $key
-	 * @param callable $closure
-	 *
-	 * @return mixed
-	 */
-	private function fromCache($key, callable $closure)
-	{
-		$item = $this->cache->fetch($key);
-		if ($item === false) {
-			$item = $closure();
-			$this->cache->save($key, $item);
-		}
+        return $bean;
+    }
 
-		return $item;
-	}
+    /**
+     * @param array $beanData An array of data: array<table, array<column, value>>
+     *
+     * @return array an array with first item = class name and second item = table name
+     */
+    public function _getClassNameFromBeanData(array $beanData)
+    {
+        if (count($beanData) === 1) {
+            $tableName = array_keys($beanData)[0];
+        } else {
+            $tables = [];
+            foreach ($beanData as $table => $row) {
+                $primaryKeyColumns = $this->getPrimaryKeyColumns($table);
+                $pkSet = false;
+                foreach ($primaryKeyColumns as $columnName) {
+                    if ($row[$columnName] !== null) {
+                        $pkSet = true;
+                        break;
+                    }
+                }
+                if ($pkSet) {
+                    $tables[] = $table;
+                }
+            }
 
-	/**
-	 * Returns the foreign key object.
-	 * @param string $table
-	 * @param string $fkName
-	 * @return ForeignKeyConstraint
-	 */
-	public function _getForeignKeyByName($table, $fkName) {
-		return $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getForeignKey($fkName);
-	}
+            // $tables contains the tables for this bean. Let's view the top most part of the hierarchy
+            $allTables = $this->_getLinkBetweenInheritedTables($tables);
+            $tableName = $allTables[0];
+        }
 
-	/**
-	 * @param $pivotTableName
-	 * @param AbstractTDBMObject $bean
-	 * @return AbstractTDBMObject[]
-	 */
-	public function _getRelatedBeans($pivotTableName, AbstractTDBMObject $bean) {
+        // Only one table in this bean. Life is sweat, let's look at its type:
+        if (isset($this->tableToBeanMap[$tableName])) {
+            return [$this->tableToBeanMap[$tableName], $tableName];
+        } else {
+            return ['Mouf\\Database\\TDBM\\TDBMObject', $tableName];
+        }
+    }
 
+    /**
+     * Returns an item from cache or computes it using $closure and puts it in cache.
+     *
+     * @param string   $key
+     * @param callable $closure
+     *
+     * @return mixed
+     */
+    private function fromCache($key, callable $closure)
+    {
+        $item = $this->cache->fetch($key);
+        if ($item === false) {
+            $item = $closure();
+            $this->cache->save($key, $item);
+        }
+
+        return $item;
+    }
+
+    /**
+     * Returns the foreign key object.
+     *
+     * @param string $table
+     * @param string $fkName
+     *
+     * @return ForeignKeyConstraint
+     */
+    public function _getForeignKeyByName($table, $fkName)
+    {
+        return $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getForeignKey($fkName);
+    }
+
+    /**
+     * @param $pivotTableName
+     * @param AbstractTDBMObject $bean
+     *
+     * @return AbstractTDBMObject[]
+     */
+    public function _getRelatedBeans($pivotTableName, AbstractTDBMObject $bean)
+    {
         list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $bean);
         /* @var $localFk ForeignKeyConstraint */
         /* @var $remoteFk ForeignKeyConstraint */
         $remoteTable = $remoteFk->getForeignTableName();
 
-
         $primaryKeys = $this->getPrimaryKeyValues($bean);
-        $columnNames = array_map(function($name) use ($pivotTableName) { return $pivotTableName.'.'.$name; }, $localFk->getLocalColumns());
+        $columnNames = array_map(function ($name) use ($pivotTableName) { return $pivotTableName.'.'.$name; }, $localFk->getLocalColumns());
 
         $filter = array_combine($columnNames, $primaryKeys);
 
         return $this->findObjects($remoteTable, $filter);
-	}
+    }
 
     /**
      * @param $pivotTableName
      * @param AbstractTDBMObject $bean The LOCAL bean
+     *
      * @return ForeignKeyConstraint[] First item: the LOCAL bean, second item: the REMOTE bean.
+     *
      * @throws TDBMException
      */
-    private function getPivotTableForeignKeys($pivotTableName, AbstractTDBMObject $bean) {
+    private function getPivotTableForeignKeys($pivotTableName, AbstractTDBMObject $bean)
+    {
         $fks = array_values($this->tdbmSchemaAnalyzer->getSchema()->getTable($pivotTableName)->getForeignKeys());
         $table1 = $fks[0]->getForeignTableName();
         $table2 = $fks[1]->getForeignTableName();
 
-        $beanTables = array_map(function(DbRow $dbRow) { return $dbRow->_getDbTableName(); }, $bean->_getDbRows());
+        $beanTables = array_map(function (DbRow $dbRow) { return $dbRow->_getDbTableName(); }, $bean->_getDbRows());
 
         if (in_array($table1, $beanTables)) {
             return [$fks[0], $fks[1]];
@@ -1585,27 +1517,28 @@ class TDBMService {
         }
     }
 
-	/**
-	 * Returns a list of pivot tables linked to $bean.
-	 *
-	 * @access private
-	 * @param AbstractTDBMObject $bean
-	 * @return string[]
-	 */
-	public function _getPivotTablesLinkedToBean(AbstractTDBMObject $bean) {
-		$junctionTables = [];
-		$allJunctionTables = $this->schemaAnalyzer->detectJunctionTables();
-		foreach ($bean->_getDbRows() as $dbRow) {
-			foreach ($allJunctionTables as $table) {
-				// There are exactly 2 FKs since this is a pivot table.
-				$fks = array_values($table->getForeignKeys());
+    /**
+     * Returns a list of pivot tables linked to $bean.
+     *
+     * @param AbstractTDBMObject $bean
+     *
+     * @return string[]
+     */
+    public function _getPivotTablesLinkedToBean(AbstractTDBMObject $bean)
+    {
+        $junctionTables = [];
+        $allJunctionTables = $this->schemaAnalyzer->detectJunctionTables();
+        foreach ($bean->_getDbRows() as $dbRow) {
+            foreach ($allJunctionTables as $table) {
+                // There are exactly 2 FKs since this is a pivot table.
+                $fks = array_values($table->getForeignKeys());
 
-				if ($fks[0]->getForeignTableName() === $dbRow->_getDbTableName() || $fks[1]->getForeignTableName() === $dbRow->_getDbTableName()) {
-					$junctionTables[] = $table->getName();
-				}
-			}
-		}
+                if ($fks[0]->getForeignTableName() === $dbRow->_getDbTableName() || $fks[1]->getForeignTableName() === $dbRow->_getDbTableName()) {
+                    $junctionTables[] = $table->getName();
+                }
+            }
+        }
 
-		return $junctionTables;
-	}
+        return $junctionTables;
+    }
 }
