@@ -38,7 +38,7 @@ Let's now review a few samples:
 ```php
 // Create a new bean
 // Be default, you MUST pass to the bean constructor the list of all columns that are not nullable.
-$userBean = new User("myName");
+$userBean = new UserBean("myName");
 
 // Fill the remaining (nullable) columns of the bean using the setters
 $userBean->setPassword(password_hash("myPassword", PASSWORD_DEFAULT));
