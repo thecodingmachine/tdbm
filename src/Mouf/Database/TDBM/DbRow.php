@@ -206,6 +206,10 @@ class DbRow
             return;
         }
 
+        $value = $this->dbRow[$var];
+        if ($value instanceof \DateTime) {
+            return \DateTimeImmutable::createFromMutable($value);
+        }
         return $this->dbRow[$var];
     }
 
