@@ -219,9 +219,9 @@ If you are confident that your query will only ever return one record (for insta
 class UserDao extends UserBaseDao {
 
 	/**
-	 * Returns the list of users starting with $firstLetter
+	 * Returns a user by login
 	 *
-	 * @param string $firstLetter
+	 * @param string $login
 	 * @return UserBean|null
 	 */
 	public function getUserByLogin($login) {
@@ -299,7 +299,7 @@ $userBean->addRole($roleBean);
 // Remover
 $userBean->removeRole($roleBean);
 
-// Remover
+// Check existence
 $hasRole = $userBean->hasRole($roleBean);
 ```
 
@@ -316,7 +316,7 @@ $userBean->addUser($roleBean);
 // Remover
 $userBean->removeUser($roleBean);
 
-// Remover
+// Check existence
 $hasUser = $roleBean->hasUser($roleBean);
 ```
 
