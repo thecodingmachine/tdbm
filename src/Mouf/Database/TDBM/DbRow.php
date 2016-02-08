@@ -208,8 +208,13 @@ class DbRow
 
         $value = $this->dbRow[$var];
         if ($value instanceof \DateTime) {
-            return \DateTimeImmutable::createFromMutable($value);
+            if (method_exists('DateTimeImmutable', 'createFromMutable')) { // PHP 5.6+ only
+                return \DateTimeImmutable::createFromMutable($value);
+            } else {
+                return new \DateTimeImmutable($value->format('c'));
+            }
         }
+
         return $this->dbRow[$var];
     }
 
