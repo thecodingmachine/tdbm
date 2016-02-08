@@ -22,6 +22,7 @@
 		"php" : ">=5.5.0",
 	    "mouf/magic-query" : "~1.1",
 	    "doctrine/dbal": "~2.5",
+		"doctrine/cache": "~1.5",
 	    "mouf/database.doctrine-dbal-wrapper": "~1.1",
 		"mouf/utils.common.conditioninterface" : "~2.0",
 	    "psr/log": "~1.0",
