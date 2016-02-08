@@ -2,13 +2,19 @@ language: php
 
 php:
  - 5.5
+ - 5.6
+ - 7.0
+
+env:
+  matrix:
+    - PREFER_LOWEST="--prefer-lowest"
+    - PREFER_LOWEST=""
 
 before_script:
- - wget http://getcomposer.org/composer.phar
- - php composer.phar install --no-interaction
+ - composer update --prefer-source $PREFER_LOWEST
 
 script:
- - phpunit
+ - ./vendor/bin/phpunit
 
 after_script:
- - php vendor/bin/coveralls -v
+ - ./vendor/bin/coveralls -v
