@@ -4,14 +4,14 @@ Modeling inheritance
 TDBM is an ORM. It maps a database model to PHP classes. PHP classes can extend other PHP classes.
 In a database, inheritance can be represented this way:
 
+![Hierarchy](images/hierarchy.png)
+
 The base class has all the base class elements in it, and each class which derives from it has its own table, with a primary key which is also a foreign key to the base class table.
 The derived table's class contains only the different elements.
 
 TDBM can detect this kind of data model automatically and generate beans inheriting from other beans.
 
-Here is a sample:
 
-![Hierarchy](images/hierarchy.png)
 
 We have a `person` table containing people (with a `name` column).
 We have a `contact` table. A contact **is a** person, as noted by the foreign key between the 2 `id` columns. Contacts have an `email` column.

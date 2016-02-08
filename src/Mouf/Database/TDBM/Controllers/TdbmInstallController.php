@@ -104,12 +104,6 @@ class TdbmInstallController extends Controller
             return;
         }
 
-        if (!$this->moufManager->instanceExists('noCacheService')) {
-            $this->displayErrorMsg("The TDBM install process assumes that a cache instance named 'noCacheService' exists. Could not find the 'noCacheService' instance.");
-
-            return;
-        }
-
         $this->daoNamespace = $this->moufManager->getVariable('tdbmDefaultDaoNamespace_tdbmService');
         $this->beanNamespace = $this->moufManager->getVariable('tdbmDefaultBeanNamespace_tdbmService');
 
