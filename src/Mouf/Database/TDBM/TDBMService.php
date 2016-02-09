@@ -629,15 +629,18 @@ class TDBMService
      * @param string $daonamespace        The namespace for the DAOs, without trailing \
      * @param string $beannamespace       The Namespace for the beans, without trailing \
      * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone.
-     * @param string $storePath           If it's set, the path to generate daos and beans. By default it's locate with rootPath.
+     * @param string $composerFile        If it's set, location of custom Composer file. Relative to project root.
      *
      * @return \string[] the list of tables
      */
-    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc, $storePath = null)
+    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc, $composerFile = null)
     {
         $tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer);
-        $tdbmDaoGenerator->setRootPath($tdbmDaoGenerator->getRootPath().$storePath);
-        return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc, $storePath);
+        if (null !== $composerFile) {
+            $tdbmDaoGenerator->setComposerFile(__DIR__.'/../../../../../../../'.$composerFile);
+        }
+
+        return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
     }
 
     /**

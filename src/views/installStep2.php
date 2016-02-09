@@ -40,22 +40,21 @@ Unless you are developing your own autoload system, you should configure <strong
 </div>
 
 <div class="control-group">
-	<label class="control-label">Use the default path (compute with PSR):</label>
+	<label class="control-label">Use custom <code>composer.json</code>:</label>
 	<div class="controls">
-		<input type="checkbox" id="defaultPath" name="defaultPath" value="1" <?php echo $this->defaultPath ? 'checked="checked"' : '' ?>></input>
-		<span class="help-block">Select this option if you want to use the default folder to store daos and beans.</span>
+		<input type="checkbox" id="useCustomComposer" name="useCustomComposer" value="1" <?php echo $this->useCustomComposer ? 'checked="checked"' : '' ?>></input>
+		<span class="help-block">Click if your Composer file is not named <code>composer.json</code> or if you want to write Daos and Beans in another Composer package.</span>
 	</div>
 </div>
 
-<div class="control-group" id="storePathGroup">
-	<label class="control-label">Location to store daos and beans:</label>
+<div class="control-group" id="composerFileGroup">
+	<label class="control-label">Path to Composer file (<code>composer.json</code>):</label>
 	<div class="controls">
-		<input type="text" name="storePath" value="<?php echo plainstring_to_htmlprotected($this->storePath) ?>"></input>
+		<input type="text" name="composerFile" value="<?php echo plainstring_to_htmlprotected($this->composerFile) ?>"></input>
 		<span class="help-block">
-			This field is to change the folder of daos and beans. This automatically start with root path.<br />
-			Don't add the psr folder at the end. End with separator /.<br />
-			For exemple: vendor/company/package/src/<br />
-			<b>Caution:</b> The folder filled must be contain a composer.json. The Psr in the composer must be 
+			The path to the Composer file of the package that will contain generated DAOs and Beans.<br />
+			The path is relative to the project root path.<br />
+			For example: `vendor/company/package/composer.json` 
 		</span>
 	</div>
 </div>
@@ -68,15 +67,15 @@ Unless you are developing your own autoload system, you should configure <strong
 </form>
 <script>
 	function changeDefaultPath() {
-		if($('#defaultPath').prop('checked')) {
-			$('#storePathGroup').hide();
+		if($('#useCustomComposer').prop('checked')) {
+			$('#composerFileGroup').show();
 		}
 		else {
-			$('#storePathGroup').show();
+			$('#composerFileGroup').hide();
 		}
 	}
 	$(document).ready(function () {
-		$('#defaultPath').on('change', changeDefaultPath);
+		$('#useCustomComposer').on('change', changeDefaultPath);
 		changeDefaultPath();
 	})
 </script>
