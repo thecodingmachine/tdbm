@@ -93,6 +93,8 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $object = new TDBMObject('users');
         $object->setProperty('login', 'john.doe');
         $object->setProperty('country_id', 3);
+        $object->setProperty('name', 'John Doe', 'person');
+        $object->setProperty('email', 'john@doe.com', 'contact');
 
         $this->tdbmService->save($object);
 
@@ -113,6 +115,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $object->setProperty('login', 'jane.doe', 'users');
         $object->setProperty('name', 'Jane Doe', 'person');
         $object->setProperty('country_id', 1, 'users');
+        $object->setProperty('email', 'jane@doe.com', 'contact');
 
         $this->tdbmService->save($object);
 

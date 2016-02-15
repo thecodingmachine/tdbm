@@ -30,7 +30,7 @@ class MapIterator implements Iterator
         if (is_array($iterator)) {
             $this->iterator = new \ArrayIterator($iterator);
         } elseif (!($iterator instanceof Iterator)) {
-            throw new TDBMException("\$iterator parameter must be an instance of Iterator");
+            throw new TDBMException('$iterator parameter must be an instance of Iterator');
         } else {
             $this->iterator = $iterator;
         }
@@ -41,7 +41,7 @@ class MapIterator implements Iterator
             if ($reflection->hasMethod('__invoke')) {
                 $method = $reflection->getMethod('__invoke');
                 if ($method->getNumberOfParameters() !== 1) {
-                    throw new TDBMException("\$callable must accept one and only one parameter.");
+                    throw new TDBMException('$callable must accept one and only one parameter.');
                 }
             }
         }
