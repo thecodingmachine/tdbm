@@ -72,16 +72,16 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         // Let's require all files to check they are valid PHP!
         // Test the daoFactory
-        require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/DaoFactory.php';
+        require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Generated/DaoFactory.php';
         // Test the others
         foreach ($tables as $table) {
             $daoName = $this->tdbmDaoGenerator->getDaoNameFromTableName($table);
             $daoBaseName = $this->tdbmDaoGenerator->getBaseDaoNameFromTableName($table);
             $beanName = $this->tdbmDaoGenerator->getBeanNameFromTableName($table);
             $baseBeanName = $this->tdbmDaoGenerator->getBaseBeanNameFromTableName($table);
-            require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/'.$baseBeanName.'.php';
+            require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/Generated/'.$baseBeanName.'.php';
             require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/'.$beanName.'.php';
-            require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/'.$daoBaseName.'.php';
+            require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Generated/'.$daoBaseName.'.php';
             require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/'.$daoName.'.php';
         }
 

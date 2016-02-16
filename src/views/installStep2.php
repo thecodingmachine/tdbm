@@ -54,7 +54,7 @@ Unless you are developing your own autoload system, you should configure <strong
 		<span class="help-block">
 			The path to the Composer file of the package that will contain generated DAOs and Beans.<br />
 			The path is relative to the project root path.<br />
-			For example: `vendor/company/package/composer.json` 
+			For example: `vendor/company/package/composer.json`
 		</span>
 	</div>
 </div>
