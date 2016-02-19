@@ -114,12 +114,12 @@ class TdbmInstallController extends Controller
             if ($autoloadNamespaces) {
                 $this->autoloadDetected = true;
                 $rootNamespace = $autoloadNamespaces[0];
-                $this->daoNamespace = $rootNamespace.'Dao';
-                $this->beanNamespace = $rootNamespace.'Dao\\Bean';
+                $this->daoNamespace = $rootNamespace.'Model\\Dao';
+                $this->beanNamespace = $rootNamespace.'Model\\Bean';
             } else {
                 $this->autoloadDetected = false;
-                $this->daoNamespace = 'YourApplication\\Dao';
-                $this->beanNamespace = 'YourApplication\\Dao\\Bean';
+                $this->daoNamespace = 'YourApplication\\Model\\Dao';
+                $this->beanNamespace = 'YourApplication\\Model\\Bean';
             }
         } else {
             $this->autoloadDetected = true;

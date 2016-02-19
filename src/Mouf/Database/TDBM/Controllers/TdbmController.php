@@ -4,6 +4,7 @@ namespace Mouf\Database\TDBM\Controllers;
 
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Controllers\AbstractMoufInstanceController;
+use Mouf\Database\TDBM\TDBMService;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Mouf\MoufManager;
 use Mouf\InstanceProxy;

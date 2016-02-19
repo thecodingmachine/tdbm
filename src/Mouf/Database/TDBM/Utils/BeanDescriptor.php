@@ -514,27 +514,62 @@ class BeanDescriptor
     }
 
     /**
+     * Returns as an array the class we need to extend from and the list of use statements.
+     *
+     * @return array
+     */
+    private function generateExtendsAndUseStatements(ForeignKeyConstraint $parentFk = null)
+    {
+        $classes = [];
+        if ($parentFk !== null) {
+            $extends = TDBMDaoGenerator::getBeanNameFromTableName($parentFk->getForeignTableName());
+            $classes[] = $extends;
+        }
+
+        foreach ($this->getBeanPropertyDescriptors() as $beanPropertyDescriptor) {
+            $className = $beanPropertyDescriptor->getClassName();
+            if (null !== $className) {
+                $classes[] = $beanPropertyDescriptor->getClassName();
+            }
+        }
+
+        foreach ($this->getPivotTableDescriptors() as $descriptor) {
+            /* @var $fk ForeignKeyConstraint */
+            $fk = $descriptor['remoteFK'];
+            $classes[] = TDBMDaoGenerator::getBeanNameFromTableName($fk->getForeignTableName());
+        }
+
+        $classes = array_flip(array_flip($classes));
+
+        return $classes;
+    }
+
+    /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
      * @param string $beannamespace The namespace of the bean
      */
     public function generatePhpCode($beannamespace)
     {
-        $baseClassName = TDBMDaoGenerator::getBaseBeanNameFromTableName($this->table->getName());
-        $className = TDBMDaoGenerator::getBeanNameFromTableName($this->table->getName());
         $tableName = $this->table->getName();
-
+        $baseClassName = TDBMDaoGenerator::getBaseBeanNameFromTableName($tableName);
+        $className = TDBMDaoGenerator::getBeanNameFromTableName($tableName);
         $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
+
+        $classes = $this->generateExtendsAndUseStatements($parentFk);
+
+        $uses = array_map(function ($className) use ($beannamespace) { return 'use '.$beannamespace.'\\'.$className.";\n"; }, $classes);
+        $use = implode('', $uses);
+
         if ($parentFk !== null) {
             $extends = TDBMDaoGenerator::getBeanNameFromTableName($parentFk->getForeignTableName());
-            $use = '';
         } else {
             $extends = 'AbstractTDBMObject';
-            $use = "use Mouf\\Database\\TDBM\\AbstractTDBMObject;\n\n";
+            $use .= "use Mouf\\Database\\TDBM\\AbstractTDBMObject;\n";
         }
 
         $str = "<?php
-namespace {$beannamespace};
+namespace {$beannamespace}\\Generated;
 
 use Mouf\\Database\\TDBM\\ResultIterator;
 $use

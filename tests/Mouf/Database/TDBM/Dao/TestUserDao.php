@@ -2,7 +2,7 @@
 
 namespace Mouf\Database\TDBM\Dao;
 
-use Mouf\Database\TDBM\Test\Dao\UserBaseDao;
+use Mouf\Database\TDBM\Test\Dao\Generated\UserBaseDao;
 
 /**
  * The UserDao class will maintain the persistence of UserBean class into the users table.
