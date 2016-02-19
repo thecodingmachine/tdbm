@@ -28,6 +28,7 @@ class TdbmController extends AbstractMoufInstanceController
     protected $daoFactoryInstanceName;
     protected $autoloadDetected;
     protected $storeInUtc;
+    protected $useCustomComposer;
 
     /**
      * Admin page used to display the DAO generation form.
