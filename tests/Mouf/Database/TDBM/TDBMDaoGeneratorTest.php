@@ -602,6 +602,30 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testFirst()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByLoginStartingWith('bill');
+
+        $bill = $users->first();
+        $this->assertEquals('bill.shakespeare', $bill->getLogin());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testFirstNull()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByLoginStartingWith('mike');
+
+        $user = $users->first();
+        $this->assertNull($user);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testCloneBeanAttachedBean()
     {
         $userDao = new TestUserDao($this->tdbmService);

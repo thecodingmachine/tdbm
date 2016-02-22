@@ -245,4 +245,19 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
             return $item->jsonSerialize();
         }, $this->toArray());
     }
+
+    /**
+     * Returns only one value (the first) of the result set.
+     * Returns null if no value exists.
+     *
+     * @return mixed|null
+     */
+    public function first()
+    {
+        $page = $this->take(0, 1);
+        foreach ($page as $bean) {
+            return $bean;
+        }
+        return null;
+    }
 }
