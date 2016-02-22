@@ -29,7 +29,6 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
-use Mouf\Database\TDBM\Filters\OrderBySQLString;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 
 /**
@@ -514,40 +513,6 @@ class TDBMService
     }
 
     /**
-     * Takes in input an order_bag (which can be about anything from a string to an array of OrderByColumn objects... see above from documentation),
-     * and gives back an array of OrderByColumn / OrderBySQLString objects.
-     *
-     * @param unknown_type $orderby_bag
-     *
-     * @return array
-     */
-    public function buildOrderArrayFromOrderBag($orderby_bag)
-    {
-        // Fourth, let's apply the same steps to the orderby_bag
-        // 4-1 orderby_bag should be an array, if it is a singleton, let's put it in an array.
-
-        if (!is_array($orderby_bag)) {
-            $orderby_bag = array($orderby_bag);
-        }
-
-        // 4-2, let's take all the objects out of the orderby bag, and let's make objects from them
-        $orderby_bag2 = array();
-        foreach ($orderby_bag as $thing) {
-            if (is_a($thing, 'Mouf\\Database\\TDBM\\Filters\\OrderBySQLString')) {
-                $orderby_bag2[] = $thing;
-            } elseif (is_a($thing, 'Mouf\\Database\\TDBM\\Filters\\OrderByColumn')) {
-                $orderby_bag2[] = $thing;
-            } elseif (is_string($thing)) {
-                $orderby_bag2[] = new OrderBySQLString($thing);
-            } elseif ($thing !== null) {
-                throw new TDBMException('Error in orderby bag in getObjectsByFilter. An object has been passed that is neither a OrderBySQLString, nor a OrderByColumn, nor a string, nor null.');
-            }
-        }
-
-        return $orderby_bag2;
-    }
-
-    /**
      * @param string $table
      *
      * @return string[]
@@ -635,6 +600,9 @@ class TDBMService
      */
     public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc, $composerFile = null)
     {
+        // Purge cache before generating anything.
+        $this->cache->deleteAll();
+
         $tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer);
         if (null !== $composerFile) {
             $tdbmDaoGenerator->setComposerFile(__DIR__.'/../../../../../../../'.$composerFile);

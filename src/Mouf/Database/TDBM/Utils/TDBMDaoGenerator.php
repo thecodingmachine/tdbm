@@ -76,7 +76,6 @@ class TDBMDaoGenerator
      */
     public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc)
     {
-        // TODO: extract ClassNameMapper in its own package!
         $classNameMapper = ClassNameMapper::createFromComposerFile($this->rootPath.$this->composerFile);
         // TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
 

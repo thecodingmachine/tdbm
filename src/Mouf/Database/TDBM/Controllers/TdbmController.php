@@ -6,6 +6,7 @@ use Mouf\Composer\ClassNameMapper;
 use Mouf\Controllers\AbstractMoufInstanceController;
 use Mouf\Database\TDBM\TDBMService;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
+use Mouf\Html\HtmlElement\HtmlBlock;
 use Mouf\MoufManager;
 use Mouf\InstanceProxy;
 
@@ -34,7 +35,6 @@ class TdbmController extends AbstractMoufInstanceController
      * Admin page used to display the DAO generation form.
      *
      * @Action
-     * //@Admin
      */
     public function defaultAction($name, $selfedit = 'false')
     {
@@ -77,7 +77,7 @@ class TdbmController extends AbstractMoufInstanceController
             $this->autoloadDetected = true;
         }
 
-        $this->content->addFile(dirname(__FILE__).'/../../../../views/tdbmGenerate.php', $this);
+        $this->content->addFile(__DIR__.'/../../../../views/tdbmGenerate.php', $this);
         $this->template->toHtml();
     }
 
@@ -133,24 +133,14 @@ class TdbmController extends AbstractMoufInstanceController
         $moufManager->setVariable('tdbmDefaultComposerFile', $composerFile);
 
         // Remove first and last slash in namespace.
-        if (strpos($daonamespace, '\\') === 0) {
-            $daonamespace = substr($daonamespace, 1);
-        }
-        if (strpos($daonamespace, '\\') === strlen($daonamespace) - 1) {
-            $daonamespace = substr($daonamespace, 0, strlen($daonamespace) - 1);
-        }
-        if (strpos($beannamespace, '\\') === 0) {
-            $beannamespace = substr($beannamespace, 1);
-        }
-        if (strpos($beannamespace, '\\') === strlen($beannamespace) - 1) {
-            $beannamespace = substr($beannamespace, 0, strlen($beannamespace) - 1);
-        }
+        $daonamespace = trim($daonamespace, '\\');
+        $beannamespace = trim($beannamespace, '\\');
 
         $tdbmService = new InstanceProxy($name);
         /* @var $tdbmService TDBMService */
         $tables = $tdbmService->generateAllDaosAndBeans($daofactoryclassname, $daonamespace, $beannamespace, $storeInUtc, ($useCustomComposer ? $composerFile : null));
 
-        $moufManager->declareComponent($daofactoryinstancename, $daonamespace.'\\'.$daofactoryclassname, false, MoufManager::DECLARE_ON_EXIST_KEEP_INCOMING_LINKS);
+        $moufManager->declareComponent($daofactoryinstancename, $daonamespace.'\\Generated\\'.$daofactoryclassname, false, MoufManager::DECLARE_ON_EXIST_KEEP_INCOMING_LINKS);
 
         $tableToBeanMap = [];
 
