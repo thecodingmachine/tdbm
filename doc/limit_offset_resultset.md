@@ -38,6 +38,7 @@ Here is a list of the methods you can call on a `ResultIterator`:
 - `take($offset, $limit)`: this will add an OFFSET and a LIMIT to the query performed. The `take` method returns a 
   `PageIterator` instance that represents the "limited" results.
 - `count()`: will return the total count of records
+- `first()`: will return the first element of the result set
 - `toArray()`: will cast the `ResultIterator` into a plain old PHP array.
 - `map(callable $callback)`: will call the `$callback` on every bean of the recordset and return the matching array.
 
