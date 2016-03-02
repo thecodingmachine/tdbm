@@ -137,6 +137,17 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testGeneratedGetByIdLazyLoaded()
+    {
+        $roleDao = new RoleDao($this->tdbmService);
+        $roleBean = $roleDao->getById(1, true);
+        $this->assertEquals(1, $roleBean->getId());
+        $this->assertInstanceOf('\\DateTimeInterface', $roleBean->getCreatedAt());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testForeignKeyInBean()
     {
         $userDao = new UserDao($this->tdbmService);

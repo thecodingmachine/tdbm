@@ -110,17 +110,18 @@ INSERT INTO `rights` (`label`) VALUES
 
 CREATE TABLE IF NOT EXISTS `roles` (
   `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL
+  `name` varchar(255) NOT NULL,
+  `created_at` date NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `roles`
 --
 
-INSERT INTO `roles` (`id`, `name`) VALUES
-  (1, 'Admins'),
-  (2, 'Writers'),
-  (3, 'Singers');
+INSERT INTO `roles` (`id`, `name`, `created_at`) VALUES
+  (1, 'Admins', '2015-10-24'),
+  (2, 'Writers', '2015-10-24'),
+  (3, 'Singers', '2015-10-24');
 
 -- --------------------------------------------------------
 
