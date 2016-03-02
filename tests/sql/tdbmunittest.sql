@@ -70,7 +70,8 @@ INSERT INTO `country` (`id`, `label`) VALUES
 CREATE TABLE IF NOT EXISTS `person` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `modified_at` datetime NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 
 --

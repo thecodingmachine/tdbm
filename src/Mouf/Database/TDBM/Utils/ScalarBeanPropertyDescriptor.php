@@ -153,7 +153,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $normalizedType = TDBMDaoGenerator::dbalTypeToPhpType($type);
 
         if ($normalizedType == '\\DateTimeInterface') {
-            return '        $array['.var_export($this->getLowerCamelCaseName(), true).'] = $this->'.$this->getGetterName()."()->format('c');\n";
+            return '        $array['.var_export($this->getLowerCamelCaseName(), true).'] = ($this->'.$this->getGetterName().'() === null)?null:$this->'.$this->getGetterName()."()->format('c');\n";
         } else {
             return '        $array['.var_export($this->getLowerCamelCaseName(), true).'] = $this->'.$this->getGetterName()."();\n";
         }

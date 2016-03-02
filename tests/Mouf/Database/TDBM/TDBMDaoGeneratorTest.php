@@ -533,6 +533,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // test serialization of dates.
         $this->assertTrue(is_string($userDecoded['createdAt']));
         $this->assertEquals('2015-10-24', (new \DateTimeImmutable($userDecoded['createdAt']))->format('Y-m-d'));
+        $this->assertNull($userDecoded['modifiedAt']);
+
 
         // testing many to 1 relationships
         $this->assertEquals('UK', $userDecoded['country']['label']);
