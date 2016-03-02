@@ -169,7 +169,15 @@ class DbRow
                 throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \"\".");
             }
 
-            $this->dbRow = $result->fetch(\PDO::FETCH_ASSOC);
+
+            $row = $result->fetch(\PDO::FETCH_ASSOC);
+
+            $this->dbRow = [];
+            $types = $this->tdbmService->_getColumnTypesForTable($this->dbTableName);
+
+            foreach ($row as $key => $value) {
+                $this->dbRow[$key] = $types[$key]->convertToPHPValue($value, $connection->getDatabasePlatform());
+            }
 
             $result->closeCursor();
 

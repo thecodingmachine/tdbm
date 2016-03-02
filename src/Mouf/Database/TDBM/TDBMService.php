@@ -27,6 +27,7 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\Type;
 use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
@@ -1315,6 +1316,7 @@ class TDBMService
                 $bean = $this->reflectionClassCache[$className]->newInstanceWithoutConstructor();
                 /* @var $bean AbstractTDBMObject */
                 $bean->_constructLazy($table, $primaryKeys, $this);
+                return $bean;
             }
         }
 
@@ -1512,5 +1514,31 @@ class TDBMService
         }
 
         return $junctionTables;
+    }
+
+    /**
+     * Array of types for tables.
+     * Key: table name
+     * Value: array of types indexed by column.
+     *
+     * @var array[]
+     */
+    private $typesForTable = [];
+
+    /**
+     * @internal
+     * @param string $tableName
+     * @return Type[]
+     */
+    public function _getColumnTypesForTable($tableName)
+    {
+        if (!isset($typesForTable[$tableName])) {
+            $columns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getColumns();
+            $typesForTable[$tableName] = array_map(function(Column $column) {
+                return $column->getType();
+            }, $columns);
+
+        }
+        return $typesForTable[$tableName];
     }
 }
