@@ -111,7 +111,8 @@ INSERT INTO `rights` (`label`) VALUES
 CREATE TABLE IF NOT EXISTS `roles` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `created_at` date NULL
+  `created_at` date NULL,
+  `status` TINYINT NOT NULL DEFAULT 1
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 
 --

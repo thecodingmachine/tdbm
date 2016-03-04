@@ -100,6 +100,21 @@ class BeanDescriptor
     }
 
     /**
+     * Returns the list of columns that have default values for a given table.
+     *
+     * @return AbstractBeanPropertyDescriptor[]
+     */
+    public function getPropertiesWithDefault()
+    {
+        $properties = $this->getPropertiesForTable($this->table);
+        $defaultProperties = array_filter($properties, function (AbstractBeanPropertyDescriptor $property) {
+            return $property->hasDefault();
+        });
+
+        return $defaultProperties;
+    }
+
+    /**
      * Returns the list of properties exposed as getters and setters in this class.
      *
      * @return AbstractBeanPropertyDescriptor[]
@@ -229,7 +244,7 @@ class BeanDescriptor
      */
     public function __construct(%s) {
 %s%s
-    }
+%s    }
     ';
 
         $paramAnnotations = [];
@@ -252,9 +267,14 @@ class BeanDescriptor
             }
         }
 
-        $parentConstrutorCode = sprintf("        parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
+        $parentConstructorCode = sprintf("        parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
 
-        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstrutorCode, implode("\n", $assigns));
+        $defaultAssigns = [];
+        foreach ($this->getPropertiesWithDefault() as $property) {
+            $defaultAssigns[] = $property->assignToDefaultCode();
+        }
+
+        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstructorCode, implode("\n", $assigns), implode("\n", $defaultAssigns));
     }
 
     public function generateDirectForeignKeysCode()

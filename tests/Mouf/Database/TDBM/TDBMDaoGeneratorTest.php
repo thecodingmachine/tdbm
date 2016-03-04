@@ -151,6 +151,15 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testDefaultValueOnNewBean()
+    {
+        $roleBean = new RoleBean("my_role");
+        $this->assertEquals(1, $roleBean->getStatus());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testForeignKeyInBean()
     {
         $userDao = new UserDao($this->tdbmService);
@@ -175,7 +184,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $countryDao = new CountryDao($this->tdbmService);
         $userDao = new UserDao($this->tdbmService);
-        $userBean = new UserBean('John Doe', new \DateTimeImmutable(), 'john@doe.com', $countryDao->getById(2), 'john.doe');
+        $userBean = new UserBean('John Doe', 'john@doe.com', $countryDao->getById(2), 'john.doe');
 
         $userDao->save($userBean);
     }
@@ -198,7 +207,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $userDao = new UserDao($this->tdbmService);
         $countryBean = new CountryBean('Mexico');
-        $userBean = new UserBean('Speedy Gonzalez', new \DateTimeImmutable(), 'speedy@gonzalez.com', $countryBean, 'speedy.gonzalez');
+        $userBean = new UserBean('Speedy Gonzalez', 'speedy@gonzalez.com', $countryBean, 'speedy.gonzalez');
         $this->assertEquals($countryBean, $userBean->getCountry());
 
         $userDao->save($userBean);
@@ -268,7 +277,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $countryDao = new CountryDao($this->tdbmService);
         $country = $countryDao->getById(1);
-        $user = new UserBean('Speedy Gonzalez', new \DateTimeImmutable(), 'speedy@gonzalez.com', $country, 'speedy.gonzalez');
+        $user = new UserBean('Speedy Gonzalez', 'speedy@gonzalez.com', $country, 'speedy.gonzalez');
         $role = new RoleBean('Mouse');
         $user->addRole($role);
         $roles = $user->getRoles();
@@ -309,7 +318,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $countryDao = new CountryDao($this->tdbmService);
         $country = $countryDao->getById(1);
-        $user = new UserBean('Speedy Gonzalez', new \DateTimeImmutable(), 'speedy@gonzalez.com', $country, 'speedy.gonzalez');
+        $user = new UserBean('Speedy Gonzalez', 'speedy@gonzalez.com', $country, 'speedy.gonzalez');
         $role = new RoleBean('Mouse');
         $user->addRole($role);
         $role->addUser($user);
@@ -678,7 +687,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $roleDao = new RoleDao($this->tdbmService);
         $role = $roleDao->getById(1);
 
-        $userBean = new UserBean('John Doe', new \DateTimeImmutable(), 'john@doe.com', $countryDao->getById(2), 'john.doe');
+        $userBean = new UserBean('John Doe', 'john@doe.com', $countryDao->getById(2), 'john.doe');
         $userBean->addRole($role);
 
         $user2 = clone $userBean;
@@ -701,7 +710,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $countryDao = new CountryDao($this->tdbmService);
 
         $spain = new CountryBean('Spain');
-        $sanchez = new UserBean('Manuel Sanchez', new \DateTimeImmutable(), 'manuel@sanchez.com', $spain, 'manuel.sanchez');
+        $sanchez = new UserBean('Manuel Sanchez', 'manuel@sanchez.com', $spain, 'manuel.sanchez');
 
         $countryDao->save($spain);
         $userDao->save($sanchez);
@@ -760,7 +769,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userDao = new TestUserDao($this->tdbmService);
         $countryDao = new CountryDao($this->tdbmService);
 
-        $sanchez = new UserBean('Manuel Sanchez', new \DateTimeImmutable(), 'manuel@sanchez.com', $countryDao->getById(1), 'manuel.sanchez');
+        $sanchez = new UserBean('Manuel Sanchez', 'manuel@sanchez.com', $countryDao->getById(1), 'manuel.sanchez');
 
         $userDao->save($sanchez);
 

@@ -70,7 +70,37 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function isCompulsory()
     {
-        return $this->column->getNotnull() && !$this->column->getAutoincrement();
+        return $this->column->getNotnull() && !$this->column->getAutoincrement() && $this->column->getDefault() === null;
+    }
+
+    /**
+     * Returns true if the property has a default value.
+     *
+     * @return bool
+     */
+    public function hasDefault()
+    {
+        return $this->column->getDefault() !== null;
+    }
+
+    /**
+     * Returns the code that assigns a value to its default value.
+     *
+     * @return string
+     */
+    public function assignToDefaultCode()
+    {
+        $str = '        $this->%s(%s);';
+
+        $default = $this->column->getDefault();
+
+        if (strtoupper($default) === 'CURRENT_TIMESTAMP') {
+            $defaultCode = 'new \DateTimeImmutable()';
+        } else {
+            $defaultCode = var_export($this->column->getDefault(), true);
+        }
+
+        return sprintf($str, $this->getSetterName(), $defaultCode);
     }
 
     /**
