@@ -1506,7 +1506,7 @@ class TDBMService
     public function _getPivotTablesLinkedToBean(AbstractTDBMObject $bean)
     {
         $junctionTables = [];
-        $allJunctionTables = $this->schemaAnalyzer->detectJunctionTables();
+        $allJunctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
         foreach ($bean->_getDbRows() as $dbRow) {
             foreach ($allJunctionTables as $table) {
                 // There are exactly 2 FKs since this is a pivot table.

@@ -82,7 +82,7 @@ class TDBMDaoGenerator
         $tableList = $this->schema->getTables();
 
         // Remove all beans and daos from junction tables
-        $junctionTables = $this->schemaAnalyzer->detectJunctionTables();
+        $junctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
         $junctionTableNames = array_map(function (Table $table) {
             return $table->getName();
         }, $junctionTables);
