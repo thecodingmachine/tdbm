@@ -93,6 +93,22 @@ abstract class AbstractBeanPropertyDescriptor
     abstract public function isCompulsory();
 
     /**
+     * Returns true if the property has a default value.
+     *
+     * @return bool
+     */
+    abstract public function hasDefault();
+
+    /**
+     * Returns the code that assigns a value to its default value.
+     *
+     * @return string
+     *
+     * @throws \TDBMException
+     */
+    abstract public function assignToDefaultCode();
+
+    /**
      * Returns true if the property is the primary key.
      *
      * @return bool

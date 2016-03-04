@@ -169,7 +169,6 @@ class DbRow
                 throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \"\".");
             }
 
-
             $row = $result->fetch(\PDO::FETCH_ASSOC);
 
             $this->dbRow = [];

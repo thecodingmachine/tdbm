@@ -258,6 +258,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         foreach ($page as $bean) {
             return $bean;
         }
-        return null;
+
+        return;
     }
 }

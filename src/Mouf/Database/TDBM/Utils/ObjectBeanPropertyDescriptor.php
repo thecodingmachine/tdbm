@@ -111,6 +111,28 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
+     * Returns true if the property has a default value.
+     *
+     * @return bool
+     */
+    public function hasDefault()
+    {
+        return false;
+    }
+
+    /**
+     * Returns the code that assigns a value to its default value.
+     *
+     * @return string
+     *
+     * @throws \TDBMException
+     */
+    public function assignToDefaultCode()
+    {
+        throw new \TDBMException('Foreign key based properties cannot be assigned a default value.');
+    }
+
+    /**
      * Returns true if the property is the primary key.
      *
      * @return bool
