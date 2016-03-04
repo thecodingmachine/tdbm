@@ -143,6 +143,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $roleBean = $roleDao->getById(1, true);
         $this->assertEquals(1, $roleBean->getId());
         $this->assertInstanceOf('\\DateTimeInterface', $roleBean->getCreatedAt());
+
+        $roleBean2 = $roleDao->getById(1, true);
+        $this->assertTrue($roleBean === $roleBean2);
     }
 
     /**
