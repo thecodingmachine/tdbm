@@ -99,7 +99,7 @@ class TDBMSchemaAnalyzer
 
         $pivotTables = [];
 
-        $junctionTables = $this->schemaAnalyzer->detectJunctionTables();
+        $junctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
         foreach ($junctionTables as $table) {
             $fks = $table->getForeignKeys();
             foreach ($fks as $fk) {
@@ -123,7 +123,7 @@ class TDBMSchemaAnalyzer
      */
     public function getIncomingForeignKeys($tableName)
     {
-        $junctionTables = $this->schemaAnalyzer->detectJunctionTables();
+        $junctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
         $junctionTableNames = array_map(function (Table $table) { return $table->getName(); }, $junctionTables);
         $childrenRelationships = $this->schemaAnalyzer->getChildrenRelationships($tableName);
 

@@ -382,7 +382,7 @@ class BeanDescriptor
     private function getPivotTableDescriptors()
     {
         $descs = [];
-        foreach ($this->schemaAnalyzer->detectJunctionTables() as $table) {
+        foreach ($this->schemaAnalyzer->detectJunctionTables(true) as $table) {
             // There are exactly 2 FKs since this is a pivot table.
             $fks = array_values($table->getForeignKeys());
 
