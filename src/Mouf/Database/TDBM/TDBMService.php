@@ -1320,6 +1320,7 @@ class TDBMService
                 $bean = $this->reflectionClassCache[$className]->newInstanceWithoutConstructor();
                 /* @var $bean AbstractTDBMObject */
                 $bean->_constructLazy($table, $primaryKeys, $this);
+
                 return $bean;
             }
         }
@@ -1531,18 +1532,20 @@ class TDBMService
 
     /**
      * @internal
+     *
      * @param string $tableName
+     *
      * @return Type[]
      */
     public function _getColumnTypesForTable($tableName)
     {
         if (!isset($typesForTable[$tableName])) {
             $columns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getColumns();
-            $typesForTable[$tableName] = array_map(function(Column $column) {
+            $typesForTable[$tableName] = array_map(function (Column $column) {
                 return $column->getType();
             }, $columns);
-
         }
+
         return $typesForTable[$tableName];
     }
 }

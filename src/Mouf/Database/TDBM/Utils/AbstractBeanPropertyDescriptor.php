@@ -103,6 +103,7 @@ abstract class AbstractBeanPropertyDescriptor
      * Returns the code that assigns a value to its default value.
      *
      * @return string
+     *
      * @throws \TDBMException
      */
     abstract public function assignToDefaultCode();

@@ -552,6 +552,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      * @throws TDBMInvalidOperationException
      */

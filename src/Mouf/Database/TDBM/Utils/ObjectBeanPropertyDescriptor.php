@@ -124,6 +124,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * Returns the code that assigns a value to its default value.
      *
      * @return string
+     *
      * @throws \TDBMException
      */
     public function assignToDefaultCode()

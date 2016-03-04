@@ -153,7 +153,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testDefaultValueOnNewBean()
     {
-        $roleBean = new RoleBean("my_role");
+        $roleBean = new RoleBean('my_role');
         $this->assertEquals(1, $roleBean->getStatus());
     }
 
@@ -557,7 +557,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertTrue(is_string($userDecoded['createdAt']));
         $this->assertEquals('2015-10-24', (new \DateTimeImmutable($userDecoded['createdAt']))->format('Y-m-d'));
         $this->assertNull($userDecoded['modifiedAt']);
-
 
         // testing many to 1 relationships
         $this->assertEquals('UK', $userDecoded['country']['label']);
