@@ -70,7 +70,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('contact');
-        $this->assertCount(0, $fks);
+        $this->assertCount(1, $fks);
     }
 
     public function testGetIncomingForeignKeys3()

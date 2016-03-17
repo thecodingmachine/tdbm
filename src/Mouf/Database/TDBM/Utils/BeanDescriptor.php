@@ -485,7 +485,7 @@ class BeanDescriptor
         $tableName = $this->table->getName();
         $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
         if ($parentFk !== null) {
-            $initializer = '$array = parent::jsonSerialize();';
+            $initializer = '$array = parent::jsonSerialize($stopRecursion);';
         } else {
             $initializer = '$array = [];';
         }

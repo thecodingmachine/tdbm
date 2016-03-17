@@ -570,6 +570,22 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testNullableForeignKey()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $user = $userDao->getUserByLogin('john.smith');
+
+        $this->assertNull(null, $user->getManager());
+
+        $jsonEncoded = json_encode($user);
+        $userDecoded = json_decode($jsonEncoded, true);
+
+        $this->assertNull(null, $userDecoded['manager']);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testInnerJsonEncode()
     {
         $userDao = new TestUserDao($this->tdbmService);

@@ -28,18 +28,19 @@ SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `contact` (
   `id` int(11) NOT NULL,
-  `email` varchar(255) NOT NULL
+  `email` varchar(255) NOT NULL,
+  `manager_id` int(11) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `contact`
 --
 
-INSERT INTO `contact` (`id`, `email`) VALUES
-  (1, 'john@smith.com'),
-  (2, 'jean@dupont.com'),
-  (3, 'robert@marley.com'),
-  (4, 'bill@shakespeare.com');
+INSERT INTO `contact` (`id`, `email`, `manager_id`) VALUES
+  (1, 'john@smith.com', null),
+  (2, 'jean@dupont.com', null),
+  (3, 'robert@marley.com', null),
+  (4, 'bill@shakespeare.com', 1);
 
 -- --------------------------------------------------------
 
@@ -276,7 +277,8 @@ MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=11;
 -- Constraints for table `contact`
 --
 ALTER TABLE `contact`
-ADD CONSTRAINT `contact_ibfk_1` FOREIGN KEY (`id`) REFERENCES `person` (`id`);
+ADD CONSTRAINT `contact_ibfk_1` FOREIGN KEY (`id`) REFERENCES `person` (`id`),
+ADD CONSTRAINT `manager_ibfk_1` FOREIGN KEY (`manager_id`) REFERENCES `contact` (`id`);
 
 --
 -- Constraints for table `roles_rights`
