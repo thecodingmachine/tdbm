@@ -282,7 +282,7 @@ class DbRow
      */
     public function getRef($foreignKeyName)
     {
-        if (isset($this->references[$foreignKeyName])) {
+        if (array_key_exists($foreignKeyName, $this->references)) {
             return $this->references[$foreignKeyName];
         } elseif ($this->status === TDBMObjectStateEnum::STATE_NEW) {
             // If the object is new and has no property, then it has to be empty.
