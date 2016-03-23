@@ -666,9 +666,11 @@ class TDBMService
 
                 // Let's save all references in NEW or DETACHED state (we need their primary key)
                 foreach ($references as $fkName => $reference) {
-                    $refStatus = $reference->_getStatus();
-                    if ($refStatus === TDBMObjectStateEnum::STATE_NEW || $refStatus === TDBMObjectStateEnum::STATE_DETACHED) {
-                        $this->save($reference);
+                    if ($reference !== null) {
+                        $refStatus = $reference->_getStatus();
+                        if ($refStatus === TDBMObjectStateEnum::STATE_NEW || $refStatus === TDBMObjectStateEnum::STATE_DETACHED) {
+                            $this->save($reference);
+                        }
                     }
                 }
 
@@ -765,7 +767,7 @@ class TDBMService
 
                 // Let's save all references in NEW state (we need their primary key)
                 foreach ($references as $fkName => $reference) {
-                    if ($reference->_getStatus() === TDBMObjectStateEnum::STATE_NEW) {
+                    if ($reference !== null && $reference->_getStatus() === TDBMObjectStateEnum::STATE_NEW) {
                         $this->save($reference);
                     }
                 }

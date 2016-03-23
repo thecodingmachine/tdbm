@@ -368,13 +368,19 @@ class DbRow
         foreach ($this->references as $foreignKeyName => $reference) {
             // Let's match the name of the columns to the primary key values
             $fk = $this->tdbmService->_getForeignKeyByName($this->dbTableName, $foreignKeyName);
-            $refDbRows = $reference->_getDbRows();
-            $firstRefDbRow = reset($refDbRows);
-            $pkValues = array_values($firstRefDbRow->_getPrimaryKeys());
             $localColumns = $fk->getLocalColumns();
 
-            for ($i = 0, $count = count($localColumns); $i < $count; ++$i) {
-                $dbRow[$localColumns[$i]] = $pkValues[$i];
+            if ($reference !== null) {
+                $refDbRows = $reference->_getDbRows();
+                $firstRefDbRow = reset($refDbRows);
+                $pkValues = array_values($firstRefDbRow->_getPrimaryKeys());
+                for ($i = 0, $count = count($localColumns); $i < $count; ++$i) {
+                    $dbRow[$localColumns[$i]] = $pkValues[$i];
+                }
+            } else {
+                for ($i = 0, $count = count($localColumns); $i < $count; ++$i) {
+                    $dbRow[$localColumns[$i]] = null;
+                }
             }
         }
 
