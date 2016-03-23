@@ -570,6 +570,38 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testNullableForeignKey()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $user = $userDao->getUserByLogin('john.smith');
+
+        $this->assertNull(null, $user->getManager());
+
+        $jsonEncoded = json_encode($user);
+        $userDecoded = json_decode($jsonEncoded, true);
+
+        $this->assertNull(null, $userDecoded['manager']);
+    }
+
+    /**
+     * Test that setting (and saving) objects' references (foreign keys relations) to null is working.
+     */
+    public function testSetToNullForeignKey()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $user = $userDao->getUserByLogin('john.smith');
+        $manager = $userDao->getUserByLogin('jean.dupont');
+
+        $user->setManager($manager);
+        $userDao->save($user);
+
+        $user->setManager(null);
+        $userDao->save($user);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testInnerJsonEncode()
     {
         $userDao = new TestUserDao($this->tdbmService);
