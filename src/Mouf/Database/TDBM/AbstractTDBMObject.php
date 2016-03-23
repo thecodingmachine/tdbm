@@ -239,7 +239,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param string             $foreignKeyName
      * @param AbstractTDBMObject $bean
      */
-    protected function setRef($foreignKeyName, AbstractTDBMObject $bean, $tableName = null)
+    protected function setRef($foreignKeyName, AbstractTDBMObject $bean = null, $tableName = null)
     {
         if ($tableName === null) {
             if (count($this->dbRows) > 1) {

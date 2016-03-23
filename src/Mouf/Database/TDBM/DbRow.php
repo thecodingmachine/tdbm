@@ -282,7 +282,7 @@ class DbRow
      */
     public function getRef($foreignKeyName)
     {
-        if (isset($this->references[$foreignKeyName])) {
+        if (array_key_exists($foreignKeyName, $this->references)) {
             return $this->references[$foreignKeyName];
         } elseif ($this->status === TDBMObjectStateEnum::STATE_NEW) {
             // If the object is new and has no property, then it has to be empty.
@@ -295,7 +295,11 @@ class DbRow
 
             $values = [];
             foreach ($fk->getLocalColumns() as $column) {
-                $values[] = $this->dbRow[$column];
+                $val = $this->dbRow[$column];
+                if ($val === null) {
+                    return;
+                }
+                $values[] = $val;
             }
 
             $filter = array_combine($this->tdbmService->getPrimaryKeyColumns($fk->getForeignTableName()), $values);

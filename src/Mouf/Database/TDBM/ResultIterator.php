@@ -234,15 +234,19 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
      *
+     * @param bool $stopRecursion Parameter used internally by TDBM to
+     *                            stop embedded objects from embedding
+     *                            other objects.
+     *
      * @return mixed data which can be serialized by <b>json_encode</b>,
      *               which is a value of any type other than a resource.
      *
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize($stopRecursion = false)
     {
-        return array_map(function (AbstractTDBMObject $item) {
-            return $item->jsonSerialize();
+        return array_map(function (AbstractTDBMObject $item) use ($stopRecursion) {
+            return $item->jsonSerialize($stopRecursion);
         }, $this->toArray());
     }
 
