@@ -21,6 +21,7 @@
 	"require" : {
 		"php" : ">=5.5.0",
 	    "mouf/magic-query" : "~1.1",
+		"mouf/schema-analyzer": "^1.1",
 	    "doctrine/dbal": "~2.5",
 		"doctrine/cache": "~1.5",
 	    "mouf/database.doctrine-dbal-wrapper": "~1.1",
