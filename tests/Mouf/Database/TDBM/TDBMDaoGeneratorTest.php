@@ -585,6 +585,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     /**
      * Test that setting (and saving) objects' references (foreign keys relations) to null is working.
+     *
+     * @depends testDaoGeneration
      */
     public function testSetToNullForeignKey()
     {
@@ -598,6 +600,29 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $user->setManager(null);
         $userDao->save($user);
     }
+
+    /**
+     * @depends testDaoGeneration
+     * @expectedException \Mouf\Database\SchemaAnalyzer\SchemaAnalyzerTableNotFoundException
+     * @expectedExceptionMessage Could not find table 'contacts'. Did you mean 'contact'?
+     */
+    public function testQueryOnWrongTableName()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersWrongTableName();
+        $users->count();
+    }
+
+
+    /**
+     * @depends testDaoGeneration
+     */
+    /*public function testQueryNullForeignKey()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByManagerId(null);
+        $this->assertCount(3, $users);
+    }*/
 
     /**
      * @depends testDaoGeneration

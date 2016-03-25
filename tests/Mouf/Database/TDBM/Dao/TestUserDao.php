@@ -44,4 +44,18 @@ class TestUserDao extends UserBaseDao
     {
         return $this->findOne('login = :login', ['login' => $login]);
     }
+
+    public function getUsersByManagerId($managerId)
+    {
+        return $this->find('contact.manager_id = :id!', ['id' => $managerId]);
+    }
+
+    /**
+     * Triggers an error because table "contacts" does not exist.
+     * @return \Mouf\Database\TDBM\ResultIterator|\Mouf\Database\TDBM\Test\Dao\Bean\UserBean[]|\Mouf\Database\TDBM\Test\Dao\Generated\ResultArray
+     */
+    public function getUsersWrongTableName()
+    {
+        return $this->find('contacts.manager_id = 1');
+    }
 }
