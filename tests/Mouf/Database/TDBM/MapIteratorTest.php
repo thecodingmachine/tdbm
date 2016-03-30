@@ -43,4 +43,14 @@ class MapIteratorTest extends \PHPUnit_Framework_TestCase
             return $item;
         });
     }
+
+    public function testJsonSerialize()
+    {
+        $value = array(1, 2, 3);
+        $mapIterator = new MapIterator($value, function ($item) {
+            return $item;
+        });
+
+        $this->assertEquals($value, json_decode(json_encode($mapIterator), true));
+    }
 }
