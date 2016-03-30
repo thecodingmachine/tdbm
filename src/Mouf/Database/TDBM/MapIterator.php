@@ -7,7 +7,7 @@ use Iterator;
 /**
  * An iterator that maps element of another iterator by calling a callback on it.
  */
-class MapIterator implements Iterator
+class MapIterator implements Iterator, \JsonSerializable
 {
     /**
      * @var Iterator
@@ -90,5 +90,10 @@ class MapIterator implements Iterator
     public function toArray()
     {
         return iterator_to_array($this);
+    }
+
+    public function jsonSerialize()
+    {
+        return $this->toArray();
     }
 }
