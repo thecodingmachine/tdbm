@@ -613,7 +613,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $users->count();
     }
 
-
     /**
      * @depends testDaoGeneration
      */

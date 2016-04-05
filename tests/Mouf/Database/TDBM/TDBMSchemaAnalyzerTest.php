@@ -84,6 +84,23 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $this->assertEquals('users', $fks[0]->getLocalTableName());
     }
 
+    public function testGetPivotTableLinkedToTable()
+    {
+        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $cache = new ArrayCache();
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
+
+        $pivotTables = $tdbmSchemaAnalyzer->getPivotTableLinkedToTable('rights');
+        $this->assertCount(1, $pivotTables);
+        $this->assertEquals('roles_rights', $pivotTables[0]);
+
+        $pivotTables = $tdbmSchemaAnalyzer->getPivotTableLinkedToTable('country');
+        $this->assertCount(0, $pivotTables);
+
+        $pivotTables = $tdbmSchemaAnalyzer->getPivotTableLinkedToTable('country');
+        $this->assertCount(0, $pivotTables);
+    }
+
     /*public function testGetCompulsoryColumnsWithNoInheritance() {
         $table = $this->tdbmSchemaAnalyzer->getSchema()->getTable('country');
         $compulsoryColumns = $this->tdbmSchemaAnalyzer->getCompulsoryProperties($table);
