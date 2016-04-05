@@ -52,6 +52,7 @@ class TestUserDao extends UserBaseDao
 
     /**
      * Triggers an error because table "contacts" does not exist.
+     *
      * @return \Mouf\Database\TDBM\ResultIterator|\Mouf\Database\TDBM\Test\Dao\Bean\UserBean[]|\Mouf\Database\TDBM\Test\Dao\Generated\ResultArray
      */
     public function getUsersWrongTableName()
