@@ -187,6 +187,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userBean = new UserBean('John Doe', 'john@doe.com', $countryDao->getById(2), 'john.doe');
 
         $userDao->save($userBean);
+
+        $this->assertNull($userBean->getManager());
     }
 
     /**

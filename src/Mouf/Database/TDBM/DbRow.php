@@ -295,11 +295,10 @@ class DbRow
 
             $values = [];
             foreach ($fk->getLocalColumns() as $column) {
-                $val = $this->dbRow[$column];
-                if ($val === null) {
+                if (!isset($this->dbRow[$column])) {
                     return;
                 }
-                $values[] = $val;
+                $values[] = $this->dbRow[$column];
             }
 
             $filter = array_combine($this->tdbmService->getPrimaryKeyColumns($fk->getForeignTableName()), $values);
