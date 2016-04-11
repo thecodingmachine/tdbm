@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS `person` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `modified_at` datetime NULL
+  `modified_at` datetime NULL,
+  `order` int(11) NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 
 --

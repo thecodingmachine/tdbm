@@ -699,13 +699,15 @@ class TDBMService
                 }*/
 
                 $types = [];
+                $escapedDbRowData = [];
 
                 foreach ($dbRowData as $columnName => $value) {
                     $columnDescriptor = $tableDescriptor->getColumn($columnName);
                     $types[] = $columnDescriptor->getType();
+                    $escapedDbRowData[$this->connection->quoteIdentifier($columnName)] = $value;
                 }
 
-                $this->connection->insert($tableName, $dbRowData, $types);
+                $this->connection->insert($tableName, $escapedDbRowData, $types);
 
                 if (!$isPkSet && count($primaryKeyColumns) == 1) {
                     $id = $this->connection->lastInsertId();
@@ -782,17 +784,21 @@ class TDBMService
                 $primaryKeys = $dbRow->_getPrimaryKeys();
 
                 $types = [];
+                $escapedDbRowData = [];
+                $escapedPrimaryKeys = [];
 
                 foreach ($dbRowData as $columnName => $value) {
                     $columnDescriptor = $tableDescriptor->getColumn($columnName);
                     $types[] = $columnDescriptor->getType();
+                    $escapedDbRowData[$this->connection->quoteIdentifier($columnName)] = $value;
                 }
                 foreach ($primaryKeys as $columnName => $value) {
                     $columnDescriptor = $tableDescriptor->getColumn($columnName);
                     $types[] = $columnDescriptor->getType();
+                    $escapedPrimaryKeys[$this->connection->quoteIdentifier($columnName)] = $value;
                 }
 
-                $this->connection->update($tableName, $dbRowData, $primaryKeys, $types);
+                $this->connection->update($tableName, $escapedDbRowData, $escapedPrimaryKeys, $types);
 
                 // Let's check if the primary key has been updated...
                 $needsUpdatePk = false;
@@ -847,13 +853,15 @@ class TDBMService
                     $filters = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk);
 
                     $types = [];
+                    $escapedFilters = [];
 
                     foreach ($filters as $columnName => $value) {
                         $columnDescriptor = $tableDescriptor->getColumn($columnName);
                         $types[] = $columnDescriptor->getType();
+                        $escapedFilters[$this->connection->quoteIdentifier($columnName)] = $value;
                     }
 
-                    $this->connection->insert($pivotTableName, $filters, $types);
+                    $this->connection->insert($pivotTableName, $escapedFilters, $types);
 
                     // Finally, let's mark relationships as saved.
                     $statusArr['status'] = 'loaded';
