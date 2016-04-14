@@ -185,6 +185,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $countryDao = new CountryDao($this->tdbmService);
         $userDao = new UserDao($this->tdbmService);
         $userBean = new UserBean('John Doe', 'john@doe.com', $countryDao->getById(2), 'john.doe');
+        $userBean->setOrder(1); // Let's set a "protected keyword" column.
 
         $userDao->save($userBean);
 
@@ -212,6 +213,17 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userBean = new UserBean('Speedy Gonzalez', 'speedy@gonzalez.com', $countryBean, 'speedy.gonzalez');
         $this->assertEquals($countryBean, $userBean->getCountry());
 
+        $userDao->save($userBean);
+    }
+
+    /**
+     * @depends testAssigningNewBeans
+     */
+    public function testUpdatingProtectedColumn()
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $userBean = $userDao->findOneByLogin('speedy.gonzalez');
+        $userBean->setOrder(2);
         $userDao->save($userBean);
     }
 
