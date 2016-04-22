@@ -165,7 +165,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             $this->column->getName(),
             $columnSetterName,
             $castTo,
-            $this->column->getName(),
+            $this->column->getName().($castTo ? ($this->column->getNotnull() ? '' : ' = null') : ''),
             var_export($this->column->getName(), true),
             $this->column->getName(),
             var_export($this->table->getName(), true)

@@ -871,4 +871,32 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->assertEquals('jean.dupont', $users[0]->getLogin());
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCreationInNullableDate()
+    {
+        $roleDao = new RoleDao($this->tdbmService);
+
+        $role = new RoleBean('newbee');
+        $roleDao->save($role);
+
+        $this->assertNull($role->getCreatedAt());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testUpdateInNullableDate()
+    {
+        $roleDao = new RoleDao($this->tdbmService);
+
+        $role = new RoleBean('newbee');
+        $roleDao->save($role);
+
+        $role->setCreatedAt(null);
+        $roleDao->save($role);
+        $this->assertNull($role->getCreatedAt());
+    }
 }
