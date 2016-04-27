@@ -1337,24 +1337,26 @@ class TDBMService
 
         $allFetchedTables = $this->_getRelatedTablesByInheritance($mainTable);
 
-        $sql = 'SELECT DISTINCT '.$this->connection->quoteIdentifier($mainTable).'.* FROM '.$from;
+        $columnDescList = [];
+        $schema = $this->tdbmSchemaAnalyzer->getSchema();
+        $tableGroupName = $this->getTableGroupName($allFetchedTables);
 
-        if (count($allFetchedTables) === 1) {
-            $columnDescList = [];
-            $schema = $this->tdbmSchemaAnalyzer->getSchema();
-            $tableGroupName = $this->getTableGroupName($allFetchedTables);
+        foreach ($schema->getTable($mainTable)->getColumns() as $column) {
+            $columnName = $column->getName();
+            $columnDescList[] = [
+                'as' => $columnName,
+                'table' => $mainTable,
+                'column' => $columnName,
+                'type' => $column->getType(),
+                'tableGroup' => $tableGroupName,
+            ];
+        }
 
-            foreach ($schema->getTable($mainTable)->getColumns() as $column) {
-                $columnName = $column->getName();
-                $columnDescList[] = [
-                    'as' => $columnName,
-                    'table' => $mainTable,
-                    'column' => $columnName,
-                    'type' => $column->getType(),
-                    'tableGroup' => $tableGroupName,
-                ];
-            }
-        } else {
+        $sql = 'SELECT DISTINCT '.implode(', ', array_map(function($columnDesc) use ($mainTable) {
+                    return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($columnDesc['column']);
+            }, $columnDescList)) .' FROM '.$from;
+
+        if (count($allFetchedTables) > 1) {
             list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, []);
         }
 
