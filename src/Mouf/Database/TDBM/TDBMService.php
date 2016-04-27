@@ -1126,6 +1126,69 @@ class TDBMService
     }
 
     /**
+     * @param string $tableName
+     *
+     * @return ForeignKeyConstraint[]
+     */
+    private function getParentRelationshipForeignKeys($tableName)
+    {
+        return $this->fromCache($this->cachePrefix.'_parentrelationshipfks_'.$tableName, function () use ($tableName) {
+            return $this->getParentRelationshipForeignKeysWithoutCache($tableName);
+        });
+    }
+
+    /**
+     * @param string $tableName
+     *
+     * @return ForeignKeyConstraint[]
+     */
+    private function getParentRelationshipForeignKeysWithoutCache($tableName)
+    {
+        $parentFks = [];
+        $currentTable = $tableName;
+        while ($currentFk = $this->schemaAnalyzer->getParentRelationship($currentTable)) {
+            $currentTable = $currentFk->getForeignTableName();
+            $parentFks[] = $currentFk;
+        };
+
+        return $parentFks;
+    }
+
+    /**
+     * @param string $tableName
+     *
+     * @return ForeignKeyConstraint[]
+     */
+    private function getChildrenRelationshipForeignKeys($tableName)
+    {
+        return $this->fromCache($this->cachePrefix.'_childrenrelationshipfks_'.$tableName, function () use ($tableName) {
+            return $this->getChildrenRelationshipForeignKeysWithoutCache($tableName);
+        });
+    }
+
+    /**
+     * @param string $tableName
+     *
+     * @return ForeignKeyConstraint[]
+     */
+    private function getChildrenRelationshipForeignKeysWithoutCache($tableName)
+    {
+        $children = $this->schemaAnalyzer->getChildrenRelationships($tableName);
+
+        if (!empty($children)) {
+            $fksTables = array_map(function (ForeignKeyConstraint $fk) {
+                return $this->getChildrenRelationshipForeignKeys($fk->getLocalTableName());
+            }, $children);
+
+            $fks = array_merge($children, call_user_func_array('array_merge', $fksTables));
+
+            return $fks;
+        } else {
+            return [];
+        }
+    }
+
+    /**
      * Casts a foreign key into SQL, assuming table name is used with no alias.
      * The returned value does contain only one table. For instance:.
      *
@@ -1266,15 +1329,17 @@ class TDBMService
             throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
         }
 
+        $columnsList = null;
+
         list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter);
 
         $parameters = array_merge($parameters, $additionalParameters);
 
         $allFetchedTables = $this->_getRelatedTablesByInheritance($mainTable);
 
-        if (count($allFetchedTables) === 1) {
-            $sql = 'SELECT DISTINCT '.$this->connection->quoteIdentifier($mainTable).'.* FROM '.$from;
+        $sql = 'SELECT DISTINCT '.$this->connection->quoteIdentifier($mainTable).'.* FROM '.$from;
 
+        if (count($allFetchedTables) === 1) {
             $columnDescList = [];
             $schema = $this->tdbmSchemaAnalyzer->getSchema();
             $tableGroupName = $this->getTableGroupName($allFetchedTables);
@@ -1290,15 +1355,10 @@ class TDBMService
                 ];
             }
         } else {
-            throw new TDBMException('So far, TDBM does not support fetching beans with hierarchical relationship in a custom SQL request.');
+            list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, []);
         }
 
-        //list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, []);
-
-
         // Let's compute the COUNT.
-
-
         $countSql = 'SELECT COUNT(1) FROM '.$from;
 
         if (!empty($filterString)) {
@@ -1317,6 +1377,33 @@ class TDBMService
 
         if ($mode !== null && $mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
             throw new TDBMException("Unknown fetch mode: '".$mode."'");
+        }
+
+        if ($columnsList !== null) {
+            $joinSql = '';
+            $parentFks = $this->getParentRelationshipForeignKeys($mainTable);
+            foreach ($parentFks as $fk) {
+                $joinSql .= sprintf(' JOIN %s ON (%s.%s = %s.%s)',
+                    $this->connection->quoteIdentifier($fk->getForeignTableName()),
+                    $this->connection->quoteIdentifier($fk->getLocalTableName()),
+                    $this->connection->quoteIdentifier($fk->getLocalColumns()[0]),
+                    $this->connection->quoteIdentifier($fk->getForeignTableName()),
+                    $this->connection->quoteIdentifier($fk->getForeignColumns()[0])
+                    );
+            }
+
+            $childrenFks = $this->getChildrenRelationshipForeignKeys($mainTable);
+            foreach ($childrenFks as $fk) {
+                $joinSql .= sprintf(' LEFT JOIN %s ON (%s.%s = %s.%s)',
+                    $this->connection->quoteIdentifier($fk->getLocalTableName()),
+                    $this->connection->quoteIdentifier($fk->getForeignTableName()),
+                    $this->connection->quoteIdentifier($fk->getForeignColumns()[0]),
+                    $this->connection->quoteIdentifier($fk->getLocalTableName()),
+                    $this->connection->quoteIdentifier($fk->getLocalColumns()[0])
+                );
+            }
+
+            $sql = 'SELECT '.implode(', ', $columnsList).' FROM ('.$sql.') AS '.$mainTable.' '.$joinSql;
         }
 
         $mode = $mode ?: $this->mode;

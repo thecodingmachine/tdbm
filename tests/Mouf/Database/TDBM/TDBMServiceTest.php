@@ -615,6 +615,22 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
             'rights.label = :right', array('right' => 'CAN_SING'));
     }
 
+    public function testFindObjectsFromSqlHierarchyDown()
+    {
+        $users = $this->tdbmService->findObjectsFromSql('person', 'person', 'name LIKE :name OR name LIKE :name2',
+            array('name' => 'Robert Marley', 'name2' => 'Bill Shakespeare'));
+        $this->assertCount(2, $users);
+        $this->assertSame('robert.marley', $users[0]->getProperty('login', 'users'));
+    }
+
+    public function testFindObjectsFromSqlHierarchyUp()
+    {
+        $users = $this->tdbmService->findObjectsFromSql('users', 'users', 'login LIKE :login OR login LIKE :login2',
+            array('login' => 'robert.marley', 'login2' => 'bill.shakespeare'));
+        $this->assertCount(2, $users);
+        $this->assertSame('Robert Marley', $users[0]->getProperty('name', 'person'));
+    }
+
     /*
         public function testObjectAsFilter() {
             $dpt = $this->tdbmService->getObject('departements', 1);
