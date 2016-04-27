@@ -1222,6 +1222,125 @@ class TDBMService
 
         $parameters = array_merge($parameters, $additionalParameters);
 
+        list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, $additionalTablesFetch);
+
+        $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$mainTable.')';
+        $countSql = 'SELECT COUNT(1) FROM MAGICJOIN('.$mainTable.')';
+
+        if (!empty($filterString)) {
+            $sql .= ' WHERE '.$filterString;
+            $countSql .= ' WHERE '.$filterString;
+        }
+
+        if (!empty($orderString)) {
+            $sql .= ' ORDER BY '.$orderString;
+            $countSql .= ' ORDER BY '.$orderString;
+        }
+
+        if ($mode !== null && $mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
+            throw new TDBMException("Unknown fetch mode: '".$this->mode."'");
+        }
+
+        $mode = $mode ?: $this->mode;
+
+        return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode);
+    }
+
+    /**
+     *
+     *
+     *
+     * @param string            $mainTable             The name of the table queried
+     * @param string            $from                  The from sql statement
+     * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param array             $parameters
+     * @param string|null       $orderString           The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
+     * @param int               $mode
+     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     *
+     * @return ResultIterator An object representing an array of results.
+     *
+     * @throws TDBMException
+     */
+    public function findObjectsFromSql($mainTable, $from, $filter = null, array $parameters = array(), $orderString = null, $mode = null, $className = null)
+    {
+        // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
+            throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
+        }
+
+        list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter);
+
+        $parameters = array_merge($parameters, $additionalParameters);
+
+
+        $allFetchedTables = $this->_getRelatedTablesByInheritance($mainTable);
+
+        if (count($allFetchedTables) === 1) {
+            $sql = 'SELECT DISTINCT '.$this->connection->quoteIdentifier($mainTable).'.* FROM '.$from;
+
+            $columnDescList = [];
+            $schema = $this->tdbmSchemaAnalyzer->getSchema();
+            $tableGroupName = $this->getTableGroupName($allFetchedTables);
+
+            foreach ($schema->getTable($mainTable)->getColumns() as $column) {
+                $columnName = $column->getName();
+                $columnDescList[] = [
+                    'as' => $columnName,
+                    'table' => $mainTable,
+                    'column' => $columnName,
+                    'type' => $column->getType(),
+                    'tableGroup' => $tableGroupName,
+                ];
+            }
+        } else {
+            throw new TDBMException('So far, TDBM does not support fetching beans with hierarchical relationship in a custom SQL request.');
+        }
+
+        //list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, []);
+
+
+
+        // Let's compute the COUNT.
+
+
+        $countSql = 'SELECT COUNT(1) FROM '.$from;
+
+        if (!empty($filterString)) {
+            $sql .= ' WHERE '.$filterString;
+            $countSql .= ' WHERE '.$filterString;
+        }
+
+        if (!empty($orderString)) {
+            $sql .= ' ORDER BY '.$orderString;
+            $countSql .= ' ORDER BY '.$orderString;
+        }
+
+        if (stripos($countSql, 'GROUP BY') !== false) {
+            throw new TDBMException('Unsupported use of GROUP BY in SQL request.');
+        }
+
+        if ($mode !== null && $mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
+            throw new TDBMException("Unknown fetch mode: '".$mode."'");
+        }
+
+        $mode = $mode ?: $this->mode;
+
+        return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode);
+    }
+
+    /**
+     * Returns the column list that must be fetched for the SQL request.
+     *
+     * @param $mainTable
+     * @param array $additionalTablesFetch
+     *
+     * @return array
+     *
+     * @throws \Doctrine\DBAL\Schema\SchemaException
+     */
+    private function getColumnsList($mainTable, array $additionalTablesFetch = array())
+    {
         // From the table name and the additional tables we want to fetch, let's build a list of all tables
         // that must be part of the select columns.
 
@@ -1264,26 +1383,7 @@ class TDBMService
             }
         }
 
-        $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$mainTable.')';
-        $countSql = 'SELECT COUNT(1) FROM MAGICJOIN('.$mainTable.')';
-
-        if (!empty($filterString)) {
-            $sql .= ' WHERE '.$filterString;
-            $countSql .= ' WHERE '.$filterString;
-        }
-
-        if (!empty($orderString)) {
-            $sql .= ' ORDER BY '.$orderString;
-            $countSql .= ' ORDER BY '.$orderString;
-        }
-
-        if ($mode !== null && $mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
-            throw new TDBMException("Unknown fetch mode: '".$this->mode."'");
-        }
-
-        $mode = $mode ?: $this->mode;
-
-        return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode);
+        return [$columnDescList, $columnsList];
     }
 
     /**
@@ -1355,6 +1455,33 @@ class TDBMService
     public function findObject($mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null)
     {
         $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
+        $page = $objects->take(0, 2);
+        $count = $page->count();
+        if ($count > 1) {
+            throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
+        } elseif ($count === 0) {
+            return;
+        }
+
+        return $objects[0];
+    }
+
+    /**
+     * Returns a unique bean (or null) according to the filters passed in parameter.
+     *
+     * @param string            $mainTable             The name of the table queried
+     * @param string            $from                  The from sql statement
+     * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param array             $parameters
+     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     *
+     * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters.
+     *
+     * @throws TDBMException
+     */
+    public function findObjectFromSql($mainTable, $from, $filter = null, array $parameters = array(), $className = null)
+    {
+        $objects = $this->findObjectsFromSql($mainTable, $from, $filter, $parameters, null, self::MODE_ARRAY, $className);
         $page = $objects->take(0, 2);
         $count = $page->count();
         if ($count > 1) {

@@ -427,6 +427,29 @@ class $baseClassName
     }
 
     /**
+     * Get a list of $beanClassWithoutNameSpace specified by its filters.
+     * Unlike the `find` method that guesses the FROM part of the statement, here you can pass the \$from part.
+     *
+     * You should not put an alias on the main table name. So your \$from variable should look like:
+     *
+     *   \"$tableName JOIN ... ON ...\"
+     *
+     * @param string \$from The sql from statement
+     * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
+     * @param array \$parameters The parameters associated with the filter
+     * @param mixed \$orderBy The order string
+     * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
+     * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
+     */
+    protected function findFromSql(\$from, \$filter = null, array \$parameters = [], \$orderBy=null, \$mode = null)
+    {
+        if (\$this->defaultSort && \$orderBy == null) {
+            \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
+        }
+        return \$this->tdbmService->findObjectsFromSql('$tableName', \$from, \$filter, \$parameters, \$orderBy, \$mode);
+    }
+
+    /**
      * Get a single $beanClassWithoutNameSpace specified by its filters.
      *
      * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
@@ -436,6 +459,24 @@ class $baseClassName
     protected function findOne(\$filter=null, array \$parameters = [])
     {
         return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters);
+    }
+
+    /**
+     * Get a single $beanClassWithoutNameSpace specified by its filters.
+     * Unlike the `find` method that guesses the FROM part of the statement, here you can pass the \$from part.
+     *
+     * You should not put an alias on the main table name. So your \$from variable should look like:
+     *
+     *   \"$tableName JOIN ... ON ...\"
+     *
+     * @param string \$from The sql from statement
+     * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
+     * @param array \$parameters The parameters associated with the filter
+     * @return $beanClassWithoutNameSpace
+     */
+    protected function findOneFromSql(\$from, \$filter=null, array \$parameters = [])
+    {
+        return \$this->tdbmService->findObjectFromSql('$tableName', \$from, \$filter, \$parameters);
     }
 
     /**

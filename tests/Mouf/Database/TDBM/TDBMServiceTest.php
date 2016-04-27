@@ -22,6 +22,7 @@ namespace Mouf\Database\TDBM;
 
 use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\OrderByColumn;
+use Mouf\Database\TDBM\Test\Dao\Bean\RoleBean;
 
 /**
  */
@@ -567,136 +568,181 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $this->tdbmService->save($object);
     }
 
-        /*
-            public function testObjectAsFilter() {
-                $dpt = $this->tdbmService->getObject('departements', 1);
-                $dpt2 =  $this->tdbmService->getObject('departements', $dpt);
-                $this->assertEquals($dpt, $dpt2);
+    public function testFindObjectsFromSql()
+    {
+        $roles = $this->tdbmService->findObjectsFromSql('roles', "roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
+            'rights.label = :right', array("right" => "CAN_SING"), 'name DESC');
+        $this->assertCount(2, $roles);
+        $this->assertInstanceOf(AbstractTDBMObject::class, $roles[0]);
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testFindObjectsFromSqlBadTableName()
+    {
+        $this->tdbmService->findObjectsFromSql('#{azerty', "roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
+            'rights.label = :right', array("right" => "CAN_SING"), 'name DESC');
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     * @throws TDBMException
+     */
+    public function testFindObjectsFromSqlGroupBy()
+    {
+        $this->tdbmService->findObjectsFromSql('roles', "roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
+            'rights.label = :right GROUP BY roles.name', array("right" => "CAN_SING"), 'name DESC');
+    }
+
+    public function testFindObjectFromSql()
+    {
+        $role = $this->tdbmService->findObjectFromSql('roles', "roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
+            'rights.label = :right AND name = :name', array("right" => "CAN_SING", "name" => "Singers"));
+        $this->assertInstanceOf(AbstractTDBMObject::class, $role);
+    }
+
+    /**
+     * @expectedException \Mouf\Database\TDBM\DuplicateRowException
+     * @throws DuplicateRowException
+     */
+    public function testFindObjectFromSqlException()
+    {
+        $this->tdbmService->findObjectFromSql('roles', "roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
+            'rights.label = :right', array("right" => "CAN_SING"));
+    }
+
+    /*
+        public function testObjectAsFilter() {
+            $dpt = $this->tdbmService->getObject('departements', 1);
+            $dpt2 =  $this->tdbmService->getObject('departements', $dpt);
+            $this->assertEquals($dpt, $dpt2);
+        }
+
+        public function testOneWayAndTheOpposite() {
+            $this->tdbmService->getObjects('utilisateur_entite', new EqualFilter('entites', 'appellation', 'foo'));
+            $this->tdbmService->getObjects('entites', new EqualFilter('utilisateur_entite', 'id_utilisateur', '1'));
+        }
+
+        public function testOneWayAndTheOpposite2() {
+            $this->tdbmService->getObjects('utilisateur_entite', new EqualFilter('departements', 'id', '1'));
+            $this->tdbmService->getObjects('departements', new EqualFilter('utilisateur_entite', 'id_utilisateur', '1'));
+        }
+
+        public function testOneWayAndTheOpposite3() {
+            $this->tdbmService->getObjects('utilisateur_entite',
+                    [
+                    new EqualFilter('entites', 'appellation', 1),
+                    ]
+            );
+            $this->tdbmService->getObjects('entites', [
+                        new EqualFilter('departements', 'id', 1),
+                        new EqualFilter('utilisateur_entite', 'id_utilisateur', '1'),
+                    ]
+            );
+        }
+
+        public function testOneWayAndTheOpposite4() {
+            $this->tdbmService->getObjects('utilisateur_entite', null,
+                    [
+                    new OrderByColumn('entites', 'appellation', 'ASC'),
+                    ]
+            );
+            $this->tdbmService->getObjects('entites', new EqualFilter('utilisateur_entite', 'id_utilisateur', '1'),
+                    [
+                    new OrderByColumn('departements', 'id', 'ASC')
+                    ]
+            );
+        }
+
+        public function testTDBMObjectArrayMultipleForeach() {
+            $results = $this->tdbmService->getObjects('departements');
+            $this->assertTrue(is_array($results));
+            $count = 0;
+            foreach ($results as $result) {
+                $count++;
             }
+            $this->assertEquals(95, $count);
 
-            public function testOneWayAndTheOpposite() {
-                $this->tdbmService->getObjects('utilisateur_entite', new EqualFilter('entites', 'appellation', 'foo'));
-                $this->tdbmService->getObjects('entites', new EqualFilter('utilisateur_entite', 'id_utilisateur', '1'));
+            $count = 0;
+            foreach ($results as $result) {
+                $count++;
             }
+            $this->assertEquals(95, $count);
 
-            public function testOneWayAndTheOpposite2() {
-                $this->tdbmService->getObjects('utilisateur_entite', new EqualFilter('departements', 'id', '1'));
-                $this->tdbmService->getObjects('departements', new EqualFilter('utilisateur_entite', 'id_utilisateur', '1'));
+        }
+
+        public function testTDBMObjectsCursorMode() {
+            $this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
+            $results = $this->tdbmService->getObjects('departements');
+
+            $count = 0;
+            foreach ($results as $result) {
+                $count++;
             }
+            $this->assertEquals(95, $count);
+        }
 
-            public function testOneWayAndTheOpposite3() {
-                $this->tdbmService->getObjects('utilisateur_entite',
-                        [
-                        new EqualFilter('entites', 'appellation', 1),
-                        ]
-                );
-                $this->tdbmService->getObjects('entites', [
-                            new EqualFilter('departements', 'id', 1),
-                            new EqualFilter('utilisateur_entite', 'id_utilisateur', '1'),
-                        ]
-                );
+        public function testTDBMObjectCursorMode() {
+            $this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
+            $result = $this->tdbmService->getObject('departements', array(new EqualFilter('departements', 'id', 1)));
+
+            $this->assertEquals("Ain", $result->nom);
+        }
+
+
+        public function testTDBMObjectArrayCount() {
+            $results = $this->tdbmService->getObjects('departements');
+            $this->assertEquals(95, count($results));
+            $this->assertEquals(95, count($results));
+
+        }
+
+
+        public function testTDBMObjectArrayAccessByKey() {
+            $results = $this->tdbmService->getObjects('departements');
+
+            $this->assertEquals("Alpes Maritimes", $results[5]->nom);
+        }
+
+        public function testTDBMObjectArrayCountAfterForeach() {
+            $results = $this->tdbmService->getObjects('departements');
+            foreach ($results as $result) {
+                // Do nothing
             }
+            $this->assertEquals(95, count($results));
+        }
 
-            public function testOneWayAndTheOpposite4() {
-                $this->tdbmService->getObjects('utilisateur_entite', null,
-                        [
-                        new OrderByColumn('entites', 'appellation', 'ASC'),
-                        ]
-                );
-                $this->tdbmService->getObjects('entites', new EqualFilter('utilisateur_entite', 'id_utilisateur', '1'),
-                        [
-                        new OrderByColumn('departements', 'id', 'ASC')
-                        ]
-                );
-            }
+        public function testStorage() {
+            $results = $this->tdbmService->getObjects('departements');
 
-            public function testTDBMObjectArrayMultipleForeach() {
-                $results = $this->tdbmService->getObjects('departements');
-                $this->assertTrue(is_array($results));
-                $count = 0;
-                foreach ($results as $result) {
-                    $count++;
-                }
-                $this->assertEquals(95, $count);
+            $result = $this->tdbmService->getObject('departements', 1);
 
-                $count = 0;
-                foreach ($results as $result) {
-                    $count++;
-                }
-                $this->assertEquals(95, $count);
+            $this->assertTrue($results[0] === $result);
+        }
 
-            }
+        public function testCloneTDBMObject()
+        {
+            // Create a new object
+            $object = $this->tdbmService->getNewObject('departements');
+            $object->id_region = 22;
+            $object->numero = '100';
+            $object->nom = 'test';
+            $object->nom_web = 'test';
+            // Save the object
+            $object->save();
 
-            public function testTDBMObjectsCursorMode() {
-                $this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
-                $results = $this->tdbmService->getObjects('departements');
+            // Try to clone the object
+            $cloneObject = clone $object;
+            // Save the cloned object
+            $cloneObject->save();
 
-                $count = 0;
-                foreach ($results as $result) {
-                    $count++;
-                }
-                $this->assertEquals(95, $count);
-            }
+            $this->assertNotEquals($object->id, $cloneObject->id);
+            $this->assertEquals($object->nom, $cloneObject->nom);
 
-            public function testTDBMObjectCursorMode() {
-                $this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
-                $result = $this->tdbmService->getObject('departements', array(new EqualFilter('departements', 'id', 1)));
-
-                $this->assertEquals("Ain", $result->nom);
-            }
-
-
-            public function testTDBMObjectArrayCount() {
-                $results = $this->tdbmService->getObjects('departements');
-                $this->assertEquals(95, count($results));
-                $this->assertEquals(95, count($results));
-
-            }
-
-
-            public function testTDBMObjectArrayAccessByKey() {
-                $results = $this->tdbmService->getObjects('departements');
-
-                $this->assertEquals("Alpes Maritimes", $results[5]->nom);
-            }
-
-            public function testTDBMObjectArrayCountAfterForeach() {
-                $results = $this->tdbmService->getObjects('departements');
-                foreach ($results as $result) {
-                    // Do nothing
-                }
-                $this->assertEquals(95, count($results));
-            }
-
-            public function testStorage() {
-                $results = $this->tdbmService->getObjects('departements');
-
-                $result = $this->tdbmService->getObject('departements', 1);
-
-                $this->assertTrue($results[0] === $result);
-            }
-
-            public function testCloneTDBMObject()
-            {
-                // Create a new object
-                $object = $this->tdbmService->getNewObject('departements');
-                $object->id_region = 22;
-                $object->numero = '100';
-                $object->nom = 'test';
-                $object->nom_web = 'test';
-                // Save the object
-                $object->save();
-
-                // Try to clone the object
-                $cloneObject = clone $object;
-                // Save the cloned object
-                $cloneObject->save();
-
-                $this->assertNotEquals($object->id, $cloneObject->id);
-                $this->assertEquals($object->nom, $cloneObject->nom);
-
-                $this->tdbmService->deleteObject($object);
-                $this->tdbmService->deleteObject($cloneObject);
-            }
-        */
+            $this->tdbmService->deleteObject($object);
+            $this->tdbmService->deleteObject($cloneObject);
+        }
+    */
 }
