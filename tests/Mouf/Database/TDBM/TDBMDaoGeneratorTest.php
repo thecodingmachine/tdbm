@@ -23,6 +23,7 @@ namespace Mouf\Database\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use Mouf\Database\TDBM\Dao\TestRoleDao;
 use Mouf\Database\TDBM\Dao\TestUserDao;
 use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\PersonBean;
@@ -898,5 +899,28 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $role->setCreatedAt(null);
         $roleDao->save($role);
         $this->assertNull($role->getCreatedAt());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testFindFromSql()
+    {
+        $roleDao = new TestRoleDao($this->tdbmService);
+
+        $roles = $roleDao->getRolesByRightCanSing();
+        $this->assertCount(2, $roles);
+        $this->assertInstanceOf(RoleBean::class, $roles[0]);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testFindOneFromSql()
+    {
+        $roleDao = new TestRoleDao($this->tdbmService);
+
+        $role = $roleDao->getRoleByRightCanSingAndNameSinger();
+        $this->assertInstanceOf(RoleBean::class, $role);
     }
 }
