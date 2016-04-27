@@ -468,6 +468,40 @@ class RoleDao extends RoleBaseDao {
 
 Powerful, isn't it? TDBM automatically detected the two pivot tables and performed 4 joins to retrieve the roles our user has.<br/>
 
+###Specifying the joins
+
+TDBM will do its best to automatically detect joins for you. This will save you the hassle of writing tedious JOIN statements.
+To find the joins, TDBM will look for the shortest path between tables. However, sometimes, the JOIN you want to perform is not on the shortest path. In this case, you will need to provide TDBM with the JOINs you want to do.
+
+You do this using the `findFromSql` or `findOneFromSql` methods.
+
+```php
+class RoleDao extends RoleBaseDao {
+	/**
+     * Returns the list of roles join rights where right label = CAN_SING.
+     *
+     * @return RoleBean[]
+     */
+    public function getRolesByRightCanSing()
+    {
+        return $this->findFromSql("roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
+            'rights.label = :right', array("right" => "CAN_SING"));
+    }
+}
+```
+
+**Important**: the first parameter is the FROM statement. It MUST NOT start with "FROM". It MUST NOT put an alias on the table fetched.
+
+For instance, if we are fetching results from the `roles` tables (because we are in the `RoleDao`), then:
+
+```php
+// This is ok
+$this->findFromSql("roles JOIN ...", ...);
+
+// This is NOT ok
+$this->findFromSql("roles r JOIN ...", ...);
+```
+
 ###Simple filter syntax
 
 If your filter is only made of "=" and "AND" statements, you can use the shortcut "array" syntax in your queries.
