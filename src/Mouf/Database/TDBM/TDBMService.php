@@ -1247,16 +1247,13 @@ class TDBMService
     }
 
     /**
-     *
-     *
-     *
-     * @param string            $mainTable             The name of the table queried
-     * @param string            $from                  The from sql statement
-     * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param string            $mainTable   The name of the table queried
+     * @param string            $from        The from sql statement
+     * @param string|array|null $filter      The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param array             $parameters
-     * @param string|null       $orderString           The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
+     * @param string|null       $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
      * @param int               $mode
-     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     * @param string            $className   Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
      *
      * @return ResultIterator An object representing an array of results.
      *
@@ -1272,7 +1269,6 @@ class TDBMService
         list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter);
 
         $parameters = array_merge($parameters, $additionalParameters);
-
 
         $allFetchedTables = $this->_getRelatedTablesByInheritance($mainTable);
 
@@ -1298,7 +1294,6 @@ class TDBMService
         }
 
         //list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, []);
-
 
 
         // Let's compute the COUNT.
@@ -1469,11 +1464,11 @@ class TDBMService
     /**
      * Returns a unique bean (or null) according to the filters passed in parameter.
      *
-     * @param string            $mainTable             The name of the table queried
-     * @param string            $from                  The from sql statement
-     * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param string            $mainTable  The name of the table queried
+     * @param string            $from       The from sql statement
+     * @param string|array|null $filter     The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param array             $parameters
-     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     * @param string            $className  Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
      *
      * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters.
      *

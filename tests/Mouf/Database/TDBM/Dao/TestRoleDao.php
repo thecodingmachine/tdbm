@@ -17,8 +17,8 @@ class TestRoleDao extends RoleBaseDao
      */
     public function getRolesByRightCanSing()
     {
-        return $this->findFromSql("roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
-            'rights.label = :right', array("right" => "CAN_SING"));
+        return $this->findFromSql('roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right', array('right' => 'CAN_SING'));
     }
 
     /**
@@ -28,7 +28,7 @@ class TestRoleDao extends RoleBaseDao
      */
     public function getRoleByRightCanSingAndNameSinger()
     {
-        return $this->findOneFromSql("roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
-            'rights.label = :right AND name = :name', array("right" => "CAN_SING", "name" => "Singers"));
+        return $this->findOneFromSql('roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right AND name = :name', array('right' => 'CAN_SING', 'name' => 'Singers'));
     }
 }

@@ -22,7 +22,6 @@ namespace Mouf\Database\TDBM;
 
 use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\OrderByColumn;
-use Mouf\Database\TDBM\Test\Dao\Bean\RoleBean;
 
 /**
  */
@@ -570,47 +569,50 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testFindObjectsFromSql()
     {
-        $roles = $this->tdbmService->findObjectsFromSql('roles', "roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
-            'rights.label = :right', array("right" => "CAN_SING"), 'name DESC');
+        $roles = $this->tdbmService->findObjectsFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right', array('right' => 'CAN_SING'), 'name DESC');
         $this->assertCount(2, $roles);
         $this->assertInstanceOf(AbstractTDBMObject::class, $roles[0]);
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
     public function testFindObjectsFromSqlBadTableName()
     {
-        $this->tdbmService->findObjectsFromSql('#{azerty', "roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
-            'rights.label = :right', array("right" => "CAN_SING"), 'name DESC');
+        $this->tdbmService->findObjectsFromSql('#{azerty', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right', array('right' => 'CAN_SING'), 'name DESC');
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\TDBMException
+     *
      * @throws TDBMException
      */
     public function testFindObjectsFromSqlGroupBy()
     {
-        $this->tdbmService->findObjectsFromSql('roles', "roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
-            'rights.label = :right GROUP BY roles.name', array("right" => "CAN_SING"), 'name DESC');
+        $this->tdbmService->findObjectsFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right GROUP BY roles.name', array('right' => 'CAN_SING'), 'name DESC');
     }
 
     public function testFindObjectFromSql()
     {
-        $role = $this->tdbmService->findObjectFromSql('roles', "roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
-            'rights.label = :right AND name = :name', array("right" => "CAN_SING", "name" => "Singers"));
+        $role = $this->tdbmService->findObjectFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right AND name = :name', array('right' => 'CAN_SING', 'name' => 'Singers'));
         $this->assertInstanceOf(AbstractTDBMObject::class, $role);
     }
 
     /**
      * @expectedException \Mouf\Database\TDBM\DuplicateRowException
+     *
      * @throws DuplicateRowException
      */
     public function testFindObjectFromSqlException()
     {
-        $this->tdbmService->findObjectFromSql('roles', "roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label",
-            'rights.label = :right', array("right" => "CAN_SING"));
+        $this->tdbmService->findObjectFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right', array('right' => 'CAN_SING'));
     }
 
     /*
