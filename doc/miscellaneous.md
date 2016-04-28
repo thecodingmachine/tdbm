@@ -79,3 +79,36 @@ $firstNames = $users->map(function(UserBean $user) {
 });
 ```
 
+Logging and debugging
+---------------------
+
+TDBM uses MagicQuery to automatically guess the joins you want. If for some reason, the guess is bad, it can be quite
+difficult to understand the request performed.
+
+In these cases, you will want to enable logging.
+
+For this, **you need to pass a [PSR-3](http://www.php-fig.org/psr/psr-3/) compatible logger** as the 4th parameter of the `TDBMService` constructor.
+
+TDBM can log quite a lot so by default, TDBM will restrict itself to only logging "warning" messages (or above).
+If you enable logging of "debug" messages, you will see any SELECT request performed by TDBM.
+
+For instance, to log a specific SQL request, you can do:
+
+```php
+class UserDao extends UserBaseDao {
+
+	/**
+	 * Returns the list of users starting with $firstLetter
+	 *
+	 * @param string $firstLetter
+	 * @return UserBean[]
+	 */
+	public function getUsersByLetter($firstLetter) {
+        $this->tdbmService->setLogLevel(LogLevel::DEBUG);
+		return $this->find("name LIKE :name", [ "name" => $firstLetter.'%' ]);
+		$this->tdbmService->setLogLevel(LogLevel::WARNING);
+	}
+}
+```
+
+**Do not forget to register a PSR-3 logger in your `TDBMService`, otherwise, nothing will be logged!**

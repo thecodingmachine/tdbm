@@ -4,6 +4,7 @@ namespace Mouf\Database\TDBM;
 
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
+use Psr\Log\LoggerInterface;
 
 /*
  Copyright (C) 2006-2016 David Négrier - THE CODING MACHINE
@@ -56,7 +57,12 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
     private $databasePlatform;
 
-    public function __construct($magicSql, array $parameters, $limit, $offset, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery)
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    public function __construct($magicSql, array $parameters, $limit, $offset, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger)
     {
         $this->magicSql = $magicSql;
         $this->objectStorage = $objectStorage;
@@ -68,12 +74,15 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
         $this->columnDescriptors = $columnDescriptors;
         $this->magicQuery = $magicQuery;
         $this->databasePlatform = $this->tdbmService->getConnection()->getDatabasePlatform();
+        $this->logger = $logger;
     }
 
     protected function executeQuery()
     {
         $sql = $this->magicQuery->build($this->magicSql, $this->parameters);
         $sql = $this->tdbmService->getConnection()->getDatabasePlatform()->modifyLimitQuery($sql, $this->limit, $this->offset);
+
+        $this->logger->debug('Running SQL request: '.$sql);
 
         $this->statement = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters);
 
