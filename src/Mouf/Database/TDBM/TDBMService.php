@@ -28,9 +28,13 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use Logger\Filters\MinLogLevelFilter;
 use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 
 /**
  * The TDBMService class is the main TDBM class. It provides methods to retrieve TDBMObject instances
@@ -130,12 +134,22 @@ class TDBMService
     private $reflectionClassCache = array();
 
     /**
+     * @var LoggerInterface
+     */
+    private $rootLogger;
+
+    /**
+     * @var MinLogLevelFilter|NullLogger
+     */
+    private $logger;
+
+    /**
      * @param Connection     $connection     The DBAL DB connection to use
      * @param Cache|null     $cache          A cache service to be used
      * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
      *                                       Will be automatically created if not passed.
      */
-    public function __construct(Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null)
+    public function __construct(Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null)
     {
         if (extension_loaded('weakref')) {
             $this->objectStorage = new WeakrefObjectStorage();
@@ -160,6 +174,13 @@ class TDBMService
         $this->cachePrefix = $this->tdbmSchemaAnalyzer->getCachePrefix();
 
         $this->toSaveObjects = new \SplObjectStorage();
+        if ($logger === null) {
+            $this->logger = new NullLogger();
+            $this->rootLogger = new NullLogger();
+        } else {
+            $this->rootLogger = $logger;
+            $this->setLogLevel(LogLevel::WARNING);
+        }
     }
 
     /**
@@ -1306,7 +1327,7 @@ class TDBMService
 
         $mode = $mode ?: $this->mode;
 
-        return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode);
+        return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**
@@ -1410,7 +1431,7 @@ class TDBMService
 
         $mode = $mode ?: $this->mode;
 
-        return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode);
+        return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**
@@ -1768,5 +1789,18 @@ class TDBMService
         }
 
         return $typesForTable[$tableName];
+    }
+
+    /**
+     * Sets the minimum log level.
+     * $level must be one of Psr\Log\LogLevel::xxx
+     *
+     * Defaults to LogLevel::WARNING
+     *
+     * @param $level
+     */
+    public function setLogLevel($level)
+    {
+        $this->logger = new MinLogLevelFilter($this->rootLogger, $level);
     }
 }

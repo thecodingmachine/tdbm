@@ -20,8 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
+use Logger\Loggers\ArrayLogger;
 use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\OrderByColumn;
+use Psr\Log\LogLevel;
 
 /**
  */
@@ -629,6 +631,18 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
             array('login' => 'robert.marley', 'login2' => 'bill.shakespeare'));
         $this->assertCount(2, $users);
         $this->assertSame('Robert Marley', $users[0]->getProperty('name', 'person'));
+    }
+
+    public function testLogger()
+    {
+
+        $arrayLogger = new ArrayLogger();
+        $tdbmService = new TDBMService($this->dbConnection, null, null, $arrayLogger);
+
+        $tdbmService->setLogLevel(LogLevel::DEBUG);
+        $beans = $tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+
+        $this->assertNotEmpty($arrayLogger);
     }
 
     /*

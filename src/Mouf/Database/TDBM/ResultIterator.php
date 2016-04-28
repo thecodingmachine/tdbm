@@ -5,6 +5,7 @@ namespace Mouf\Database\TDBM;
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use Porpaginas\Result;
+use Psr\Log\LoggerInterface;
 use Traversable;
 
 /*
@@ -66,7 +67,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     private $mode;
 
-    public function __construct($magicSql, $magicSqlCount, array $parameters, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode)
+    private $logger;
+
+    public function __construct($magicSql, $magicSqlCount, array $parameters, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode, LoggerInterface $logger)
     {
         $this->magicSql = $magicSql;
         $this->magicSqlCount = $magicSqlCount;
@@ -78,11 +81,13 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         $this->magicQuery = $magicQuery;
         $this->databasePlatform = $this->tdbmService->getConnection()->getDatabasePlatform();
         $this->mode = $mode;
+        $this->logger = $logger;
     }
 
     protected function executeCountQuery()
     {
         $sql = $this->magicQuery->build($this->magicSqlCount, $this->parameters);
+        $this->logger->debug("Running count query: ".$sql);
         $this->totalCount = $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters);
     }
 
@@ -136,9 +141,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     {
         if ($this->innerResultIterator === null) {
             if ($this->mode === TDBMService::MODE_CURSOR) {
-                $this->innerResultIterator = new InnerResultIterator($this->magicSql, $this->parameters, null, null, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery);
+                $this->innerResultIterator = new InnerResultIterator($this->magicSql, $this->parameters, null, null, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             } else {
-                $this->innerResultIterator = new InnerResultArray($this->magicSql, $this->parameters, null, null, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery);
+                $this->innerResultIterator = new InnerResultArray($this->magicSql, $this->parameters, null, null, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             }
         }
 
@@ -152,7 +157,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function take($offset, $limit)
     {
-        return new PageIterator($this, $this->magicSql, $this->parameters, $limit, $offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode);
+        return new PageIterator($this, $this->magicSql, $this->parameters, $limit, $offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger);
     }
 
     /**
