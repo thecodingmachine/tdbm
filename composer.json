@@ -103,7 +103,12 @@
 					"title" : "TDBM internals",
 					"url" : "doc/internals.md"
 				}
-			]
+			],
+			"section": {
+				"name": "Database",
+				"description": "This section contains ORM tools to access your database.",
+				"weight": 20
+			}
 		}
 	}
 }
