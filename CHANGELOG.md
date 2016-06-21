@@ -7,7 +7,7 @@ Major changes:
 - Beans feature getters for tables pointing on the bean's table
 - Beans now feature support for many-to-many relationship accessors!
 - Generated beans now support the inheritance between tables (using primary keys as a foreign key technique)
-- Results are no more simple arrays. They implement the beberlei/propaginas library: you can now get offset/limit and 
+- Results are no more simple arrays. They implement the [beberlei/porpaginas](https://github.com/beberlei/porpaginas) library: you can now get offset/limit and
   the total count from the result object.
 - Beans do not have a `save` method any more. You need to use the DAO `save` method instead.
  

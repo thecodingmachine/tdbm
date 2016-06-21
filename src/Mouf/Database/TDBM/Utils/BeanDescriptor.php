@@ -616,6 +616,8 @@ class $baseClassName extends $extends implements \\JsonSerializable
         $str .= $this->generatePivotTableCode();
         $str .= $this->generateJsonSerialize();
 
+        $str .= $this->generateGetUsedTablesCode();
+
         $str .= '}
 ';
 
@@ -740,5 +742,35 @@ $paramsString
 ";
 
         return [$usedBeans, $code];
+    }
+
+    /**
+     * Generates the code for the getUsedTable protected method.
+     *
+     * @return string
+     */
+    private function generateGetUsedTablesCode()
+    {
+        $hasParentRelationship = $this->schemaAnalyzer->getParentRelationship($this->table->getName()) !== null;
+        if ($hasParentRelationship) {
+            $code = sprintf('        $tables = parent::getUsedTables();
+        $tables[] = %s;
+        
+        return $tables;', var_export($this->table->getName(), true));
+        } else {
+            $code = sprintf('        return [ %s ];', var_export($this->table->getName(), true));
+        }
+
+        return sprintf('
+    /**
+     * Returns an array of used tables by this bean (from parent to child relationship).
+     *
+     * @return string[]
+     */
+    protected function getUsedTables()
+    {
+%s    
+    }
+', $code);
     }
 }

@@ -25,12 +25,15 @@ use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Dao\TestRoleDao;
 use Mouf\Database\TDBM\Dao\TestUserDao;
+use Mouf\Database\TDBM\Test\Dao\AnimalDao;
 use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
+use Mouf\Database\TDBM\Test\Dao\Bean\DogBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\PersonBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\RoleBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\UserBean;
 use Mouf\Database\TDBM\Test\Dao\ContactDao;
 use Mouf\Database\TDBM\Test\Dao\CountryDao;
+use Mouf\Database\TDBM\Test\Dao\DogDao;
 use Mouf\Database\TDBM\Test\Dao\RoleDao;
 use Mouf\Database\TDBM\Test\Dao\UserDao;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
@@ -922,5 +925,35 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $role = $roleDao->getRoleByRightCanSingAndNameSinger();
         $this->assertInstanceOf(RoleBean::class, $role);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCreateEmptyExtendedBean()
+    {
+        // This test cases checks issue https://github.com/thecodingmachine/database.tdbm/issues/92
+
+        $dogDao = new DogDao($this->tdbmService);
+
+        // We are not filling no field that is part of dog table.
+        $dog = new DogBean('Youki');
+
+        $dogDao->save($dog);
+    }
+
+    /**
+     * @depends testCreateEmptyExtendedBean
+     */
+    public function testFetchEmptyExtendedBean()
+    {
+        // This test cases checks issue https://github.com/thecodingmachine/database.tdbm/issues/92
+
+        $animalDao = new AnimalDao($this->tdbmService);
+
+        // We are not filling no field that is part of dog table.
+        $animalBean = $animalDao->getById(1);
+
+        $this->assertInstanceOf(DogBean::class, $animalBean);
     }
 }

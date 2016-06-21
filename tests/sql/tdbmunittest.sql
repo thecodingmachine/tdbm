@@ -194,6 +194,32 @@ INSERT INTO `users_roles` (`id`, `user_id`, `role_id`) VALUES
   (9, 4, 2),
   (10, 3, 2);
 
+
+
+
+
+
+CREATE TABLE `animal` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`id`));
+
+ALTER TABLE `animal`
+ADD KEY `name` (`name`);
+
+CREATE TABLE `dog` (
+  `id` INT NOT NULL,
+  `race` VARCHAR(45) NULL,
+  PRIMARY KEY (`id`));
+
+ALTER TABLE `dog`
+ADD CONSTRAINT `fk_dog_1`
+  FOREIGN KEY (`id`)
+  REFERENCES `animal` (`id`)
+  ON DELETE RESTRICT
+  ON UPDATE RESTRICT;
+
+
 --
 -- Indexes for dumped tables
 --

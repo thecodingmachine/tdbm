@@ -87,7 +87,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     protected function executeCountQuery()
     {
         $sql = $this->magicQuery->build($this->magicSqlCount, $this->parameters);
-        $this->logger->debug("Running count query: ".$sql);
+        $this->logger->debug('Running count query: '.$sql);
         $this->totalCount = $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters);
     }
 

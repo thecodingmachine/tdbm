@@ -138,9 +138,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
         $this->tdbmService = $tdbmService;
 
         // If we attach this object, we must work to make sure the tables are in ascending order (from low level to top level)
-        $tableNames = array_keys($this->dbRows);
-        $tableNames = $this->tdbmService->_getLinkBetweenInheritedTables($tableNames);
-        $tableNames = array_reverse($tableNames);
+        $tableNames = $this->getUsedTables();
 
         $newDbRows = [];
 
@@ -522,4 +520,11 @@ abstract class AbstractTDBMObject implements JsonSerializable
     {
         return $this->relationships;
     }
+
+    /**
+     * Returns an array of used tables by this bean (from parent to child relationship).
+     *
+     * @return string[]
+     */
+    abstract protected function getUsedTables();
 }
