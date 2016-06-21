@@ -1373,9 +1373,9 @@ class TDBMService
             ];
         }
 
-        $sql = 'SELECT DISTINCT '.implode(', ', array_map(function($columnDesc) use ($mainTable) {
+        $sql = 'SELECT DISTINCT '.implode(', ', array_map(function ($columnDesc) use ($mainTable) {
                     return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($columnDesc['column']);
-            }, $columnDescList)) .' FROM '.$from;
+            }, $columnDescList)).' FROM '.$from;
 
         if (count($allFetchedTables) > 1) {
             list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, []);
@@ -1793,7 +1793,7 @@ class TDBMService
 
     /**
      * Sets the minimum log level.
-     * $level must be one of Psr\Log\LogLevel::xxx
+     * $level must be one of Psr\Log\LogLevel::xxx.
      *
      * Defaults to LogLevel::WARNING
      *

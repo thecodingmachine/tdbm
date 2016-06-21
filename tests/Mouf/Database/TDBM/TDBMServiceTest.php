@@ -635,7 +635,6 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testLogger()
     {
-
         $arrayLogger = new ArrayLogger();
         $tdbmService = new TDBMService($this->dbConnection, null, null, $arrayLogger);
 

@@ -57,4 +57,18 @@ class TDBMObject extends AbstractTDBMObject
     {
         throw new TDBMException('Json serialization is only implemented for generated beans.');
     }
+
+    /**
+     * Returns an array of used tables by this bean (from parent to child relationship).
+     *
+     * @return string[]
+     */
+    protected function getUsedTables()
+    {
+        $tableNames = array_keys($this->dbRows);
+        $tableNames = $this->tdbmService->_getLinkBetweenInheritedTables($tableNames);
+        $tableNames = array_reverse($tableNames);
+
+        return $tableNames;
+    }
 }
