@@ -351,6 +351,9 @@ $userBean->removeRole($roleBean);
 
 // Check existence
 $hasRole = $userBean->hasRole($roleBean);
+
+// Set all beans at once
+$userBean->setRoles($roleBeans);
 ```
 
 Unlike in Doctrine, TDBM does not need to have a notion of *owning* and *inverse* side of a many to many relationship.
@@ -368,6 +371,9 @@ $userBean->removeUser($roleBean);
 
 // Check existence
 $hasUser = $roleBean->hasUser($roleBean);
+
+// Set all beans at once
+$roleBean->setUsers($userBeans);
 ```
 
 
