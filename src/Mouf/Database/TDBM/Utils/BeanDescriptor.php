@@ -423,8 +423,10 @@ class BeanDescriptor
     public function getPivotTableCode($name, Table $table, ForeignKeyConstraint $localFK, ForeignKeyConstraint $remoteFK)
     {
         $singularName = TDBMDaoGenerator::toSingular($name);
+        $pluralName = $name;
         $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($remoteFK->getForeignTableName());
         $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
+        $pluralVariableName = $variableName.'s';
 
         $str = '    /**
      * Returns the list of %s associated to this bean via the %s pivot table.
@@ -475,7 +477,20 @@ class BeanDescriptor
 
         $hasCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $variableName, $singularName, $remoteBeanName, $variableName, var_export($remoteFK->getLocalTableName(), true), $variableName);
 
-        $code = $getterCode.$adderCode.$removerCode.$hasCode;
+        $str = '    /**
+     * Sets all relationships with %s associated to this bean via the %s pivot table.
+     * Exiting relationships will be removed and replaced by the provided relationships.
+     *
+     * @param %s[] %s
+     */
+    public function set%s(array %s) {
+        return $this->setRelationships(%s, %s);
+    }
+';
+
+        $setterCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $pluralVariableName, $pluralName, $pluralVariableName, var_export($remoteFK->getLocalTableName(), true), $pluralVariableName);
+
+        $code = $getterCode.$adderCode.$removerCode.$hasCode.$setterCode;
 
         return $code;
     }

@@ -320,6 +320,32 @@ abstract class AbstractTDBMObject implements JsonSerializable
     }
 
     /**
+     * Sets many to many relationships for this bean.
+     * Adds new relationships and removes unused ones.
+     *
+     * @param $pivotTableName
+     * @param array $remoteBeans
+     */
+    protected function setRelationships($pivotTableName, array $remoteBeans)
+    {
+        $storage = $this->retrieveRelationshipsStorage($pivotTableName);
+
+        foreach ($storage as $oldRemoteBean) {
+            if (!in_array($oldRemoteBean, $remoteBeans, true)) {
+                // $oldRemoteBean must be removed
+                $this->_removeRelationship($pivotTableName, $oldRemoteBean);
+            }
+        }
+
+        foreach ($remoteBeans as $remoteBean) {
+            if (!$storage->contains($remoteBean) || $storage[$remoteBean]['status'] === 'delete') {
+                // $remoteBean must be added
+                $this->addRelationship($pivotTableName, $remoteBean);
+            }
+        }
+    }
+
+    /**
      * Returns the list of objects linked to this bean via $pivotTableName.
      *
      * @param $pivotTableName
