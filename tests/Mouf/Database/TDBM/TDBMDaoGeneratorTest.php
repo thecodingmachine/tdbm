@@ -500,6 +500,39 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     }
 
     /**
+     * Step 9: Let's test the setXXX method
+     *
+     * @depends testJointureSave8
+     */
+    public function testJointureSave9()
+    {
+        $roleDao = new RoleDao($this->tdbmService);
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+
+        // At this point, user 1 is linked to role 1.
+        // Let's bind it to role 2.
+        $user->setRoles([ $roleDao->getById(2) ]);
+        $userDao->save($user);
+    }
+
+    /**
+     * Step 10: Let's check results of 9
+     *
+     * @depends testJointureSave9
+     */
+    public function testJointureSave10()
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+
+        $roles = $user->getRoles();
+
+        $this->assertCount(1, $roles);
+        $this->assertEquals(2, $roles[0]->getId());
+    }
+
+    /**
      * @depends testDaoGeneration
      */
     public function testFindOrderBy()

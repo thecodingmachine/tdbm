@@ -855,6 +855,8 @@ class TDBMService
             $tableDescriptor = $this->tdbmSchemaAnalyzer->getSchema()->getTable($pivotTableName);
             list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $object);
 
+            $toRemoveFromStorage = [];
+
             foreach ($storage as $remoteBean) {
                 /* @var $remoteBean AbstractTDBMObject */
                 $statusArr = $storage[$remoteBean];
@@ -904,9 +906,16 @@ class TDBMService
                     $this->connection->delete($pivotTableName, $filters, $types);
 
                     // Finally, let's remove relationships completely from bean.
-                    $storage->detach($remoteBean);
+                    $toRemoveFromStorage[] = $remoteBean;
+
                     $remoteBean->_getCachedRelationships()[$pivotTableName]->detach($object);
                 }
+            }
+
+            // Note: due to https://bugs.php.net/bug.php?id=65629, we cannot delete an element inside a foreach loop on a SplStorageObject.
+            // Therefore, we cache elements in the $toRemoveFromStorage to remove them at a later stage.
+            foreach ($toRemoveFromStorage as $remoteBean) {
+                $storage->detach($remoteBean);
             }
         }
     }
