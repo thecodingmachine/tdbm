@@ -95,6 +95,8 @@ If you enable logging of "debug" messages, you will see any SELECT request perfo
 For instance, to log a specific SQL request, you can do:
 
 ```php
+use Psr\Log\LogLevel;
+
 class UserDao extends UserBaseDao {
 
 	/**
@@ -105,8 +107,9 @@ class UserDao extends UserBaseDao {
 	 */
 	public function getUsersByLetter($firstLetter) {
         $this->tdbmService->setLogLevel(LogLevel::DEBUG);
-		return $this->find("name LIKE :name", [ "name" => $firstLetter.'%' ]);
-		$this->tdbmService->setLogLevel(LogLevel::WARNING);
+        $results = $this->find("name LIKE :name", [ "name" => $firstLetter.'%' ]);
+        $this->tdbmService->setLogLevel(LogLevel::WARNING);
+        return $results;
 	}
 }
 ```
