@@ -715,8 +715,10 @@ class $baseClassName extends $extends implements \\JsonSerializable
         if ($index->isUnique()) {
             $methodName = 'findOneBy'.implode('And', $methodNameComponent);
             $calledMethod = 'findOne';
+            $returnType = "{$beanClassName}";
         } else {
             $methodName = 'findBy'.implode('And', $methodNameComponent);
+            $returnType = "{$beanClassName}[]|ResultIterator|ResultArray";
             $calledMethod = 'find';
         }
         $functionParametersString = implode(', ', $functionParameters);
@@ -746,7 +748,7 @@ $paramsString
      * @param mixed \$orderBy The order string
      * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
      * @param string \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
-     * @return {$beanClassName}[]|ResultIterator|ResultArray
+     * @return $returnType
      */
     public function $methodName($functionParametersString, \$orderBy = null, array \$additionalTablesFetch = array(), \$mode = null)
     {
