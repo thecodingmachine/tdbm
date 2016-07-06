@@ -126,18 +126,16 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $columnGetterName = $this->getGetterName();
         $columnSetterName = $this->getSetterName();
 
-        if ($normalizedType == '\\DateTimeInterface') {
-            $castTo = '\\DateTimeInterface ';
-        } else {
-            $castTo = '';
-        }
+        // A column type can be forced if it is not nullable and not auto-incrmentable (for auto-increment columns, we can get "null" as long as the bean is not saved).
+        $canForceGetterReturnType = $this->column->getNotnull() && !$this->column->getAutoincrement();
 
         $getterAndSetterCode = '    /**
      * The getter for the "%s" column.
      *
      * @return %s
      */
-    public function %s() {
+    public function %s()%s
+    {
         return $this->get(%s, %s);
     }
 
@@ -146,7 +144,8 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @param %s $%s
      */
-    public function %s(%s$%s) {
+    public function %s(%s $%s)
+    {
         $this->set(%s, $%s, %s);
     }
 
@@ -155,8 +154,9 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         return sprintf($getterAndSetterCode,
             // Getter
             $this->column->getName(),
-            $normalizedType,
+            $normalizedType.($canForceGetterReturnType ? '' : '|null'),
             $columnGetterName,
+            ($canForceGetterReturnType ? ' : '.$normalizedType : ''),
             var_export($this->column->getName(), true),
             var_export($this->table->getName(), true),
             // Setter
@@ -164,8 +164,9 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             $normalizedType,
             $this->column->getName(),
             $columnSetterName,
-            $castTo,
-            $this->column->getName().($castTo ? ($this->column->getNotnull() ? '' : ' = null') : ''),
+            $normalizedType,
+            //$castTo,
+            $this->column->getName().($this->column->getNotnull() ? '' : ' = null'),
             var_export($this->column->getName(), true),
             $this->column->getName(),
             var_export($this->table->getName(), true)

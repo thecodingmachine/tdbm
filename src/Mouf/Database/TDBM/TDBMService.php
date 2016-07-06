@@ -1621,7 +1621,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectOrFail($mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null)
+    public function findObjectOrFail(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null)
     {
         $bean = $this->findObject($mainTable, $filter, $parameters, $additionalTablesFetch, $className);
         if ($bean === null) {
@@ -1677,7 +1677,7 @@ class TDBMService
      *
      * @return mixed
      */
-    private function fromCache($key, callable $closure)
+    private function fromCache(string $key, callable $closure)
     {
         $item = $this->cache->fetch($key);
         if ($item === false) {
@@ -1696,7 +1696,7 @@ class TDBMService
      *
      * @return ForeignKeyConstraint
      */
-    public function _getForeignKeyByName($table, $fkName)
+    public function _getForeignKeyByName(string $table, string $fkName)
     {
         return $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getForeignKey($fkName);
     }
@@ -1707,7 +1707,7 @@ class TDBMService
      *
      * @return AbstractTDBMObject[]
      */
-    public function _getRelatedBeans($pivotTableName, AbstractTDBMObject $bean)
+    public function _getRelatedBeans(string $pivotTableName, AbstractTDBMObject $bean)
     {
         list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $bean);
         /* @var $localFk ForeignKeyConstraint */
@@ -1730,7 +1730,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    private function getPivotTableForeignKeys($pivotTableName, AbstractTDBMObject $bean)
+    private function getPivotTableForeignKeys(string $pivotTableName, AbstractTDBMObject $bean)
     {
         $fks = array_values($this->tdbmSchemaAnalyzer->getSchema()->getTable($pivotTableName)->getForeignKeys());
         $table1 = $fks[0]->getForeignTableName();
@@ -1788,7 +1788,7 @@ class TDBMService
      *
      * @return Type[]
      */
-    public function _getColumnTypesForTable($tableName)
+    public function _getColumnTypesForTable(string $tableName)
     {
         if (!isset($typesForTable[$tableName])) {
             $columns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getColumns();
@@ -1806,9 +1806,9 @@ class TDBMService
      *
      * Defaults to LogLevel::WARNING
      *
-     * @param $level
+     * @param string $level
      */
-    public function setLogLevel($level)
+    public function setLogLevel(string $level)
     {
         $this->logger = new MinLogLevelFilter($this->rootLogger, $level);
     }

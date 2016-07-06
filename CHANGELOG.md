@@ -1,3 +1,11 @@
+4.1
+===
+
+Major changes:
+
+- TDBM now requires PHP 7+
+- Generated beans use the new scalar type-hinting PHP 7 feature for getters and setters (based on the type of the column in DB)
+
 4.0
 ===
 
