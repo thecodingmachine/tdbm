@@ -500,7 +500,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     }
 
     /**
-     * Step 9: Let's test the setXXX method
+     * Step 9: Let's test the setXXX method.
      *
      * @depends testJointureSave8
      */
@@ -512,12 +512,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         // At this point, user 1 is linked to role 1.
         // Let's bind it to role 2.
-        $user->setRoles([ $roleDao->getById(2) ]);
+        $user->setRoles([$roleDao->getById(2)]);
         $userDao->save($user);
     }
 
     /**
-     * Step 10: Let's check results of 9
+     * Step 10: Let's check results of 9.
      *
      * @depends testJointureSave9
      */
