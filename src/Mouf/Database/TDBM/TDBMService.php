@@ -1352,7 +1352,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectsFromSql($mainTable, $from, $filter = null, array $parameters = array(), $orderString = null, $mode = null, $className = null)
+    public function findObjectsFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), string $orderString = null, $mode = null, string $className = null)
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1446,14 +1446,14 @@ class TDBMService
     /**
      * Returns the column list that must be fetched for the SQL request.
      *
-     * @param $mainTable
+     * @param string $mainTable
      * @param array $additionalTablesFetch
      *
      * @return array
      *
      * @throws \Doctrine\DBAL\Schema\SchemaException
      */
-    private function getColumnsList($mainTable, array $additionalTablesFetch = array())
+    private function getColumnsList(string $mainTable, array $additionalTablesFetch = array())
     {
         // From the table name and the additional tables we want to fetch, let's build a list of all tables
         // that must be part of the select columns.
@@ -1511,7 +1511,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectByPk($table, array $primaryKeys, array $additionalTablesFetch = array(), $lazy = false, $className = null)
+    public function findObjectByPk(string $table, array $primaryKeys, array $additionalTablesFetch = array(), bool $lazy = false, string $className = null)
     {
         $primaryKeys = $this->_getPrimaryKeysFromObjectData($table, $primaryKeys);
         $hash = $this->getObjectHash($primaryKeys);
@@ -1566,7 +1566,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObject($mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), $className = null)
+    public function findObject(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null)
     {
         $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
         $page = $objects->take(0, 2);
