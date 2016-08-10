@@ -26,11 +26,13 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Dao\TestRoleDao;
 use Mouf\Database\TDBM\Dao\TestUserDao;
 use Mouf\Database\TDBM\Test\Dao\AnimalDao;
+use Mouf\Database\TDBM\Test\Dao\Bean\CatBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\DogBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\PersonBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\RoleBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\UserBean;
+use Mouf\Database\TDBM\Test\Dao\CatDao;
 use Mouf\Database\TDBM\Test\Dao\ContactDao;
 use Mouf\Database\TDBM\Test\Dao\CountryDao;
 use Mouf\Database\TDBM\Test\Dao\DogDao;
@@ -988,5 +990,38 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $animalBean = $animalDao->getById(1);
 
         $this->assertInstanceOf(DogBean::class, $animalBean);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testTwoBranchesHierarchy()
+    {
+        // This test cases checks issue https://github.com/thecodingmachine/mouf/issues/131
+
+        $dogDao = new CatDao($this->tdbmService);
+
+        // We are not filling no field that is part of dog table.
+        $dog = new CatBean('Mew');
+
+        $dogDao->save($dog);
+    }
+
+    /**
+     * @depends testTwoBranchesHierarchy
+     */
+    public function testFetchTwoBranchesHierarchy()
+    {
+        // This test cases checks issue https://github.com/thecodingmachine/mouf/issues/131
+
+        $animalDao = new AnimalDao($this->tdbmService);
+
+        $animalBean = $animalDao->getById(2);
+
+        $this->assertInstanceOf(CatBean::class, $animalBean);
+        /* @var $animalBean CatBean */
+        $animalBean->setCutenessLevel(999);
+
+        $animalDao->save($animalBean);
     }
 }

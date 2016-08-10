@@ -194,7 +194,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
         }
 
         if (!isset($this->dbRows[$tableName])) {
-            if (count($this->dbRows[$tableName] === 0)) {
+            if (count($this->dbRows === 0)) {
                 throw new TDBMException('Object is not yet bound to any table.');
             } else {
                 throw new TDBMException('Unknown table "'.$tableName.'"" in object.');

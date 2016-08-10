@@ -148,10 +148,17 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
                 // Let's find the bean class name associated to the bean.
 
-                list($actualClassName, $mainBeanTableName) = $this->tdbmService->_getClassNameFromBeanData($beanData);
+                list($actualClassName, $mainBeanTableName, $tablesUsed) = $this->tdbmService->_getClassNameFromBeanData($beanData);
 
                 if ($this->className !== null) {
                     $actualClassName = $this->className;
+                }
+
+                // Let's filter out the beanData that is not used (because it belongs to a part of the hierarchy that is not fetched:
+                foreach ($beanData as $tableName => $descriptors) {
+                    if (!in_array($tableName, $tablesUsed)) {
+                        unset($beanData[$tableName]);
+                    }
                 }
 
                 // Must we create the bean? Let's see in the cache if we have a mapping DbRow?
