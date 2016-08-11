@@ -1577,7 +1577,7 @@ class TDBMService
             return;
         }
 
-        return $objects[0];
+        return $page[0];
     }
 
     /**
@@ -1604,7 +1604,7 @@ class TDBMService
             return;
         }
 
-        return $objects[0];
+        return $page[0];
     }
 
     /**
