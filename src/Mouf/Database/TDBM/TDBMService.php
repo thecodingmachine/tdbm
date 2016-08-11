@@ -1634,12 +1634,13 @@ class TDBMService
     /**
      * @param array $beanData An array of data: array<table, array<column, value>>
      *
-     * @return array an array with first item = class name and second item = table name
+     * @return array an array with first item = class name, second item = table name and third item = list of tables needed
      */
     public function _getClassNameFromBeanData(array $beanData)
     {
         if (count($beanData) === 1) {
             $tableName = array_keys($beanData)[0];
+            $allTables = [$tableName];
         } else {
             $tables = [];
             foreach ($beanData as $table => $row) {
@@ -1663,9 +1664,9 @@ class TDBMService
 
         // Only one table in this bean. Life is sweat, let's look at its type:
         if (isset($this->tableToBeanMap[$tableName])) {
-            return [$this->tableToBeanMap[$tableName], $tableName];
+            return [$this->tableToBeanMap[$tableName], $tableName, $allTables];
         } else {
-            return ['Mouf\\Database\\TDBM\\TDBMObject', $tableName];
+            return ['Mouf\\Database\\TDBM\\TDBMObject', $tableName, $allTables];
         }
     }
 

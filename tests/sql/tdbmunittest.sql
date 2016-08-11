@@ -219,6 +219,17 @@ ADD CONSTRAINT `fk_dog_1`
   ON DELETE RESTRICT
   ON UPDATE RESTRICT;
 
+CREATE TABLE `cat` (
+  `id` INT NOT NULL,
+  `cuteness_level` int(11) NULL,
+  PRIMARY KEY (`id`));
+
+ALTER TABLE `cat`
+ADD CONSTRAINT `fk_cat_1`
+  FOREIGN KEY (`id`)
+  REFERENCES `animal` (`id`)
+  ON DELETE RESTRICT
+  ON UPDATE RESTRICT;
 
 --
 -- Indexes for dumped tables
