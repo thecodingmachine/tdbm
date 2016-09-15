@@ -85,7 +85,7 @@ class DbRow
      * Used with id!=false when we want to retrieve an existing object
      * and id==false if we want a new object
      *
-     * @param AbstractTDBMObject $object      The object containing this db row.
+     * @param AbstractTDBMObject $object      The object containing this db row
      * @param string             $table_name
      * @param array              $primaryKeys
      * @param TDBMService        $tdbmService

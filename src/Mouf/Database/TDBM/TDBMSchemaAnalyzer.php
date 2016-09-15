@@ -40,7 +40,7 @@ class TDBMSchemaAnalyzer
      * @param Connection     $connection     The DBAL DB connection to use
      * @param Cache          $cache          A cache service to be used
      * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
-     *                                       Will be automatically created if not passed.
+     *                                       Will be automatically created if not passed
      */
     public function __construct(Connection $connection, Cache $cache, SchemaAnalyzer $schemaAnalyzer)
     {
@@ -124,7 +124,9 @@ class TDBMSchemaAnalyzer
     public function getIncomingForeignKeys($tableName)
     {
         $junctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
-        $junctionTableNames = array_map(function (Table $table) { return $table->getName(); }, $junctionTables);
+        $junctionTableNames = array_map(function (Table $table) {
+            return $table->getName();
+        }, $junctionTables);
         $childrenRelationships = $this->schemaAnalyzer->getChildrenRelationships($tableName);
 
         $fks = [];
