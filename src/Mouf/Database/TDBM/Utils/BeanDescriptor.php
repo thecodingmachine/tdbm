@@ -93,7 +93,7 @@ class BeanDescriptor
     public function getConstructorProperties()
     {
         $constructorProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
-           return $property->isCompulsory();
+            return $property->isCompulsory();
         });
 
         return $constructorProperties;
@@ -593,7 +593,9 @@ class BeanDescriptor
 
         $classes = $this->generateExtendsAndUseStatements($parentFk);
 
-        $uses = array_map(function ($className) use ($beannamespace) { return 'use '.$beannamespace.'\\'.$className.";\n"; }, $classes);
+        $uses = array_map(function ($className) use ($beannamespace) {
+            return 'use '.$beannamespace.'\\'.$className.";\n";
+        }, $classes);
         $use = implode('', $uses);
 
         if ($parentFk !== null) {

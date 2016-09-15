@@ -68,7 +68,7 @@ class TDBMDaoGenerator
      * @param string $daoFactoryClassName The classe name of the DAO factory
      * @param string $daonamespace        The namespace for the DAOs, without trailing \
      * @param string $beannamespace       The Namespace for the beans, without trailing \
-     * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone.
+     * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone
      *
      * @return \string[] the list of tables
      *
@@ -100,7 +100,9 @@ class TDBMDaoGenerator
         // Ok, let's return the list of all tables.
         // These will be used by the calling script to create Mouf instances.
 
-        return array_map(function (Table $table) { return $table->getName(); }, $tableList);
+        return array_map(function (Table $table) {
+            return $table->getName();
+        }, $tableList);
     }
 
     /**

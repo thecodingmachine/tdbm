@@ -63,7 +63,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
     private $relationships = [];
 
     /**
-     * @var bool[] Key: pivot table name, value: whether a query was performed to load the data.
+     * @var bool[] Key: pivot table name, value: whether a query was performed to load the data
      */
     private $loadedRelationships = [];
 

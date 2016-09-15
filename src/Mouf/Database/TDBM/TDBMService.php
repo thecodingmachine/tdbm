@@ -147,7 +147,7 @@ class TDBMService
      * @param Connection     $connection     The DBAL DB connection to use
      * @param Cache|null     $cache          A cache service to be used
      * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
-     *                                       Will be automatically created if not passed.
+     *                                       Will be automatically created if not passed
      */
     public function __construct(Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null)
     {
@@ -262,10 +262,10 @@ class TDBMService
      * will return an object from the "User" class. The "User" class must extend the "TDBMObject" class.
      * Please be sure not to override any method or any property unless you perfectly know what you are doing!
      *
-     * @param string $table_name   The name of the table we retrieve an object from.
+     * @param string $table_name   The name of the table we retrieve an object from
      * @param mixed  $filters      If the filter is a string/integer, it will be considered as the id of the object (the value of the primary key). Otherwise, it can be a filter bag (see the filterbag parameter of the findObjects method for more details about filter bags)
-     * @param string $className    Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-     * @param bool   $lazy_loading If set to true, and if the primary key is passed in parameter of getObject, the object will not be queried in database. It will be queried when you first try to access a column. If at that time the object cannot be found in database, an exception will be thrown.
+     * @param string $className    Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param bool   $lazy_loading If set to true, and if the primary key is passed in parameter of getObject, the object will not be queried in database. It will be queried when you first try to access a column. If at that time the object cannot be found in database, an exception will be thrown
      *
      * @return TDBMObject
      */
@@ -359,7 +359,7 @@ class TDBMService
      * This cannot be called on an object that is not attached to this TDBMService
      * (will throw a TDBMInvalidOperationException).
      *
-     * @param AbstractTDBMObject $object the object to delete.
+     * @param AbstractTDBMObject $object the object to delete
      *
      * @throws TDBMException
      * @throws TDBMInvalidOperationException
@@ -481,7 +481,7 @@ class TDBMService
      * @param mixed $filter_bag
      * @param int   $counter
      *
-     * @return array First item: filter string, second item: parameters.
+     * @return array First item: filter string, second item: parameters
      *
      * @throws TDBMException
      */
@@ -615,8 +615,8 @@ class TDBMService
      * @param string $daoFactoryClassName The classe name of the DAO factory
      * @param string $daonamespace        The namespace for the DAOs, without trailing \
      * @param string $beannamespace       The Namespace for the beans, without trailing \
-     * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone.
-     * @param string $composerFile        If it's set, location of custom Composer file. Relative to project root.
+     * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone
+     * @param string $composerFile        If it's set, location of custom Composer file. Relative to project root
      *
      * @return \string[] the list of tables
      */
@@ -939,7 +939,7 @@ class TDBMService
      *
      * @param AbstractTDBMObject $bean
      *
-     * @return array numerically indexed array of values.
+     * @return array numerically indexed array of values
      */
     private function getPrimaryKeyValues(AbstractTDBMObject $bean)
     {
@@ -1081,7 +1081,7 @@ class TDBMService
             while ($currentFk = $schemaAnalyzer->getParentRelationship($currentTable)) {
                 $currentTable = $currentFk->getForeignTableName();
                 $allParents[] = $currentTable;
-            };
+            }
 
             // Now, does the $allParents contain all the tables we want?
             $notFoundTables = array_diff($tables, $allParents);
@@ -1128,7 +1128,7 @@ class TDBMService
         while ($currentFk = $schemaAnalyzer->getParentRelationship($currentTable)) {
             $currentTable = $currentFk->getForeignTableName();
             $parentTables[] = $currentTable;
-        };
+        }
 
         // Let's recurse in children
         $childrenTables = $this->exploreChildrenTablesRelationships($schemaAnalyzer, $table);
@@ -1179,7 +1179,7 @@ class TDBMService
         while ($currentFk = $this->schemaAnalyzer->getParentRelationship($currentTable)) {
             $currentTable = $currentFk->getForeignTableName();
             $parentFks[] = $currentFk;
-        };
+        }
 
         return $parentFks;
     }
@@ -1298,9 +1298,9 @@ class TDBMService
      * @param string|null       $orderString           The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
      * @param array             $additionalTablesFetch
      * @param int               $mode
-     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
-     * @return ResultIterator An object representing an array of results.
+     * @return ResultIterator An object representing an array of results
      *
      * @throws TDBMException
      */
@@ -1318,7 +1318,14 @@ class TDBMService
         list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, $additionalTablesFetch);
 
         $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$mainTable.')';
-        $countSql = 'SELECT COUNT(1) FROM MAGICJOIN('.$mainTable.')';
+
+        $schema = $this->tdbmSchemaAnalyzer->getSchema();
+        $pkColumnNames = $schema->getTable($mainTable)->getPrimaryKeyColumns();
+        $pkColumnNames = array_map(function ($pkColumn) use ($mainTable) {
+            return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($pkColumn);
+        }, $pkColumnNames);
+
+        $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM MAGICJOIN('.$mainTable.')';
 
         if (!empty($filterString)) {
             $sql .= ' WHERE '.$filterString;
@@ -1346,9 +1353,9 @@ class TDBMService
      * @param array             $parameters
      * @param string|null       $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
      * @param int               $mode
-     * @param string            $className   Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     * @param string            $className   Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
-     * @return ResultIterator An object representing an array of results.
+     * @return ResultIterator An object representing an array of results
      *
      * @throws TDBMException
      */
@@ -1383,15 +1390,20 @@ class TDBMService
         }
 
         $sql = 'SELECT DISTINCT '.implode(', ', array_map(function ($columnDesc) use ($mainTable) {
-                    return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($columnDesc['column']);
-            }, $columnDescList)).' FROM '.$from;
+            return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($columnDesc['column']);
+        }, $columnDescList)).' FROM '.$from;
 
         if (count($allFetchedTables) > 1) {
             list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, []);
         }
 
         // Let's compute the COUNT.
-        $countSql = 'SELECT COUNT(1) FROM '.$from;
+        $pkColumnNames = $schema->getTable($mainTable)->getPrimaryKeyColumns();
+        $pkColumnNames = array_map(function ($pkColumn) use ($mainTable) {
+            return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($pkColumn);
+        }, $pkColumnNames);
+
+        $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM '.$from;
 
         if (!empty($filterString)) {
             $sql .= ' WHERE '.$filterString;
@@ -1447,7 +1459,7 @@ class TDBMService
      * Returns the column list that must be fetched for the SQL request.
      *
      * @param string $mainTable
-     * @param array $additionalTablesFetch
+     * @param array  $additionalTablesFetch
      *
      * @return array
      *
@@ -1504,7 +1516,7 @@ class TDBMService
      * @param $table
      * @param array  $primaryKeys
      * @param array  $additionalTablesFetch
-     * @param bool   $lazy                  Whether to perform lazy loading on this object or not.
+     * @param bool   $lazy                  Whether to perform lazy loading on this object or not
      * @param string $className
      *
      * @return AbstractTDBMObject
@@ -1560,9 +1572,9 @@ class TDBMService
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param array             $parameters
      * @param array             $additionalTablesFetch
-     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
-     * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters.
+     * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters
      *
      * @throws TDBMException
      */
@@ -1587,9 +1599,9 @@ class TDBMService
      * @param string            $from       The from sql statement
      * @param string|array|null $filter     The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param array             $parameters
-     * @param string            $className  Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     * @param string            $className  Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
-     * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters.
+     * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters
      *
      * @throws TDBMException
      */
@@ -1615,7 +1627,7 @@ class TDBMService
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param array             $parameters
      * @param array             $additionalTablesFetch
-     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
+     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
      * @return AbstractTDBMObject The object we want
      *
@@ -1716,7 +1728,9 @@ class TDBMService
         $remoteTable = $remoteFk->getForeignTableName();
 
         $primaryKeys = $this->getPrimaryKeyValues($bean);
-        $columnNames = array_map(function ($name) use ($pivotTableName) { return $pivotTableName.'.'.$name; }, $localFk->getLocalColumns());
+        $columnNames = array_map(function ($name) use ($pivotTableName) {
+            return $pivotTableName.'.'.$name;
+        }, $localFk->getLocalColumns());
 
         $filter = array_combine($columnNames, $primaryKeys);
 
@@ -1727,7 +1741,7 @@ class TDBMService
      * @param $pivotTableName
      * @param AbstractTDBMObject $bean The LOCAL bean
      *
-     * @return ForeignKeyConstraint[] First item: the LOCAL bean, second item: the REMOTE bean.
+     * @return ForeignKeyConstraint[] First item: the LOCAL bean, second item: the REMOTE bean
      *
      * @throws TDBMException
      */
@@ -1737,7 +1751,9 @@ class TDBMService
         $table1 = $fks[0]->getForeignTableName();
         $table2 = $fks[1]->getForeignTableName();
 
-        $beanTables = array_map(function (DbRow $dbRow) { return $dbRow->_getDbTableName(); }, $bean->_getDbRows());
+        $beanTables = array_map(function (DbRow $dbRow) {
+            return $dbRow->_getDbTableName();
+        }, $bean->_getDbRows());
 
         if (in_array($table1, $beanTables)) {
             return [$fks[0], $fks[1]];
