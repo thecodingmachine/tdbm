@@ -1318,7 +1318,14 @@ class TDBMService
         list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, $additionalTablesFetch);
 
         $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$mainTable.')';
-        $countSql = 'SELECT COUNT(1) FROM MAGICJOIN('.$mainTable.')';
+
+        $schema = $this->tdbmSchemaAnalyzer->getSchema();
+        $pkColumnNames = $schema->getTable($mainTable)->getPrimaryKeyColumns();
+        $pkColumnNames = array_map(function($pkColumn) use ($mainTable) {
+            return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($pkColumn);
+        }, $pkColumnNames);
+
+        $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM MAGICJOIN('.$mainTable.')';
 
         if (!empty($filterString)) {
             $sql .= ' WHERE '.$filterString;
@@ -1391,7 +1398,12 @@ class TDBMService
         }
 
         // Let's compute the COUNT.
-        $countSql = 'SELECT COUNT(1) FROM '.$from;
+        $pkColumnNames = $schema->getTable($mainTable)->getPrimaryKeyColumns();
+        $pkColumnNames = array_map(function($pkColumn) use ($mainTable) {
+            return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($pkColumn);
+        }, $pkColumnNames);
+
+        $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM '.$from;
 
         if (!empty($filterString)) {
             $sql .= ' WHERE '.$filterString;

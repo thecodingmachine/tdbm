@@ -644,6 +644,20 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $this->assertNotEmpty($arrayLogger);
     }
 
+    public function testFindObjectsCountWithOneToManyLink()
+    {
+        $countries = $this->tdbmService->findObjects('country', "users.status = 'on' OR users.status = 'off'");
+
+        $this->assertEquals(3, $countries->count());
+    }
+
+    public function testFindObjectsFromSqlCountWithOneToManyLink()
+    {
+        $countries = $this->tdbmService->findObjectsFromSql('country', 'country LEFT JOIN users ON country.id = users.country_id', "users.status = 'on' OR users.status = 'off'");
+
+        $this->assertEquals(3, $countries->count());
+    }
+
     /*
         public function testObjectAsFilter() {
             $dpt = $this->tdbmService->getObject('departements', 1);
