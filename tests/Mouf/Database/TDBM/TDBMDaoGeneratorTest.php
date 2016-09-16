@@ -1024,4 +1024,19 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $animalDao->save($animalBean);
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testDisconnectedManyToOne()
+    {
+        // This test cases checks issue https://github.com/thecodingmachine/database.tdbm/issues/99
+
+        $country = new CountryBean('Spain');
+
+        $user = new UserBean('John Doe', 'john@doe.com', $country, 'john.doe');
+
+        $this->assertCount(1, $country->getUsers());
+        $this->assertSame($user, $country->getUsers()[0]);
+    }
 }
