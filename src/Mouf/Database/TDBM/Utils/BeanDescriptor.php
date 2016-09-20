@@ -313,16 +313,14 @@ class BeanDescriptor
             $getterCode = '    /**
      * Returns the list of %s pointing to this bean via the %s column.
      *
-     * @return %s[]|ResultIterator
+     * @return %s[]|AlterableResultIterator
      */
     public function %s()
     {
-        return $this->tdbmService->findObjects(%s, %s, %s);
+        return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s, %s);
     }
 
 ';
-
-            list($sql, $parametersCode) = $this->getFilters($fk);
 
             $beanClass = TDBMDaoGenerator::getBeanNameFromTableName($fk->getLocalTableName());
             $code .= sprintf($getterCode,
@@ -331,34 +329,31 @@ class BeanDescriptor
                 $beanClass,
                 $methodName,
                 var_export($fk->getLocalTableName(), true),
-                $sql,
-                $parametersCode
+                var_export($fk->getName(), true),
+                var_export($fk->getLocalTableName(), true),
+                $this->getFilters($fk)
             );
         }
 
         return $code;
     }
 
-    private function getFilters(ForeignKeyConstraint $fk)
+    private function getFilters(ForeignKeyConstraint $fk) : string
     {
-        $sqlParts = [];
+
         $counter = 0;
         $parameters = [];
 
         $pkColumns = $this->table->getPrimaryKeyColumns();
 
         foreach ($fk->getLocalColumns() as $columnName) {
-            $paramName = 'tdbmparam'.$counter;
-            $sqlParts[] = $fk->getLocalTableName().'.'.$columnName.' = :'.$paramName;
-
             $pkColumn = $pkColumns[$counter];
-            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($paramName, true), var_export($pkColumn, true), var_export($this->table->getName(), true));
-            ++$counter;
+            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($pkColumn, true), var_export($this->table->getName(), true));
+            $counter++;
         }
-        $sql = "'".implode(' AND ', $sqlParts)."'";
         $parametersCode = '[ '.implode(', ', $parameters).' ]';
 
-        return [$sql, $parametersCode];
+        return $parametersCode;
     }
 
     /**

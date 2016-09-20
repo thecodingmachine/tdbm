@@ -261,6 +261,15 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertCount(1, $arr);
         $this->assertInstanceOf('Mouf\\Database\\TDBM\\Test\\Dao\\Bean\\UserBean', $arr[0]);
         $this->assertEquals('jean.dupont', $arr[0]->getLogin());
+
+        $newUser = new UserBean('Speedy Gonzalez', 'speedy@gonzalez.com', $country, 'speedy.gonzalez');
+        $users = $country->getUsers();
+
+        $arr = $users->toArray();
+
+        $this->assertCount(2, $arr);
+        $this->assertInstanceOf('Mouf\\Database\\TDBM\\Test\\Dao\\Bean\\UserBean', $arr[1]);
+        $this->assertEquals('speedy.gonzalez', $arr[1]->getLogin());
     }
 
     /**

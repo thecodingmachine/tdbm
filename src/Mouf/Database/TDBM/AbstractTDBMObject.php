@@ -68,6 +68,13 @@ abstract class AbstractTDBMObject implements JsonSerializable
     private $loadedRelationships = [];
 
     /**
+     * Array storing beans related via many to one relationships (this bean is pointed by external beans).
+     *
+     * @var AlterableResultIterator[] Key: [external_table]___[external_column], value: SplObjectStorage
+     */
+    private $manyToOneRelationships = [];
+
+    /**
      * Used with $primaryKeys when we want to retrieve an existing object
      * and $primaryKeys=[] if we want a new object.
      *
@@ -253,9 +260,18 @@ abstract class AbstractTDBMObject implements JsonSerializable
             $this->registerTable($tableName);
         }
 
+        $oldLinkedBean = $this->dbRows[$tableName]->getRef($foreignKeyName);
+        if ($oldLinkedBean !== null) {
+            $oldLinkedBean->removeManyToOneRelationship($tableName, $foreignKeyName, $this);
+        }
+
         $this->dbRows[$tableName]->setRef($foreignKeyName, $bean);
         if ($this->dbRows[$tableName]->_getStatus() === TDBMObjectStateEnum::STATE_DIRTY) {
             $this->status = TDBMObjectStateEnum::STATE_DIRTY;
+        }
+
+        if ($bean !== null) {
+            $bean->setManyToOneRelationship($tableName, $foreignKeyName, $this);
         }
     }
 
@@ -355,7 +371,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
     private function retrieveRelationshipsStorage($pivotTableName)
     {
         $storage = $this->getRelationshipStorage($pivotTableName);
-        if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || isset($this->loadedRelationships[$pivotTableName]) && $this->loadedRelationships[$pivotTableName]) {
+        if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || (isset($this->loadedRelationships[$pivotTableName]) && $this->loadedRelationships[$pivotTableName])) {
             return $storage;
         }
 
@@ -423,20 +439,76 @@ abstract class AbstractTDBMObject implements JsonSerializable
     /**
      * Returns the SplObjectStorage associated to this relationship (creates it if it does not exists).
      *
-     * @param $pivotTableName
+     * @param string $pivotTableName
      *
      * @return \SplObjectStorage
      */
-    private function getRelationshipStorage($pivotTableName)
+    private function getRelationshipStorage(string $pivotTableName) : \SplObjectStorage
     {
-        if (isset($this->relationships[$pivotTableName])) {
-            $storage = $this->relationships[$pivotTableName];
-        } else {
-            $storage = new \SplObjectStorage();
-            $this->relationships[$pivotTableName] = $storage;
+        return $this->relationships[$pivotTableName] ?? $this->relationships[$pivotTableName] = new \SplObjectStorage();
+    }
+
+    /**
+     * Returns the SplObjectStorage associated to this relationship (creates it if it does not exists).
+     *
+     * @param string $tableName
+     * @param string $foreignKeyName
+     * @return AlterableResultIterator
+     */
+    private function getManyToOneAlterableResultIterator(string $tableName, string $foreignKeyName) : AlterableResultIterator
+    {
+        $key = $tableName.'___'.$foreignKeyName;
+        return $this->manyToOneRelationships[$key] ?? $this->manyToOneRelationships[$key] = new AlterableResultIterator();
+    }
+
+    /**
+     * Declares a relationship between this bean and the bean pointing to it.
+     *
+     * @param string $tableName
+     * @param string $foreignKeyName
+     * @param AbstractTDBMObject $remoteBean
+     */
+    private function setManyToOneRelationship(string $tableName, string $foreignKeyName, AbstractTDBMObject $remoteBean)
+    {
+        $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
+        $alterableResultIterator->add($remoteBean);
+    }
+
+    /**
+     * Declares a relationship between this bean and the bean pointing to it.
+     *
+     * @param string $tableName
+     * @param string $foreignKeyName
+     * @param AbstractTDBMObject $remoteBean
+     */
+    private function removeManyToOneRelationship(string $tableName, string $foreignKeyName, AbstractTDBMObject $remoteBean)
+    {
+        $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
+        $alterableResultIterator->remove($remoteBean);
+    }
+
+    /**
+     * Returns the list of objects linked to this bean via a given foreign key.
+     *
+     * @param string $tableName
+     * @param string $foreignKeyName
+     * @param string $searchTableName
+     * @param array $searchFilter
+     * @return AlterableResultIterator
+     */
+    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, string $searchTableName, array $searchFilter) : AlterableResultIterator
+    {
+        $key = $tableName.'___'.$foreignKeyName;
+        $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
+        if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || (isset($this->manyToOneRelationships[$key]) && $this->manyToOneRelationships[$key]->getUnderlyingResultIterator() !== null)) {
+            return $alterableResultIterator;
         }
 
-        return $storage;
+        $unalteredResultIterator = $this->tdbmService->findObjects($searchTableName, $searchFilter);
+
+        $alterableResultIterator->setResultIterator($unalteredResultIterator->getIterator());
+
+        return $alterableResultIterator;
     }
 
     /**
@@ -503,6 +575,8 @@ abstract class AbstractTDBMObject implements JsonSerializable
             $dbRow = clone $dbRow;
             $dbRow->setTDBMObject($this);
         }
+
+        $this->manyToOneRelationships = [];
 
         // Let's set the status to new (to enter the save function)
         $this->status = TDBMObjectStateEnum::STATE_DETACHED;
