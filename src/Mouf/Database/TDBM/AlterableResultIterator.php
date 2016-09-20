@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Mouf\Database\TDBM;
-
 
 use Porpaginas\Arrays\ArrayPage;
 use Porpaginas\Iterator;
@@ -10,7 +8,7 @@ use Porpaginas\Result;
 
 /**
  * This class acts as a wrapper around a result iterator.
- * It can be used to add or remove results from a ResultIterator (or any kind a traversable collection)
+ * It can be used to add or remove results from a ResultIterator (or any kind a traversable collection).
  *
  * Note: in the case of TDBM, this is useful to manage many to one relationships
  */
@@ -24,7 +22,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * Key: the object to alter in the result set.
      * Value: "add" => the object will be added to the resultset (if it is not found in it)
-     *        "delete" => the object will be removed from the resultset (if found)
+     *        "delete" => the object will be removed from the resultset (if found).
      *
      * @var \SplObjectStorage
      */
@@ -36,7 +34,6 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
      * @var array|null
      */
     private $resultArray;
-
 
     /**
      * @param \Iterator|null $resultIterator
@@ -59,7 +56,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     }
 
     /**
-     * Returns the non altered result iterator (or null if none exist)
+     * Returns the non altered result iterator (or null if none exist).
      *
      * @return \Iterator|null
      */
@@ -128,19 +125,24 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
                 }
             }
         }
+
         return array_values($this->resultArray);
     }
 
     /**
-     * Whether a offset exists
+     * Whether a offset exists.
+     *
      * @link http://php.net/manual/en/arrayaccess.offsetexists.php
+     *
      * @param mixed $offset <p>
-     * An offset to check for.
-     * </p>
-     * @return boolean true on success or false on failure.
-     * </p>
-     * <p>
-     * The return value will be casted to boolean if non-boolean was returned.
+     *                      An offset to check for.
+     *                      </p>
+     *
+     * @return bool true on success or false on failure.
+     *              </p>
+     *              <p>
+     *              The return value will be casted to boolean if non-boolean was returned.
+     *
      * @since 5.0.0
      */
     public function offsetExists($offset)
@@ -149,12 +151,16 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     }
 
     /**
-     * Offset to retrieve
+     * Offset to retrieve.
+     *
      * @link http://php.net/manual/en/arrayaccess.offsetget.php
+     *
      * @param mixed $offset <p>
-     * The offset to retrieve.
-     * </p>
+     *                      The offset to retrieve.
+     *                      </p>
+     *
      * @return mixed Can return all value types.
+     *
      * @since 5.0.0
      */
     public function offsetGet($offset)
@@ -163,15 +169,17 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     }
 
     /**
-     * Offset to set
+     * Offset to set.
+     *
      * @link http://php.net/manual/en/arrayaccess.offsetset.php
+     *
      * @param mixed $offset <p>
-     * The offset to assign the value to.
-     * </p>
-     * @param mixed $value <p>
-     * The value to set.
-     * </p>
-     * @return void
+     *                      The offset to assign the value to.
+     *                      </p>
+     * @param mixed $value  <p>
+     *                      The value to set.
+     *                      </p>
+     *
      * @since 5.0.0
      */
     public function offsetSet($offset, $value)
@@ -180,12 +188,14 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     }
 
     /**
-     * Offset to unset
+     * Offset to unset.
+     *
      * @link http://php.net/manual/en/arrayaccess.offsetunset.php
+     *
      * @param mixed $offset <p>
-     * The offset to unset.
-     * </p>
-     * @return void
+     *                      The offset to unset.
+     *                      </p>
+     *
      * @since 5.0.0
      */
     public function offsetUnset($offset)
@@ -195,6 +205,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     /**
      * @param int $offset
+     *
      * @return \Porpaginas\Page
      */
     public function take($offset, $limit)
@@ -205,6 +216,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     /**
      * Return the number of all results in the paginatable.
+     *
      * @return int
      */
     public function count()
@@ -231,10 +243,13 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     }
 
     /**
-     * Specify data which should be serialized to JSON
+     * Specify data which should be serialized to JSON.
+     *
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
+     *
      * @return mixed data which can be serialized by <b>json_encode</b>,
-     * which is a value of any type other than a resource.
+     *               which is a value of any type other than a resource.
+     *
      * @since 5.4.0
      */
     public function jsonSerialize()
@@ -255,7 +270,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
             return $bean;
         }
 
-        return null;
+        return;
     }
 
     /**

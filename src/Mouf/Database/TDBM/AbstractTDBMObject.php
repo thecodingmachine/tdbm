@@ -453,19 +453,21 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @param string $tableName
      * @param string $foreignKeyName
+     *
      * @return AlterableResultIterator
      */
     private function getManyToOneAlterableResultIterator(string $tableName, string $foreignKeyName) : AlterableResultIterator
     {
         $key = $tableName.'___'.$foreignKeyName;
+
         return $this->manyToOneRelationships[$key] ?? $this->manyToOneRelationships[$key] = new AlterableResultIterator();
     }
 
     /**
      * Declares a relationship between this bean and the bean pointing to it.
      *
-     * @param string $tableName
-     * @param string $foreignKeyName
+     * @param string             $tableName
+     * @param string             $foreignKeyName
      * @param AbstractTDBMObject $remoteBean
      */
     private function setManyToOneRelationship(string $tableName, string $foreignKeyName, AbstractTDBMObject $remoteBean)
@@ -477,8 +479,8 @@ abstract class AbstractTDBMObject implements JsonSerializable
     /**
      * Declares a relationship between this bean and the bean pointing to it.
      *
-     * @param string $tableName
-     * @param string $foreignKeyName
+     * @param string             $tableName
+     * @param string             $foreignKeyName
      * @param AbstractTDBMObject $remoteBean
      */
     private function removeManyToOneRelationship(string $tableName, string $foreignKeyName, AbstractTDBMObject $remoteBean)
@@ -493,7 +495,8 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param string $tableName
      * @param string $foreignKeyName
      * @param string $searchTableName
-     * @param array $searchFilter
+     * @param array  $searchFilter
+     *
      * @return AlterableResultIterator
      */
     protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, string $searchTableName, array $searchFilter) : AlterableResultIterator

@@ -340,7 +340,6 @@ class BeanDescriptor
 
     private function getFilters(ForeignKeyConstraint $fk) : string
     {
-
         $counter = 0;
         $parameters = [];
 
@@ -349,7 +348,7 @@ class BeanDescriptor
         foreach ($fk->getLocalColumns() as $columnName) {
             $pkColumn = $pkColumns[$counter];
             $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($pkColumn, true), var_export($this->table->getName(), true));
-            $counter++;
+            ++$counter;
         }
         $parametersCode = '[ '.implode(', ', $parameters).' ]';
 
