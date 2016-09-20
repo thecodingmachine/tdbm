@@ -261,6 +261,15 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertCount(1, $arr);
         $this->assertInstanceOf('Mouf\\Database\\TDBM\\Test\\Dao\\Bean\\UserBean', $arr[0]);
         $this->assertEquals('jean.dupont', $arr[0]->getLogin());
+
+        $newUser = new UserBean('Speedy Gonzalez', 'speedy@gonzalez.com', $country, 'speedy.gonzalez');
+        $users = $country->getUsers();
+
+        $arr = $users->toArray();
+
+        $this->assertCount(2, $arr);
+        $this->assertInstanceOf('Mouf\\Database\\TDBM\\Test\\Dao\\Bean\\UserBean', $arr[1]);
+        $this->assertEquals('speedy.gonzalez', $arr[1]->getLogin());
     }
 
     /**
@@ -1033,5 +1042,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $countryDao = new CountryDao($this->tdbmService);
         $this->expectException(\TypeError::class);
         $countryDao->getById(null);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testDisconnectedManyToOne()
+    {
+        // This test cases checks issue https://github.com/thecodingmachine/database.tdbm/issues/99
+
+        $country = new CountryBean('Spain');
+
+        $user = new UserBean('John Doe', 'john@doe.com', $country, 'john.doe');
+
+        $this->assertCount(1, $country->getUsers());
+        $this->assertSame($user, $country->getUsers()[0]);
     }
 }

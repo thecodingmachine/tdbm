@@ -284,7 +284,7 @@ class DbRow
     {
         if (array_key_exists($foreignKeyName, $this->references)) {
             return $this->references[$foreignKeyName];
-        } elseif ($this->status === TDBMObjectStateEnum::STATE_NEW) {
+        } elseif ($this->status === TDBMObjectStateEnum::STATE_NEW || $this->tdbmService === null) {
             // If the object is new and has no property, then it has to be empty.
             return;
         } else {
