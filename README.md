@@ -2,9 +2,9 @@
 [![Total Downloads](https://poser.pugx.org/mouf/database.tdbm/downloads)](https://packagist.org/packages/mouf/database.tdbm)
 [![Latest Unstable Version](https://poser.pugx.org/mouf/database.tdbm/v/unstable)](https://packagist.org/packages/mouf/database.tdbm)
 [![License](https://poser.pugx.org/mouf/database.tdbm/license)](https://packagist.org/packages/mouf/database.tdbm)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/thecodingmachine/database.tdbm/badges/quality-score.png?b=4.0)](https://scrutinizer-ci.com/g/thecodingmachine/database.tdbm/?branch=4.0)
-[![Build Status](https://travis-ci.org/thecodingmachine/database.tdbm.svg?branch=4.0)](https://travis-ci.org/thecodingmachine/database.tdbm)
-[![Coverage Status](https://coveralls.io/repos/thecodingmachine/database.tdbm/badge.svg?branch=4.0&service=github)](https://coveralls.io/github/thecodingmachine/database.tdbm?branch=4.0)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/thecodingmachine/database.tdbm/badges/quality-score.png?b=4.1)](https://scrutinizer-ci.com/g/thecodingmachine/database.tdbm/?branch=4.1)
+[![Build Status](https://travis-ci.org/thecodingmachine/database.tdbm.svg?branch=4.1)](https://travis-ci.org/thecodingmachine/database.tdbm)
+[![Coverage Status](https://coveralls.io/repos/thecodingmachine/database.tdbm/badge.svg?branch=4.1&service=github)](https://coveralls.io/github/thecodingmachine/database.tdbm?branch=4.1)
 
 
 About TDBM (The DataBase Machine)
