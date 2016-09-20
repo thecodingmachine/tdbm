@@ -1037,6 +1037,16 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testExceptionOnGetById()
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $this->expectException(\TypeError::class);
+        $countryDao->getById(null);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testDisconnectedManyToOne()
     {
         // This test cases checks issue https://github.com/thecodingmachine/database.tdbm/issues/99
