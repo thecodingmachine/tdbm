@@ -377,7 +377,7 @@ class $baseClassName
 
         if (count($primaryKeyColumns) === 1) {
             $primaryKeyColumn = $primaryKeyColumns[0];
-            $primaryKeyPhpType = TDBMDaoGenerator::dbalTypeToPhpType($table->getColumn($primaryKeyColumn)->getType());
+            $primaryKeyPhpType = self::dbalTypeToPhpType($table->getColumn($primaryKeyColumn)->getType());
             $str .= "
     /**
      * Get $beanClassWithoutNameSpace specified by its ID (its primary key)

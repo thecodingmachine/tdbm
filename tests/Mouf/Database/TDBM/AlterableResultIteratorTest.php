@@ -1,16 +1,16 @@
 <?php
-declare(strict_types=1);
+
+declare (strict_types = 1);
 
 namespace Mouf\Database\TDBM;
-
 
 class AlterableResultIteratorTest extends \PHPUnit_Framework_TestCase
 {
     public function testUnalteredResultSet()
     {
-        $a = (object) ['a'=>'a'];
-        $b = (object) ['b'=>'c'];
-        $c = (object) ['b'=>'c'];
+        $a = (object) ['a' => 'a'];
+        $b = (object) ['b' => 'c'];
+        $c = (object) ['b' => 'c'];
 
         $iterator = new \ArrayIterator([$a, $b, $c]);
 
@@ -38,9 +38,9 @@ class AlterableResultIteratorTest extends \PHPUnit_Framework_TestCase
     {
         $alterableResultIterator = new AlterableResultIterator();
 
-        $a = (object) ['a'=>'a'];
-        $b = (object) ['b'=>'c'];
-        $c = (object) ['b'=>'c'];
+        $a = (object) ['a' => 'a'];
+        $b = (object) ['b' => 'c'];
+        $c = (object) ['b' => 'c'];
 
         $alterableResultIterator->add($a);
         $alterableResultIterator->add($b);
@@ -52,9 +52,9 @@ class AlterableResultIteratorTest extends \PHPUnit_Framework_TestCase
 
     public function testAlterFilledResultSet()
     {
-        $a = (object) ['a'=>'a'];
-        $b = (object) ['b'=>'c'];
-        $c = (object) ['b'=>'c'];
+        $a = (object) ['a' => 'a'];
+        $b = (object) ['b' => 'c'];
+        $c = (object) ['b' => 'c'];
 
         $iterator = new \ArrayIterator([$a, $b]);
 
@@ -64,14 +64,14 @@ class AlterableResultIteratorTest extends \PHPUnit_Framework_TestCase
         $alterableResultIterator->remove($b);
 
         $this->assertEquals([$a, $c], $alterableResultIterator->toArray());
-        $this->assertEquals([$c], iterator_to_array($alterableResultIterator->take(1,1)));
+        $this->assertEquals([$c], iterator_to_array($alterableResultIterator->take(1, 1)));
     }
 
     public function testAddAfterToArray()
     {
-        $a = (object) ['a'=>'a'];
-        $b = (object) ['b'=>'c'];
-        $c = (object) ['b'=>'c'];
+        $a = (object) ['a' => 'a'];
+        $b = (object) ['b' => 'c'];
+        $c = (object) ['b' => 'c'];
 
         $iterator = new \ArrayIterator([$a, $b]);
 
@@ -83,14 +83,13 @@ class AlterableResultIteratorTest extends \PHPUnit_Framework_TestCase
         $alterableResultIterator->remove($b);
 
         $this->assertEquals([$a, $c], $alterableResultIterator->toArray());
-
     }
 
     public function testGetIterator()
     {
-        $a = (object) ['a'=>'a'];
-        $b = (object) ['b'=>'c'];
-        $c = (object) ['b'=>'c'];
+        $a = (object) ['a' => 'a'];
+        $b = (object) ['b' => 'c'];
+        $c = (object) ['b' => 'c'];
 
         $iterator = new \ArrayIterator([$a, $b]);
 
@@ -121,13 +120,13 @@ class AlterableResultIteratorTest extends \PHPUnit_Framework_TestCase
 
     public function testMap()
     {
-        $a = (object) ['foo'=>'bar'];
+        $a = (object) ['foo' => 'bar'];
 
         $iterator = new \ArrayIterator([$a]);
 
         $alterableResultIterator = new AlterableResultIterator($iterator);
 
-        $map = $alterableResultIterator->map(function($item) {
+        $map = $alterableResultIterator->map(function ($item) {
             return $item->foo;
         });
 
@@ -138,9 +137,9 @@ class AlterableResultIteratorTest extends \PHPUnit_Framework_TestCase
     {
         $alterableResultIterator = new AlterableResultIterator();
 
-        $a = (object) ['a'=>'a'];
-        $b = (object) ['b'=>'c'];
-        $c = (object) ['b'=>'c'];
+        $a = (object) ['a' => 'a'];
+        $b = (object) ['b' => 'c'];
+        $c = (object) ['b' => 'c'];
 
         $iterator = new \ArrayIterator([$a, $b, $c]);
 
