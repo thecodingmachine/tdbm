@@ -1024,4 +1024,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $animalDao->save($animalBean);
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testExceptionOnGetById()
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $this->expectException(\TypeError::class);
+        $countryDao->getById(null);
+    }
 }

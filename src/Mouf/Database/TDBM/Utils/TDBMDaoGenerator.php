@@ -377,6 +377,7 @@ class $baseClassName
 
         if (count($primaryKeyColumns) === 1) {
             $primaryKeyColumn = $primaryKeyColumns[0];
+            $primaryKeyPhpType = TDBMDaoGenerator::dbalTypeToPhpType($table->getColumn($primaryKeyColumn)->getType());
             $str .= "
     /**
      * Get $beanClassWithoutNameSpace specified by its ID (its primary key)
@@ -387,7 +388,7 @@ class $baseClassName
      * @return $beanClassWithoutNameSpace
      * @throws TDBMException
      */
-    public function getById(\$id, \$lazyLoading = false)
+    public function getById($primaryKeyPhpType \$id, \$lazyLoading = false)
     {
         return \$this->tdbmService->findObjectByPk('$tableName', ['$primaryKeyColumn' => \$id], [], \$lazyLoading);
     }
