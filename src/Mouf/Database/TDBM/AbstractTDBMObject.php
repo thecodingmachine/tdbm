@@ -496,10 +496,11 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param string $foreignKeyName
      * @param string $searchTableName
      * @param array  $searchFilter
+     * @param string $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column). WARNING : This parameter is not kept when there is an additionnal or removal object !
      *
      * @return AlterableResultIterator
      */
-    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, string $searchTableName, array $searchFilter) : AlterableResultIterator
+    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, string $searchTableName, array $searchFilter, $orderString = null) : AlterableResultIterator
     {
         $key = $tableName.'___'.$foreignKeyName;
         $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
@@ -507,7 +508,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
             return $alterableResultIterator;
         }
 
-        $unalteredResultIterator = $this->tdbmService->findObjects($searchTableName, $searchFilter);
+        $unalteredResultIterator = $this->tdbmService->findObjects($searchTableName, $searchFilter, [], $orderString);
 
         $alterableResultIterator->setResultIterator($unalteredResultIterator->getIterator());
 
