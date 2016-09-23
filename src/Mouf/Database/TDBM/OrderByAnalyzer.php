@@ -1,5 +1,7 @@
 <?php
+
 namespace Mouf\Database\TDBM;
+
 use Doctrine\Common\Cache\Cache;
 use PHPSQLParser\PHPSQLParser;
 
@@ -24,7 +26,8 @@ class OrderByAnalyzer
 
     /**
      * OrderByAnalyzer constructor.
-     * @param Cache $cache
+     *
+     * @param Cache       $cache
      * @param string|null $cachePrefix
      */
     public function __construct(Cache $cache, $cachePrefix = null)
@@ -34,7 +37,7 @@ class OrderByAnalyzer
     }
 
     /**
-     * Returns an array for each sorted "column" in the form:
+     * Returns an array for each sorted "column" in the form:.
      *
      * [
      *      [
@@ -51,6 +54,7 @@ class OrderByAnalyzer
      * ]
      *
      * @param string $orderBy
+     *
      * @return array
      */
     public function analyzeOrderBy(string $orderBy) : array
@@ -62,6 +66,7 @@ class OrderByAnalyzer
         }
         $results = $this->analyzeOrderByNoCache($orderBy);
         $this->cache->save($key, $results);
+
         return $results;
     }
 
@@ -73,7 +78,7 @@ class OrderByAnalyzer
 
         $results = [];
 
-        for ($i = 0, $count = count($parsed['ORDER']); $i < $count; $i++) {
+        for ($i = 0, $count = count($parsed['ORDER']); $i < $count; ++$i) {
             $orderItem = $parsed['ORDER'][$i];
             if ($orderItem['expr_type'] === 'colref') {
                 $parts = $orderItem['no_quotes']['parts'];
@@ -88,12 +93,12 @@ class OrderByAnalyzer
                     'type' => 'colref',
                     'table' => $tableName,
                     'column' => $columnName,
-                    'direction' => $orderItem['direction']
+                    'direction' => $orderItem['direction'],
                 ];
             } else {
                 $position = $orderItem['position'];
-                if ($i+1 < $count) {
-                    $nextPosition = $parsed['ORDER'][$i+1]['position'];
+                if ($i + 1 < $count) {
+                    $nextPosition = $parsed['ORDER'][$i + 1]['position'];
                     $str = substr($sql, $position, $nextPosition - $position);
                 } else {
                     $str = substr($sql, $position);
@@ -104,11 +109,9 @@ class OrderByAnalyzer
                 $results[] = [
                     'type' => 'expr',
                     'expr' => $this->trimDirection($str),
-                    'direction' => $orderItem['direction']
+                    'direction' => $orderItem['direction'],
                 ];
             }
-
-
         }
 
         return $results;
@@ -118,6 +121,7 @@ class OrderByAnalyzer
      * Trims the ASC/DESC direction at the end of the string.
      *
      * @param string $sql
+     *
      * @return string
      */
     private function trimDirection(string $sql) : string

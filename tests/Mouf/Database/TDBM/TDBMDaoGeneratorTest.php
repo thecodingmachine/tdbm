@@ -39,7 +39,6 @@ use Mouf\Database\TDBM\Test\Dao\DogDao;
 use Mouf\Database\TDBM\Test\Dao\RoleDao;
 use Mouf\Database\TDBM\Test\Dao\UserDao;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
-use PHPSQLParser\PHPSQLParser;
 
 /**
  */

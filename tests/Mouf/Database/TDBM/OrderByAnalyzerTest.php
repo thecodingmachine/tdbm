@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Mouf\Database\TDBM;
-
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\VoidCache;
@@ -19,30 +17,30 @@ class OrderByAnalyzerTest extends \PHPUnit_Framework_TestCase
             'type' => 'colref',
             'table' => null,
             'column' => 'a',
-            'direction' => 'ASC'
+            'direction' => 'ASC',
         ], $results[0]);
         $this->assertEquals([
             'type' => 'colref',
             'table' => null,
             'column' => 'b',
-            'direction' => 'DESC'
+            'direction' => 'DESC',
         ], $results[1]);
         $this->assertEquals([
             'type' => 'expr',
             'expr' => 'rand()',
-            'direction' => 'DESC'
+            'direction' => 'DESC',
         ], $results[2]);
         $this->assertEquals([
             'type' => 'colref',
             'table' => null,
             'column' => 'masc',
-            'direction' => 'ASC'
+            'direction' => 'ASC',
         ], $results[3]);
         $this->assertEquals([
             'type' => 'colref',
             'table' => 'mytable',
             'column' => 'mycol',
-            'direction' => 'ASC'
+            'direction' => 'ASC',
         ], $results[4]);
     }
 
@@ -55,7 +53,7 @@ class OrderByAnalyzerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals([
             'type' => 'expr',
             'expr' => 'foodesc + barasc',
-            'direction' => 'ASC'
+            'direction' => 'ASC',
         ], $results[0]);
     }
 
@@ -66,5 +64,4 @@ class OrderByAnalyzerTest extends \PHPUnit_Framework_TestCase
         $results2 = $analyzer->analyzeOrderBy('foo');
         // For code coverage purpose
     }
-
 }

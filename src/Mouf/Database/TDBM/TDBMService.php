@@ -1465,8 +1465,8 @@ class TDBMService
      *
      * Note: MySQL dictates that ORDER BYed columns should appear in the SELECT clause.
      *
-     * @param string $mainTable
-     * @param array  $additionalTablesFetch
+     * @param string      $mainTable
+     * @param array       $additionalTablesFetch
      * @param string|null $orderBy
      *
      * @return array
@@ -1502,13 +1502,12 @@ class TDBMService
                     $sortColumnName = 'sort_column_'.$sortColumn;
                     $columnsList[] = $orderByColumn['expr'].' as '.$sortColumnName;
                     $columnDescList[] = [
-                        'tableGroup' => null
+                        'tableGroup' => null,
                     ];
-                    $sortColumn++;
+                    ++$sortColumn;
                 }
             }
         }
-
 
         foreach ($additionalTablesFetch as $additionalTable) {
             $relatedTables = $this->_getRelatedTablesByInheritance($additionalTable);

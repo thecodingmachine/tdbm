@@ -496,7 +496,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param string $foreignKeyName
      * @param string $searchTableName
      * @param array  $searchFilter
-     * @param string $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column). WARNING : This parameter is not kept when there is an additionnal or removal object !
+     * @param string $orderString     The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column). WARNING : This parameter is not kept when there is an additionnal or removal object !
      *
      * @return AlterableResultIterator
      */
