@@ -1058,4 +1058,28 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertCount(1, $country->getUsers());
         $this->assertSame($user, $country->getUsers()[0]);
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testOrderByExternalCol()
+    {
+        // This test cases checks issue https://github.com/thecodingmachine/database.tdbm/issues/106
+
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByCountryName();
+
+        $this->assertEquals('UK', $users[0]->getCountry()->getLabel());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testOrderByExpression()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByReversedCountryName();
+
+        $this->assertEquals('Jamaica', $users[0]->getCountry()->getLabel());
+    }
 }

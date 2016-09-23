@@ -59,4 +59,24 @@ class TestUserDao extends UserBaseDao
     {
         return $this->find('contacts.manager_id = 1');
     }
+
+    /**
+     * Returns a list of users, sorted by a table on an external column.
+     *
+     * @return \Mouf\Database\TDBM\ResultIterator|\Mouf\Database\TDBM\Test\Dao\Bean\UserBean[]|\Mouf\Database\TDBM\Test\Dao\Generated\ResultArray
+     */
+    public function getUsersByCountryName()
+    {
+        return $this->find(null, [], 'country.label DESC');
+    }
+
+    /**
+     * A test to sort by function.
+     *
+     * @return \Mouf\Database\TDBM\ResultIterator|\Mouf\Database\TDBM\Test\Dao\Bean\UserBean[]|\Mouf\Database\TDBM\Test\Dao\Generated\ResultArray
+     */
+    public function getUsersByReversedCountryName()
+    {
+        return $this->find(null, [], 'REVERSE(country.label) ASC');
+    }
 }
