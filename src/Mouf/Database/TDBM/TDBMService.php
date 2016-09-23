@@ -115,9 +115,9 @@ class TDBMService
     private $toSaveObjects;
 
     /**
-     * The content of the cache variable.
+     * A cache service to be used.
      *
-     * @var array<string, mixed>
+     * @var Cache|null
      */
     private $cache;
 
@@ -142,6 +142,11 @@ class TDBMService
      * @var MinLogLevelFilter|NullLogger
      */
     private $logger;
+
+    /**
+     * @var OrderByAnalyzer
+     */
+    private $orderByAnalyzer;
 
     /**
      * @param Connection     $connection     The DBAL DB connection to use
@@ -181,6 +186,7 @@ class TDBMService
             $this->rootLogger = $logger;
             $this->setLogLevel(LogLevel::WARNING);
         }
+        $this->orderByAnalyzer = new OrderByAnalyzer($this->cache, $this->cachePrefix);
     }
 
     /**
@@ -1315,7 +1321,7 @@ class TDBMService
 
         $parameters = array_merge($parameters, $additionalParameters);
 
-        list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, $additionalTablesFetch);
+        list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, $additionalTablesFetch, $orderString);
 
         $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$mainTable.')';
 
@@ -1334,7 +1340,6 @@ class TDBMService
 
         if (!empty($orderString)) {
             $sql .= ' ORDER BY '.$orderString;
-            $countSql .= ' ORDER BY '.$orderString;
         }
 
         if ($mode !== null && $mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
@@ -1394,7 +1399,7 @@ class TDBMService
         }, $columnDescList)).' FROM '.$from;
 
         if (count($allFetchedTables) > 1) {
-            list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, []);
+            list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, [], $orderString);
         }
 
         // Let's compute the COUNT.
@@ -1458,14 +1463,17 @@ class TDBMService
     /**
      * Returns the column list that must be fetched for the SQL request.
      *
+     * Note: MySQL dictates that ORDER BYed columns should appear in the SELECT clause.
+     *
      * @param string $mainTable
      * @param array  $additionalTablesFetch
+     * @param string|null $orderBy
      *
      * @return array
      *
      * @throws \Doctrine\DBAL\Schema\SchemaException
      */
-    private function getColumnsList(string $mainTable, array $additionalTablesFetch = array())
+    private function getColumnsList(string $mainTable, array $additionalTablesFetch = array(), string $orderBy = null)
     {
         // From the table name and the additional tables we want to fetch, let's build a list of all tables
         // that must be part of the select columns.
@@ -1476,6 +1484,31 @@ class TDBMService
         foreach ($allFetchedTables as $table) {
             $tableGroups[$table] = $tableGroupName;
         }
+
+        $columnsList = [];
+        $columnDescList = [];
+        $sortColumn = 0;
+
+        // Now, let's deal with "order by columns"
+        if ($orderBy !== null) {
+            $orderByColumns = $this->orderByAnalyzer->analyzeOrderBy($orderBy);
+
+            // If we sort by a column, there is a high chance we will fetch the bean containing this column.
+            // Hence, we should add the table to the $additionalTablesFetch
+            foreach ($orderByColumns as $orderByColumn) {
+                if ($orderByColumn['type'] === 'colref' && $orderByColumn['table'] !== null) {
+                    $additionalTablesFetch[] = $orderByColumn['table'];
+                } elseif ($orderByColumn['type'] === 'expr') {
+                    $sortColumnName = 'sort_column_'.$sortColumn;
+                    $columnsList[] = $orderByColumn['expr'].' as '.$sortColumnName;
+                    $columnDescList[] = [
+                        'tableGroup' => null
+                    ];
+                    $sortColumn++;
+                }
+            }
+        }
+
 
         foreach ($additionalTablesFetch as $additionalTable) {
             $relatedTables = $this->_getRelatedTablesByInheritance($additionalTable);
@@ -1489,8 +1522,6 @@ class TDBMService
         // Let's remove any duplicate
         $allFetchedTables = array_flip(array_flip($allFetchedTables));
 
-        $columnsList = [];
-        $columnDescList = [];
         $schema = $this->tdbmSchemaAnalyzer->getSchema();
 
         // Now, let's build the column list

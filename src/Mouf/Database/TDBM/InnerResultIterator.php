@@ -136,6 +136,12 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
             $beansData = [];
             foreach ($row as $i => $value) {
                 $columnDescriptor = $this->columnDescriptors[$i];
+
+                if ($columnDescriptor['tableGroup'] === null) {
+                    // A column can have no tableGroup (if it comes from an ORDER BY expression)
+                    continue;
+                }
+
                 // Let's cast the value according to its type
                 $value = $columnDescriptor['type']->convertToPHPValue($value, $this->databasePlatform);
 
