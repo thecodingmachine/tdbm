@@ -32,7 +32,8 @@
 	    "beberlei/porpaginas": "~1.0",
 		"mouf/classname-mapper": "~1.0",
 		"mouf/utils.common.doctrine-cache-wrapper": "~1.0",
-		"logger/essentials" : "^0.1.9"
+		"logger/essentials" : "^0.1.9",
+		"greenlion/php-sql-parser": "^4.0"
 	},
     "require-dev" : {
 	    "phpunit/phpunit": "~5.5",
