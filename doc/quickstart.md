@@ -551,6 +551,30 @@ class UserDao extends UserBaseDao {
 }
 ```
 
+**Important:** TDBM does its best to protect you from SQL injection. In particular, it will only allow column names in the "ORDER BY" clause. This means you are safe to pass input from the user directly in the ORDER BY parameter.
+
+```php
+// This is actually safe
+$resultSet = $this->find(null, [], $_GET['order']);
+```
+
+```php
+// This will throw an exception because only columns are allowed, not expressions
+$resultSet = $this->find(null, [], 'RAND()');
+```
+
+If you want to pass an expression to the ORDER BY clause, you will need to tell TDBM to stop checking for SQL injections. You do this by passing a `UncheckedOrderBy` object as a parameter:
+
+```php
+// This is actually OK. We tell TDBM that we know what we are doing.
+$resultSet = $this->find(null, [], new UncheckedOrderBy('RAND()'));
+```
+
+```php
+// This is the worst you can do, you are opening a SQL injection on the order query parameter.
+$resultSet = $this->find(null, [], new UncheckedOrderBy($_GET['order']));
+```
+
 
 Restricting results fetched using limits and offsets
 ----------------------------------------------------

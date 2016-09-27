@@ -1082,4 +1082,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->assertEquals('Jamaica', $users[0]->getCountry()->getLabel());
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testOrderByException()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $this->expectException(TDBMInvalidArgumentException::class);
+        $users = $userDao->getUsersByInvalidOrderBy();
+    }
 }
