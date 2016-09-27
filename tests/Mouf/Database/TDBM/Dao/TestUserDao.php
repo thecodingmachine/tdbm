@@ -3,6 +3,7 @@
 namespace Mouf\Database\TDBM\Dao;
 
 use Mouf\Database\TDBM\Test\Dao\Generated\UserBaseDao;
+use Mouf\Database\TDBM\UncheckedOrderBy;
 
 /**
  * The UserDao class will maintain the persistence of UserBean class into the users table.
@@ -76,6 +77,16 @@ class TestUserDao extends UserBaseDao
      * @return \Mouf\Database\TDBM\ResultIterator|\Mouf\Database\TDBM\Test\Dao\Bean\UserBean[]|\Mouf\Database\TDBM\Test\Dao\Generated\ResultArray
      */
     public function getUsersByReversedCountryName()
+    {
+        return $this->find(null, [], new UncheckedOrderBy('REVERSE(country.label) ASC'));
+    }
+
+    /**
+     * A test to check exceptions when providing expressions in ORDER BY clause.
+     *
+     * @return \Mouf\Database\TDBM\ResultIterator|\Mouf\Database\TDBM\Test\Dao\Bean\UserBean[]|\Mouf\Database\TDBM\Test\Dao\Generated\ResultArray
+     */
+    public function getUsersByInvalidOrderBy()
     {
         return $this->find(null, [], 'REVERSE(country.label) ASC');
     }

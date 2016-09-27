@@ -1298,19 +1298,19 @@ class TDBMService
      *
      * Finally, if filter_bag is null, the whole table is returned.
      *
-     * @param string            $mainTable             The name of the table queried
-     * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-     * @param array             $parameters
-     * @param string|null       $orderString           The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
-     * @param array             $additionalTablesFetch
-     * @param int               $mode
-     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param string                       $mainTable             The name of the table queried
+     * @param string|array|null            $filter                The SQL filters to apply to the query (the WHERE part). Columns from tables different from $mainTable must be prefixed by the table name (in the form: table.column)
+     * @param array                        $parameters
+     * @param string|UncheckedOrderBy|null $orderString           The ORDER BY part of the query. Columns from tables different from $mainTable must be prefixed by the table name (in the form: table.column)
+     * @param array                        $additionalTablesFetch
+     * @param int                          $mode
+     * @param string                       $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
      * @return ResultIterator An object representing an array of results
      *
      * @throws TDBMException
      */
-    public function findObjects($mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), $mode = null, $className = null)
+    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), $mode = null, string $className = null)
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1321,7 +1321,7 @@ class TDBMService
 
         $parameters = array_merge($parameters, $additionalParameters);
 
-        list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, $additionalTablesFetch, $orderString);
+        list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($mainTable, $additionalTablesFetch, $orderString);
 
         $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$mainTable.')';
 
@@ -1352,19 +1352,19 @@ class TDBMService
     }
 
     /**
-     * @param string            $mainTable   The name of the table queried
-     * @param string            $from        The from sql statement
-     * @param string|array|null $filter      The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-     * @param array             $parameters
-     * @param string|null       $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
-     * @param int               $mode
-     * @param string            $className   Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param string                       $mainTable   The name of the table queried
+     * @param string                       $from        The from sql statement
+     * @param string|array|null            $filter      The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
+     * @param array                        $parameters
+     * @param string|UncheckedOrderBy|null $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
+     * @param int                          $mode
+     * @param string                       $className   Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
      * @return ResultIterator An object representing an array of results
      *
      * @throws TDBMException
      */
-    public function findObjectsFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), string $orderString = null, $mode = null, string $className = null)
+    public function findObjectsFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), $orderString = null, $mode = null, string $className = null)
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1399,7 +1399,7 @@ class TDBMService
         }, $columnDescList)).' FROM '.$from;
 
         if (count($allFetchedTables) > 1) {
-            list($columnDescList, $columnsList) = $this->getColumnsList($mainTable, [], $orderString);
+            list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($mainTable, [], $orderString);
         }
 
         // Let's compute the COUNT.
@@ -1417,7 +1417,6 @@ class TDBMService
 
         if (!empty($orderString)) {
             $sql .= ' ORDER BY '.$orderString;
-            $countSql .= ' ORDER BY '.$orderString;
         }
 
         if (stripos($countSql, 'GROUP BY') !== false) {
@@ -1465,15 +1464,15 @@ class TDBMService
      *
      * Note: MySQL dictates that ORDER BYed columns should appear in the SELECT clause.
      *
-     * @param string      $mainTable
-     * @param array       $additionalTablesFetch
-     * @param string|null $orderBy
+     * @param string                       $mainTable
+     * @param array                        $additionalTablesFetch
+     * @param string|UncheckedOrderBy|null $orderBy
      *
      * @return array
      *
      * @throws \Doctrine\DBAL\Schema\SchemaException
      */
-    private function getColumnsList(string $mainTable, array $additionalTablesFetch = array(), string $orderBy = null)
+    private function getColumnsList(string $mainTable, array $additionalTablesFetch = array(), $orderBy = null)
     {
         // From the table name and the additional tables we want to fetch, let's build a list of all tables
         // that must be part of the select columns.
@@ -1488,16 +1487,30 @@ class TDBMService
         $columnsList = [];
         $columnDescList = [];
         $sortColumn = 0;
+        $reconstructedOrderBy = null;
 
         // Now, let's deal with "order by columns"
         if ($orderBy !== null) {
+            if ($orderBy instanceof UncheckedOrderBy) {
+                $securedOrderBy = false;
+                $orderBy = $orderBy->getOrderBy();
+                $reconstructedOrderBy = $orderBy;
+            } else {
+                $securedOrderBy = true;
+                $reconstructedOrderBys = [];
+            }
             $orderByColumns = $this->orderByAnalyzer->analyzeOrderBy($orderBy);
 
             // If we sort by a column, there is a high chance we will fetch the bean containing this column.
             // Hence, we should add the table to the $additionalTablesFetch
             foreach ($orderByColumns as $orderByColumn) {
-                if ($orderByColumn['type'] === 'colref' && $orderByColumn['table'] !== null) {
-                    $additionalTablesFetch[] = $orderByColumn['table'];
+                if ($orderByColumn['type'] === 'colref') {
+                    if ($orderByColumn['table'] !== null) {
+                        $additionalTablesFetch[] = $orderByColumn['table'];
+                    }
+                    if ($securedOrderBy) {
+                        $reconstructedOrderBys[] = ($orderByColumn['table'] !== null ? $orderByColumn['table'].'.' : '').$orderByColumn['column'].' '.$orderByColumn['direction'];
+                    }
                 } elseif ($orderByColumn['type'] === 'expr') {
                     $sortColumnName = 'sort_column_'.$sortColumn;
                     $columnsList[] = $orderByColumn['expr'].' as '.$sortColumnName;
@@ -1505,7 +1518,15 @@ class TDBMService
                         'tableGroup' => null,
                     ];
                     ++$sortColumn;
+
+                    if ($securedOrderBy) {
+                        throw new TDBMInvalidArgumentException('Invalid ORDER BY column: "'.$orderByColumn['expr'].'". If you want to use expression in your ORDER BY clause, you must wrap them in a UncheckedOrderBy object. For instance: new UncheckedOrderBy("col1 + col2 DESC")');
+                    }
                 }
+            }
+
+            if ($reconstructedOrderBy === null) {
+                $reconstructedOrderBy = implode(', ', $reconstructedOrderBys);
             }
         }
 
@@ -1539,7 +1560,7 @@ class TDBMService
             }
         }
 
-        return [$columnDescList, $columnsList];
+        return [$columnDescList, $columnsList, $reconstructedOrderBy];
     }
 
     /**
