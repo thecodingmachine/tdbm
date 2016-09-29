@@ -444,7 +444,7 @@ class $baseClassName
      * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
-    protected function findFromSql(\$from, \$filter = null, array \$parameters = [], \$orderBy=null, \$mode = null)
+    protected function findFromSql(\$from, \$filter = null, array \$parameters = [], \$orderBy = null, \$mode = null)
     {
         if (\$this->defaultSort && \$orderBy == null) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
