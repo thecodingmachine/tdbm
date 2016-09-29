@@ -1,3 +1,12 @@
+4.2
+===
+
+Major changes:
+
+- More powerful result sets
+    - Result sets can now be sorted "a posteriori" (with the `withOrder` method)
+    - Result sets can now be parametrized "a posteriori" (with the `withParameters` method)
+
 4.1
 ===
 

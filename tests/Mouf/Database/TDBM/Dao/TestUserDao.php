@@ -29,7 +29,7 @@ class TestUserDao extends UserBaseDao
      *
      * @return \Mouf\Database\TDBM\ResultIterator|\Mouf\Database\TDBM\Test\Dao\Bean\UserBean[]|\Mouf\Database\TDBM\Test\Dao\ResultArray
      */
-    public function getUsersByLoginStartingWith($login, $mode = null)
+    public function getUsersByLoginStartingWith($login = null, $mode = null)
     {
         return $this->find('login LIKE :login', ['login' => $login.'%'], null, [], $mode);
     }

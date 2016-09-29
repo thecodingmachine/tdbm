@@ -31,6 +31,8 @@ use Doctrine\DBAL\Types\Type;
 use Logger\Filters\MinLogLevelFilter;
 use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use Mouf\Database\TDBM\QueryFactory\FindObjectsFromSqlQueryFactory;
+use Mouf\Database\TDBM\QueryFactory\FindObjectsQueryFactory;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -1162,69 +1164,6 @@ class TDBMService
     }
 
     /**
-     * @param string $tableName
-     *
-     * @return ForeignKeyConstraint[]
-     */
-    private function getParentRelationshipForeignKeys($tableName)
-    {
-        return $this->fromCache($this->cachePrefix.'_parentrelationshipfks_'.$tableName, function () use ($tableName) {
-            return $this->getParentRelationshipForeignKeysWithoutCache($tableName);
-        });
-    }
-
-    /**
-     * @param string $tableName
-     *
-     * @return ForeignKeyConstraint[]
-     */
-    private function getParentRelationshipForeignKeysWithoutCache($tableName)
-    {
-        $parentFks = [];
-        $currentTable = $tableName;
-        while ($currentFk = $this->schemaAnalyzer->getParentRelationship($currentTable)) {
-            $currentTable = $currentFk->getForeignTableName();
-            $parentFks[] = $currentFk;
-        }
-
-        return $parentFks;
-    }
-
-    /**
-     * @param string $tableName
-     *
-     * @return ForeignKeyConstraint[]
-     */
-    private function getChildrenRelationshipForeignKeys($tableName)
-    {
-        return $this->fromCache($this->cachePrefix.'_childrenrelationshipfks_'.$tableName, function () use ($tableName) {
-            return $this->getChildrenRelationshipForeignKeysWithoutCache($tableName);
-        });
-    }
-
-    /**
-     * @param string $tableName
-     *
-     * @return ForeignKeyConstraint[]
-     */
-    private function getChildrenRelationshipForeignKeysWithoutCache($tableName)
-    {
-        $children = $this->schemaAnalyzer->getChildrenRelationships($tableName);
-
-        if (!empty($children)) {
-            $fksTables = array_map(function (ForeignKeyConstraint $fk) {
-                return $this->getChildrenRelationshipForeignKeys($fk->getLocalTableName());
-            }, $children);
-
-            $fks = array_merge($children, call_user_func_array('array_merge', $fksTables));
-
-            return $fks;
-        } else {
-            return [];
-        }
-    }
-
-    /**
      * Casts a foreign key into SQL, assuming table name is used with no alias.
      * The returned value does contain only one table. For instance:.
      *
@@ -1260,20 +1199,6 @@ class TDBMService
             return sprintf(" LEFT JOIN %s ON (%s)", $localTableName, $onClause);
         }
     }*/
-
-    /**
-     * Returns an identifier for the group of tables passed in parameter.
-     *
-     * @param string[] $relatedTables
-     *
-     * @return string
-     */
-    private function getTableGroupName(array $relatedTables)
-    {
-        sort($relatedTables);
-
-        return implode('_``_', $relatedTables);
-    }
 
     /**
      * Returns a `ResultIterator` object representing filtered records of "$mainTable" .
@@ -1317,38 +1242,15 @@ class TDBMService
             throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
         }
 
+        $mode = $mode ?: $this->mode;
+
         list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter);
 
         $parameters = array_merge($parameters, $additionalParameters);
 
-        list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($mainTable, $additionalTablesFetch, $orderString);
+        $queryFactory = new FindObjectsQueryFactory($mainTable, $additionalTablesFetch, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer);
 
-        $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$mainTable.')';
-
-        $schema = $this->tdbmSchemaAnalyzer->getSchema();
-        $pkColumnNames = $schema->getTable($mainTable)->getPrimaryKeyColumns();
-        $pkColumnNames = array_map(function ($pkColumn) use ($mainTable) {
-            return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($pkColumn);
-        }, $pkColumnNames);
-
-        $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM MAGICJOIN('.$mainTable.')';
-
-        if (!empty($filterString)) {
-            $sql .= ' WHERE '.$filterString;
-            $countSql .= ' WHERE '.$filterString;
-        }
-
-        if (!empty($orderString)) {
-            $sql .= ' ORDER BY '.$orderString;
-        }
-
-        if ($mode !== null && $mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
-            throw new TDBMException("Unknown fetch mode: '".$this->mode."'");
-        }
-
-        $mode = $mode ?: $this->mode;
-
-        return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
+        return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**
@@ -1371,196 +1273,15 @@ class TDBMService
             throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
         }
 
-        $columnsList = null;
+        $mode = $mode ?: $this->mode;
 
         list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter);
 
         $parameters = array_merge($parameters, $additionalParameters);
 
-        $allFetchedTables = $this->_getRelatedTablesByInheritance($mainTable);
+        $queryFactory = new FindObjectsFromSqlQueryFactory($mainTable, $from, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer, $this->schemaAnalyzer, $this->cache, $this->cachePrefix);
 
-        $columnDescList = [];
-        $schema = $this->tdbmSchemaAnalyzer->getSchema();
-        $tableGroupName = $this->getTableGroupName($allFetchedTables);
-
-        foreach ($schema->getTable($mainTable)->getColumns() as $column) {
-            $columnName = $column->getName();
-            $columnDescList[] = [
-                'as' => $columnName,
-                'table' => $mainTable,
-                'column' => $columnName,
-                'type' => $column->getType(),
-                'tableGroup' => $tableGroupName,
-            ];
-        }
-
-        $sql = 'SELECT DISTINCT '.implode(', ', array_map(function ($columnDesc) use ($mainTable) {
-            return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($columnDesc['column']);
-        }, $columnDescList)).' FROM '.$from;
-
-        if (count($allFetchedTables) > 1) {
-            list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($mainTable, [], $orderString);
-        }
-
-        // Let's compute the COUNT.
-        $pkColumnNames = $schema->getTable($mainTable)->getPrimaryKeyColumns();
-        $pkColumnNames = array_map(function ($pkColumn) use ($mainTable) {
-            return $this->connection->quoteIdentifier($mainTable).'.'.$this->connection->quoteIdentifier($pkColumn);
-        }, $pkColumnNames);
-
-        $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM '.$from;
-
-        if (!empty($filterString)) {
-            $sql .= ' WHERE '.$filterString;
-            $countSql .= ' WHERE '.$filterString;
-        }
-
-        if (!empty($orderString)) {
-            $sql .= ' ORDER BY '.$orderString;
-        }
-
-        if (stripos($countSql, 'GROUP BY') !== false) {
-            throw new TDBMException('Unsupported use of GROUP BY in SQL request.');
-        }
-
-        if ($mode !== null && $mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
-            throw new TDBMException("Unknown fetch mode: '".$mode."'");
-        }
-
-        if ($columnsList !== null) {
-            $joinSql = '';
-            $parentFks = $this->getParentRelationshipForeignKeys($mainTable);
-            foreach ($parentFks as $fk) {
-                $joinSql .= sprintf(' JOIN %s ON (%s.%s = %s.%s)',
-                    $this->connection->quoteIdentifier($fk->getForeignTableName()),
-                    $this->connection->quoteIdentifier($fk->getLocalTableName()),
-                    $this->connection->quoteIdentifier($fk->getLocalColumns()[0]),
-                    $this->connection->quoteIdentifier($fk->getForeignTableName()),
-                    $this->connection->quoteIdentifier($fk->getForeignColumns()[0])
-                    );
-            }
-
-            $childrenFks = $this->getChildrenRelationshipForeignKeys($mainTable);
-            foreach ($childrenFks as $fk) {
-                $joinSql .= sprintf(' LEFT JOIN %s ON (%s.%s = %s.%s)',
-                    $this->connection->quoteIdentifier($fk->getLocalTableName()),
-                    $this->connection->quoteIdentifier($fk->getForeignTableName()),
-                    $this->connection->quoteIdentifier($fk->getForeignColumns()[0]),
-                    $this->connection->quoteIdentifier($fk->getLocalTableName()),
-                    $this->connection->quoteIdentifier($fk->getLocalColumns()[0])
-                );
-            }
-
-            $sql = 'SELECT '.implode(', ', $columnsList).' FROM ('.$sql.') AS '.$mainTable.' '.$joinSql;
-        }
-
-        $mode = $mode ?: $this->mode;
-
-        return new ResultIterator($sql, $countSql, $parameters, $columnDescList, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
-    }
-
-    /**
-     * Returns the column list that must be fetched for the SQL request.
-     *
-     * Note: MySQL dictates that ORDER BYed columns should appear in the SELECT clause.
-     *
-     * @param string                       $mainTable
-     * @param array                        $additionalTablesFetch
-     * @param string|UncheckedOrderBy|null $orderBy
-     *
-     * @return array
-     *
-     * @throws \Doctrine\DBAL\Schema\SchemaException
-     */
-    private function getColumnsList(string $mainTable, array $additionalTablesFetch = array(), $orderBy = null)
-    {
-        // From the table name and the additional tables we want to fetch, let's build a list of all tables
-        // that must be part of the select columns.
-
-        $tableGroups = [];
-        $allFetchedTables = $this->_getRelatedTablesByInheritance($mainTable);
-        $tableGroupName = $this->getTableGroupName($allFetchedTables);
-        foreach ($allFetchedTables as $table) {
-            $tableGroups[$table] = $tableGroupName;
-        }
-
-        $columnsList = [];
-        $columnDescList = [];
-        $sortColumn = 0;
-        $reconstructedOrderBy = null;
-
-        // Now, let's deal with "order by columns"
-        if ($orderBy !== null) {
-            if ($orderBy instanceof UncheckedOrderBy) {
-                $securedOrderBy = false;
-                $orderBy = $orderBy->getOrderBy();
-                $reconstructedOrderBy = $orderBy;
-            } else {
-                $securedOrderBy = true;
-                $reconstructedOrderBys = [];
-            }
-            $orderByColumns = $this->orderByAnalyzer->analyzeOrderBy($orderBy);
-
-            // If we sort by a column, there is a high chance we will fetch the bean containing this column.
-            // Hence, we should add the table to the $additionalTablesFetch
-            foreach ($orderByColumns as $orderByColumn) {
-                if ($orderByColumn['type'] === 'colref') {
-                    if ($orderByColumn['table'] !== null) {
-                        $additionalTablesFetch[] = $orderByColumn['table'];
-                    }
-                    if ($securedOrderBy) {
-                        $reconstructedOrderBys[] = ($orderByColumn['table'] !== null ? $orderByColumn['table'].'.' : '').$orderByColumn['column'].' '.$orderByColumn['direction'];
-                    }
-                } elseif ($orderByColumn['type'] === 'expr') {
-                    $sortColumnName = 'sort_column_'.$sortColumn;
-                    $columnsList[] = $orderByColumn['expr'].' as '.$sortColumnName;
-                    $columnDescList[] = [
-                        'tableGroup' => null,
-                    ];
-                    ++$sortColumn;
-
-                    if ($securedOrderBy) {
-                        throw new TDBMInvalidArgumentException('Invalid ORDER BY column: "'.$orderByColumn['expr'].'". If you want to use expression in your ORDER BY clause, you must wrap them in a UncheckedOrderBy object. For instance: new UncheckedOrderBy("col1 + col2 DESC")');
-                    }
-                }
-            }
-
-            if ($reconstructedOrderBy === null) {
-                $reconstructedOrderBy = implode(', ', $reconstructedOrderBys);
-            }
-        }
-
-        foreach ($additionalTablesFetch as $additionalTable) {
-            $relatedTables = $this->_getRelatedTablesByInheritance($additionalTable);
-            $tableGroupName = $this->getTableGroupName($relatedTables);
-            foreach ($relatedTables as $table) {
-                $tableGroups[$table] = $tableGroupName;
-            }
-            $allFetchedTables = array_merge($allFetchedTables, $relatedTables);
-        }
-
-        // Let's remove any duplicate
-        $allFetchedTables = array_flip(array_flip($allFetchedTables));
-
-        $schema = $this->tdbmSchemaAnalyzer->getSchema();
-
-        // Now, let's build the column list
-        foreach ($allFetchedTables as $table) {
-            foreach ($schema->getTable($table)->getColumns() as $column) {
-                $columnName = $column->getName();
-                $columnDescList[] = [
-                    'as' => $table.'____'.$columnName,
-                    'table' => $table,
-                    'column' => $columnName,
-                    'type' => $column->getType(),
-                    'tableGroup' => $tableGroups[$table],
-                ];
-                $columnsList[] = $this->connection->quoteIdentifier($table).'.'.$this->connection->quoteIdentifier($columnName).' as '.
-                    $this->connection->quoteIdentifier($table.'____'.$columnName);
-            }
-        }
-
-        return [$columnDescList, $columnsList, $reconstructedOrderBy];
+        return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**

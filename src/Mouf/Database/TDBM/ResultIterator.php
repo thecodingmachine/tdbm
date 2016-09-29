@@ -4,6 +4,7 @@ namespace Mouf\Database\TDBM;
 
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
+use Mouf\Database\TDBM\QueryFactory\QueryFactory;
 use Porpaginas\Result;
 use Psr\Log\LoggerInterface;
 use Traversable;
@@ -36,30 +37,22 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     protected $statement;
 
-    protected $fetchStarted = false;
     private $objectStorage;
     private $className;
 
     private $tdbmService;
-    private $magicSql;
-    private $magicSqlCount;
     private $parameters;
-    private $columnDescriptors;
     private $magicQuery;
+
+    /**
+     * @var QueryFactory
+     */
+    private $queryFactory;
 
     /**
      * @var InnerResultIterator
      */
     private $innerResultIterator;
-
-    /**
-     * The key of the current retrieved object.
-     *
-     * @var int
-     */
-    protected $key = -1;
-
-    protected $current = null;
 
     private $databasePlatform;
 
@@ -69,15 +62,17 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     private $logger;
 
-    public function __construct($magicSql, $magicSqlCount, array $parameters, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode, LoggerInterface $logger)
+    public function __construct(QueryFactory $queryFactory, array $parameters, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode, LoggerInterface $logger)
     {
-        $this->magicSql = $magicSql;
-        $this->magicSqlCount = $magicSqlCount;
+        if ($mode !== null && $mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
+            throw new TDBMException("Unknown fetch mode: '".$mode."'");
+        }
+
+        $this->queryFactory = $queryFactory;
         $this->objectStorage = $objectStorage;
         $this->className = $className;
         $this->tdbmService = $tdbmService;
         $this->parameters = $parameters;
-        $this->columnDescriptors = $columnDescriptors;
         $this->magicQuery = $magicQuery;
         $this->databasePlatform = $this->tdbmService->getConnection()->getDatabasePlatform();
         $this->mode = $mode;
@@ -86,7 +81,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     protected function executeCountQuery()
     {
-        $sql = $this->magicQuery->build($this->magicSqlCount, $this->parameters);
+        $sql = $this->magicQuery->build($this->queryFactory->getMagicSqlCount(), $this->parameters);
         $this->logger->debug('Running count query: '.$sql);
         $this->totalCount = $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters);
     }
@@ -141,9 +136,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     {
         if ($this->innerResultIterator === null) {
             if ($this->mode === TDBMService::MODE_CURSOR) {
-                $this->innerResultIterator = new InnerResultIterator($this->magicSql, $this->parameters, null, null, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = new InnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             } else {
-                $this->innerResultIterator = new InnerResultArray($this->magicSql, $this->parameters, null, null, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = new InnerResultArray($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             }
         }
 
@@ -152,12 +147,13 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     /**
      * @param int $offset
+     * @param int $limit
      *
      * @return PageIterator
      */
     public function take($offset, $limit)
     {
-        return new PageIterator($this, $this->magicSql, $this->parameters, $limit, $offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger);
+        return new PageIterator($this, $this->queryFactory->getMagicSql(), $this->parameters, $limit, $offset, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger);
     }
 
     /**
@@ -269,5 +265,52 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         }
 
         return;
+    }
+
+    /**
+     * Sets the ORDER BY directive executed in SQL and returns a NEW ResultIterator.
+     *
+     * For instance:
+     *
+     *  $resultSet = $resultSet->withOrder('label ASC, status DESC');
+     *
+     * **Important:** TDBM does its best to protect you from SQL injection. In particular, it will only allow column names in the "ORDER BY" clause. This means you are safe to pass input from the user directly in the ORDER BY parameter.
+     * If you want to pass an expression to the ORDER BY clause, you will need to tell TDBM to stop checking for SQL injections. You do this by passing a `UncheckedOrderBy` object as a parameter:
+     *
+     *  $resultSet->withOrder(new UncheckedOrderBy('RAND()'))
+     *
+     * @param string|UncheckedOrderBy|null $orderBy
+     *
+     * @return ResultIterator
+     */
+    public function withOrder($orderBy) : ResultIterator
+    {
+        $clone = clone $this;
+        $clone->queryFactory = clone $this->queryFactory;
+        $clone->queryFactory->sort($orderBy);
+        $clone->innerResultIterator = null;
+
+        return $clone;
+    }
+
+    /**
+     * Sets new parameters for the SQL query and returns a NEW ResultIterator.
+     *
+     * For instance:
+     *
+     *  $resultSet = $resultSet->withParameters('label ASC, status DESC');
+     *
+     * @param string|UncheckedOrderBy|null $orderBy
+     *
+     * @return ResultIterator
+     */
+    public function withParameters(array $parameters) : ResultIterator
+    {
+        $clone = clone $this;
+        $clone->parameters = $parameters;
+        $clone->innerResultIterator = null;
+        $clone->totalCount = null;
+
+        return $clone;
     }
 }
