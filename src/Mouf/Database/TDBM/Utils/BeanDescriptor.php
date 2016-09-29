@@ -538,7 +538,7 @@ class BeanDescriptor
             $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
 
             $many2manyCode .= '        if (!$stopRecursion) {
-            $array[\''.lcfirst($desc['name']).'\'] = array_map(function( '.$remoteBeanName.' '.$variableName.') {
+            $array[\''.lcfirst($desc['name']).'\'] = array_map(function ('.$remoteBeanName.' '.$variableName.') {
                 return '.$variableName.'->jsonSerialize(true);
             }, $this->get'.$desc['name'].'());
         }

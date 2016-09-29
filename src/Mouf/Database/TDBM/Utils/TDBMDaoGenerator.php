@@ -227,8 +227,8 @@ use {$beannamespace}\\Generated\\{$baseClassName};
  */
 class $className extends $baseClassName
 {
-
-}";
+}
+";
             $this->ensureDirectoryExist($possibleFileName);
             file_put_contents($possibleFileName, $str);
             @chmod($possibleFileName, 0664);
@@ -459,7 +459,7 @@ class $baseClassName
      * @param array \$parameters The parameters associated with the filter
      * @return $beanClassWithoutNameSpace
      */
-    protected function findOne(\$filter=null, array \$parameters = [])
+    protected function findOne(\$filter = null, array \$parameters = [])
     {
         return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters);
     }
@@ -477,7 +477,7 @@ class $baseClassName
      * @param array \$parameters The parameters associated with the filter
      * @return $beanClassWithoutNameSpace
      */
-    protected function findOneFromSql(\$from, \$filter=null, array \$parameters = [])
+    protected function findOneFromSql(\$from, \$filter = null, array \$parameters = [])
     {
         return \$this->tdbmService->findObjectFromSql('$tableName', \$from, \$filter, \$parameters);
     }
