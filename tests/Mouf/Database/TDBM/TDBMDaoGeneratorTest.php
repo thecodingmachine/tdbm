@@ -1089,7 +1089,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testOrderByException()
     {
         $userDao = new TestUserDao($this->tdbmService);
-        $this->expectException(TDBMInvalidArgumentException::class);
         $users = $userDao->getUsersByInvalidOrderBy();
+        $this->expectException(TDBMInvalidArgumentException::class);
+        $user = $users[0];
     }
 }

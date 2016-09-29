@@ -595,8 +595,9 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
      */
     public function testFindObjectsFromSqlGroupBy()
     {
-        $this->tdbmService->findObjectsFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+        $roles = $this->tdbmService->findObjectsFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right GROUP BY roles.name', array('right' => 'CAN_SING'), 'name DESC');
+        $role = $roles[0];
     }
 
     public function testFindObjectFromSql()
