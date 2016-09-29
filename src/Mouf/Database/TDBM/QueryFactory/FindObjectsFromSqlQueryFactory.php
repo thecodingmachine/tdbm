@@ -1,7 +1,7 @@
 <?php
 
-
 namespace Mouf\Database\TDBM\QueryFactory;
+
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
@@ -37,8 +37,6 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         $this->cache = $cache;
         $this->cachePrefix = $cachePrefix;
     }
-
-
 
     private function compute()
     {
@@ -206,12 +204,12 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         return $item;
     }
 
-
     public function getMagicSql() : string
     {
         if ($this->magicSql === null) {
             $this->compute();
         }
+
         return $this->magicSql;
     }
 
@@ -220,6 +218,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         if ($this->magicSqlCount === null) {
             $this->compute();
         }
+
         return $this->magicSqlCount;
     }
 
@@ -228,6 +227,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         if ($this->columnDescList === null) {
             $this->compute();
         }
+
         return $this->columnDescList;
     }
 }

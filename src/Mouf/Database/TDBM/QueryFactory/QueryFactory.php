@@ -1,4 +1,5 @@
 <?php
+
 namespace Mouf\Database\TDBM\QueryFactory;
 
 /**

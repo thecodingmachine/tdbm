@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Mouf\Database\TDBM\QueryFactory;
 
 use Doctrine\DBAL\Schema\Schema;
@@ -30,8 +29,6 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
         $this->orderBy = $orderBy;
     }
 
-
-
     private function compute()
     {
         list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, $this->additionalTablesFetch, $this->orderBy);
@@ -59,12 +56,12 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
         $this->columnDescList = $columnDescList;
     }
 
-
     public function getMagicSql() : string
     {
         if ($this->magicSql === null) {
             $this->compute();
         }
+
         return $this->magicSql;
     }
 
@@ -73,6 +70,7 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
         if ($this->magicSqlCount === null) {
             $this->compute();
         }
+
         return $this->magicSqlCount;
     }
 
@@ -81,6 +79,7 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
         if ($this->columnDescList === null) {
             $this->compute();
         }
+
         return $this->columnDescList;
     }
 }

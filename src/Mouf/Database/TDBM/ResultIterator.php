@@ -2,7 +2,6 @@
 
 namespace Mouf\Database\TDBM;
 
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use Mouf\Database\TDBM\QueryFactory\QueryFactory;

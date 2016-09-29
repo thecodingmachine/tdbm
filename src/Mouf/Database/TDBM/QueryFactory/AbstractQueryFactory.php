@@ -1,6 +1,6 @@
 <?php
-namespace Mouf\Database\TDBM\QueryFactory;
 
+namespace Mouf\Database\TDBM\QueryFactory;
 
 use Doctrine\DBAL\Schema\Schema;
 use Mouf\Database\TDBM\OrderByAnalyzer;
@@ -34,7 +34,6 @@ abstract class AbstractQueryFactory implements QueryFactory
         $this->schema = $schema;
         $this->orderByAnalyzer = $orderByAnalyzer;
     }
-
 
     /**
      * Returns the column list that must be fetched for the SQL request.
@@ -139,7 +138,6 @@ abstract class AbstractQueryFactory implements QueryFactory
 
         return [$columnDescList, $columnsList, $reconstructedOrderBy];
     }
-
 
     /**
      * Returns an identifier for the group of tables passed in parameter.

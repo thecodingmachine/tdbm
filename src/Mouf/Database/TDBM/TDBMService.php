@@ -1200,7 +1200,6 @@ class TDBMService
         }
     }*/
 
-
     /**
      * Returns a `ResultIterator` object representing filtered records of "$mainTable" .
      *
@@ -1282,10 +1281,8 @@ class TDBMService
 
         $queryFactory = new FindObjectsFromSqlQueryFactory($mainTable, $from, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer, $this->schemaAnalyzer, $this->cache, $this->cachePrefix);
 
-
         return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
-
 
     /**
      * @param $table
