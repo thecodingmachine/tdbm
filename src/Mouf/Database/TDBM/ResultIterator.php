@@ -37,7 +37,6 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     protected $statement;
 
-    protected $fetchStarted = false;
     private $objectStorage;
     private $className;
 
@@ -54,15 +53,6 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      * @var InnerResultIterator
      */
     private $innerResultIterator;
-
-    /**
-     * The key of the current retrieved object.
-     *
-     * @var int
-     */
-    protected $key = -1;
-
-    protected $current = null;
 
     private $databasePlatform;
 
@@ -157,6 +147,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     /**
      * @param int $offset
+     * @param int $limit
      *
      * @return PageIterator
      */
@@ -274,5 +265,49 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         }
 
         return;
+    }
+
+    /**
+     * Sets the ORDER BY directive executed in SQL and returns a NEW ResultIterator
+     *
+     * For instance:
+     *
+     *  $resultSet = $resultSet->withOrder('label ASC, status DESC');
+     *
+     * **Important:** TDBM does its best to protect you from SQL injection. In particular, it will only allow column names in the "ORDER BY" clause. This means you are safe to pass input from the user directly in the ORDER BY parameter.
+     * If you want to pass an expression to the ORDER BY clause, you will need to tell TDBM to stop checking for SQL injections. You do this by passing a `UncheckedOrderBy` object as a parameter:
+     *
+     *  $resultSet->withOrder(new UncheckedOrderBy('RAND()'))
+     *
+     * @param string|UncheckedOrderBy|null $orderBy
+     * @return ResultIterator
+     */
+    public function withOrder($orderBy) : ResultIterator
+    {
+        $clone = clone $this;
+        $clone->queryFactory = clone $this->queryFactory;
+        $clone->queryFactory->sort($orderBy);
+        $clone->innerResultIterator = null;
+        return $clone;
+    }
+
+
+    /**
+     * Sets new parameters for the SQL query and returns a NEW ResultIterator
+     *
+     * For instance:
+     *
+     *  $resultSet = $resultSet->withParameters('label ASC, status DESC');
+     *
+     * @param string|UncheckedOrderBy|null $orderBy
+     * @return ResultIterator
+     */
+    public function withParameters(array $parameters) : ResultIterator
+    {
+        $clone = clone $this;
+        $clone->parameters = $parameters;
+        $clone->innerResultIterator = null;
+        $clone->totalCount = null;
+        return $clone;
     }
 }

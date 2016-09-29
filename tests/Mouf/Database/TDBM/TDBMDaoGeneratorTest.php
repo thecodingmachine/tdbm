@@ -1075,6 +1075,33 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testResultIteratorSort()
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $users = $userDao->findAll()->withOrder('country.label DESC');
+
+        $this->assertEquals('UK', $users[0]->getCountry()->getLabel());
+
+        $users = $users->withOrder('country.label ASC');
+        $this->assertEquals('France', $users[0]->getCountry()->getLabel());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testResultIteratorWithParameters()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByLoginStartingWith()->withParameters(['login' => 'bill%']);
+        $this->assertEquals('bill.shakespeare', $users[0]->getLogin());
+
+        $users = $users->withParameters(['login' => 'jean%']);
+        $this->assertEquals('jean.dupont', $users[0]->getLogin());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testOrderByExpression()
     {
         $userDao = new TestUserDao($this->tdbmService);

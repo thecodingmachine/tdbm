@@ -26,13 +26,23 @@ abstract class AbstractQueryFactory implements QueryFactory
     protected $orderByAnalyzer;
 
     /**
+     * @var string|UncheckedOrderBy|null
+     */
+    protected $orderBy;
+
+    protected $magicSql;
+    protected $magicSqlCount;
+    protected $columnDescList;
+
+    /**
      * @param TDBMService $tdbmService
      */
-    public function __construct(TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer)
+    public function __construct(TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, $orderBy)
     {
         $this->tdbmService = $tdbmService;
         $this->schema = $schema;
         $this->orderByAnalyzer = $orderByAnalyzer;
+        $this->orderBy = $orderBy;
     }
 
     /**
@@ -139,6 +149,8 @@ abstract class AbstractQueryFactory implements QueryFactory
         return [$columnDescList, $columnsList, $reconstructedOrderBy];
     }
 
+    abstract protected function compute();
+
     /**
      * Returns an identifier for the group of tables passed in parameter.
      *
@@ -151,5 +163,54 @@ abstract class AbstractQueryFactory implements QueryFactory
         sort($relatedTables);
 
         return implode('_``_', $relatedTables);
+    }
+
+    public function getMagicSql() : string
+    {
+        if ($this->magicSql === null) {
+            $this->compute();
+        }
+
+        return $this->magicSql;
+    }
+
+    public function getMagicSqlCount() : string
+    {
+        if ($this->magicSqlCount === null) {
+            $this->compute();
+        }
+
+        return $this->magicSqlCount;
+    }
+
+    public function getColumnDescriptors() : array
+    {
+        if ($this->columnDescList === null) {
+            $this->compute();
+        }
+
+        return $this->columnDescList;
+    }
+
+    /**
+     * Sets the ORDER BY directive executed in SQL.
+     *
+     * For instance:
+     *
+     *  $queryFactory->sort('label ASC, status DESC');
+     *
+     * **Important:** TDBM does its best to protect you from SQL injection. In particular, it will only allow column names in the "ORDER BY" clause. This means you are safe to pass input from the user directly in the ORDER BY parameter.
+     * If you want to pass an expression to the ORDER BY clause, you will need to tell TDBM to stop checking for SQL injections. You do this by passing a `UncheckedOrderBy` object as a parameter:
+     *
+     *  $queryFactory->sort(new UncheckedOrderBy('RAND()'))
+     *
+     * @param string|UncheckedOrderBy|null $orderBy
+     */
+    public function sort($orderBy)
+    {
+        $this->orderBy = $orderBy;
+        $this->magicSql = null;
+        $this->magicSqlCount = null;
+        $this->columnDescList = null;
     }
 }

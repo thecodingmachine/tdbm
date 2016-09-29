@@ -14,22 +14,16 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
     private $mainTable;
     private $additionalTablesFetch;
     private $filterString;
-    private $orderBy;
-
-    private $magicSql;
-    private $magicSqlCount;
-    private $columnDescList;
 
     public function __construct(string $mainTable, array $additionalTablesFetch, $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer)
     {
-        parent::__construct($tdbmService, $schema, $orderByAnalyzer);
+        parent::__construct($tdbmService, $schema, $orderByAnalyzer, $orderBy);
         $this->mainTable = $mainTable;
         $this->additionalTablesFetch = $additionalTablesFetch;
         $this->filterString = $filterString;
-        $this->orderBy = $orderBy;
     }
 
-    private function compute()
+    protected function compute()
     {
         list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, $this->additionalTablesFetch, $this->orderBy);
 
@@ -56,30 +50,5 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
         $this->columnDescList = $columnDescList;
     }
 
-    public function getMagicSql() : string
-    {
-        if ($this->magicSql === null) {
-            $this->compute();
-        }
 
-        return $this->magicSql;
-    }
-
-    public function getMagicSqlCount() : string
-    {
-        if ($this->magicSqlCount === null) {
-            $this->compute();
-        }
-
-        return $this->magicSqlCount;
-    }
-
-    public function getColumnDescriptors() : array
-    {
-        if ($this->columnDescList === null) {
-            $this->compute();
-        }
-
-        return $this->columnDescList;
-    }
 }

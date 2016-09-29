@@ -551,6 +551,8 @@ class UserDao extends UserBaseDao {
 }
 ```
 
+Alternatively, you can use the `sort` method of the `ResultSet` to sort results. This is explained in the [ResultSet documentation](limit_offset_resultset.md)
+
 **Important:** TDBM does its best to protect you from SQL injection. In particular, it will only allow column names in the "ORDER BY" clause. This means you are safe to pass input from the user directly in the ORDER BY parameter.
 
 ```php
