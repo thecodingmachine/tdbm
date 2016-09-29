@@ -49,6 +49,4 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
         $this->magicSqlCount = $countSql;
         $this->columnDescList = $columnDescList;
     }
-
-
 }

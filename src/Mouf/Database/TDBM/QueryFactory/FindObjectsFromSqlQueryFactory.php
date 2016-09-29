@@ -197,5 +197,4 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
         return $item;
     }
-
 }

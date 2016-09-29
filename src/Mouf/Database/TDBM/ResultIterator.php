@@ -268,7 +268,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     }
 
     /**
-     * Sets the ORDER BY directive executed in SQL and returns a NEW ResultIterator
+     * Sets the ORDER BY directive executed in SQL and returns a NEW ResultIterator.
      *
      * For instance:
      *
@@ -280,6 +280,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *  $resultSet->withOrder(new UncheckedOrderBy('RAND()'))
      *
      * @param string|UncheckedOrderBy|null $orderBy
+     *
      * @return ResultIterator
      */
     public function withOrder($orderBy) : ResultIterator
@@ -288,18 +289,19 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         $clone->queryFactory = clone $this->queryFactory;
         $clone->queryFactory->sort($orderBy);
         $clone->innerResultIterator = null;
+
         return $clone;
     }
 
-
     /**
-     * Sets new parameters for the SQL query and returns a NEW ResultIterator
+     * Sets new parameters for the SQL query and returns a NEW ResultIterator.
      *
      * For instance:
      *
      *  $resultSet = $resultSet->withParameters('label ASC, status DESC');
      *
      * @param string|UncheckedOrderBy|null $orderBy
+     *
      * @return ResultIterator
      */
     public function withParameters(array $parameters) : ResultIterator
@@ -308,6 +310,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         $clone->parameters = $parameters;
         $clone->innerResultIterator = null;
         $clone->totalCount = null;
+
         return $clone;
     }
 }
