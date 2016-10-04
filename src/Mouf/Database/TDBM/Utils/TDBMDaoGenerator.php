@@ -227,8 +227,8 @@ use {$beannamespace}\\Generated\\{$baseClassName};
  */
 class $className extends $baseClassName
 {
-
-}";
+}
+";
             $this->ensureDirectoryExist($possibleFileName);
             file_put_contents($possibleFileName, $str);
             @chmod($possibleFileName, 0664);
@@ -444,7 +444,7 @@ class $baseClassName
      * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
-    protected function findFromSql(\$from, \$filter = null, array \$parameters = [], \$orderBy=null, \$mode = null)
+    protected function findFromSql(\$from, \$filter = null, array \$parameters = [], \$orderBy = null, \$mode = null)
     {
         if (\$this->defaultSort && \$orderBy == null) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
@@ -459,7 +459,7 @@ class $baseClassName
      * @param array \$parameters The parameters associated with the filter
      * @return $beanClassWithoutNameSpace
      */
-    protected function findOne(\$filter=null, array \$parameters = [])
+    protected function findOne(\$filter = null, array \$parameters = [])
     {
         return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters);
     }
@@ -477,7 +477,7 @@ class $baseClassName
      * @param array \$parameters The parameters associated with the filter
      * @return $beanClassWithoutNameSpace
      */
-    protected function findOneFromSql(\$from, \$filter=null, array \$parameters = [])
+    protected function findOneFromSql(\$from, \$filter = null, array \$parameters = [])
     {
         return \$this->tdbmService->findObjectFromSql('$tableName', \$from, \$filter, \$parameters);
     }

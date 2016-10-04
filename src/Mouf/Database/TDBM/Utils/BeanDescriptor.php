@@ -243,9 +243,10 @@ class BeanDescriptor
      *
 %s
      */
-    public function __construct(%s) {
+    public function __construct(%s)
+    {
 %s%s
-%s    }
+    }
     ';
 
         $paramAnnotations = [];
@@ -270,12 +271,11 @@ class BeanDescriptor
 
         $parentConstructorCode = sprintf("        parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
 
-        $defaultAssigns = [];
         foreach ($this->getPropertiesWithDefault() as $property) {
-            $defaultAssigns[] = $property->assignToDefaultCode();
+            $assigns[] = $property->assignToDefaultCode();
         }
 
-        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstructorCode, implode("\n", $assigns), implode("\n", $defaultAssigns));
+        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstructorCode, implode("\n", $assigns));
     }
 
     public function generateDirectForeignKeysCode()
@@ -351,7 +351,7 @@ class BeanDescriptor
             $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($pkColumn, true), var_export($this->table->getName(), true));
             ++$counter;
         }
-        $parametersCode = '[ '.implode(', ', $parameters).' ]';
+        $parametersCode = '['.implode(', ', $parameters).']';
 
         return $parametersCode;
     }
@@ -428,7 +428,8 @@ class BeanDescriptor
      *
      * @return %s[]
      */
-    public function get%s() {
+    public function get%s()
+    {
         return $this->_getRelationships(%s);
     }
 ';
@@ -440,7 +441,8 @@ class BeanDescriptor
      *
      * @param %s %s
      */
-    public function add%s(%s %s) {
+    public function add%s(%s %s)
+    {
         return $this->addRelationship(%s, %s);
     }
 ';
@@ -452,7 +454,8 @@ class BeanDescriptor
      *
      * @param %s %s
      */
-    public function remove%s(%s %s) {
+    public function remove%s(%s %s)
+    {
         return $this->_removeRelationship(%s, %s);
     }
 ';
@@ -465,7 +468,8 @@ class BeanDescriptor
      * @param %s %s
      * @return bool
      */
-    public function has%s(%s %s) {
+    public function has%s(%s %s) : bool
+    {
         return $this->hasRelationship(%s, %s);
     }
 ';
@@ -478,7 +482,8 @@ class BeanDescriptor
      *
      * @param %s[] %s
      */
-    public function set%s(array %s) {
+    public function set%s(array %s)
+    {
         return $this->setRelationships(%s, %s);
     }
 ';
@@ -502,7 +507,7 @@ class BeanDescriptor
 
         $str = '
     /**
-     * Serializes the object for JSON encoding
+     * Serializes the object for JSON encoding.
      *
      * @param bool $stopRecursion Parameter used internally by TDBM to stop embedded objects from embedding other objects.
      * @return array
@@ -533,11 +538,11 @@ class BeanDescriptor
             $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
 
             $many2manyCode .= '        if (!$stopRecursion) {
-            $array[\''.lcfirst($desc['name']).'\'] = array_map(function('.$remoteBeanName.' '.$variableName.') {
+            $array[\''.lcfirst($desc['name']).'\'] = array_map(function ('.$remoteBeanName.' '.$variableName.') {
                 return '.$variableName.'->jsonSerialize(true);
             }, $this->get'.$desc['name'].'());
         }
-        ';
+';
         }
 
         return sprintf($str, $initializer, $propertiesCode, $many2manyCode);
