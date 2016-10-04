@@ -1,115 +1,117 @@
 {
-	"name" : "mouf/database.tdbm",
-	"description" : "The Database Machine is a PHP ORM that requires no configuration. The object model is deduced at runtime from the database model.",
-	"keywords" : [
-		"ORM",
-		"mouf",
-		"persistance",
-		"DAO",
-		"bean",
-		"model"
-	],
-	"homepage" : "https://github.com/thecodingmachine/database.tdbm",
-	"type" : "mouf-library",
-	"license" : "MIT",
-	"authors" : [{
-			"name" : "David Négrier",
-			"email" : "d.negrier@thecodingmachine.com",
-			"homepage" : "http://mouf-php.com"
-		}
-	],
-	"require" : {
-		"php" : ">=7.0",
-	    "mouf/magic-query" : "~1.1",
-		"mouf/schema-analyzer": "^1.1",
-	    "doctrine/dbal": "~2.5",
-		"doctrine/cache": "~1.5",
-	    "mouf/database.doctrine-dbal-wrapper": "~1.1",
-		"mouf/utils.common.conditioninterface" : "~2.0",
-	    "psr/log": "~1.0",
-	    "mouf/mouf": "~2.0.10",
-	  	"doctrine/inflector": "~1.0",
-	    "beberlei/porpaginas": "~1.0",
-		"mouf/classname-mapper": "~1.0",
-		"mouf/utils.common.doctrine-cache-wrapper": "~1.0",
-		"logger/essentials" : "^0.1.9",
-		"greenlion/php-sql-parser": "^4.0"
-	},
+    "name" : "mouf/database.tdbm",
+    "description" : "The Database Machine is a PHP ORM that requires no configuration. The object model is deduced at runtime from the database model.",
+    "keywords" : [
+        "ORM",
+        "mouf",
+        "persistance",
+        "DAO",
+        "bean",
+        "model"
+    ],
+    "homepage" : "https://github.com/thecodingmachine/database.tdbm",
+    "type" : "mouf-library",
+    "license" : "MIT",
+    "authors" : [{
+            "name" : "David Négrier",
+            "email" : "d.negrier@thecodingmachine.com",
+            "homepage" : "http://mouf-php.com"
+        }
+    ],
+    "require" : {
+        "php" : ">=7.0",
+        "mouf/magic-query" : "~1.1",
+        "mouf/schema-analyzer": "^1.1",
+        "doctrine/dbal": "~2.5",
+        "doctrine/cache": "~1.5",
+        "mouf/database.doctrine-dbal-wrapper": "~1.1",
+        "mouf/utils.common.conditioninterface" : "~2.0",
+        "psr/log": "~1.0",
+        "mouf/mouf": "~2.0.10",
+        "doctrine/inflector": "~1.0",
+        "beberlei/porpaginas": "~1.0",
+        "mouf/classname-mapper": "~1.0",
+        "mouf/utils.common.doctrine-cache-wrapper": "~1.0",
+        "logger/essentials" : "^0.1.9",
+        "greenlion/php-sql-parser": "^4.0"
+    },
     "require-dev" : {
-	    "phpunit/phpunit": "~5.5",
-	    "satooshi/php-coveralls": "~1.0"
+        "phpunit/phpunit": "~5.5",
+        "satooshi/php-coveralls": "~1.0"
     },
-	"suggest" : {
-		"ext/weakref" : "Allows efficient memory management. Useful for batches."
-	},
-	"autoload" : {
-		"psr-4" : {
-			"Mouf\\Database\\TDBM\\" : "src/Mouf/Database/TDBM"
-		}
-	},
+    "suggest" : {
+        "ext/weakref" : "Allows efficient memory management. Useful for batches."
+    },
+    "autoload" : {
+        "psr-4" : {
+            "Mouf\\Database\\TDBM\\" : "src/Mouf/Database/TDBM"
+        }
+    },
     "autoload-dev" : {
-  	  "psr-4" : {
-  	    "Test\\" : "src/Test",
-		"Mouf\\Database\\TDBM\\" : "tests/Mouf/Database/TDBM"
-  	  }
+        "psr-4" : {
+            "Test\\" : "src/Test",
+            "Mouf\\Database\\TDBM\\" : "tests/Mouf/Database/TDBM"
+        }
     },
-	"minimum-stability" : "dev",
+    "minimum-stability" : "dev",
     "prefer-stable": true,
-	"extra" : {
-		"mouf" : {
-			"install" : [{
-					"type" : "url",
-					"url" : "tdbminstall/",
-					"description" : "The install process of TDBM proposes to set up the DAOs and beans for your default DB connection."
-				}
-			],
-			"require-admin" : [
-				"src/TdbmAdmin.php"
-			],
-			"logo" : "icon.png",
-			"doc" : [{
-					"title" : "Install TDBM",
-					"url" : "doc/install.md"
-				},{
-					"title" : "Getting started",
-					"url" : "doc/quickstart.md"
-				}, {
-					"title" : "Add limit and offsets to your queries",
-					"url" : "doc/limit_offset_resultset.md"
-				}, {
-					"title" : "About DAOs",
-					"url" : "doc/generating_daos.md"
-				}, {
-					"title" : "Modeling inheritance",
-					"url" : "doc/modeling_inheritance.md"
-				}, {
-					"title" : "Advanced filtering",
-					"url" : "doc/advanced.md"
-				}, {
-					"title" : "JSON serialization",
-					"url" : "doc/json_serialization.md"
-				}, {
-					"title" : "Miscellaneous features",
-					"url" : "doc/miscellaneous.md"
-				}, {
-					"title" : "Memory management and batches processing",
-					"url" : "doc/memory_management.md"
-				}, {
-					"title" : "A quick comparison with Doctrine",
-					"url" : "doc/comparison_with_doctrine.md"
-				}, {
-					"title" : "Migrating",
-					"url" : "doc/migrating.md"
-				}, {
-					"title" : "TDBM internals",
-					"url" : "doc/internals.md"
-				}
-			],
-			"section": {
-				"name": "Database",
-				"description": "This section contains ORM tools to access your database.",
-				"weight": 20
-			}
-		}
-	}
+    "extra" : {
+        "mouf" : {
+            "install" : [
+                {
+                    "type" : "url",
+                    "url" : "tdbminstall/",
+                    "description" : "The install process of TDBM proposes to set up the DAOs and beans for your default DB connection."
+                }
+            ],
+            "require-admin" : [
+                "src/TdbmAdmin.php"
+            ],
+            "logo" : "icon.png",
+            "doc" : [
+                {
+                    "title" : "Install TDBM",
+                    "url" : "doc/install.md"
+                }, {
+                    "title" : "Getting started",
+                    "url" : "doc/quickstart.md"
+                }, {
+                    "title" : "Add limit and offsets to your queries",
+                    "url" : "doc/limit_offset_resultset.md"
+                }, {
+                    "title" : "About DAOs",
+                    "url" : "doc/generating_daos.md"
+                }, {
+                    "title" : "Modeling inheritance",
+                    "url" : "doc/modeling_inheritance.md"
+                }, {
+                    "title" : "Advanced filtering",
+                    "url" : "doc/advanced.md"
+                }, {
+                    "title" : "JSON serialization",
+                    "url" : "doc/json_serialization.md"
+                }, {
+                    "title" : "Miscellaneous features",
+                    "url" : "doc/miscellaneous.md"
+                }, {
+                    "title" : "Memory management and batches processing",
+                    "url" : "doc/memory_management.md"
+                }, {
+                    "title" : "A quick comparison with Doctrine",
+                    "url" : "doc/comparison_with_doctrine.md"
+                }, {
+                    "title" : "Migrating",
+                    "url" : "doc/migrating.md"
+                }, {
+                    "title" : "TDBM internals",
+                    "url" : "doc/internals.md"
+                }
+            ],
+            "section": {
+                "name": "Database",
+                "description": "This section contains ORM tools to access your database.",
+                "weight": 20
+            }
+        }
+    }
 }
