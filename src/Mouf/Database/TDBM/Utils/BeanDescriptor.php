@@ -809,7 +809,7 @@ $paramsString
         $relationships = $this->getPropertiesForTable($this->table);
         foreach ($relationships as $relationship) {
             if ($relationship instanceof ObjectBeanPropertyDescriptor) {
-                $code .= sprintf('        $this->setRef('.var_export($relationship->getForeignKey()->getName(), true).', null, '.var_export($this->table->getName(), true).');');
+                $code .= sprintf('        $this->setRef('.var_export($relationship->getForeignKey()->getName(), true).', null, '.var_export($this->table->getName(), true).");\n");
             }
         }
 
