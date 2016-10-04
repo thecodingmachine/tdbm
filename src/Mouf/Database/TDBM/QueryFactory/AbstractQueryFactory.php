@@ -77,6 +77,13 @@ abstract class AbstractQueryFactory implements QueryFactory
         $sortColumn = 0;
         $reconstructedOrderBy = null;
 
+        if (is_string($orderBy)) {
+            $orderBy = trim($orderBy);
+            if ($orderBy === '') {
+                $orderBy = null;
+            }
+        }
+
         // Now, let's deal with "order by columns"
         if ($orderBy !== null) {
             if ($orderBy instanceof UncheckedOrderBy) {
