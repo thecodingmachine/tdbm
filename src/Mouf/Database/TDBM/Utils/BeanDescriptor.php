@@ -643,6 +643,8 @@ class $baseClassName extends $extends implements \\JsonSerializable
 
         $str .= $this->generateGetUsedTablesCode();
 
+        $str .= $this->generateOnDeleteCode();
+
         $str .= '}
 ';
 
@@ -799,5 +801,32 @@ $paramsString
 %s    
     }
 ', $code);
+    }
+
+    private function generateOnDeleteCode()
+    {
+        $code = '';
+        $relationships = $this->getPropertiesForTable($this->table);
+        foreach ($relationships as $relationship) {
+            if ($relationship instanceof ObjectBeanPropertyDescriptor) {
+                $code .= sprintf('        $this->setRef('.var_export($relationship->getForeignKey()->getName(), true).', null, '.var_export($this->table->getName(), true).');');
+            }
+        }
+
+        if ($code) {
+            return sprintf('
+    /**
+     * Method called when the bean is removed from database.
+     *
+     */
+    protected function onDelete()
+    {
+        parent::onDelete();
+%s
+    }
+', $code);
+        }
+
+        return '';
     }
 }

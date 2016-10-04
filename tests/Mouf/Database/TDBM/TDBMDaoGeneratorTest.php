@@ -40,8 +40,6 @@ use Mouf\Database\TDBM\Test\Dao\RoleDao;
 use Mouf\Database\TDBM\Test\Dao\UserDao;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 
-/**
- */
 class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 {
     /** @var TDBMDaoGenerator $tdbmDaoGenerator */
@@ -270,6 +268,31 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertCount(2, $arr);
         $this->assertInstanceOf('Mouf\\Database\\TDBM\\Test\\Dao\\Bean\\UserBean', $arr[1]);
         $this->assertEquals('speedy.gonzalez', $arr[1]->getLogin());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testDeleteInDirectReversedRelationship()
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $country = $countryDao->getById(1);
+
+        $userDao = new UserDao($this->tdbmService);
+        $newUser = new UserBean('John Snow', 'john@snow.com', $country, 'john.snow');
+        $userDao->save($newUser);
+
+        $users = $country->getUsers();
+
+        $arr = $users->toArray();
+
+        $this->assertCount(2, $arr);
+
+        $userDao->delete($arr[1]);
+
+        $users = $country->getUsers();
+        $arr = $users->toArray();
+        $this->assertCount(1, $arr);
     }
 
     /**

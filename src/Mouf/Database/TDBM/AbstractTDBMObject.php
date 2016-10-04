@@ -180,6 +180,10 @@ abstract class AbstractTDBMObject implements JsonSerializable
         foreach ($this->dbRows as $dbRow) {
             $dbRow->_setStatus($state);
         }
+
+        if ($state === TDBMObjectStateEnum::STATE_DELETED) {
+            $this->onDelete();
+        }
     }
 
     /**
@@ -631,4 +635,11 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @return string[]
      */
     abstract protected function getUsedTables();
+
+    /**
+     * Method called when the bean is removed from database.
+     */
+    protected function onDelete()
+    {
+    }
 }
