@@ -202,7 +202,7 @@ INSERT INTO `users_roles` (`id`, `user_id`, `role_id`) VALUES
 CREATE TABLE `animal` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`id`));
+  PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 ALTER TABLE `animal`
 ADD KEY `name` (`name`);
@@ -210,7 +210,7 @@ ADD KEY `name` (`name`);
 CREATE TABLE `dog` (
   `id` INT NOT NULL,
   `race` VARCHAR(45) NULL,
-  PRIMARY KEY (`id`));
+  PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 ALTER TABLE `dog`
 ADD CONSTRAINT `fk_dog_1`
@@ -222,7 +222,7 @@ ADD CONSTRAINT `fk_dog_1`
 CREATE TABLE `cat` (
   `id` INT NOT NULL,
   `cuteness_level` int(11) NULL,
-  PRIMARY KEY (`id`));
+  PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 ALTER TABLE `cat`
 ADD CONSTRAINT `fk_cat_1`
