@@ -212,7 +212,7 @@ foreach ($users as $userBean)
 
 You can learn much more about filters in the [advanced section](advanced.md) of this documentation.
 
-<div class="alert"><strong>Very important</strong>: NEVER ever append dynamically parameters in the filter string. Use parameterized queries instead.<div>
+<div class="alert"><strong>Very important</strong>: NEVER ever append dynamically parameters in the filter string. Use parameterized queries instead.</div>
 
 You should never write something like:
 
