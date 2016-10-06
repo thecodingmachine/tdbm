@@ -130,6 +130,23 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testGetBeanClassName()
+    {
+        $this->assertEquals(UserBean::class, $this->tdbmService->getBeanClassName('users'));
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testGetBeanClassNameException()
+    {
+        $this->expectException(TDBMInvalidArgumentException::class);
+        $this->tdbmService->getBeanClassName('not_exists');
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testGeneratedGetById()
     {
         $contactDao = new ContactDao($this->tdbmService);

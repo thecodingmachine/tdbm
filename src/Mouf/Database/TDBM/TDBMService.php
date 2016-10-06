@@ -650,6 +650,22 @@ class TDBMService
     }
 
     /**
+     * Returns the fully qualified class name of the bean associated with table $tableName.
+     *
+     *
+     * @param string $tableName
+     * @return string
+     */
+    public function getBeanClassName(string $tableName) : string
+    {
+        if (isset($this->tableToBeanMap[$tableName])) {
+            return $this->tableToBeanMap[$tableName];
+        } else {
+            throw new TDBMInvalidArgumentException(sprintf('Could not find a map between table "%s" and any bean. Does table "%s" exists?', $tableName, $tableName));
+        }
+    }
+
+    /**
      * Saves $object by INSERTing or UPDAT(E)ing it in the database.
      *
      * @param AbstractTDBMObject $object
