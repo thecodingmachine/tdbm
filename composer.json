@@ -20,7 +20,7 @@
     ],
     "require" : {
         "php" : ">=7.0",
-        "mouf/magic-query" : "~1.1",
+        "mouf/magic-query" : "^1.2.1",
         "mouf/schema-analyzer": "^1.1",
         "doctrine/dbal": "~2.5",
         "doctrine/cache": "~1.5",
@@ -33,7 +33,7 @@
         "mouf/classname-mapper": "~1.0",
         "mouf/utils.common.doctrine-cache-wrapper": "~1.0",
         "logger/essentials" : "^0.1.9",
-        "greenlion/php-sql-parser": "^4.0"
+        "greenlion/php-sql-parser": "^4.1"
     },
     "require-dev" : {
         "phpunit/phpunit": "~5.5",

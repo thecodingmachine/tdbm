@@ -104,7 +104,7 @@ abstract class AbstractQueryFactory implements QueryFactory
                         $additionalTablesFetch[] = $orderByColumn['table'];
                     }
                     if ($securedOrderBy) {
-                        $reconstructedOrderBys[] = ($orderByColumn['table'] !== null ? $orderByColumn['table'].'.' : '').$orderByColumn['column'].' '.$orderByColumn['direction'];
+                        $reconstructedOrderBys[] = ($orderByColumn['table'] !== null ? $connection->quoteIdentifier($orderByColumn['table']).'.' : '').$connection->quoteIdentifier($orderByColumn['column']).' '.$orderByColumn['direction'];
                     }
                 } elseif ($orderByColumn['type'] === 'expr') {
                     $sortColumnName = 'sort_column_'.$sortColumn;
