@@ -1022,6 +1022,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         // We are not filling no field that is part of dog table.
         $dog = new DogBean('Youki');
+        $dog->setOrder(1);
 
         $dogDao->save($dog);
     }
@@ -1048,12 +1049,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         // This test cases checks issue https://github.com/thecodingmachine/mouf/issues/131
 
-        $dogDao = new CatDao($this->tdbmService);
+        $catDao = new CatDao($this->tdbmService);
 
         // We are not filling no field that is part of dog table.
-        $dog = new CatBean('Mew');
+        $cat = new CatBean('Mew');
+        $cat->setOrder(2);
 
-        $dogDao->save($dog);
+        $catDao->save($cat);
     }
 
     /**
@@ -1159,5 +1161,23 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $users = $userDao->getUsersByInvalidOrderBy();
         $this->expectException(TDBMInvalidArgumentException::class);
         $user = $users[0];
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testOrderByProtectedColumn()
+    {
+        $animalDao = new AnimalDao($this->tdbmService);
+        $animals = $animalDao->findAll();
+        $animals = $animals->withOrder('`order` ASC');
+
+        $this->assertInstanceOf(DogBean::class, $animals[0]);
+        $this->assertInstanceOf(CatBean::class, $animals[1]);
+
+        $animals = $animals->withOrder('`order` DESC');
+
+        $this->assertInstanceOf(CatBean::class, $animals[0]);
+        $this->assertInstanceOf(DogBean::class, $animals[1]);
     }
 }

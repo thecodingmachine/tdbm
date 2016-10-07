@@ -202,6 +202,7 @@ INSERT INTO `users_roles` (`id`, `user_id`, `role_id`) VALUES
 CREATE TABLE `animal` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
+  `order` INT NULL,
   PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 ALTER TABLE `animal`
