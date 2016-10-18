@@ -56,10 +56,10 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         }
 
         $sql = 'SELECT DISTINCT '.implode(', ', array_map(function ($columnDesc) {
-                return $this->tdbmService->getConnection()->quoteIdentifier($this->mainTable).'.'.$this->tdbmService->getConnection()->quoteIdentifier($columnDesc['column']);
-            }, $columnDescList)).' FROM '.$this->from;
+            return $this->tdbmService->getConnection()->quoteIdentifier($this->mainTable).'.'.$this->tdbmService->getConnection()->quoteIdentifier($columnDesc['column']);
+        }, $columnDescList)).' FROM '.$this->from;
 
-        if (count($allFetchedTables) > 1) {
+        if (count($allFetchedTables) > 1 || $this->orderBy) {
             list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy);
         }
 
@@ -109,6 +109,9 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
             }
 
             $sql = 'SELECT '.implode(', ', $columnsList).' FROM ('.$sql.') AS '.$this->mainTable.' '.$joinSql;
+            if (!empty($orderString)) {
+                $sql .= ' ORDER BY '.$orderString;
+            }
         }
 
         $this->magicSql = $sql;
