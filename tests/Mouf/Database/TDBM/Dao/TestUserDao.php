@@ -20,6 +20,16 @@ class TestUserDao extends UserBaseDao
         // The third parameter will be used in the "ORDER BY" clause of the SQL query.
         return $this->find(null, [], 'login ASC');
     }
+    /**
+     * Returns the list of users by alphabetical order.
+     *
+     * @return UserBean[]
+     */
+    public function getUsersFromSqlByAlphabeticalOrder()
+    {
+        // The third parameter will be used in the "ORDER BY" clause of the SQL query.
+        return $this->findFromSql('users', null, [], 'login ASC');
+    }
 
     /**
      * Returns the list of users whose login starts with $login.

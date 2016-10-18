@@ -599,6 +599,19 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testFindFromSqlOrderBy()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersFromSqlByAlphabeticalOrder();
+
+        $this->assertCount(6, $users);
+        $this->assertEquals('bill.shakespeare', $users[0]->getLogin());
+        $this->assertEquals('jean.dupont', $users[1]->getLogin());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testFindFilters()
     {
         $userDao = new TestUserDao($this->tdbmService);
