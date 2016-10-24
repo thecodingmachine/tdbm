@@ -20,10 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
-use Logger\Loggers\ArrayLogger;
-use Mouf\Database\TDBM\Filters\EqualFilter;
-use Mouf\Database\TDBM\Filters\OrderByColumn;
 use Psr\Log\LogLevel;
+use Wa72\SimpleLogger\ArrayLogger;
 
 /**
  */
@@ -641,8 +639,9 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
         $tdbmService->setLogLevel(LogLevel::DEBUG);
         $beans = $tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans->first();
 
-        $this->assertNotEmpty($arrayLogger);
+        $this->assertNotEmpty($arrayLogger->get());
     }
 
     public function testFindObjectsCountWithOneToManyLink()
