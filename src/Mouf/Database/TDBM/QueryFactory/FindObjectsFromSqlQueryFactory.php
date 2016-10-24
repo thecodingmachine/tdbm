@@ -59,8 +59,10 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
             return $this->tdbmService->getConnection()->quoteIdentifier($this->mainTable).'.'.$this->tdbmService->getConnection()->quoteIdentifier($columnDesc['column']);
         }, $columnDescList)).' FROM '.$this->from;
 
-        if (count($allFetchedTables) > 1 || $this->orderBy) {
+        if (count($allFetchedTables) > 1) {
             list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy);
+        } elseif ($this->orderBy) {
+            list(, , $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy);
         }
 
         // Let's compute the COUNT.
