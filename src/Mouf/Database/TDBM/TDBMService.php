@@ -28,7 +28,6 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
-use Logger\Filters\MinLogLevelFilter;
 use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\QueryFactory\FindObjectsFromSqlQueryFactory;
@@ -142,7 +141,7 @@ class TDBMService
     private $rootLogger;
 
     /**
-     * @var MinLogLevelFilter|NullLogger
+     * @var LevelFilter|NullLogger
      */
     private $logger;
 
@@ -655,6 +654,7 @@ class TDBMService
      *
      *
      * @param string $tableName
+     *
      * @return string
      */
     public function getBeanClassName(string $tableName) : string
