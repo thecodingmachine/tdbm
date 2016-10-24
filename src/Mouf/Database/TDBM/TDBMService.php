@@ -34,6 +34,7 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\QueryFactory\FindObjectsFromSqlQueryFactory;
 use Mouf\Database\TDBM\QueryFactory\FindObjectsQueryFactory;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
+use Phlib\Logger\LevelFilter;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
@@ -1615,6 +1616,6 @@ class TDBMService
      */
     public function setLogLevel(string $level)
     {
-        $this->logger = new MinLogLevelFilter($this->rootLogger, $level);
+        $this->logger = new LevelFilter($this->rootLogger, $level);
     }
 }

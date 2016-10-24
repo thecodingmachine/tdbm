@@ -32,12 +32,13 @@
         "beberlei/porpaginas": "~1.0",
         "mouf/classname-mapper": "~1.0",
         "mouf/utils.common.doctrine-cache-wrapper": "~1.0",
-        "logger/essentials" : "^0.1.9",
-        "greenlion/php-sql-parser": "^4.1"
+        "greenlion/php-sql-parser": "^4.1",
+        "phlib/logger": "^2.1"
     },
     "require-dev" : {
-        "phpunit/phpunit": "~5.5",
-        "satooshi/php-coveralls": "~1.0"
+        "phpunit/phpunit": "^5.5",
+        "satooshi/php-coveralls": "^1.0",
+        "wa72/simplelogger" : "^1.0"
     },
     "suggest" : {
         "ext/weakref" : "Allows efficient memory management. Useful for batches."
