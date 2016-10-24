@@ -62,7 +62,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         if (count($allFetchedTables) > 1) {
             list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy);
         } elseif ($this->orderBy) {
-            list($columnDescListNotUse, $columnsListNotUse, $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy);
+            list(, , $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy);
         }
 
         // Let's compute the COUNT.
