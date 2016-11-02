@@ -1231,5 +1231,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $allNullable = new AllNullableBean();
         $this->assertNull($allNullable->getId());
         $this->assertNull($allNullable->getLabel());
+        $this->assertNull($allNullable->getCountry());
     }
 }

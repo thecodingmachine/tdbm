@@ -284,6 +284,10 @@ abstract class AbstractTDBMObject implements JsonSerializable
     {
         $tableName = $this->checkTableName($tableName);
 
+        if (!isset($this->dbRows[$tableName])) {
+            return;
+        }
+
         return $this->dbRows[$tableName]->getRef($foreignKeyName);
     }
 
