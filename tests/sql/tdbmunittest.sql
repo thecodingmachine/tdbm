@@ -170,6 +170,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `all_nullable` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `label` varchar(255) NULL,
+  `country_id` int(11) NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
@@ -291,6 +292,12 @@ ALTER TABLE `users`
 ADD PRIMARY KEY (`id`), ADD KEY `country_id` (`country_id`);
 
 --
+-- Indexes for table `all_nullable`
+--
+ALTER TABLE `all_nullable`
+ADD KEY `country_id` (`country_id`);
+
+--
 -- Indexes for table `users_roles`
 --
 ALTER TABLE `users_roles`
@@ -344,6 +351,12 @@ ADD CONSTRAINT `roles_rights_ibfk_2` FOREIGN KEY (`right_label`) REFERENCES `rig
 ALTER TABLE `users`
 ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`country_id`) REFERENCES `country` (`id`),
 ADD CONSTRAINT `users_ibfk_2` FOREIGN KEY (`id`) REFERENCES `contact` (`id`);
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `all_nullable`
+ADD CONSTRAINT `all_nullable_ibfk_1` FOREIGN KEY (`country_id`) REFERENCES `country` (`id`);
 
 --
 -- Constraints for table `users_roles`
