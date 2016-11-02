@@ -43,7 +43,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @var DbRow[]
      */
-    protected $dbRows = array();
+    protected $dbRows = [];
 
     /**
      * One of TDBMObjectStateEnum::STATE_NEW, TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DELETED.
@@ -85,7 +85,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @throws TDBMException
      * @throws TDBMInvalidOperationException
      */
-    public function __construct($tableName = null, array $primaryKeys = array(), TDBMService $tdbmService = null)
+    public function __construct($tableName = null, array $primaryKeys = [], TDBMService $tdbmService = null)
     {
         // FIXME: lazy loading should be forbidden on tables with inheritance and dynamic type assignation...
         if (!empty($tableName)) {
@@ -212,7 +212,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
         $tableName = $this->checkTableName($tableName);
 
         if (!isset($this->dbRows[$tableName])) {
-            return null;
+            return;
         }
 
         return $this->dbRows[$tableName]->get($var);
