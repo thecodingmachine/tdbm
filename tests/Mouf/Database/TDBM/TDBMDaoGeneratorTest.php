@@ -26,6 +26,7 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Dao\TestRoleDao;
 use Mouf\Database\TDBM\Dao\TestUserDao;
 use Mouf\Database\TDBM\Test\Dao\AnimalDao;
+use Mouf\Database\TDBM\Test\Dao\Bean\AllNullableBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\CatBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\DogBean;
@@ -1220,4 +1221,16 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertInstanceOf(CatBean::class, $animals[0]);
         $this->assertInstanceOf(DogBean::class, $animals[1]);
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testGetOnAllNullableValues()
+    {
+        // Tests that a get performed on a column that has only nullable fields succeeds.
+        $allNullable = new AllNullableBean();
+        $this->assertNull($allNullable->getId());
+        $this->assertNull($allNullable->getLabel());
+    }
+
 }

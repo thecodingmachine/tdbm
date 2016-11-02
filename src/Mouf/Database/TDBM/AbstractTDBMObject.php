@@ -204,20 +204,16 @@ abstract class AbstractTDBMObject implements JsonSerializable
             }
         }
 
-        if (!isset($this->dbRows[$tableName])) {
-            if (count($this->dbRows === 0)) {
-                throw new TDBMException('Object is not yet bound to any table.');
-            } else {
-                throw new TDBMException('Unknown table "'.$tableName.'"" in object.');
-            }
-        }
-
         return $tableName;
     }
 
     protected function get($var, $tableName = null)
     {
         $tableName = $this->checkTableName($tableName);
+
+        if (!isset($this->dbRows[$tableName])) {
+            return null;
+        }
 
         return $this->dbRows[$tableName]->get($var);
     }

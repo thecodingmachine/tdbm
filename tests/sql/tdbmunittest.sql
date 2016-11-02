@@ -161,6 +161,18 @@ CREATE TABLE IF NOT EXISTS `users` (
   `country_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `all_nullable`
+--
+
+CREATE TABLE IF NOT EXISTS `all_nullable` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `label` varchar(255) NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 --
 -- Dumping data for table `users`
 --
