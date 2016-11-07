@@ -25,8 +25,9 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
     private $remoteFk;
 
     /**
-     * @param Table $pivotTable    The pivot table
-     * @param Table $mainBeanTable The main bean table
+     * @param Table $pivotTable The pivot table
+     * @param ForeignKeyConstraint $localFk
+     * @param ForeignKeyConstraint $remoteFk
      */
     public function __construct(Table $pivotTable, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk)
     {
