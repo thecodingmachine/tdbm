@@ -8,7 +8,6 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
-use Mouf\Database\TDBM\AlterableResultIterator;
 use Mouf\Database\TDBM\TDBMException;
 use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
 
@@ -278,100 +277,17 @@ class BeanDescriptor
         return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstructorCode, implode("\n", $assigns));
     }
 
-    public function generateDirectForeignKeysCode()
+    public function getDirectForeignKeysDescriptors()
     {
         $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($this->table->getName());
 
-        $fksByTable = [];
+        $descriptors = [];
 
         foreach ($fks as $fk) {
-            $fksByTable[$fk->getLocalTableName()][] = $fk;
+            $descriptors[] = new DirectForeignKeyMethodDescriptor($fk, $this->table);
         }
 
-        /* @var $fksByMethodName ForeignKeyConstraint[] */
-        $fksByMethodName = [];
-
-        foreach ($fksByTable as $tableName => $fksForTable) {
-            if (count($fksForTable) > 1) {
-                foreach ($fksForTable as $fk) {
-                    $methodName = 'get'.TDBMDaoGenerator::toCamelCase($fk->getLocalTableName()).'By';
-
-                    $camelizedColumns = array_map(['Mouf\\Database\\TDBM\\Utils\\TDBMDaoGenerator', 'toCamelCase'], $fk->getLocalColumns());
-
-                    $methodName .= implode('And', $camelizedColumns);
-
-                    $fksByMethodName[$methodName] = $fk;
-                }
-            } else {
-                $methodName = 'get'.TDBMDaoGenerator::toCamelCase($fksForTable[0]->getLocalTableName());
-                $fksByMethodName[$methodName] = $fksForTable[0];
-            }
-        }
-
-        $code = '';
-
-        foreach ($fksByMethodName as $methodName => $fk) {
-            $getterCode = '    /**
-     * Returns the list of %s pointing to this bean via the %s column.
-     *
-     * @return %s[]|AlterableResultIterator
-     */
-    public function %s() : AlterableResultIterator
-    {
-        return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s, %s);
-    }
-
-';
-
-            $beanClass = TDBMDaoGenerator::getBeanNameFromTableName($fk->getLocalTableName());
-            $code .= sprintf($getterCode,
-                $beanClass,
-                implode(', ', $fk->getColumns()),
-                $beanClass,
-                $methodName,
-                var_export($fk->getLocalTableName(), true),
-                var_export($fk->getName(), true),
-                var_export($fk->getLocalTableName(), true),
-                $this->getFilters($fk)
-            );
-        }
-
-        return $code;
-    }
-
-    private function getFilters(ForeignKeyConstraint $fk) : string
-    {
-        $counter = 0;
-        $parameters = [];
-
-        $pkColumns = $this->table->getPrimaryKeyColumns();
-
-        foreach ($fk->getLocalColumns() as $columnName) {
-            $pkColumn = $pkColumns[$counter];
-            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($pkColumn, true), var_export($this->table->getName(), true));
-            ++$counter;
-        }
-        $parametersCode = '['.implode(', ', $parameters).']';
-
-        return $parametersCode;
-    }
-
-    /**
-     * Generate code section about pivot tables.
-     *
-     * @return string
-     */
-    public function generatePivotTableCode()
-    {
-        $finalDescs = $this->getPivotTableDescriptors();
-
-        $code = '';
-
-        foreach ($finalDescs as $desc) {
-            $code .= $this->getPivotTableCode($desc['name'], $desc['table'], $desc['localFK'], $desc['remoteFK']);
-        }
-
-        return $code;
+        return $descriptors;
     }
 
     private function getPivotTableDescriptors()
@@ -382,117 +298,47 @@ class BeanDescriptor
             $fks = array_values($table->getForeignKeys());
 
             if ($fks[0]->getForeignTableName() === $this->table->getName()) {
-                $localFK = $fks[0];
-                $remoteFK = $fks[1];
+                list($localFk, $remoteFk) = $fks;
             } elseif ($fks[1]->getForeignTableName() === $this->table->getName()) {
-                $localFK = $fks[1];
-                $remoteFK = $fks[0];
+                list($remoteFk, $localFk) = $fks;
             } else {
                 continue;
             }
 
-            $descs[$remoteFK->getForeignTableName()][] = [
-                'table' => $table,
-                'localFK' => $localFK,
-                'remoteFK' => $remoteFK,
-            ];
+            $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk);
         }
 
-        $finalDescs = [];
-        foreach ($descs as $descArray) {
-            if (count($descArray) > 1) {
-                foreach ($descArray as $desc) {
-                    $desc['name'] = TDBMDaoGenerator::toCamelCase($desc['remoteFK']->getForeignTableName()).'By'.TDBMDaoGenerator::toCamelCase($desc['table']->getName());
-                    $finalDescs[] = $desc;
+        return $descs;
+    }
+
+    /**
+     * Returns the list of method descriptors (and applies the alternative name if needed).
+     *
+     * @return MethodDescriptorInterface[]
+     */
+    private function getMethodDescriptors()
+    {
+        $directForeignKeyDescriptors = $this->getDirectForeignKeysDescriptors();
+        $pivotTableDescriptors = $this->getPivotTableDescriptors();
+
+        $descriptors = array_merge($directForeignKeyDescriptors, $pivotTableDescriptors);
+
+        // Descriptors by method names
+        $descriptorsByMethodName = [];
+
+        foreach ($descriptors as $descriptor) {
+            $descriptorsByMethodName[$descriptor->getName()][] = $descriptor;
+        }
+
+        foreach ($descriptorsByMethodName as $descriptorsForMethodName) {
+            if (count($descriptorsForMethodName) > 1) {
+                foreach ($descriptorsForMethodName as $descriptor) {
+                    $descriptor->useAlternativeName();
                 }
-            } else {
-                $desc = $descArray[0];
-                $desc['name'] = TDBMDaoGenerator::toCamelCase($desc['remoteFK']->getForeignTableName());
-                $finalDescs[] = $desc;
             }
         }
 
-        return $finalDescs;
-    }
-
-    public function getPivotTableCode($name, Table $table, ForeignKeyConstraint $localFK, ForeignKeyConstraint $remoteFK)
-    {
-        $singularName = TDBMDaoGenerator::toSingular($name);
-        $pluralName = $name;
-        $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($remoteFK->getForeignTableName());
-        $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
-        $pluralVariableName = $variableName.'s';
-
-        $str = '    /**
-     * Returns the list of %s associated to this bean via the %s pivot table.
-     *
-     * @return %s[]
-     */
-    public function get%s()
-    {
-        return $this->_getRelationships(%s);
-    }
-';
-
-        $getterCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $name, var_export($remoteFK->getLocalTableName(), true));
-
-        $str = '    /**
-     * Adds a relationship with %s associated to this bean via the %s pivot table.
-     *
-     * @param %s %s
-     */
-    public function add%s(%s %s)
-    {
-        return $this->addRelationship(%s, %s);
-    }
-';
-
-        $adderCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $variableName, $singularName, $remoteBeanName, $variableName, var_export($remoteFK->getLocalTableName(), true), $variableName);
-
-        $str = '    /**
-     * Deletes the relationship with %s associated to this bean via the %s pivot table.
-     *
-     * @param %s %s
-     */
-    public function remove%s(%s %s)
-    {
-        return $this->_removeRelationship(%s, %s);
-    }
-';
-
-        $removerCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $variableName, $singularName, $remoteBeanName, $variableName, var_export($remoteFK->getLocalTableName(), true), $variableName);
-
-        $str = '    /**
-     * Returns whether this bean is associated with %s via the %s pivot table.
-     *
-     * @param %s %s
-     * @return bool
-     */
-    public function has%s(%s %s) : bool
-    {
-        return $this->hasRelationship(%s, %s);
-    }
-';
-
-        $hasCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $variableName, $singularName, $remoteBeanName, $variableName, var_export($remoteFK->getLocalTableName(), true), $variableName);
-
-        $str = '    /**
-     * Sets all relationships with %s associated to this bean via the %s pivot table.
-     * Exiting relationships will be removed and replaced by the provided relationships.
-     *
-     * @param %s[] %s
-     */
-    public function set%s(array %s)
-    {
-        return $this->setRelationships(%s, %s);
-    }
-';
-
-        $setterCode = sprintf($str, $remoteBeanName, $table->getName(), $remoteBeanName, $pluralVariableName, $pluralName, $pluralVariableName, var_export($remoteFK->getLocalTableName(), true), $pluralVariableName);
-
-        $code = $getterCode.$adderCode.$removerCode.$hasCode.$setterCode;
-
-        return $code;
+        return $descriptors;
     }
 
     public function generateJsonSerialize()
@@ -526,26 +372,13 @@ class BeanDescriptor
             $propertiesCode .= $beanPropertyDescriptor->getJsonSerializeCode();
         }
 
-        // Many to many relationships:
-
-        $descs = $this->getPivotTableDescriptors();
-
-        $many2manyCode = '';
-
-        foreach ($descs as $desc) {
-            $remoteFK = $desc['remoteFK'];
-            $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($remoteFK->getForeignTableName());
-            $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
-
-            $many2manyCode .= '        if (!$stopRecursion) {
-            $array[\''.lcfirst($desc['name']).'\'] = array_map(function ('.$remoteBeanName.' '.$variableName.') {
-                return '.$variableName.'->jsonSerialize(true);
-            }, $this->get'.$desc['name'].'());
-        }
-';
+        // Many2many relationships
+        $methodsCode = '';
+        foreach ($this->getMethodDescriptors() as $methodDescriptor) {
+            $methodsCode .= $methodDescriptor->getJsonSerializeCode();
         }
 
-        return sprintf($str, $initializer, $propertiesCode, $many2manyCode);
+        return sprintf($str, $initializer, $propertiesCode, $methodsCode);
     }
 
     /**
@@ -568,16 +401,8 @@ class BeanDescriptor
             }
         }
 
-        foreach ($this->getPivotTableDescriptors() as $descriptor) {
-            /* @var $fk ForeignKeyConstraint */
-            $fk = $descriptor['remoteFK'];
-            $classes[] = TDBMDaoGenerator::getBeanNameFromTableName($fk->getForeignTableName());
-        }
-
-        // Many-to-one relationships
-        $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($this->table->getName());
-        foreach ($fks as $fk) {
-            $classes[] = TDBMDaoGenerator::getBeanNameFromTableName($fk->getLocalTableName());
+        foreach ($this->getMethodDescriptors() as $descriptor) {
+            $classes = array_merge($classes, $descriptor->getUsedClasses());
         }
 
         $classes = array_unique($classes);
@@ -637,8 +462,9 @@ class $baseClassName extends $extends implements \\JsonSerializable
             $str .= $property->getGetterSetterCode();
         }
 
-        $str .= $this->generateDirectForeignKeysCode();
-        $str .= $this->generatePivotTableCode();
+        foreach ($this->getMethodDescriptors() as $methodDescriptor) {
+            $str .= $methodDescriptor->getCode();
+        }
         $str .= $this->generateJsonSerialize();
 
         $str .= $this->generateGetUsedTablesCode();

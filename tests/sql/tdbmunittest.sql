@@ -369,6 +369,35 @@ ADD CONSTRAINT `users_roles_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (
 CREATE UNIQUE INDEX users_login_idx ON users (login);
 CREATE INDEX users_status_country_idx ON users (status, country_id);
 
+CREATE TABLE `boats` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `anchorage_country` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_boats_1_idx` (`anchorage_country` ASC),
+  CONSTRAINT `fk_boats_1`
+    FOREIGN KEY (`anchorage_country`)
+    REFERENCES `country` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT);
+
+CREATE TABLE `sailed_countries` (
+  `boat_id` INT NOT NULL,
+  `country_id` INT NOT NULL,
+  PRIMARY KEY (`boat_id`, `country_id`),
+  INDEX `fk_sailed_countries_1_idx` (`country_id` ASC),
+  CONSTRAINT `fk_sailed_countries_1`
+    FOREIGN KEY (`country_id`)
+    REFERENCES `country` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT,
+  CONSTRAINT `fk_sailed_countries_2`
+    FOREIGN KEY (`boat_id`)
+    REFERENCES `boats` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT);
+
+
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
