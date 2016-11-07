@@ -80,10 +80,11 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('country');
-        $this->assertCount(2, $fks);
-        $tables = [ $fks[0]->getLocalTableName(), $fks[1]->getLocalTableName() ];
+        $this->assertCount(3, $fks);
+        $tables = [$fks[0]->getLocalTableName(), $fks[1]->getLocalTableName(), $fks[2]->getLocalTableName()];
         $this->assertContains('users', $tables);
         $this->assertContains('all_nullable', $tables);
+        $this->assertContains('boats', $tables);
     }
 
     public function testGetPivotTableLinkedToTable()
@@ -96,10 +97,10 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $this->assertCount(1, $pivotTables);
         $this->assertEquals('roles_rights', $pivotTables[0]);
 
-        $pivotTables = $tdbmSchemaAnalyzer->getPivotTableLinkedToTable('country');
+        $pivotTables = $tdbmSchemaAnalyzer->getPivotTableLinkedToTable('animal');
         $this->assertCount(0, $pivotTables);
 
-        $pivotTables = $tdbmSchemaAnalyzer->getPivotTableLinkedToTable('country');
+        $pivotTables = $tdbmSchemaAnalyzer->getPivotTableLinkedToTable('animal');
         $this->assertCount(0, $pivotTables);
     }
 
