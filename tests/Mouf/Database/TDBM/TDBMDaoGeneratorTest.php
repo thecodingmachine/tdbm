@@ -626,20 +626,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindFromSqlOrderByJoinRight()
-    {
-        $roleDao = new TestRoleDao($this->tdbmService);
-        $roles = $roleDao->getRolesByRightCanSing('rights.label DESC');
-
-        // This element is Admin before Singers because the order is by rights.
-        $this->assertCount(2, $roles);
-        $this->assertEquals('Admins', $roles[0]->getName());
-        $this->assertEquals('Singers', $roles[1]->getName());
-    }
-
-    /**
-     * @depends testDaoGeneration
-     */
     public function testFindFilters()
     {
         $userDao = new TestUserDao($this->tdbmService);
