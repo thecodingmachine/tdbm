@@ -1219,4 +1219,33 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNull($allNullable->getLabel());
         $this->assertNull($allNullable->getCountry());
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testExceptionOnMultipleInheritance()
+    {
+        $this->dbConnection->insert('animal', [
+            "id"=>99, "name"=>'Snoofield'
+        ]);
+        $this->dbConnection->insert('dog', [
+            "id"=>99, 'race'=>'dog'
+        ]);
+        $this->dbConnection->insert('cat', [
+            "id"=>99, 'cuteness_level'=>0
+        ]);
+
+        $catched = false;
+        try {
+            $animalDao = new AnimalDao($this->tdbmService);
+            $animalDao->getById(99);
+        } catch (TDBMInheritanceException $e) {
+            $catched = true;
+        }
+        $this->assertTrue($catched, 'Exception TDBMInheritanceException was not catched');
+
+        $this->dbConnection->delete('cat', ['id'=>99]);
+        $this->dbConnection->delete('dog', ['id'=>99]);
+        $this->dbConnection->delete('animal', ['id'=>99]);
+    }
 }

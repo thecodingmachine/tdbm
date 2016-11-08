@@ -1116,7 +1116,7 @@ class TDBMService
             }
         }
 
-        throw new TDBMException(sprintf('The tables (%s) cannot be linked by an inheritance relationship.', implode(', ', $tables)));
+        throw TDBMInheritanceException::create($tables);
     }
 
     /**
@@ -1459,7 +1459,11 @@ class TDBMService
             }
 
             // $tables contains the tables for this bean. Let's view the top most part of the hierarchy
-            $allTables = $this->_getLinkBetweenInheritedTables($tables);
+            try {
+                $allTables = $this->_getLinkBetweenInheritedTables($tables);
+            } catch (TDBMInheritanceException $e) {
+                throw TDBMInheritanceException::extendException($e, $this, $beanData);
+            }
             $tableName = $allTables[0];
         }
 
