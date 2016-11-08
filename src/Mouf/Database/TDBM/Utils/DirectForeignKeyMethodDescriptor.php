@@ -1,6 +1,6 @@
 <?php
 
-declare (strict_types = 1);
+declare(strict_types=1);
 
 namespace Mouf\Database\TDBM\Utils;
 
@@ -24,8 +24,8 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
     private $mainTable;
 
     /**
-     * @param ForeignKeyConstraint $fk        The foreign key pointing to our bean.
-     * @param Table                $mainTable The main table that is pointed to.
+     * @param ForeignKeyConstraint $fk        The foreign key pointing to our bean
+     * @param Table                $mainTable The main table that is pointed to
      */
     public function __construct(ForeignKeyConstraint $fk, Table $mainTable)
     {

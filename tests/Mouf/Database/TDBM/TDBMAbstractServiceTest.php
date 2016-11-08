@@ -23,8 +23,6 @@ namespace Mouf\Database\TDBM;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 
-/**
- */
 abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 {
     /**

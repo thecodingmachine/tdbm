@@ -1,4 +1,5 @@
 <?php
+
 namespace Mouf\Database\TDBM;
 
 /**
@@ -18,11 +19,11 @@ class TDBMInheritanceException extends TDBMException
             $primaryKeyColumns = $tdbmService->getPrimaryKeyColumns($table);
             foreach ($primaryKeyColumns as $columnName) {
                 if ($row[$columnName] !== null) {
-                    $pks[] = $table.".".$columnName.' => '.var_export($row[$columnName], true);
+                    $pks[] = $table.'.'.$columnName.' => '.var_export($row[$columnName], true);
                 }
             }
         }
 
-        throw new self($e->getMessage()." (row in error: ".implode(', ', $pks).")", 0, $e);
+        throw new self($e->getMessage().' (row in error: '.implode(', ', $pks).')', 0, $e);
     }
 }

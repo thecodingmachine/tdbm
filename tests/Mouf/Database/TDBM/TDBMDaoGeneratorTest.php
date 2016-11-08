@@ -1226,13 +1226,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testExceptionOnMultipleInheritance()
     {
         $this->dbConnection->insert('animal', [
-            "id"=>99, "name"=>'Snoofield'
+            'id' => 99, 'name' => 'Snoofield',
         ]);
         $this->dbConnection->insert('dog', [
-            "id"=>99, 'race'=>'dog'
+            'id' => 99, 'race' => 'dog',
         ]);
         $this->dbConnection->insert('cat', [
-            "id"=>99, 'cuteness_level'=>0
+            'id' => 99, 'cuteness_level' => 0,
         ]);
 
         $catched = false;
@@ -1244,8 +1244,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         }
         $this->assertTrue($catched, 'Exception TDBMInheritanceException was not catched');
 
-        $this->dbConnection->delete('cat', ['id'=>99]);
-        $this->dbConnection->delete('dog', ['id'=>99]);
-        $this->dbConnection->delete('animal', ['id'=>99]);
+        $this->dbConnection->delete('cat', ['id' => 99]);
+        $this->dbConnection->delete('dog', ['id' => 99]);
+        $this->dbConnection->delete('animal', ['id' => 99]);
     }
 }

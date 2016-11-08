@@ -141,7 +141,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
      * @return bool true on success or false on failure.
      *              </p>
      *              <p>
-     *              The return value will be casted to boolean if non-boolean was returned.
+     *              The return value will be casted to boolean if non-boolean was returned
      *
      * @since 5.0.0
      */
@@ -159,7 +159,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *                      The offset to retrieve.
      *                      </p>
      *
-     * @return mixed Can return all value types.
+     * @return mixed Can return all value types
      *
      * @since 5.0.0
      */
@@ -248,7 +248,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
      *
      * @return mixed data which can be serialized by <b>json_encode</b>,
-     *               which is a value of any type other than a resource.
+     *               which is a value of any type other than a resource
      *
      * @since 5.4.0
      */

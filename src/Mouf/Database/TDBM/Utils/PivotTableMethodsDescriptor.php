@@ -25,7 +25,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
     private $remoteFk;
 
     /**
-     * @param Table $pivotTable The pivot table
+     * @param Table                $pivotTable The pivot table
      * @param ForeignKeyConstraint $localFk
      * @param ForeignKeyConstraint $remoteFk
      */
