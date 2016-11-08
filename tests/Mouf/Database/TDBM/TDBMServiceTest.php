@@ -23,8 +23,6 @@ namespace Mouf\Database\TDBM;
 use Psr\Log\LogLevel;
 use Wa72\SimpleLogger\ArrayLogger;
 
-/**
- */
 class TDBMServiceTest extends TDBMAbstractServiceTest
 {
     public function testGetLinkBetweenInheritedTables()
@@ -359,7 +357,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $beans = $this->tdbmService->findObjects('person', null, [], 'person.id ASC');
 
         $results = $beans->map(function ($item) {
-           return $item->getProperty('id', 'person');
+            return $item->getProperty('id', 'person');
         })->toArray();
 
         $this->assertEquals([1, 2, 3, 4, 6], $results);

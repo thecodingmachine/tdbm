@@ -23,8 +23,6 @@ namespace Mouf\Database\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 
-/**
- */
 class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
 {
     /**

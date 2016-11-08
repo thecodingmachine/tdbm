@@ -26,8 +26,6 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\TDBMAbstractServiceTest;
 use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
 
-/**
- */
 class BeanDescriptorTest extends TDBMAbstractServiceTest
 {
     /**

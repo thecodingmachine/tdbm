@@ -20,11 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
-use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 
-/**
- */
 abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 {
     /**
