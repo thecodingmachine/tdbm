@@ -693,20 +693,16 @@ class TDBMService
             $unindexedPrimaryKeys = array();
 
             foreach ($dbRows as $dbRow) {
+                if ($dbRow->_getStatus() == TDBMObjectStateEnum::STATE_SAVING) {
+                    throw TDBMCyclicReferenceException::createCyclicReference($dbRow->_getDbTableName(), $object);
+                }
+                $dbRow->_setStatus(TDBMObjectStateEnum::STATE_SAVING);
                 $tableName = $dbRow->_getDbTableName();
 
                 $schema = $this->tdbmSchemaAnalyzer->getSchema();
                 $tableDescriptor = $schema->getTable($tableName);
 
                 $primaryKeyColumns = $this->getPrimaryKeyColumns($tableName);
-
-                if (empty($unindexedPrimaryKeys)) {
-                    $primaryKeys = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
-                } else {
-                    // First insert, the children must have the same primary key as the parent.
-                    $primaryKeys = $this->_getPrimaryKeysFromIndexedPrimaryKeys($tableName, $unindexedPrimaryKeys);
-                    $dbRow->_setPrimaryKeys($primaryKeys);
-                }
 
                 $references = $dbRow->_getReferences();
 
@@ -715,9 +711,21 @@ class TDBMService
                     if ($reference !== null) {
                         $refStatus = $reference->_getStatus();
                         if ($refStatus === TDBMObjectStateEnum::STATE_NEW || $refStatus === TDBMObjectStateEnum::STATE_DETACHED) {
-                            $this->save($reference);
+                            try {
+                                $this->save($reference);
+                            } catch (TDBMCyclicReferenceException $e) {
+                                throw TDBMCyclicReferenceException::extendCyclicReference($e, $dbRow->_getDbTableName(), $object, $fkName);
+                            }
                         }
                     }
+                }
+
+                if (empty($unindexedPrimaryKeys)) {
+                    $primaryKeys = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
+                } else {
+                    // First insert, the children must have the same primary key as the parent.
+                    $primaryKeys = $this->_getPrimaryKeysFromIndexedPrimaryKeys($tableName, $unindexedPrimaryKeys);
+                    $dbRow->_setPrimaryKeys($primaryKeys);
                 }
 
                 $dbRowData = $dbRow->_getDbRow();
@@ -1436,6 +1444,8 @@ class TDBMService
      * @param array $beanData An array of data: array<table, array<column, value>>
      *
      * @return array an array with first item = class name, second item = table name and third item = list of tables needed
+     *
+     * @throws TDBMInheritanceException
      */
     public function _getClassNameFromBeanData(array $beanData)
     {

@@ -27,13 +27,17 @@ use Mouf\Database\TDBM\Dao\TestRoleDao;
 use Mouf\Database\TDBM\Dao\TestUserDao;
 use Mouf\Database\TDBM\Test\Dao\AnimalDao;
 use Mouf\Database\TDBM\Test\Dao\Bean\AllNullableBean;
+use Mouf\Database\TDBM\Test\Dao\Bean\BoatBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\CatBean;
+use Mouf\Database\TDBM\Test\Dao\Bean\CategoryBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\CountryBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\DogBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\PersonBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\RoleBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\UserBean;
+use Mouf\Database\TDBM\Test\Dao\BoatDao;
 use Mouf\Database\TDBM\Test\Dao\CatDao;
+use Mouf\Database\TDBM\Test\Dao\CategoryDao;
 use Mouf\Database\TDBM\Test\Dao\ContactDao;
 use Mouf\Database\TDBM\Test\Dao\CountryDao;
 use Mouf\Database\TDBM\Test\Dao\DogDao;
@@ -1247,5 +1251,67 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->dbConnection->delete('cat', ['id' => 99]);
         $this->dbConnection->delete('dog', ['id' => 99]);
         $this->dbConnection->delete('animal', ['id' => 99]);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testReferenceNotSaved()
+    {
+        $boatDao = new BoatDao($this->tdbmService);
+
+        $country = new CountryBean('Atlantis');
+        $boat = new BoatBean($country, 'Titanic');
+
+        $boatDao->save($boat);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testReferenceDeleted()
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $boatDao = new BoatDao($this->tdbmService);
+
+        $country = new CountryBean('Atlantis');
+        $countryDao->save($country);
+
+        $boat = new BoatBean($country, 'Titanic');
+        $countryDao->delete($country);
+
+        $this->expectException(TDBMMissingReferenceException::class);
+        $boatDao->save($boat);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCyclicReferenceWithInheritance()
+    {
+        $userDao = new UserDao($this->tdbmService);
+
+        $country = new CountryBean('Norrisland');
+        $user = new UserBean('Chuck Norris', 'chuck@norris.com', $country, 'chuck.norris');
+
+        $user->setManager($user);
+
+        $this->expectException(TDBMCyclicReferenceException::class);
+        $userDao->save($user);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCyclicReference()
+    {
+        $categoryDao = new CategoryDao($this->tdbmService);
+
+        $category = new CategoryBean('Root');
+
+        $category->setParent($category);
+
+        $this->expectException(TDBMCyclicReferenceException::class);
+        $categoryDao->save($category);
     }
 }

@@ -29,6 +29,7 @@ final class TDBMObjectStateEnum
 {
     const STATE_DETACHED = 'detached';
     const STATE_NEW = 'new';
+    const STATE_SAVING = 'saving';
     const STATE_NOT_LOADED = 'not loaded';
     const STATE_LOADED = 'loaded';
     const STATE_DIRTY = 'dirty';
