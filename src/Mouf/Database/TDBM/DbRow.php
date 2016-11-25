@@ -358,6 +358,8 @@ class DbRow
      * Returns raw database row.
      *
      * @return array
+     *
+     * @throws TDBMMissingReferenceException
      */
     public function _getDbRow()
     {
@@ -372,6 +374,9 @@ class DbRow
             if ($reference !== null) {
                 $refDbRows = $reference->_getDbRows();
                 $firstRefDbRow = reset($refDbRows);
+                if ($firstRefDbRow->_getStatus() == TDBMObjectStateEnum::STATE_DELETED) {
+                    throw TDBMMissingReferenceException::referenceDeleted($this->dbTableName, $reference);
+                }
                 $pkValues = array_values($firstRefDbRow->_getPrimaryKeys());
                 for ($i = 0, $count = count($localColumns); $i < $count; ++$i) {
                     $dbRow[$localColumns[$i]] = $pkValues[$i];

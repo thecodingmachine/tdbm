@@ -379,7 +379,8 @@ CREATE TABLE `boats` (
     FOREIGN KEY (`anchorage_country`)
     REFERENCES `country` (`id`)
     ON DELETE RESTRICT
-    ON UPDATE RESTRICT);
+    ON UPDATE RESTRICT)
+    ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `sailed_countries` (
   `boat_id` INT NOT NULL,
@@ -395,7 +396,18 @@ CREATE TABLE `sailed_countries` (
     FOREIGN KEY (`boat_id`)
     REFERENCES `boats` (`id`)
     ON DELETE RESTRICT
-    ON UPDATE RESTRICT);
+    ON UPDATE RESTRICT)
+    ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `category` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `label` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  `parent_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_parent_category` (`parent_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+ALTER TABLE `category`
+  ADD CONSTRAINT `fk_parent_category` FOREIGN KEY (`parent_id`) REFERENCES `category` (`id`);
 
 
 

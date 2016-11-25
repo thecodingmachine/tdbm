@@ -610,7 +610,7 @@ $paramsString
         if ($hasParentRelationship) {
             $code = sprintf('        $tables = parent::getUsedTables();
         $tables[] = %s;
-        
+
         return $tables;', var_export($this->table->getName(), true));
         } else {
             $code = sprintf('        return [ %s ];', var_export($this->table->getName(), true));
@@ -624,7 +624,7 @@ $paramsString
      */
     protected function getUsedTables()
     {
-%s    
+%s
     }
 ', $code);
     }

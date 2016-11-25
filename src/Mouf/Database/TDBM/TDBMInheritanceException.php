@@ -12,7 +12,7 @@ class TDBMInheritanceException extends TDBMException
         return new self(sprintf('The tables (%s) cannot be linked by an inheritance relationship. Does your data set contains multiple children for one parent row? (multiple inheritance is not supported by TDBM)', implode(', ', $tables)));
     }
 
-    public static function extendException(TDBMInheritanceException $e, TDBMService $tdbmService, array $beanData)
+    public static function extendException(TDBMInheritanceException $e, TDBMService $tdbmService, array $beanData) : TDBMInheritanceException
     {
         $pks = [];
         foreach ($beanData as $table => $row) {
