@@ -765,7 +765,10 @@ class TDBMService
 
                 if (!$isPkSet && count($primaryKeyColumns) == 1) {
                     $id = $this->connection->lastInsertId();
-                    $primaryKeys[$primaryKeyColumns[0]] = $id;
+                    $pkColumn = $primaryKeyColumns[0];
+                    // lastInsertId returns a string but the column type is usually a int. Let's convert it back to the correct type.
+                    $id = $tableDescriptor->getColumn($pkColumn)->getType()->convertToPHPValue($id, $this->getConnection()->getDatabasePlatform());
+                    $primaryKeys[$pkColumn] = $id;
                 }
 
                 // TODO: change this to some private magic accessor in future
