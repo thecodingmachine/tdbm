@@ -25,6 +25,7 @@ use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Dao\TestRoleDao;
 use Mouf\Database\TDBM\Dao\TestUserDao;
+use Mouf\Database\TDBM\Test\Dao\AllNullableDao;
 use Mouf\Database\TDBM\Test\Dao\AnimalDao;
 use Mouf\Database\TDBM\Test\Dao\Bean\AllNullableBean;
 use Mouf\Database\TDBM\Test\Dao\Bean\BoatBean;
@@ -1313,5 +1314,18 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->expectException(TDBMCyclicReferenceException::class);
         $categoryDao->save($category);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCorrectTypeForPrimaryKeyAfterSave()
+    {
+        $allNullableDao = new AllNullableDao($this->tdbmService);
+        $allNullable = new AllNullableBean();
+        $allNullableDao->save($allNullable);
+        $id = $allNullable->getId();
+
+        $this->assertTrue(is_int($id));
     }
 }
