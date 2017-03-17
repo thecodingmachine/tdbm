@@ -45,6 +45,7 @@ use Mouf\Database\TDBM\Test\Dao\DogDao;
 use Mouf\Database\TDBM\Test\Dao\RoleDao;
 use Mouf\Database\TDBM\Test\Dao\UserDao;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
+use Symfony\Component\Process\Process;
 
 class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 {
@@ -1327,5 +1328,21 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $id = $allNullable->getId();
 
         $this->assertTrue(is_int($id));
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testPSR2Compliance()
+    {
+        $process = new Process('vendor/bin/php-cs-fixer fix src/Mouf/Database/TDBM/Test/  --dry-run --diff --rules=@PSR2');
+        $process->run();
+
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            echo $process->getOutput();
+            $this->fail('Generated code is not PRS2 compliant');
+        }
+
     }
 }

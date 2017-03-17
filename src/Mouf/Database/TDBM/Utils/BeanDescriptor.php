@@ -244,8 +244,7 @@ class BeanDescriptor
      */
     public function __construct(%s)
     {
-%s%s
-    }
+%s%s    }
     ';
 
         $paramAnnotations = [];
@@ -262,7 +261,7 @@ class BeanDescriptor
             }
             $paramAnnotations[] = $property->getParamAnnotation();
             if ($property->getTable()->getName() === $this->table->getName()) {
-                $assigns[] = $property->getConstructorAssignCode();
+                $assigns[] = $property->getConstructorAssignCode()."\n";
             } else {
                 $parentConstructorArguments[] = $property->getVariableName();
             }
@@ -271,10 +270,10 @@ class BeanDescriptor
         $parentConstructorCode = sprintf("        parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
 
         foreach ($this->getPropertiesWithDefault() as $property) {
-            $assigns[] = $property->assignToDefaultCode();
+            $assigns[] = $property->assignToDefaultCode()."\n";
         }
 
-        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstructorCode, implode("\n", $assigns));
+        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstructorCode, implode('', $assigns));
     }
 
     public function getDirectForeignKeysDescriptors()
@@ -648,8 +647,7 @@ $paramsString
     protected function onDelete()
     {
         parent::onDelete();
-%s
-    }
+%s    }
 ', $code);
         }
 

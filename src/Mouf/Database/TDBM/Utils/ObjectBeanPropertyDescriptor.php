@@ -166,7 +166,8 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return '.$referencedBeanName.'
      */
-    public function '.$getterName.'() {
+    public function '.$getterName.'()
+    {
         return $this->getRef('.var_export($this->foreignKey->getName(), true).', '.var_export($tableName, true).');
     }
 
@@ -175,7 +176,8 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @param '.$referencedBeanName.' $object
      */
-    public function '.$setterName.'('.$referencedBeanName.' $object = null) {
+    public function '.$setterName.'('.$referencedBeanName.' $object = null)
+    {
         $this->setRef('.var_export($this->foreignKey->getName(), true).', $object, '.var_export($tableName, true).');
     }
 

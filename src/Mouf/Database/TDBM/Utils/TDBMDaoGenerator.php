@@ -312,7 +312,6 @@ use Mouf\\Database\\TDBM\\TDBMService;
 use Mouf\\Database\\TDBM\\ResultIterator;
 use Mouf\\Database\\TDBM\\ArrayIterator;
 ".implode('', $useStatements)."
-
 /**
  * The $baseClassName class will maintain the persistence of $beanClassWithoutNameSpace class into the $tableName table.
  *
@@ -371,7 +370,7 @@ class $baseClassName
         } else {
             \$orderBy = null;
         }
-        return \$this->tdbmService->findObjects('$tableName',  null, [], \$orderBy);
+        return \$this->tdbmService->findObjects('$tableName', null, [], \$orderBy);
     }
     ";
 
@@ -535,7 +534,6 @@ use {$daonamespace}\\Generated\\{$baseClassName};
  */
 class $className extends $baseClassName
 {
-
 }
 ";
             $this->ensureDirectoryExist($possibleFileName);
@@ -561,6 +559,7 @@ class $className extends $baseClassName
  */
 
 namespace {$daoNamespace}\\Generated;
+
 ";
         foreach ($tableList as $table) {
             $tableName = $table->getName();
@@ -602,11 +601,10 @@ class $daoFactoryClassName
      *
      * @param '.$daoClassName.' $'.$daoInstanceName.'
      */
-    public function set'.$daoClassName.'('.$daoClassName.' $'.$daoInstanceName.') {
+    public function set'.$daoClassName.'('.$daoClassName.' $'.$daoInstanceName.')
+    {
         $this->'.$daoInstanceName.' = $'.$daoInstanceName.';
-    }
-
-';
+    }';
         }
 
         $str .= '
