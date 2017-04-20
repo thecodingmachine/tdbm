@@ -40,13 +40,25 @@ class BeanDescriptor
      * @var TDBMSchemaAnalyzer
      */
     private $tdbmSchemaAnalyzer;
+    /**
+     * @var GeneratorListenerInterface
+     */
+    private $eventDispatcher;
 
-    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
+    /**
+     * @param Table $table
+     * @param SchemaAnalyzer $schemaAnalyzer
+     * @param Schema $schema
+     * @param TDBMSchemaAnalyzer $tdbmSchemaAnalyzer
+     * @param GeneratorListenerInterface $eventDispatcher
+     */
+    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, GeneratorListenerInterface $eventDispatcher)
     {
         $this->table = $table;
         $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
+        $this->eventDispatcher = $eventDispatcher;
         $this->initBeanPropertyDescriptors();
     }
 
@@ -233,7 +245,7 @@ class BeanDescriptor
         return $beanPropertyDescriptorsMap;
     }
 
-    public function generateBeanConstructor()
+    private function generateBeanConstructor() : string
     {
         $constructorProperties = $this->getConstructorProperties();
 
@@ -276,7 +288,7 @@ class BeanDescriptor
         return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstructorCode, implode('', $assigns));
     }
 
-    public function getDirectForeignKeysDescriptors()
+    public function getDirectForeignKeysDescriptors(): array
     {
         $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($this->table->getName());
 
@@ -289,7 +301,7 @@ class BeanDescriptor
         return $descriptors;
     }
 
-    private function getPivotTableDescriptors()
+    private function getPivotTableDescriptors(): array
     {
         $descs = [];
         foreach ($this->schemaAnalyzer->detectJunctionTables(true) as $table) {
@@ -315,7 +327,7 @@ class BeanDescriptor
      *
      * @return MethodDescriptorInterface[]
      */
-    private function getMethodDescriptors()
+    private function getMethodDescriptors(): array
     {
         $directForeignKeyDescriptors = $this->getDirectForeignKeysDescriptors();
         $pivotTableDescriptors = $this->getPivotTableDescriptors();
@@ -340,7 +352,7 @@ class BeanDescriptor
         return $descriptors;
     }
 
-    public function generateJsonSerialize()
+    public function generateJsonSerialize(): string
     {
         $tableName = $this->table->getName();
         $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
@@ -383,9 +395,10 @@ class BeanDescriptor
     /**
      * Returns as an array the class we need to extend from and the list of use statements.
      *
+     * @param ForeignKeyConstraint|null $parentFk
      * @return array
      */
-    private function generateExtendsAndUseStatements(ForeignKeyConstraint $parentFk = null)
+    private function generateExtendsAndUseStatements(ForeignKeyConstraint $parentFk = null): array
     {
         $classes = [];
         if ($parentFk !== null) {
@@ -413,8 +426,9 @@ class BeanDescriptor
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
      * @param string $beannamespace The namespace of the bean
+     * @return string
      */
-    public function generatePhpCode($beannamespace)
+    public function generatePhpCode($beannamespace): string
     {
         $tableName = $this->table->getName();
         $baseClassName = TDBMDaoGenerator::getBaseBeanNameFromTableName($tableName);
@@ -434,6 +448,12 @@ class BeanDescriptor
             $extends = 'AbstractTDBMObject';
             $use .= "use Mouf\\Database\\TDBM\\AbstractTDBMObject;\n";
         }
+
+        // TODO: should we not instead think about the public interface of BeanDescriptor???
+        // We could then only have ONE method to listen on (onExitBean)
+        // Note: anything used to generate the code should be available from a function of the BeanDescriptor!
+        // => much better!!!!
+        $this->eventDispatcher->onEnterBean($this, $className, $tableName, $parentFk !== null ? $extends : null);
 
         $str = "<?php
 namespace {$beannamespace}\\Generated;

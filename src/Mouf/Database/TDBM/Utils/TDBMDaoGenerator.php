@@ -45,21 +45,27 @@ class TDBMDaoGenerator
      * @var TDBMSchemaAnalyzer
      */
     private $tdbmSchemaAnalyzer;
+    /**
+     * @var array
+     */
+    private $eventDispatcher;
 
     /**
      * Constructor.
      *
-     * @param SchemaAnalyzer     $schemaAnalyzer
-     * @param Schema             $schema
+     * @param SchemaAnalyzer $schemaAnalyzer
+     * @param Schema $schema
      * @param TDBMSchemaAnalyzer $tdbmSchemaAnalyzer
+     * @param GeneratorListenerInterface $eventDispatcher
      */
-    public function __construct(SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
+    public function __construct(SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, GeneratorListenerInterface $eventDispatcher = [])
     {
         $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
         $this->rootPath = __DIR__.'/../../../../../../../../';
         $this->composerFile = 'composer.json';
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -124,7 +130,7 @@ class TDBMDaoGenerator
         $baseBeanName = $this->getBaseBeanNameFromTableName($tableName);
         $baseDaoName = $this->getBaseDaoNameFromTableName($tableName);
 
-        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer);
+        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->eventDispatcher);
         $this->generateBean($beanDescriptor, $beanName, $baseBeanName, $table, $beannamespace, $classNameMapper, $storeInUtc);
         $this->generateDao($beanDescriptor, $daoName, $baseDaoName, $beanName, $table, $daonamespace, $beannamespace, $classNameMapper);
     }
