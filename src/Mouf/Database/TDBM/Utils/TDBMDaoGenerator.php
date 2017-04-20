@@ -79,7 +79,6 @@ class TDBMDaoGenerator
     /**
      * Generates all the daos and beans.
      *
-     * @param string $daoFactoryClassName The classe name of the DAO factory
      * @param string $daonamespace        The namespace for the DAOs, without trailing \
      * @param string $beannamespace       The Namespace for the beans, without trailing \
      * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone
@@ -88,7 +87,7 @@ class TDBMDaoGenerator
      *
      * @throws TDBMException
      */
-    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc)
+    public function generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc)
     {
         $classNameMapper = ClassNameMapper::createFromComposerFile($this->rootPath.$this->composerFile);
         // TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
@@ -112,8 +111,7 @@ class TDBMDaoGenerator
         }
 
 
-
-        $this->generateFactory($tableList, $daoFactoryClassName, $daonamespace, $classNameMapper);
+        $this->generateFactory($tableList, $daonamespace, $classNameMapper);
 
         // Let's call the list of listeners
         $this->eventDispatcher->onGenerate($beanDescriptors);
@@ -561,8 +559,10 @@ class $className extends $baseClassName
      *
      * @param Table[] $tableList
      */
-    private function generateFactory(array $tableList, $daoFactoryClassName, $daoNamespace, ClassNameMapper $classNameMapper)
+    private function generateFactory(array $tableList, $daoNamespace, ClassNameMapper $classNameMapper)
     {
+        $daoFactoryClassName = $this->namingStrategy->getDaoFactoryClassName();
+
         // For each table, let's write a property.
 
         $str = "<?php

@@ -113,6 +113,9 @@ class TdbmController extends AbstractMoufInstanceController
         } else {
             self::setInConfiguration($moufManager, $name, 'customComposerFile', null);
         }
+        // Let's rewrite before calling the DAO generator
+        $moufManager->rewriteMouf();
+
 
         // Remove first and last slash in namespace.
         $daonamespace = trim($daonamespace, '\\');
@@ -120,7 +123,7 @@ class TdbmController extends AbstractMoufInstanceController
 
         $tdbmService = new InstanceProxy($name);
         /* @var $tdbmService TDBMService */
-        $tableToBeanMap = $tdbmService->generateAllDaosAndBeans($daofactoryclassname, $daonamespace, $beannamespace, $storeInUtc, ($useCustomComposer ? $composerFile : null));
+        $tableToBeanMap = $tdbmService->generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc, ($useCustomComposer ? $composerFile : null));
 
         $moufManager->declareComponent($daofactoryinstancename, $daonamespace.'\\Generated\\'.$daofactoryclassname, false, MoufManager::DECLARE_ON_EXIST_KEEP_INCOMING_LINKS);
 
@@ -141,7 +144,7 @@ class TdbmController extends AbstractMoufInstanceController
             $fqTableToBeanMap[$table] = $beannamespace.'\\'.$beanClassName;
         }
         $tdbmServiceDescriptor = $moufManager->getInstanceDescriptor($name);
-        $tdbmServiceDescriptor->getSetterProperty('setTableToBeanMap')->setValue($fqTableToBeanMap);
+
         $moufManager->rewriteMouf();
     }
 
@@ -159,7 +162,7 @@ class TdbmController extends AbstractMoufInstanceController
         return $configuration->getProperty($property)->getValue();
     }
 
-    private static function setInConfiguration(MoufManager $moufManager, string $tdbmInstanceName, string $property, string $value)
+    private static function setInConfiguration(MoufManager $moufManager, string $tdbmInstanceName, string $property, ?string $value)
     {
         $configuration = self::getConfigurationDescriptor($moufManager, $tdbmInstanceName);
         if ($configuration === null) {

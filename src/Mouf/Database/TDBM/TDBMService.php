@@ -160,11 +160,15 @@ class TDBMService
      * @var NamingStrategyInterface
      */
     private $namingStrategy;
+    /**
+     * @var ConfigurationInterface
+     */
+    private $configuration;
 
     /**
-     * @param Configuration $configuration The configuration object
+     * @param ConfigurationInterface $configuration The configuration object
      */
-    public function __construct(Configuration $configuration /*Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null*/)
+    public function __construct(ConfigurationInterface $configuration /*Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null*/)
     {
         if (extension_loaded('weakref')) {
             $this->objectStorage = new WeakrefObjectStorage();
@@ -192,6 +196,7 @@ class TDBMService
         $this->orderByAnalyzer = new OrderByAnalyzer($this->cache, $this->cachePrefix);
         $this->beanNamespace = $configuration->getBeanNamespace();
         $this->namingStrategy = $configuration->getNamingStrategy();
+        $this->configuration = $configuration;
     }
 
     /**
@@ -613,7 +618,6 @@ class TDBMService
     /**
      * Generates all the daos and beans.
      *
-     * @param string $daoFactoryClassName The classe name of the DAO factory
      * @param string $daonamespace        The namespace for the DAOs, without trailing \
      * @param string $beannamespace       The Namespace for the beans, without trailing \
      * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone
@@ -621,17 +625,17 @@ class TDBMService
      *
      * @return \string[] the list of tables (key) and bean name (value)
      */
-    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc, $composerFile = null)
+    public function generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc, $composerFile = null)
     {
         // Purge cache before generating anything.
         $this->cache->deleteAll();
 
-        $tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer);
+        $tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer, $this->namingStrategy, $this->configuration->getGeneratorEventDispatcher());
         if (null !== $composerFile) {
             $tdbmDaoGenerator->setComposerFile(__DIR__.'/../../../../../../../'.$composerFile);
         }
 
-        return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
+        return $tdbmDaoGenerator->generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc);
     }
 
     /**

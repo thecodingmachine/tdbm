@@ -83,6 +83,7 @@ class TdbmInstallController extends Controller
     protected $autoloadDetected;
     protected $storeInUtc;
     protected $useCustomComposer = false;
+    protected $composerFile;
 
     /**
      * Displays the second install screen.
@@ -175,7 +176,7 @@ class TdbmInstallController extends Controller
             $migratingFrom42 = true;
         }
 
-        $namingStrategy = InstallUtils::getOrCreateInstance('namingStrategy', DefaultNamingStrategy::class);
+        $namingStrategy = InstallUtils::getOrCreateInstance('namingStrategy', DefaultNamingStrategy::class, $this->moufManager);
         if ($migratingFrom42) {
             // Let's setup the naming strategy for compatibility
             $namingStrategy->getSetterProperty('setBeanPrefix')->setValue('');
@@ -189,7 +190,7 @@ class TdbmInstallController extends Controller
         }
 
         if (!$this->moufManager->instanceExists('tdbmConfiguration')) {
-            $moufListener = InstallUtils::getOrCreateInstance(MoufDiListener::class, MoufDiListener::class);
+            $moufListener = InstallUtils::getOrCreateInstance(MoufDiListener::class, MoufDiListener::class, $this->moufManager);
 
             $tdbmConfiguration = $this->moufManager->createInstance(MoufConfiguration::class)->setName('tdbmConfiguration');
             $tdbmConfiguration->getConstructorArgumentProperty('connection')->setValue($this->moufManager->getInstanceDescriptor('dbalConnection'));
@@ -213,7 +214,7 @@ class TdbmInstallController extends Controller
 
         $this->moufManager->rewriteMouf();
 
-        TdbmController::generateDaos($this->moufManager, 'tdbmService', $daonamespace, $beannamespace, 'DaoFactory', 'daoFactory', $selfedit, $storeInUtc, $defaultPath, $storePath);
+        TdbmController::generateDaos($this->moufManager, 'tdbmService', $daonamespace, $beannamespace, 'daoFactory', $selfedit, $storeInUtc, $defaultPath, $storePath);
 
         InstallUtils::continueInstall($selfedit == 'true');
     }

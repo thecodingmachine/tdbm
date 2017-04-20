@@ -18,20 +18,20 @@ use Psr\Log\LoggerInterface;
  */
 class MoufConfiguration extends Configuration
 {
-    private $daoFactoryInstanceName;
+    private $daoFactoryInstanceName = 'daoFactory';
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getDaoFactoryInstanceName()
+    public function getDaoFactoryInstanceName() : string
     {
         return $this->daoFactoryInstanceName;
     }
 
     /**
-     * @param mixed $daoFactoryInstanceName
+     * @param string $daoFactoryInstanceName
      */
-    public function setDaoFactoryInstanceName($daoFactoryInstanceName)
+    public function setDaoFactoryInstanceName(string $daoFactoryInstanceName)
     {
         $this->daoFactoryInstanceName = $daoFactoryInstanceName;
     }
