@@ -7,6 +7,7 @@ use Mouf\Actions\InstallUtils;
 use Mouf\Database\TDBM\Configuration;
 use Mouf\Database\TDBM\MoufConfiguration;
 use Mouf\Database\TDBM\Utils\DefaultNamingStrategy;
+use Mouf\Database\TDBM\Utils\MoufDiListener;
 use Mouf\MoufManager;
 use Mouf\Html\HtmlElement\HtmlBlock;
 use Mouf\Mvc\Splash\Controllers\Controller;
@@ -188,11 +189,14 @@ class TdbmInstallController extends Controller
         }
 
         if (!$this->moufManager->instanceExists('tdbmConfiguration')) {
+            $moufListener = InstallUtils::getOrCreateInstance(MoufDiListener::class, MoufDiListener::class);
+
             $tdbmConfiguration = $this->moufManager->createInstance(MoufConfiguration::class)->setName('tdbmConfiguration');
             $tdbmConfiguration->getConstructorArgumentProperty('connection')->setValue($this->moufManager->getInstanceDescriptor('dbalConnection'));
             $tdbmConfiguration->getConstructorArgumentProperty('cache')->setValue($doctrineCache);
             $tdbmConfiguration->getConstructorArgumentProperty('namingStrategy')->setValue($namingStrategy);
-            $tdbmConfiguration->getConstructorArgumentProperty('daoFactoryInstanceName')->setValue('daoFactory');
+            $tdbmConfiguration->getProperty('daoFactoryInstanceName')->setValue('daoFactory');
+            $tdbmConfiguration->getConstructorArgumentProperty('generatorListeners')->setValue([$moufListener]);
 
             // Let's also delete the tdbmService if migrating versions <= 4.2
             if ($migratingFrom42) {
