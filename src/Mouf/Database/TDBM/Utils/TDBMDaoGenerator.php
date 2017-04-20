@@ -47,19 +47,26 @@ class TDBMDaoGenerator
     private $tdbmSchemaAnalyzer;
 
     /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
+
+    /**
      * Constructor.
      *
-     * @param SchemaAnalyzer     $schemaAnalyzer
-     * @param Schema             $schema
+     * @param SchemaAnalyzer $schemaAnalyzer
+     * @param Schema $schema
      * @param TDBMSchemaAnalyzer $tdbmSchemaAnalyzer
+     * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
+    public function __construct(SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy)
     {
         $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
         $this->rootPath = __DIR__.'/../../../../../../../../';
         $this->composerFile = 'composer.json';
+        $this->namingStrategy = $namingStrategy;
     }
 
     /**
@@ -70,7 +77,7 @@ class TDBMDaoGenerator
      * @param string $beannamespace       The Namespace for the beans, without trailing \
      * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone
      *
-     * @return \string[] the list of tables
+     * @return \string[] the list of tables (key) and bean name (value)
      *
      * @throws TDBMException
      */
@@ -100,9 +107,12 @@ class TDBMDaoGenerator
         // Ok, let's return the list of all tables.
         // These will be used by the calling script to create Mouf instances.
 
-        return array_map(function (Table $table) {
-            return $table->getName();
-        }, $tableList);
+        $tableToBeanMap = [];
+
+        foreach ($tableList as $table) {
+            $tableToBeanMap[$table->getName()] = $this->namingStrategy->getBeanClassName($table->getName());
+        }
+        return $tableToBeanMap;
     }
 
     /**
@@ -119,26 +129,14 @@ class TDBMDaoGenerator
     public function generateDaoAndBean(Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc)
     {
         $tableName = $table->getName();
-        $daoName = $this->getDaoNameFromTableName($tableName);
-        $beanName = $this->getBeanNameFromTableName($tableName);
-        $baseBeanName = $this->getBaseBeanNameFromTableName($tableName);
-        $baseDaoName = $this->getBaseDaoNameFromTableName($tableName);
+        $daoName = $this->namingStrategy->getDaoClassName($tableName);
+        $beanName = $this->namingStrategy->getBeanClassName($tableName);
+        $baseBeanName = $this->namingStrategy->getBaseBeanClassName($tableName);
+        $baseDaoName = $this->namingStrategy->getBaseDaoClassName($tableName);
 
-        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer);
+        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy);
         $this->generateBean($beanDescriptor, $beanName, $baseBeanName, $table, $beannamespace, $classNameMapper, $storeInUtc);
         $this->generateDao($beanDescriptor, $daoName, $baseDaoName, $beanName, $table, $daonamespace, $beannamespace, $classNameMapper);
-    }
-
-    /**
-     * Returns the name of the bean class from the table name.
-     *
-     * @param $tableName
-     *
-     * @return string
-     */
-    public static function getBeanNameFromTableName($tableName)
-    {
-        return self::toSingular(self::toCamelCase($tableName)).'Bean';
     }
 
     /**
@@ -563,7 +561,7 @@ namespace {$daoNamespace}\\Generated;
 ";
         foreach ($tableList as $table) {
             $tableName = $table->getName();
-            $daoClassName = $this->getDaoNameFromTableName($tableName);
+            $daoClassName = $this->namingStrategy->getDaoClassName($tableName);
             $str .= "use {$daoNamespace}\\".$daoClassName.";\n";
         }
 
@@ -578,7 +576,7 @@ class $daoFactoryClassName
 
         foreach ($tableList as $table) {
             $tableName = $table->getName();
-            $daoClassName = $this->getDaoNameFromTableName($tableName);
+            $daoClassName = $this->namingStrategy->getDaoClassName($tableName);
             $daoInstanceName = self::toVariableName($daoClassName);
 
             $str .= '    /**
@@ -754,7 +752,7 @@ class $daoFactoryClassName
 
         foreach ($tables as $table) {
             $tableName = $table->getName();
-            $tableToBeanMap[$tableName] = $beanNamespace.'\\'.self::getBeanNameFromTableName($tableName);
+            $tableToBeanMap[$tableName] = $beanNamespace.'\\'.$this->namingStrategy->getBeanClassName($tableName);
         }
 
         return $tableToBeanMap;

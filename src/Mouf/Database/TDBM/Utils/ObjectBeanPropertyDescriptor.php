@@ -21,12 +21,24 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @var SchemaAnalyzer
      */
     private $schemaAnalyzer;
+    /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
 
-    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, SchemaAnalyzer $schemaAnalyzer)
+    /**
+     * ObjectBeanPropertyDescriptor constructor.
+     * @param Table $table
+     * @param ForeignKeyConstraint $foreignKey
+     * @param SchemaAnalyzer $schemaAnalyzer
+     * @param NamingStrategyInterface $namingStrategy
+     */
+    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, SchemaAnalyzer $schemaAnalyzer, NamingStrategyInterface $namingStrategy)
     {
         parent::__construct($table);
         $this->foreignKey = $foreignKey;
         $this->schemaAnalyzer = $schemaAnalyzer;
+        $this->namingStrategy = $namingStrategy;
     }
 
     /**
@@ -46,7 +58,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getClassName()
     {
-        return TDBMDaoGenerator::getBeanNameFromTableName($this->foreignKey->getForeignTableName());
+        return $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
     }
 
     /**
@@ -159,7 +171,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $getterName = $this->getGetterName();
         $setterName = $this->getSetterName();
 
-        $referencedBeanName = TDBMDaoGenerator::getBeanNameFromTableName($this->foreignKey->getForeignTableName());
+        $referencedBeanName = $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
 
         $str = '    /**
      * Returns the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getLocalColumns()).' column.

@@ -23,17 +23,23 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      * @var ForeignKeyConstraint
      */
     private $remoteFk;
+    /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
 
     /**
-     * @param Table                $pivotTable The pivot table
+     * @param Table $pivotTable The pivot table
      * @param ForeignKeyConstraint $localFk
      * @param ForeignKeyConstraint $remoteFk
+     * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $pivotTable, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk)
+    public function __construct(Table $pivotTable, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, NamingStrategyInterface $namingStrategy)
     {
         $this->pivotTable = $pivotTable;
         $this->localFk = $localFk;
         $this->remoteFk = $remoteFk;
+        $this->namingStrategy = $namingStrategy;
     }
 
     /**
@@ -95,7 +101,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
     {
         $singularName = $this->getSingularName();
         $pluralName = $this->getPluralName();
-        $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($this->remoteFk->getForeignTableName());
+        $remoteBeanName = $this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName());
         $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
         $pluralVariableName = $variableName.'s';
 
@@ -178,7 +184,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     public function getUsedClasses() : array
     {
-        return [TDBMDaoGenerator::getBeanNameFromTableName($this->remoteFk->getForeignTableName())];
+        return [$this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName())];
     }
 
     /**
@@ -188,7 +194,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     public function getJsonSerializeCode() : string
     {
-        $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($this->remoteFk->getForeignTableName());
+        $remoteBeanName = $this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName());
         $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
 
         return '        if (!$stopRecursion) {

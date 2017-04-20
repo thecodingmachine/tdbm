@@ -15,12 +15,23 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @var Column
      */
     private $column;
+    /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
 
-    public function __construct(Table $table, Column $column)
+    /**
+     * ScalarBeanPropertyDescriptor constructor.
+     * @param Table $table
+     * @param Column $column
+     * @param NamingStrategyInterface $namingStrategy
+     */
+    public function __construct(Table $table, Column $column, NamingStrategyInterface $namingStrategy)
     {
         parent::__construct($table);
         $this->table = $table;
         $this->column = $column;
+        $this->namingStrategy = $namingStrategy;
     }
 
     /**

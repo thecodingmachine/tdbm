@@ -138,15 +138,15 @@ class TdbmController extends AbstractMoufInstanceController
 
         $tdbmService = new InstanceProxy($name);
         /* @var $tdbmService TDBMService */
-        $tables = $tdbmService->generateAllDaosAndBeans($daofactoryclassname, $daonamespace, $beannamespace, $storeInUtc, ($useCustomComposer ? $composerFile : null));
+        $tableToBeanMap = $tdbmService->generateAllDaosAndBeans($daofactoryclassname, $daonamespace, $beannamespace, $storeInUtc, ($useCustomComposer ? $composerFile : null));
 
         $moufManager->declareComponent($daofactoryinstancename, $daonamespace.'\\Generated\\'.$daofactoryclassname, false, MoufManager::DECLARE_ON_EXIST_KEEP_INCOMING_LINKS);
 
-        $tableToBeanMap = [];
+        $fqTableToBeanMap = [];
 
         //$tdbmServiceDescriptor = $moufManager->getInstanceDescriptor('tdbmService');
 
-        foreach ($tables as $table) {
+        foreach ($tableToBeanMap as $table => $beanClassName) {
             $daoName = TDBMDaoGenerator::getDaoNameFromTableName($table);
 
             $instanceName = TDBMDaoGenerator::toVariableName($daoName);
@@ -156,10 +156,10 @@ class TdbmController extends AbstractMoufInstanceController
             $moufManager->setParameterViaConstructor($instanceName, 0, $name, 'object');
             $moufManager->bindComponentViaSetter($daofactoryinstancename, 'set'.$daoName, $instanceName);
 
-            $tableToBeanMap[$table] = $beannamespace.'\\'.TDBMDaoGenerator::getBeanNameFromTableName($table);
+            $fqTableToBeanMap[$table] = $beannamespace.'\\'.$beanClassName;
         }
         $tdbmServiceDescriptor = $moufManager->getInstanceDescriptor($name);
-        $tdbmServiceDescriptor->getSetterProperty('setTableToBeanMap')->setValue($tableToBeanMap);
+        $tdbmServiceDescriptor->getSetterProperty('setTableToBeanMap')->setValue($fqTableToBeanMap);
         $moufManager->rewriteMouf();
     }
 }

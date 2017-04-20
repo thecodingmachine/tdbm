@@ -41,12 +41,18 @@ class BeanDescriptor
      */
     private $tdbmSchemaAnalyzer;
 
-    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
+    /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
+
+    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy)
     {
         $this->table = $table;
         $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
+        $this->namingStrategy = $namingStrategy;
         $this->initBeanPropertyDescriptors();
     }
 
@@ -194,9 +200,9 @@ class BeanDescriptor
                     continue;
                 }
 
-                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->schemaAnalyzer);
+                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->schemaAnalyzer, $this->namingStrategy);
             } else {
-                $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column);
+                $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column, $this->namingStrategy);
             }
         }
 
@@ -283,7 +289,7 @@ class BeanDescriptor
         $descriptors = [];
 
         foreach ($fks as $fk) {
-            $descriptors[] = new DirectForeignKeyMethodDescriptor($fk, $this->table);
+            $descriptors[] = new DirectForeignKeyMethodDescriptor($fk, $this->table, $this->namingStrategy);
         }
 
         return $descriptors;
@@ -304,7 +310,7 @@ class BeanDescriptor
                 continue;
             }
 
-            $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk);
+            $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy);
         }
 
         return $descs;
@@ -389,7 +395,7 @@ class BeanDescriptor
     {
         $classes = [];
         if ($parentFk !== null) {
-            $extends = TDBMDaoGenerator::getBeanNameFromTableName($parentFk->getForeignTableName());
+            $extends = $this->namingStrategy->getBeanClassName($parentFk->getForeignTableName());
             $classes[] = $extends;
         }
 
@@ -418,7 +424,7 @@ class BeanDescriptor
     {
         $tableName = $this->table->getName();
         $baseClassName = TDBMDaoGenerator::getBaseBeanNameFromTableName($tableName);
-        $className = TDBMDaoGenerator::getBeanNameFromTableName($tableName);
+        $className = $this->namingStrategy->getBeanClassName($tableName);
         $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
 
         $classes = $this->generateExtendsAndUseStatements($parentFk);
@@ -429,7 +435,7 @@ class BeanDescriptor
         $use = implode('', $uses);
 
         if ($parentFk !== null) {
-            $extends = TDBMDaoGenerator::getBeanNameFromTableName($parentFk->getForeignTableName());
+            $extends = $this->namingStrategy->getBeanClassName($parentFk->getForeignTableName());
         } else {
             $extends = 'AbstractTDBMObject';
             $use .= "use Mouf\\Database\\TDBM\\AbstractTDBMObject;\n";
@@ -519,10 +525,10 @@ class $baseClassName extends $extends implements \\JsonSerializable
             $fk = $this->isPartOfForeignKey($this->table, $this->table->getColumn($column));
             if ($fk !== null) {
                 if (!in_array($fk, $elements)) {
-                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->schemaAnalyzer);
+                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->schemaAnalyzer, $this->namingStrategy);
                 }
             } else {
-                $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column));
+                $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column), $this->namingStrategy);
             }
         }
 

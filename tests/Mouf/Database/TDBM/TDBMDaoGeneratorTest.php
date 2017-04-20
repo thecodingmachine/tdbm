@@ -44,6 +44,7 @@ use Mouf\Database\TDBM\Test\Dao\CountryDao;
 use Mouf\Database\TDBM\Test\Dao\DogDao;
 use Mouf\Database\TDBM\Test\Dao\RoleDao;
 use Mouf\Database\TDBM\Test\Dao\UserDao;
+use Mouf\Database\TDBM\Utils\DefaultNamingStrategy;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Symfony\Component\Process\Process;
 
@@ -60,7 +61,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
-        $this->tdbmDaoGenerator = new TDBMDaoGenerator($schemaAnalyzer, $schemaManager->createSchema(), $tdbmSchemaAnalyzer);
+        $this->tdbmDaoGenerator = new TDBMDaoGenerator($schemaAnalyzer, $schemaManager->createSchema(), $tdbmSchemaAnalyzer, new DefaultNamingStrategy());
         $this->rootPath = __DIR__.'/../../../../';
         $this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
 
@@ -85,10 +86,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // Test the daoFactory
         require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Generated/DaoFactory.php';
         // Test the others
-        foreach ($tables as $table) {
+        foreach ($tables as $table => $beanName) {
             $daoName = $this->tdbmDaoGenerator->getDaoNameFromTableName($table);
             $daoBaseName = $this->tdbmDaoGenerator->getBaseDaoNameFromTableName($table);
-            $beanName = $this->tdbmDaoGenerator->getBeanNameFromTableName($table);
             $baseBeanName = $this->tdbmDaoGenerator->getBaseBeanNameFromTableName($table);
             require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/Generated/'.$baseBeanName.'.php';
             require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/'.$beanName.'.php';
