@@ -31,14 +31,6 @@ Unless you are developing your own autoload system, you should configure <strong
 </div>
 
 <div class="control-group">
-	<label class="control-label">DaoFactory class name:</label>
-	<div class="controls">
-		<input type="text" name="daofactoryclassname" value="<?php echo plainstring_to_htmlprotected($this->daoFactoryName) ?>"></input>
-		<span class="help-block">Do not specify a namespace, just the class name here. The namespace for the DaoFactory will be the DAOs namespace.</span>
-	</div>
-</div>
-
-<div class="control-group">
 	<label class="control-label">DaoFactory instance name:</label>
 	<div class="controls">
 		<input type="text" name="daofactoryinstancename" value="<?php echo plainstring_to_htmlprotected($this->daoFactoryInstanceName) ?>"></input>

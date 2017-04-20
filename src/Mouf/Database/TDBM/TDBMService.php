@@ -32,6 +32,7 @@ use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\QueryFactory\FindObjectsFromSqlQueryFactory;
 use Mouf\Database\TDBM\QueryFactory\FindObjectsQueryFactory;
+use Mouf\Database\TDBM\Utils\NamingStrategyInterface;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Phlib\Logger\LevelFilter;
 use Psr\Log\LoggerInterface;
@@ -151,36 +152,36 @@ class TDBMService
     private $orderByAnalyzer;
 
     /**
-     * @param Connection     $connection     The DBAL DB connection to use
-     * @param Cache|null     $cache          A cache service to be used
-     * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
-     *                                       Will be automatically created if not passed
+     * @var string
      */
-    public function __construct(Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null)
+    private $beanNamespace;
+
+    /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
+
+    /**
+     * @param Configuration $configuration The configuration object
+     */
+    public function __construct(Configuration $configuration /*Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null*/)
     {
         if (extension_loaded('weakref')) {
             $this->objectStorage = new WeakrefObjectStorage();
         } else {
             $this->objectStorage = new StandardObjectStorage();
         }
-        $this->connection = $connection;
-        if ($cache !== null) {
-            $this->cache = $cache;
-        } else {
-            $this->cache = new VoidCache();
-        }
-        if ($schemaAnalyzer) {
-            $this->schemaAnalyzer = $schemaAnalyzer;
-        } else {
-            $this->schemaAnalyzer = new SchemaAnalyzer($this->connection->getSchemaManager(), $this->cache, $this->getConnectionUniqueId());
-        }
+        $this->connection = $configuration->getConnection();
+        $this->cache = $configuration->getCache();
+        $this->schemaAnalyzer = $configuration->getSchemaAnalyzer();
 
         $this->magicQuery = new MagicQuery($this->connection, $this->cache, $this->schemaAnalyzer);
 
-        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, $this->cache, $this->schemaAnalyzer);
+        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->connection, $this->cache, $this->schemaAnalyzer);
         $this->cachePrefix = $this->tdbmSchemaAnalyzer->getCachePrefix();
 
         $this->toSaveObjects = new \SplObjectStorage();
+        $logger = $configuration->getLogger();
         if ($logger === null) {
             $this->logger = new NullLogger();
             $this->rootLogger = new NullLogger();
@@ -189,6 +190,8 @@ class TDBMService
             $this->setLogLevel(LogLevel::WARNING);
         }
         $this->orderByAnalyzer = new OrderByAnalyzer($this->cache, $this->cachePrefix);
+        $this->beanNamespace = $configuration->getBeanNamespace();
+        $this->namingStrategy = $configuration->getNamingStrategy();
     }
 
     /**
@@ -196,19 +199,9 @@ class TDBMService
      *
      * @return Connection
      */
-    public function getConnection()
+    public function getConnection(): Connection
     {
         return $this->connection;
-    }
-
-    /**
-     * Creates a unique cache key for the current connection.
-     *
-     * @return string
-     */
-    private function getConnectionUniqueId()
-    {
-        return hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
     }
 
     /**
@@ -626,7 +619,7 @@ class TDBMService
      * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone
      * @param string $composerFile        If it's set, location of custom Composer file. Relative to project root
      *
-     * @return \string[] the list of tables
+     * @return \string[] the list of tables (key) and bean name (value)
      */
     public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc, $composerFile = null)
     {
@@ -644,10 +637,10 @@ class TDBMService
     /**
      * @param array<string, string> $tableToBeanMap
      */
-    public function setTableToBeanMap(array $tableToBeanMap)
+    /*public function setTableToBeanMap(array $tableToBeanMap)
     {
         $this->tableToBeanMap = $tableToBeanMap;
-    }
+    }*/
 
     /**
      * Returns the fully qualified class name of the bean associated with table $tableName.
@@ -662,7 +655,14 @@ class TDBMService
         if (isset($this->tableToBeanMap[$tableName])) {
             return $this->tableToBeanMap[$tableName];
         } else {
-            throw new TDBMInvalidArgumentException(sprintf('Could not find a map between table "%s" and any bean. Does table "%s" exists?', $tableName, $tableName));
+            $className = $this->beanNamespace.'\\'.$this->namingStrategy->getBeanClassName($tableName);
+
+            if (!class_exists($className)) {
+                throw new TDBMInvalidArgumentException(sprintf('Could not find class "%s". Does table "%s" exist? If yes, consider regenerating the DAOs and beans.', $className, $tableName));
+            }
+
+            $this->tableToBeanMap[$tableName] = $className;
+            return $className;
         }
     }
 
@@ -1345,7 +1345,11 @@ class TDBMService
             // Only allowed if no inheritance.
             if (count($tables) === 1) {
                 if ($className === null) {
-                    $className = isset($this->tableToBeanMap[$table]) ? $this->tableToBeanMap[$table] : 'Mouf\\Database\\TDBM\\TDBMObject';
+                    try {
+                        $className = $this->getBeanClassName($table);
+                    } catch (TDBMInvalidArgumentException $e) {
+                        $className = TDBMObject::class;
+                    }
                 }
 
                 // Let's construct the bean
@@ -1481,11 +1485,13 @@ class TDBMService
         }
 
         // Only one table in this bean. Life is sweat, let's look at its type:
-        if (isset($this->tableToBeanMap[$tableName])) {
-            return [$this->tableToBeanMap[$tableName], $tableName, $allTables];
-        } else {
-            return ['Mouf\\Database\\TDBM\\TDBMObject', $tableName, $allTables];
+        try {
+            $className = $this->getBeanClassName($tableName);
+        } catch (TDBMInvalidArgumentException $e) {
+            $className = 'Mouf\\Database\\TDBM\\TDBMObject';
         }
+
+        return [$className, $tableName, $allTables];
     }
 
     /**

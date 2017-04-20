@@ -19,7 +19,7 @@
         }
     ],
     "require" : {
-        "php" : ">=7.0",
+        "php" : ">=7.1",
         "mouf/magic-query" : "^1.2.1",
         "mouf/schema-analyzer": "^1.1",
         "doctrine/dbal": "~2.5",
@@ -63,7 +63,7 @@
             "install" : [
                 {
                     "type" : "url",
-                    "url" : "tdbminstall/",
+                    "url" : "tdbminstall2/",
                     "description" : "The install process of TDBM proposes to set up the DAOs and beans for your default DB connection."
                 }
             ],

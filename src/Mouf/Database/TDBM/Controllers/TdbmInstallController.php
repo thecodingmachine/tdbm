@@ -4,6 +4,9 @@ namespace Mouf\Database\TDBM\Controllers;
 
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Actions\InstallUtils;
+use Mouf\Database\TDBM\Configuration;
+use Mouf\Database\TDBM\MoufConfiguration;
+use Mouf\Database\TDBM\Utils\DefaultNamingStrategy;
 use Mouf\MoufManager;
 use Mouf\Html\HtmlElement\HtmlBlock;
 use Mouf\Mvc\Splash\Controllers\Controller;
@@ -105,8 +108,16 @@ class TdbmInstallController extends Controller
             return;
         }
 
-        $this->daoNamespace = $this->moufManager->getVariable('tdbmDefaultDaoNamespace_tdbmService');
-        $this->beanNamespace = $this->moufManager->getVariable('tdbmDefaultBeanNamespace_tdbmService');
+        if ($this->moufManager->has('tdbmConfiguration')) {
+            $tdbmConfiguration = $this->moufManager->getInstanceDescriptor('tdbmConfiguration');
+
+            $this->beanNamespace = $tdbmConfiguration->getConstructorArgumentProperty('beanNamespace')->getValue();
+            $this->daoNamespace = $tdbmConfiguration->getConstructorArgumentProperty('daoNamespace')->getValue();
+        } else {
+            // Old TDBM 4.2 fallback
+            $this->daoNamespace = $this->moufManager->getVariable('tdbmDefaultDaoNamespace_tdbmService');
+            $this->beanNamespace = $this->moufManager->getVariable('tdbmDefaultBeanNamespace_tdbmService');
+        }
 
         if ($this->daoNamespace == null && $this->beanNamespace == null) {
             $classNameMapper = ClassNameMapper::createFromComposerFile(__DIR__.'/../../../../../../../../composer.json');
@@ -115,12 +126,12 @@ class TdbmInstallController extends Controller
             if ($autoloadNamespaces) {
                 $this->autoloadDetected = true;
                 $rootNamespace = $autoloadNamespaces[0];
-                $this->daoNamespace = $rootNamespace.'Model\\Dao';
-                $this->beanNamespace = $rootNamespace.'Model\\Bean';
+                $this->daoNamespace = $rootNamespace.'Dao';
+                $this->beanNamespace = $rootNamespace.'Model';
             } else {
                 $this->autoloadDetected = false;
-                $this->daoNamespace = 'YourApplication\\Model\\Dao';
-                $this->beanNamespace = 'YourApplication\\Model\\Bean';
+                $this->daoNamespace = 'YourApplication\\Dao';
+                $this->beanNamespace = 'YourApplication\\Model';
             }
         } else {
             $this->autoloadDetected = true;
@@ -158,10 +169,42 @@ class TdbmInstallController extends Controller
 
         $doctrineCache = $this->moufManager->getInstanceDescriptor('defaultDoctrineCache');
 
+        $migratingFrom42 = false;
+        if ($this->moufManager->has('tdbmService') && !$this->moufManager->has('tdbmConfiguration')) {
+            $migratingFrom42 = true;
+        }
+
+        $namingStrategy = InstallUtils::getOrCreateInstance('namingStrategy', DefaultNamingStrategy::class);
+        if ($migratingFrom42) {
+            // Let's setup the naming strategy for compatibility
+            $namingStrategy->getSetterProperty('setBeanPrefix')->setValue('');
+            $namingStrategy->getSetterProperty('setBeanSuffix')->setValue('Bean');
+            $namingStrategy->getSetterProperty('setBaseBeanPrefix')->setValue('');
+            $namingStrategy->getSetterProperty('setBaseBeanSuffix')->setValue('BaseBean');
+            $namingStrategy->getSetterProperty('setDaoPrefix')->setValue('');
+            $namingStrategy->getSetterProperty('setDaoSuffix')->setValue('Dao');
+            $namingStrategy->getSetterProperty('setBaseDaoPrefix')->setValue('');
+            $namingStrategy->getSetterProperty('setBaseDaoSuffix')->setValue('BaseDao');
+        }
+
+        if (!$this->moufManager->instanceExists('tdbmConfiguration')) {
+            $tdbmConfiguration = $this->moufManager->createInstance(MoufConfiguration::class)->setName('tdbmConfiguration');
+            $tdbmConfiguration->getConstructorArgumentProperty('connection')->setValue($this->moufManager->getInstanceDescriptor('dbalConnection'));
+            $tdbmConfiguration->getConstructorArgumentProperty('cache')->setValue($doctrineCache);
+            $tdbmConfiguration->getConstructorArgumentProperty('namingStrategy')->setValue($namingStrategy);
+            $tdbmConfiguration->getConstructorArgumentProperty('daoFactoryInstanceName')->setValue('daoFactory');
+
+            // Let's also delete the tdbmService if migrating versions <= 4.2
+            if ($migratingFrom42) {
+                $this->moufManager->removeComponent('tdbmService');
+            }
+        } else {
+            $tdbmConfiguration = $this->moufManager->getInstanceDescriptor('tdbmConfiguration');
+        }
+
         if (!$this->moufManager->instanceExists('tdbmService')) {
             $tdbmService = $this->moufManager->createInstance('Mouf\\Database\\TDBM\\TDBMService')->setName('tdbmService');
-            $tdbmService->getConstructorArgumentProperty('connection')->setValue($this->moufManager->getInstanceDescriptor('dbalConnection'));
-            $tdbmService->getConstructorArgumentProperty('cache')->setValue($doctrineCache);
+            $tdbmService->getConstructorArgumentProperty('configuration')->setValue($tdbmConfiguration);
         }
 
         $this->moufManager->rewriteMouf();
@@ -176,7 +219,7 @@ class TdbmInstallController extends Controller
     private function displayErrorMsg($msg)
     {
         $this->errorMsg = $msg;
-        $this->content->addFile(dirname(__FILE__).'/../../../../views/installError.php', $this);
+        $this->content->addFile(__DIR__.'/../../../../views/installError.php', $this);
         $this->template->toHtml();
     }
 }

@@ -22,15 +22,21 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      * @var Table
      */
     private $mainTable;
+    /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
 
     /**
-     * @param ForeignKeyConstraint $fk        The foreign key pointing to our bean
-     * @param Table                $mainTable The main table that is pointed to
+     * @param ForeignKeyConstraint $fk The foreign key pointing to our bean
+     * @param Table $mainTable The main table that is pointed to
+     * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(ForeignKeyConstraint $fk, Table $mainTable)
+    public function __construct(ForeignKeyConstraint $fk, Table $mainTable, NamingStrategyInterface $namingStrategy)
     {
         $this->fk = $fk;
         $this->mainTable = $mainTable;
+        $this->namingStrategy = $namingStrategy;
     }
 
     /**
@@ -82,7 +88,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
 
 ';
 
-        $beanClass = TDBMDaoGenerator::getBeanNameFromTableName($this->fk->getLocalTableName());
+        $beanClass = $this->namingStrategy->getBeanClassName($this->fk->getLocalTableName());
         $code .= sprintf($getterCode,
             $beanClass,
             implode(', ', $this->fk->getColumns()),
@@ -121,7 +127,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      */
     public function getUsedClasses() : array
     {
-        return [TDBMDaoGenerator::getBeanNameFromTableName($this->fk->getForeignTableName())];
+        return [$this->namingStrategy->getBeanClassName($this->fk->getForeignTableName())];
     }
 
     /**

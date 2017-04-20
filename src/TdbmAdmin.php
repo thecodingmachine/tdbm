@@ -13,6 +13,6 @@ $moufManager->declareComponent('tdbmadmin', 'Mouf\\Database\\TDBM\\Controllers\\
 $moufManager->bindComponents('tdbmadmin', 'template', 'moufTemplate');
 $moufManager->bindComponents('tdbmadmin', 'content', 'block.content');
 
-$moufManager->declareComponent('tdbminstall', 'Mouf\\Database\\TDBM\\Controllers\\TdbmInstallController', true);
-$moufManager->bindComponents('tdbminstall', 'template', 'moufInstallTemplate');
-$moufManager->bindComponents('tdbminstall', 'content', 'block.content');
+$moufManager->declareComponent('tdbminstall2', 'Mouf\\Database\\TDBM\\Controllers\\TdbmInstallController', true);
+$moufManager->bindComponents('tdbminstall2', 'template', 'moufInstallTemplate');
+$moufManager->bindComponents('tdbminstall2', 'content', 'block.content');

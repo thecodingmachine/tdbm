@@ -22,6 +22,7 @@ namespace Mouf\Database\TDBM;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Mouf\Database\TDBM\Utils\DefaultNamingStrategy;
 
 abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 {
@@ -71,7 +72,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->dbConnection = DriverManager::getConnection($connectionParams, $config);
-        $this->tdbmService = new TDBMService($this->dbConnection);
+        $this->tdbmService = new TDBMService(new Configuration('Mouf\\Database\\TDBM\\Test\\Dao\\Bean', 'Mouf\\Database\\TDBM\\Test\\Dao', $this->dbConnection, $this->getNamingStrategy()));
     }
 
     protected static function loadSqlFile(Connection $connection, $sqlFile)
@@ -85,5 +86,20 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             $stmt->fetch();
             $stmt->closeCursor();
         } while ($stmt->nextRowset());*/
+    }
+
+    protected function getNamingStrategy()
+    {
+        $strategy = new DefaultNamingStrategy();
+        $strategy->setBeanPrefix('');
+        $strategy->setBeanSuffix('Bean');
+        $strategy->setBaseBeanPrefix('');
+        $strategy->setBaseBeanSuffix('BaseBean');
+        $strategy->setDaoPrefix('');
+        $strategy->setDaoSuffix('Dao');
+        $strategy->setBaseDaoPrefix('');
+        $strategy->setBaseDaoSuffix('BaseDao');
+
+        return $strategy;
     }
 }
