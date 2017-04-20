@@ -6,6 +6,7 @@ use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Utils\GeneratorListenerInterface;
+use Mouf\Database\TDBM\Utils\NamingStrategyInterface;
 use Psr\Log\LoggerInterface;
 
 interface ConfigurationInterface
@@ -29,6 +30,11 @@ interface ConfigurationInterface
      * @return Cache
      */
     public function getCache(): Cache;
+
+    /**
+     * @return NamingStrategyInterface
+     */
+    public function getNamingStrategy(): NamingStrategyInterface;
 
     /**
      * @return SchemaAnalyzer

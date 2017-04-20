@@ -9,6 +9,7 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use Mouf\Database\TDBM\ConfigurationInterface;
 use Mouf\Database\TDBM\TDBMException;
 use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
 
@@ -17,11 +18,6 @@ use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
  */
 class TDBMDaoGenerator
 {
-    /**
-     * @var SchemaAnalyzer
-     */
-    private $schemaAnalyzer;
-
     /**
      * @var Schema
      */
@@ -55,39 +51,39 @@ class TDBMDaoGenerator
      * @var NamingStrategyInterface
      */
     private $namingStrategy;
+    /**
+     * @var ConfigurationInterface
+     */
+    private $configuration;
 
     /**
      * Constructor.
      *
-     * @param SchemaAnalyzer $schemaAnalyzer
+     * @param ConfigurationInterface $configuration
      * @param Schema $schema
      * @param TDBMSchemaAnalyzer $tdbmSchemaAnalyzer
-     * @param NamingStrategyInterface $namingStrategy
-     * @param GeneratorListenerInterface $eventDispatcher
      */
-    public function __construct(SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy, GeneratorListenerInterface $eventDispatcher)
+    public function __construct(ConfigurationInterface $configuration, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
     {
-        $this->schemaAnalyzer = $schemaAnalyzer;
+        $this->configuration = $configuration;
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
         $this->rootPath = __DIR__.'/../../../../../../../../';
         $this->composerFile = 'composer.json';
-        $this->namingStrategy = $namingStrategy;
-        $this->eventDispatcher = $eventDispatcher;
+        $this->namingStrategy = $configuration->getNamingStrategy();
+        $this->eventDispatcher = $configuration->getGeneratorEventDispatcher();
     }
 
     /**
      * Generates all the daos and beans.
      *
-     * @param string $daonamespace        The namespace for the DAOs, without trailing \
-     * @param string $beannamespace       The Namespace for the beans, without trailing \
+     * @param string $daoNamespace        The namespace for the DAOs, without trailing \
+     * @param string $beanNamespace       The Namespace for the beans, without trailing \
      * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone
-     *
-     * @return \string[] the list of tables (key) and bean name (value)
      *
      * @throws TDBMException
      */
-    public function generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc)
+    public function generateAllDaosAndBeans($daoNamespace, $beanNamespace, $storeInUtc): void
     {
         $classNameMapper = ClassNameMapper::createFromComposerFile($this->rootPath.$this->composerFile);
         // TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
@@ -95,7 +91,7 @@ class TDBMDaoGenerator
         $tableList = $this->schema->getTables();
 
         // Remove all beans and daos from junction tables
-        $junctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
+        $junctionTables = $this->configuration->getSchemaAnalyzer()->detectJunctionTables(true);
         $junctionTableNames = array_map(function (Table $table) {
             return $table->getName();
         }, $junctionTables);
@@ -107,24 +103,14 @@ class TDBMDaoGenerator
         $beanDescriptors = [];
 
         foreach ($tableList as $table) {
-            $beanDescriptors[] = $this->generateDaoAndBean($table, $daonamespace, $beannamespace, $classNameMapper, $storeInUtc);
+            $beanDescriptors[] = $this->generateDaoAndBean($table, $daoNamespace, $beanNamespace, $classNameMapper, $storeInUtc);
         }
 
 
-        $this->generateFactory($tableList, $daonamespace, $classNameMapper);
+        $this->generateFactory($tableList, $daoNamespace, $classNameMapper);
 
         // Let's call the list of listeners
-        $this->eventDispatcher->onGenerate($beanDescriptors);
-
-        // Ok, let's return the list of all tables.
-        // These will be used by the calling script to create Mouf instances.
-
-        $tableToBeanMap = [];
-
-        foreach ($tableList as $table) {
-            $tableToBeanMap[$table->getName()] = $this->namingStrategy->getBeanClassName($table->getName());
-        }
-        return $tableToBeanMap;
+        $this->eventDispatcher->onGenerate($this->configuration, $beanDescriptors);
     }
 
     /**
@@ -147,7 +133,7 @@ class TDBMDaoGenerator
         $baseBeanName = $this->namingStrategy->getBaseBeanClassName($tableName);
         $baseDaoName = $this->namingStrategy->getBaseDaoClassName($tableName);
 
-        $beanDescriptor = new BeanDescriptor($table, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy);
+        $beanDescriptor = new BeanDescriptor($table, $this->configuration->getSchemaAnalyzer(), $this->schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy);
         $this->generateBean($beanDescriptor, $beanName, $baseBeanName, $table, $beannamespace, $classNameMapper, $storeInUtc);
         $this->generateDao($beanDescriptor, $daoName, $baseDaoName, $beanName, $table, $daonamespace, $beannamespace, $classNameMapper);
         return $beanDescriptor;

@@ -630,12 +630,12 @@ class TDBMService
         // Purge cache before generating anything.
         $this->cache->deleteAll();
 
-        $tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer, $this->namingStrategy, $this->configuration->getGeneratorEventDispatcher());
+        $tdbmDaoGenerator = new TDBMDaoGenerator($this->configuration, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer);
         if (null !== $composerFile) {
             $tdbmDaoGenerator->setComposerFile(__DIR__.'/../../../../../../../'.$composerFile);
         }
 
-        return $tdbmDaoGenerator->generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc);
+        $tdbmDaoGenerator->generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc);
     }
 
     /**

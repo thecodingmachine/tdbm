@@ -4,6 +4,8 @@
 namespace Mouf\Database\TDBM\Utils;
 
 
+use Mouf\Database\TDBM\ConfigurationInterface;
+
 class GeneratorEventDispatcher implements GeneratorListenerInterface
 {
     /**
@@ -21,12 +23,13 @@ class GeneratorEventDispatcher implements GeneratorListenerInterface
     }
 
     /**
+     * @param ConfigurationInterface $configuration
      * @param BeanDescriptorInterface[] $beanDescriptors
      */
-    public function onGenerate(array $beanDescriptors): void
+    public function onGenerate(ConfigurationInterface $configuration, array $beanDescriptors): void
     {
         foreach ($this->listeners as $listener) {
-            $listener->onGenerate($beanDescriptors);
+            $listener->onGenerate($configuration, $beanDescriptors);
         }
     }
 }

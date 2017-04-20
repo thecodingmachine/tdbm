@@ -143,7 +143,7 @@ class TdbmInstallController extends Controller
 
         $this->castDatesToDateTime = true;
 
-        $this->content->addFile(dirname(__FILE__).'/../../../../views/installStep2.php', $this);
+        $this->content->addFile(__DIR__.'/../../../../views/installStep2.php', $this);
         $this->template->toHtml();
     }
 
