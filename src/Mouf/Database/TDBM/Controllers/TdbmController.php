@@ -27,7 +27,7 @@ class TdbmController extends AbstractMoufInstanceController
     protected $beanNamespace;
     protected $daoFactoryInstanceName;
     protected $autoloadDetected;
-    protected $storeInUtc;
+    ///protected $storeInUtc;
     protected $useCustomComposer;
     protected $composerFile;
 
@@ -44,7 +44,7 @@ class TdbmController extends AbstractMoufInstanceController
         $this->daoNamespace = self::getFromConfiguration($this->moufManager, $name, 'daoNamespace');
         $this->beanNamespace = self::getFromConfiguration($this->moufManager, $name, 'beanNamespace');
         $this->daoFactoryInstanceName = self::getFromConfiguration($this->moufManager, $name, 'daoFactoryInstanceName');
-        $this->storeInUtc = self::getFromConfiguration($this->moufManager, $name, 'storeInUtc');
+        //$this->storeInUtc = self::getFromConfiguration($this->moufManager, $name, 'storeInUtc');
         $this->composerFile = self::getFromConfiguration($this->moufManager, $name, 'customComposerFile');
         $this->useCustomComposer = $this->composerFile ? true : false;
 
@@ -78,11 +78,11 @@ class TdbmController extends AbstractMoufInstanceController
      * @param string $name
      * @param bool   $selfedit
      */
-    public function generate($name, $daonamespace, $beannamespace, $daofactoryinstancename, $storeInUtc = 0, $selfedit = 'false', $useCustomComposer = false, $composerFile = '')
+    public function generate($name, $daonamespace, $beannamespace, $daofactoryinstancename, /*$storeInUtc = 0,*/ $selfedit = 'false', $useCustomComposer = false, $composerFile = '')
     {
         $this->initController($name, $selfedit);
 
-        self::generateDaos($this->moufManager, $name, $daonamespace, $beannamespace, $daofactoryinstancename, $selfedit, $storeInUtc, $useCustomComposer, $composerFile);
+        self::generateDaos($this->moufManager, $name, $daonamespace, $beannamespace, $daofactoryinstancename, $selfedit, /*$storeInUtc,*/ $useCustomComposer, $composerFile);
 
         // TODO: better: we should redirect to a screen that list the number of DAOs generated, etc...
         header('Location: '.ROOT_URL.'ajaxinstance/?name='.urlencode($name).'&selfedit='.$selfedit);
@@ -98,16 +98,15 @@ class TdbmController extends AbstractMoufInstanceController
      * @param string      $daofactoryclassname
      * @param string      $daofactoryinstancename
      * @param string      $selfedit
-     * @param bool        $storeInUtc
      *
      * @throws \Mouf\MoufException
      */
-    public static function generateDaos(MoufManager $moufManager, $name, $daonamespace, $beannamespace, $daofactoryinstancename, $selfedit = 'false', $storeInUtc = null, $useCustomComposer = null, $composerFile = null)
+    public static function generateDaos(MoufManager $moufManager, $name, $daonamespace, $beannamespace, $daofactoryinstancename, $selfedit = 'false', /*$storeInUtc = null,*/ $useCustomComposer = null, $composerFile = null)
     {
         self::setInConfiguration($moufManager, $name, 'daoNamespace', $daonamespace);
         self::setInConfiguration($moufManager, $name, 'beanNamespace', $beannamespace);
         self::setInConfiguration($moufManager, $name, 'daoFactoryInstanceName', $daofactoryinstancename);
-        self::setInConfiguration($moufManager, $name, 'storeInUtc', $storeInUtc);
+        //self::setInConfiguration($moufManager, $name, 'storeInUtc', $storeInUtc);
         if ($useCustomComposer) {
             self::setInConfiguration($moufManager, $name, 'customComposerFile', $composerFile);
         } else {
@@ -119,7 +118,7 @@ class TdbmController extends AbstractMoufInstanceController
 
         $tdbmService = new InstanceProxy($name);
         /* @var $tdbmService TDBMService */
-        $tdbmService->generateAllDaosAndBeans($storeInUtc, ($useCustomComposer ? $composerFile : null));
+        $tdbmService->generateAllDaosAndBeans(($useCustomComposer ? $composerFile : null));
     }
 
     private static function getConfigurationDescriptor(MoufManager $moufManager, string $tdbmInstanceName)

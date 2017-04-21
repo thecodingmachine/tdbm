@@ -77,13 +77,9 @@ class TDBMDaoGenerator
     /**
      * Generates all the daos and beans.
      *
-     * @param string $daoNamespace        The namespace for the DAOs, without trailing \
-     * @param string $beanNamespace       The Namespace for the beans, without trailing \
-     * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone
-     *
      * @throws TDBMException
      */
-    public function generateAllDaosAndBeans($storeInUtc): void
+    public function generateAllDaosAndBeans(): void
     {
         $classNameMapper = ClassNameMapper::createFromComposerFile($this->rootPath.$this->composerFile);
         // TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
@@ -103,7 +99,7 @@ class TDBMDaoGenerator
         $beanDescriptors = [];
 
         foreach ($tableList as $table) {
-            $beanDescriptors[] = $this->generateDaoAndBean($table, $classNameMapper, $storeInUtc);
+            $beanDescriptors[] = $this->generateDaoAndBean($table, $classNameMapper);
         }
 
 
@@ -118,12 +114,11 @@ class TDBMDaoGenerator
      *
      * @param Table $table
      * @param ClassNameMapper $classNameMapper
-     * @param bool $storeInUtc
      *
      * @return BeanDescriptor
      * @throws TDBMException
      */
-    private function generateDaoAndBean(Table $table, ClassNameMapper $classNameMapper, $storeInUtc) : BeanDescriptor
+    private function generateDaoAndBean(Table $table, ClassNameMapper $classNameMapper) : BeanDescriptor
     {
         // TODO: $storeInUtc is NOT USED.
         $tableName = $table->getName();
@@ -133,7 +128,7 @@ class TDBMDaoGenerator
         $baseDaoName = $this->namingStrategy->getBaseDaoClassName($tableName);
 
         $beanDescriptor = new BeanDescriptor($table, $this->configuration->getSchemaAnalyzer(), $this->schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy);
-        $this->generateBean($beanDescriptor, $beanName, $baseBeanName, $table, $classNameMapper, $storeInUtc);
+        $this->generateBean($beanDescriptor, $beanName, $baseBeanName, $table, $classNameMapper);
         $this->generateDao($beanDescriptor, $daoName, $baseDaoName, $beanName, $table, $classNameMapper);
         return $beanDescriptor;
     }
@@ -145,12 +140,11 @@ class TDBMDaoGenerator
      * @param string          $className       The name of the class
      * @param string          $baseClassName   The name of the base class which will be extended (name only, no directory)
      * @param Table           $table           The table
-     * @param string          $beannamespace   The namespace of the bean
      * @param ClassNameMapper $classNameMapper
      *
      * @throws TDBMException
      */
-    public function generateBean(BeanDescriptor $beanDescriptor, $className, $baseClassName, Table $table, ClassNameMapper $classNameMapper, $storeInUtc)
+    public function generateBean(BeanDescriptor $beanDescriptor, $className, $baseClassName, Table $table, ClassNameMapper $classNameMapper)
     {
         $beannamespace = $this->configuration->getBeanNamespace();
         $str = $beanDescriptor->generatePhpCode($beannamespace);

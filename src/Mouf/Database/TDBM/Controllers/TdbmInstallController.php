@@ -81,7 +81,7 @@ class TdbmInstallController extends Controller
     protected $daoNamespace;
     protected $beanNamespace;
     protected $autoloadDetected;
-    protected $storeInUtc;
+    //protected $storeInUtc;
     protected $useCustomComposer = false;
     protected $composerFile;
 
@@ -154,12 +154,11 @@ class TdbmInstallController extends Controller
      *
      * @param string $daonamespace
      * @param string $beannamespace
-     * @param int    $storeInUtc
      * @param string $selfedit
      *
      * @throws \Mouf\MoufException
      */
-    public function generate($daonamespace, $beannamespace, $storeInUtc = 0, $selfedit = 'false', $defaultPath = false, $storePath = '')
+    public function generate($daonamespace, $beannamespace, /*$storeInUtc = 0,*/ $selfedit = 'false', $defaultPath = false, $storePath = '')
     {
         $this->selfedit = $selfedit;
 
@@ -214,7 +213,7 @@ class TdbmInstallController extends Controller
 
         $this->moufManager->rewriteMouf();
 
-        TdbmController::generateDaos($this->moufManager, 'tdbmService', $daonamespace, $beannamespace, 'daoFactory', $selfedit, $storeInUtc, $defaultPath, $storePath);
+        TdbmController::generateDaos($this->moufManager, 'tdbmService', $daonamespace, $beannamespace, 'daoFactory', $selfedit, /*$storeInUtc,*/ $defaultPath, $storePath);
 
         InstallUtils::continueInstall($selfedit == 'true');
     }

@@ -618,12 +618,11 @@ class TDBMService
     /**
      * Generates all the daos and beans.
      *
-     * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone
      * @param string $composerFile        If it's set, location of custom Composer file. Relative to project root
      *
      * @return \string[] the list of tables (key) and bean name (value)
      */
-    public function generateAllDaosAndBeans($storeInUtc, $composerFile = null)
+    public function generateAllDaosAndBeans($composerFile = null)
     {
         // Purge cache before generating anything.
         $this->cache->deleteAll();
@@ -633,7 +632,7 @@ class TDBMService
             $tdbmDaoGenerator->setComposerFile(__DIR__.'/../../../../../../../'.$composerFile);
         }
 
-        $tdbmDaoGenerator->generateAllDaosAndBeans($storeInUtc);
+        $tdbmDaoGenerator->generateAllDaosAndBeans();
     }
 
     /**

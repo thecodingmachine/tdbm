@@ -36,7 +36,7 @@ Unless you are developing your own autoload system, you should configure <strong
 		<input type="text" name="daofactoryinstancename" value="<?php echo plainstring_to_htmlprotected($this->daoFactoryInstanceName) ?>"></input>
 	</div>
 </div>
-
+<?php /*
 <div class="control-group">
 	<label class="control-label">Store dates / timestamps in UTC:</label>
 	<div class="controls">
@@ -46,6 +46,8 @@ Unless you are developing your own autoload system, you should configure <strong
 		the same time zone.</span>
 	</div>
 </div>
+ */
+?>
 
 <div class="control-group">
 	<label class="control-label">Use custom <code>composer.json</code>:</label>

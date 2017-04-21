@@ -69,12 +69,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testDaoGeneration()
     {
-        $storeInUtc = false;
-
         // Remove all previously generated files.
         $this->recursiveDelete($this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/');
 
-        $tables = $this->tdbmDaoGenerator->generateAllDaosAndBeans($storeInUtc);
+        $this->tdbmDaoGenerator->generateAllDaosAndBeans();
 
         // Let's require all files to check they are valid PHP!
         // Test the daoFactory
@@ -112,9 +110,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->rootPath = __DIR__.'/../../../../';
         $tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
 
-        $storeInUtc = false;
-
-        $tdbmDaoGenerator->generateAllDaosAndBeans($storeInUtc);
+        $tdbmDaoGenerator->generateAllDaosAndBeans();
     }
 
     /**
