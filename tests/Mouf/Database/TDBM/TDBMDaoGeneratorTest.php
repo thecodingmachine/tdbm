@@ -42,11 +42,10 @@ use Mouf\Database\TDBM\Test\Dao\CategoryDao;
 use Mouf\Database\TDBM\Test\Dao\ContactDao;
 use Mouf\Database\TDBM\Test\Dao\CountryDao;
 use Mouf\Database\TDBM\Test\Dao\DogDao;
+use Mouf\Database\TDBM\Test\Dao\Generated\UserBaseDao;
 use Mouf\Database\TDBM\Test\Dao\RoleDao;
 use Mouf\Database\TDBM\Test\Dao\UserDao;
-use Mouf\Database\TDBM\Utils\DefaultNamingStrategy;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
-use Mouf\Database\TDBM\Utils\VoidListener;
 use Symfony\Component\Process\Process;
 
 class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
@@ -1343,5 +1342,18 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             echo $process->getOutput();
             $this->fail('Generated code is not PRS2 compliant');
         }
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testFindOneByGeneration()
+    {
+        $reflectionMethod = new \ReflectionMethod(UserBaseDao::class, 'findOneByLogin');
+        $parameters = $reflectionMethod->getParameters();
+
+        $this->assertCount(2, $parameters);
+        $this->assertSame('login', $parameters[0]->getName());
+        $this->assertSame('additionalTablesFetch', $parameters[1]->getName());
     }
 }

@@ -563,15 +563,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
             }
             $functionParameters[] = $functionParameter;
         }
-        if ($index->isUnique()) {
-            $methodName = 'findOneBy'.implode('And', $methodNameComponent);
-            $calledMethod = 'findOne';
-            $returnType = "{$beanClassName}";
-        } else {
-            $methodName = 'findBy'.implode('And', $methodNameComponent);
-            $returnType = "{$beanClassName}[]|ResultIterator|ResultArray";
-            $calledMethod = 'find';
-        }
+
         $functionParametersString = implode(', ', $functionParameters);
 
         $count = 0;
@@ -591,7 +583,30 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
         }
         $paramsString = implode("\n", $params);
 
-        $code = "
+        if ($index->isUnique()) {
+            $methodName = 'findOneBy'.implode('And', $methodNameComponent);
+            $returnType = "{$beanClassName}";
+
+            $code = "
+    /**
+     * Get a $beanClassName filtered by ".implode(', ', $commentArguments).".
+     *
+$paramsString
+     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @return $returnType
+     */
+    public function $methodName($functionParametersString, array \$additionalTablesFetch = array()) : $returnType
+    {
+        \$filter = [
+".$filterArrayCode."        ];
+        return \$this->findOne(\$filter, [], \$additionalTablesFetch);
+    }
+";
+        } else {
+            $methodName = 'findBy'.implode('And', $methodNameComponent);
+            $returnType = "{$beanClassName}[]|ResultIterator|ResultArray";
+
+            $code = "
     /**
      * Get a list of $beanClassName filtered by ".implode(', ', $commentArguments).".
      *
@@ -601,13 +616,14 @@ $paramsString
      * @param string \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return $returnType
      */
-    public function $methodName($functionParametersString, \$orderBy = null, array \$additionalTablesFetch = array(), \$mode = null)
+    public function $methodName($functionParametersString, \$orderBy = null, array \$additionalTablesFetch = array(), \$mode = null) : iterable
     {
         \$filter = [
 ".$filterArrayCode."        ];
-        return \$this->$calledMethod(\$filter, [], \$orderBy, \$additionalTablesFetch, \$mode);
+        return \$this->find(\$filter, [], \$orderBy, \$additionalTablesFetch, \$mode);
     }
 ";
+        }
 
         return [$usedBeans, $code];
     }

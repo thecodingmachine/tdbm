@@ -412,11 +412,12 @@ class $baseClassName
      *
      * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
      * @param array \$parameters The parameters associated with the filter
+     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
      * @return $beanClassWithoutNameSpace|null
      */
-    protected function findOne(\$filter = null, array \$parameters = []) : ?$beanClassWithoutNameSpace
+    protected function findOne(\$filter = null, array \$parameters = [], array \$additionalTablesFetch = []) : ?$beanClassWithoutNameSpace
     {
-        return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters);
+        return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters, \$additionalTablesFetch);
     }
 
     /**
