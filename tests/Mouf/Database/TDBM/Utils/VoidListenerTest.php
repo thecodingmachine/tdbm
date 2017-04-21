@@ -2,7 +2,6 @@
 
 namespace Mouf\Database\TDBM\Utils;
 
-
 use Mouf\Database\TDBM\ConfigurationInterface;
 
 class VoidListenerTest extends \PHPUnit_Framework_TestCase
