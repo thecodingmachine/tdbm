@@ -69,15 +69,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testDaoGeneration()
     {
-        $daoFactoryClassName = 'DaoFactory';
-        $daonamespace = 'Mouf\\Database\\TDBM\\Test\\Dao';
-        $beannamespace = 'Mouf\\Database\\TDBM\\Test\\Dao\\Bean';
         $storeInUtc = false;
 
         // Remove all previously generated files.
         $this->recursiveDelete($this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/');
 
-        $tables = $this->tdbmDaoGenerator->generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc);
+        $tables = $this->tdbmDaoGenerator->generateAllDaosAndBeans($storeInUtc);
 
         // Let's require all files to check they are valid PHP!
         // Test the daoFactory
@@ -98,7 +95,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         }
 
         // Check that pivot tables do not generate DAOs or beans.
-        $this->assertFalse(class_exists($daonamespace.'\\RolesRightDao'));
+        $this->assertFalse(class_exists('Mouf\\Database\\TDBM\\Test\\Dao\\RolesRightDao'));
     }
 
     /**
@@ -106,12 +103,18 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testGenerationException()
     {
-        $daoFactoryClassName = 'DaoFactory';
-        $daonamespace = 'UnknownVendor\\Dao';
-        $beannamespace = 'UnknownVendor\\Bean';
+        $configuration = new Configuration('UnknownVendor\\Dao', 'UnknownVendor\\Bean', $this->dbConnection, $this->getNamingStrategy());
+
+        $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
+        $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
+        $tdbmDaoGenerator = new TDBMDaoGenerator($configuration, $schemaManager->createSchema(), $tdbmSchemaAnalyzer);
+        $this->rootPath = __DIR__.'/../../../../';
+        $tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
+
         $storeInUtc = false;
 
-        $this->tdbmDaoGenerator->generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc);
+        $tdbmDaoGenerator->generateAllDaosAndBeans($storeInUtc);
     }
 
     /**

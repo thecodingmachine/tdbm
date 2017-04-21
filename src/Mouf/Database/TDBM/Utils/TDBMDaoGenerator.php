@@ -83,7 +83,7 @@ class TDBMDaoGenerator
      *
      * @throws TDBMException
      */
-    public function generateAllDaosAndBeans($daoNamespace, $beanNamespace, $storeInUtc): void
+    public function generateAllDaosAndBeans($storeInUtc): void
     {
         $classNameMapper = ClassNameMapper::createFromComposerFile($this->rootPath.$this->composerFile);
         // TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
@@ -103,11 +103,11 @@ class TDBMDaoGenerator
         $beanDescriptors = [];
 
         foreach ($tableList as $table) {
-            $beanDescriptors[] = $this->generateDaoAndBean($table, $daoNamespace, $beanNamespace, $classNameMapper, $storeInUtc);
+            $beanDescriptors[] = $this->generateDaoAndBean($table, $classNameMapper, $storeInUtc);
         }
 
 
-        $this->generateFactory($tableList, $daoNamespace, $classNameMapper);
+        $this->generateFactory($tableList, $classNameMapper);
 
         // Let's call the list of listeners
         $this->eventDispatcher->onGenerate($this->configuration, $beanDescriptors);
@@ -117,16 +117,15 @@ class TDBMDaoGenerator
      * Generates in one method call the daos and the beans for one table.
      *
      * @param Table $table
-     * @param string $daonamespace
-     * @param string $beannamespace
      * @param ClassNameMapper $classNameMapper
      * @param bool $storeInUtc
      *
      * @return BeanDescriptor
      * @throws TDBMException
      */
-    public function generateDaoAndBean(Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc) : BeanDescriptor
+    private function generateDaoAndBean(Table $table, ClassNameMapper $classNameMapper, $storeInUtc) : BeanDescriptor
     {
+        // TODO: $storeInUtc is NOT USED.
         $tableName = $table->getName();
         $daoName = $this->namingStrategy->getDaoClassName($tableName);
         $beanName = $this->namingStrategy->getBeanClassName($tableName);
@@ -134,8 +133,8 @@ class TDBMDaoGenerator
         $baseDaoName = $this->namingStrategy->getBaseDaoClassName($tableName);
 
         $beanDescriptor = new BeanDescriptor($table, $this->configuration->getSchemaAnalyzer(), $this->schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy);
-        $this->generateBean($beanDescriptor, $beanName, $baseBeanName, $table, $beannamespace, $classNameMapper, $storeInUtc);
-        $this->generateDao($beanDescriptor, $daoName, $baseDaoName, $beanName, $table, $daonamespace, $beannamespace, $classNameMapper);
+        $this->generateBean($beanDescriptor, $beanName, $baseBeanName, $table, $classNameMapper, $storeInUtc);
+        $this->generateDao($beanDescriptor, $daoName, $baseDaoName, $beanName, $table, $classNameMapper);
         return $beanDescriptor;
     }
 
@@ -151,8 +150,9 @@ class TDBMDaoGenerator
      *
      * @throws TDBMException
      */
-    public function generateBean(BeanDescriptor $beanDescriptor, $className, $baseClassName, Table $table, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc)
+    public function generateBean(BeanDescriptor $beanDescriptor, $className, $baseClassName, Table $table, ClassNameMapper $classNameMapper, $storeInUtc)
     {
+        $beannamespace = $this->configuration->getBeanNamespace();
         $str = $beanDescriptor->generatePhpCode($beannamespace);
 
         $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($beannamespace.'\\Generated\\'.$baseClassName);
@@ -232,14 +232,14 @@ class $className extends $baseClassName
      * @param string          $baseClassName
      * @param string          $beanClassName
      * @param Table           $table
-     * @param string          $daonamespace
-     * @param string          $beannamespace
      * @param ClassNameMapper $classNameMapper
      *
      * @throws TDBMException
      */
-    public function generateDao(BeanDescriptor $beanDescriptor, $className, $baseClassName, $beanClassName, Table $table, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper)
+    private function generateDao(BeanDescriptor $beanDescriptor, string $className, string $baseClassName, string $beanClassName, Table $table, ClassNameMapper $classNameMapper)
     {
+        $daonamespace = $this->configuration->getDaoNamespace();
+        $beannamespace = $this->configuration->getBeanNamespace();
         $tableName = $table->getName();
         $primaryKeyColumns = $table->getPrimaryKeyColumns();
 
@@ -508,9 +508,12 @@ class $className extends $baseClassName
      * Generates the factory bean.
      *
      * @param Table[] $tableList
+     * @param ClassNameMapper $classNameMapper
+     * @throws TDBMException
      */
-    private function generateFactory(array $tableList, $daoNamespace, ClassNameMapper $classNameMapper)
+    private function generateFactory(array $tableList, ClassNameMapper $classNameMapper) : void
     {
+        $daoNamespace = $this->configuration->getDaoNamespace();
         $daoFactoryClassName = $this->namingStrategy->getDaoFactoryClassName();
 
         // For each table, let's write a property.

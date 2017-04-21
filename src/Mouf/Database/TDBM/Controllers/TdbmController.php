@@ -117,13 +117,9 @@ class TdbmController extends AbstractMoufInstanceController
         $moufManager->rewriteMouf();
 
 
-        // Remove first and last slash in namespace.
-        $daonamespace = trim($daonamespace, '\\');
-        $beannamespace = trim($beannamespace, '\\');
-
         $tdbmService = new InstanceProxy($name);
         /* @var $tdbmService TDBMService */
-        $tdbmService->generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc, ($useCustomComposer ? $composerFile : null));
+        $tdbmService->generateAllDaosAndBeans($storeInUtc, ($useCustomComposer ? $composerFile : null));
     }
 
     private static function getConfigurationDescriptor(MoufManager $moufManager, string $tdbmInstanceName)
