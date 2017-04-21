@@ -48,10 +48,6 @@ class Configuration implements ConfigurationInterface
      */
     private $namingStrategy;
     /**
-     * @var bool
-     */
-    private $storeInUtc = false;
-    /**
      * @var string|null
      */
     private $customComposerFile;
@@ -159,22 +155,6 @@ class Configuration implements ConfigurationInterface
     private function getConnectionUniqueId(): string
     {
         return hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
-    }
-
-    /**
-     * @return bool
-     */
-    public function isStoreInUtc(): bool
-    {
-        return $this->storeInUtc;
-    }
-
-    /**
-     * @param bool $storeInUtc
-     */
-    public function setStoreInUtc(bool $storeInUtc)
-    {
-        $this->storeInUtc = $storeInUtc;
     }
 
     /**
