@@ -99,6 +99,9 @@
                 }, {
                     "title" : "Memory management and batches processing",
                     "url" : "doc/memory_management.md"
+                },{
+                    "title" : "Configuring naming of beans and DAOs",
+                    "url" : "doc/configuring_naming.md"
                 }, {
                     "title" : "A quick comparison with Doctrine",
                     "url" : "doc/comparison_with_doctrine.md"
