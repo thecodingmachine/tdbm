@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
+use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Mouf\Database\TDBM\Utils\DefaultNamingStrategy;
@@ -35,6 +36,16 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
      * @var TDBMService
      */
     protected $tdbmService;
+
+    /**
+     * @var DummyGeneratorListener
+     */
+    private $dummyGeneratorListener;
+
+    /**
+     * @var ConfigurationInterface
+     */
+    private $configuration;
 
     public static function setUpBeforeClass()
     {
@@ -60,19 +71,35 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $config = new \Doctrine\DBAL\Configuration();
+        $this->tdbmService = new TDBMService($this->getConfiguration());
+    }
 
-        $connectionParams = array(
-            'user' => $GLOBALS['db_username'],
-            'password' => $GLOBALS['db_password'],
-            'host' => $GLOBALS['db_host'],
-            'port' => $GLOBALS['db_port'],
-            'driver' => $GLOBALS['db_driver'],
-            'dbname' => $GLOBALS['db_name'],
-        );
+    protected function getDummyGeneratorListener() : DummyGeneratorListener
+    {
+        if ($this->dummyGeneratorListener === null) {
+            $this->dummyGeneratorListener = new DummyGeneratorListener();
+        }
+        return $this->dummyGeneratorListener;
+    }
 
-        $this->dbConnection = DriverManager::getConnection($connectionParams, $config);
-        $this->tdbmService = new TDBMService(new Configuration('Mouf\\Database\\TDBM\\Test\\Dao\\Bean', 'Mouf\\Database\\TDBM\\Test\\Dao', $this->dbConnection, $this->getNamingStrategy()));
+    protected function getConfiguration() : ConfigurationInterface
+    {
+        if ($this->configuration === null) {
+            $config = new \Doctrine\DBAL\Configuration();
+
+            $connectionParams = array(
+                'user' => $GLOBALS['db_username'],
+                'password' => $GLOBALS['db_password'],
+                'host' => $GLOBALS['db_host'],
+                'port' => $GLOBALS['db_port'],
+                'driver' => $GLOBALS['db_driver'],
+                'dbname' => $GLOBALS['db_name'],
+            );
+
+            $this->dbConnection = DriverManager::getConnection($connectionParams, $config);
+            $this->configuration = new Configuration('Mouf\\Database\\TDBM\\Test\\Dao\\Bean', 'Mouf\\Database\\TDBM\\Test\\Dao', $this->dbConnection, $this->getNamingStrategy(), new ArrayCache(), null, null, [$this->getDummyGeneratorListener()]);
+        }
+        return $this->configuration;
     }
 
     protected static function loadSqlFile(Connection $connection, $sqlFile)

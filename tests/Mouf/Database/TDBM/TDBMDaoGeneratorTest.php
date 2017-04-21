@@ -62,7 +62,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
-        $this->tdbmDaoGenerator = new TDBMDaoGenerator($schemaAnalyzer, $schemaManager->createSchema(), $tdbmSchemaAnalyzer, $this->getNamingStrategy(), new VoidListener());
+        $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->getConfiguration(), $schemaManager->createSchema(), $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__.'/../../../../';
         $this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
     }
@@ -77,16 +77,21 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // Remove all previously generated files.
         $this->recursiveDelete($this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/');
 
-        $tables = $this->tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
+        $tables = $this->tdbmDaoGenerator->generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc);
 
         // Let's require all files to check they are valid PHP!
         // Test the daoFactory
         require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Generated/DaoFactory.php';
         // Test the others
-        foreach ($tables as $table => $beanName) {
-            $daoName = $this->tdbmDaoGenerator->getDaoNameFromTableName($table);
-            $daoBaseName = $this->tdbmDaoGenerator->getBaseDaoNameFromTableName($table);
-            $baseBeanName = $this->tdbmDaoGenerator->getBaseBeanNameFromTableName($table);
+
+        $beanDescriptors = $this->getDummyGeneratorListener()->getBeanDescriptors();
+
+        foreach ($beanDescriptors as $beanDescriptor) {
+
+            $daoName = $beanDescriptor->getDaoClassName();
+            $daoBaseName = $beanDescriptor->getBaseDaoClassName();
+            $beanName = $beanDescriptor->getBeanClassName();
+            $baseBeanName = $beanDescriptor->getBaseBeanClassName();
             require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/Generated/'.$baseBeanName.'.php';
             require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/'.$beanName.'.php';
             require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Generated/'.$daoBaseName.'.php';
@@ -107,7 +112,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $beannamespace = 'UnknownVendor\\Bean';
         $storeInUtc = false;
 
-        $this->tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
+        $this->tdbmDaoGenerator->generateAllDaosAndBeans($daonamespace, $beannamespace, $storeInUtc);
     }
 
     /**

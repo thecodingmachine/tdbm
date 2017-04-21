@@ -3,18 +3,20 @@
 
 namespace Mouf\Database\TDBM\Utils;
 
-
-use Doctrine\DBAL\Schema\Index;
+use Mouf\Database\TDBM\ConfigurationInterface;
 
 /**
  * A listener that does nothing.
  */
 class VoidListener implements GeneratorListenerInterface
 {
+
     /**
+     * @param ConfigurationInterface $configuration
      * @param BeanDescriptorInterface[] $beanDescriptors
      */
-    public function onGenerate(array $beanDescriptors): void
+    public function onGenerate(ConfigurationInterface $configuration, array $beanDescriptors): void
     {
+        // Let's do nothing.
     }
 }

@@ -140,42 +140,6 @@ class TDBMDaoGenerator
     }
 
     /**
-     * Returns the name of the DAO class from the table name.
-     *
-     * @param $tableName
-     *
-     * @return string
-     */
-    public static function getDaoNameFromTableName($tableName)
-    {
-        return self::toSingular(self::toCamelCase($tableName)).'Dao';
-    }
-
-    /**
-     * Returns the name of the base bean class from the table name.
-     *
-     * @param $tableName
-     *
-     * @return string
-     */
-    public static function getBaseBeanNameFromTableName($tableName)
-    {
-        return self::toSingular(self::toCamelCase($tableName)).'BaseBean';
-    }
-
-    /**
-     * Returns the name of the base DAO class from the table name.
-     *
-     * @param $tableName
-     *
-     * @return string
-     */
-    public static function getBaseDaoNameFromTableName($tableName)
-    {
-        return self::toSingular(self::toCamelCase($tableName)).'BaseDao';
-    }
-
-    /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
      * @param BeanDescriptor  $beanDescriptor
@@ -497,7 +461,7 @@ class $baseClassName
         $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($daonamespace.'\\Generated\\'.$baseClassName);
         if (empty($possibleBaseFileNames)) {
             // @codeCoverageIgnoreStart
-            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$baseClassName.'" is not autoloadable.');
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$daonamespace.'\\Generated\\'.$baseClassName.'" is not autoloadable.');
             // @codeCoverageIgnoreEnd
         }
         $possibleBaseFileName = $this->rootPath.$possibleBaseFileNames[0];
@@ -509,7 +473,7 @@ class $baseClassName
         $possibleFileNames = $classNameMapper->getPossibleFileNames($daonamespace.'\\'.$className);
         if (empty($possibleFileNames)) {
             // @codeCoverageIgnoreStart
-            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$className.'" is not autoloadable.');
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$daonamespace.'\\'.$className.'" is not autoloadable.');
             // @codeCoverageIgnoreEnd
         }
         $possibleFileName = $this->rootPath.$possibleFileNames[0];

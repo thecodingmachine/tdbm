@@ -432,7 +432,7 @@ class BeanDescriptor implements BeanDescriptorInterface
     public function generatePhpCode($beannamespace): string
     {
         $tableName = $this->table->getName();
-        $baseClassName = TDBMDaoGenerator::getBaseBeanNameFromTableName($tableName);
+        $baseClassName = $this->namingStrategy->getBaseBeanClassName($tableName);
         $className = $this->namingStrategy->getBeanClassName($tableName);
         $parentFk = $this->schemaAnalyzer->getParentRelationship($this->table->getName());
 
