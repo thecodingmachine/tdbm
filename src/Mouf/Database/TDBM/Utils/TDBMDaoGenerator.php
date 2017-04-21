@@ -12,6 +12,7 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\ConfigurationInterface;
 use Mouf\Database\TDBM\TDBMException;
 use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * This class generates automatically DAOs and Beans for TDBM.
@@ -43,7 +44,7 @@ class TDBMDaoGenerator
     private $tdbmSchemaAnalyzer;
 
     /**
-     * @var array
+     * @var EventDispatcherInterface
      */
     private $eventDispatcher;
 

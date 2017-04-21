@@ -163,19 +163,6 @@ class DefaultNamingStrategy implements NamingStrategyInterface
     }
 
     /**
-     * Put the first letter of the string in lower case.
-     * Very useful to transform a class name into a variable name.
-     *
-     * @param $str string
-     *
-     * @return string
-     */
-    private static function toVariableName($str)
-    {
-        return strtolower(substr($str, 0, 1)).substr($str, 1);
-    }
-
-    /**
      * Returns the class name for the DAO factory.
      *
      * @return string

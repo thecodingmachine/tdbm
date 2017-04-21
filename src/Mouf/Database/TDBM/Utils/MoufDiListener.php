@@ -20,6 +20,7 @@ class MoufDiListener implements GeneratorListenerInterface
         // Let's generate the needed instance in Mouf.
         $moufManager = MoufManager::getMoufManager();
 
+        $daoFactoryInstanceName = null;
         if ($configuration instanceof MoufConfiguration) {
             $daoFactoryInstanceName = $configuration->getDaoFactoryInstanceName();
             $daoFactoryClassName = $configuration->getDaoNamespace().'\\Generated\\'.$configuration->getNamingStrategy()->getDaoFactoryClassName();
@@ -36,7 +37,9 @@ class MoufDiListener implements GeneratorListenerInterface
                 $moufManager->declareComponent($instanceName, $configuration->getDaoNamespace().'\\'.$daoName);
             }
             $moufManager->setParameterViaConstructor($instanceName, 0, $tdbmServiceInstanceName, 'object');
-            $moufManager->bindComponentViaSetter($daoFactoryInstanceName, 'set'.$daoName, $instanceName);
+            if ($daoFactoryInstanceName !== null) {
+                $moufManager->bindComponentViaSetter($daoFactoryInstanceName, 'set'.$daoName, $instanceName);
+            }
         }
 
         $moufManager->rewriteMouf();
