@@ -1,3 +1,14 @@
+4.3
+===
+
+Major changes:
+
+- TDBM now requires PHP 7.1+
+- Bean properties are type-hinted using the new nullable types if columns are nullable
+- Added support for a naming strategy (to change the name of generated beans and DAOs)
+- Configuration has been moved to a new "Configuration" class
+- Added support for generator listeners that are triggered when beans are created
+
 4.2
 ===
 
