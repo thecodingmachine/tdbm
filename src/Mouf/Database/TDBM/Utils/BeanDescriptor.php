@@ -635,7 +635,7 @@ $paramsString
      *
      * @return string[]
      */
-    protected function getUsedTables()
+    protected function getUsedTables() : array
     {
 %s
     }
@@ -658,7 +658,7 @@ $paramsString
      * Method called when the bean is removed from database.
      *
      */
-    protected function onDelete()
+    protected function onDelete() : void
     {
         parent::onDelete();
 %s    }

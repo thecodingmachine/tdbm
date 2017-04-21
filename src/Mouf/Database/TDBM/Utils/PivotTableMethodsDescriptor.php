@@ -110,7 +110,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      *
      * @return %s[]
      */
-    public function get%s()
+    public function get%s() : array
     {
         return $this->_getRelationships(%s);
     }
@@ -123,9 +123,9 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      *
      * @param %s %s
      */
-    public function add%s(%s %s)
+    public function add%s(%s %s) : void
     {
-        return $this->addRelationship(%s, %s);
+        $this->addRelationship(%s, %s);
     }
 ';
 
@@ -136,9 +136,9 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      *
      * @param %s %s
      */
-    public function remove%s(%s %s)
+    public function remove%s(%s %s) : void
     {
-        return $this->_removeRelationship(%s, %s);
+        $this->_removeRelationship(%s, %s);
     }
 ';
 
@@ -164,9 +164,9 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      *
      * @param %s[] %s
      */
-    public function set%s(array %s)
+    public function set%s(array %s) : void
     {
-        return $this->setRelationships(%s, %s);
+        $this->setRelationships(%s, %s);
     }
 ';
 

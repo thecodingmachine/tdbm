@@ -634,12 +634,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return string[]
      */
-    abstract protected function getUsedTables();
+    abstract protected function getUsedTables() : array;
 
     /**
      * Method called when the bean is removed from database.
      */
-    protected function onDelete()
+    protected function onDelete() : void
     {
     }
 }
