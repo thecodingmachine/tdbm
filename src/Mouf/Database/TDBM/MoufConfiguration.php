@@ -3,7 +3,6 @@
 
 namespace Mouf\Database\TDBM;
 
-
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
@@ -35,6 +34,4 @@ class MoufConfiguration extends Configuration
     {
         $this->daoFactoryInstanceName = $daoFactoryInstanceName;
     }
-
-
 }

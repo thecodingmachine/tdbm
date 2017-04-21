@@ -2,7 +2,6 @@
 
 namespace Mouf\Database\TDBM\Utils;
 
-
 class DefaultNamingStrategyTest extends \PHPUnit_Framework_TestCase
 {
     public function testGetBeanName()

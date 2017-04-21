@@ -204,7 +204,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $result = $magicQuery->parse("SELECT DISTINCT users.id, users.login FROM users");
         var_dump($result);*/
 
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC',  [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
         $beans2 = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], null, TDBMObject::class);
 
         foreach ($beans as $bean) {
@@ -227,7 +227,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testArrayAccess()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC',  [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         $this->assertTrue(isset($beans[0]));
         $this->assertFalse(isset($beans[42]));
@@ -511,7 +511,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testLinkedTableFetch()
     {
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, ['country'],null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, ['country'], null, TDBMObject::class);
     }
 
     public function testFindObject()
@@ -634,7 +634,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     public function testLogger()
     {
         $arrayLogger = new ArrayLogger();
-        $tdbmService = new TDBMService(new Configuration('Mouf\\Database\\TDBM\\Test\\Dao\\Bean', 'Mouf\\Database\\TDBM\\Test\\Dao', $this->dbConnection, $this->getNamingStrategy(),null, null, $arrayLogger));
+        $tdbmService = new TDBMService(new Configuration('Mouf\\Database\\TDBM\\Test\\Dao\\Bean', 'Mouf\\Database\\TDBM\\Test\\Dao', $this->dbConnection, $this->getNamingStrategy(), null, null, $arrayLogger));
 
         $tdbmService->setLogLevel(LogLevel::DEBUG);
         $beans = $tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);

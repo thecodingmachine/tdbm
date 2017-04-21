@@ -3,7 +3,6 @@
 
 namespace Mouf\Database\TDBM;
 
-
 use Mouf\Database\TDBM\Utils\BeanDescriptorInterface;
 use Mouf\Database\TDBM\Utils\GeneratorListenerInterface;
 
@@ -44,6 +43,4 @@ class DummyGeneratorListener implements GeneratorListenerInterface
     {
         return $this->beanDescriptors;
     }
-
-
 }

@@ -4,7 +4,6 @@ namespace Mouf\Database\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Table;
 
-
 /**
  * This class represents a bean.
  */

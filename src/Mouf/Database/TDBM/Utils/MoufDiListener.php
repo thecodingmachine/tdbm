@@ -3,7 +3,6 @@
 
 namespace Mouf\Database\TDBM\Utils;
 
-
 use Mouf\Database\TDBM\ConfigurationInterface;
 use Mouf\Database\TDBM\MoufConfiguration;
 use Mouf\Database\TDBM\TDBMService;

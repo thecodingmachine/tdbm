@@ -3,7 +3,6 @@
 
 namespace Mouf\Database\TDBM;
 
-
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
@@ -193,6 +192,4 @@ class Configuration implements ConfigurationInterface
     {
         $this->customComposerFile = $customComposerFile;
     }
-
-
 }

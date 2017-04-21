@@ -87,7 +87,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $beanDescriptors = $this->getDummyGeneratorListener()->getBeanDescriptors();
 
         foreach ($beanDescriptors as $beanDescriptor) {
-
             $daoName = $beanDescriptor->getDaoClassName();
             $daoBaseName = $beanDescriptor->getBaseDaoClassName();
             $beanName = $beanDescriptor->getBeanClassName();
@@ -1345,6 +1344,5 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             echo $process->getOutput();
             $this->fail('Generated code is not PRS2 compliant');
         }
-
     }
 }

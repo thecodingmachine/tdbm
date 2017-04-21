@@ -3,7 +3,6 @@
 
 namespace Mouf\Database\TDBM\Utils;
 
-
 use Mouf\Database\TDBM\ConfigurationInterface;
 
 class GeneratorEventDispatcher implements GeneratorListenerInterface

@@ -3,7 +3,6 @@
 
 namespace Mouf\Database\TDBM\Utils;
 
-
 use Doctrine\Common\Inflector\Inflector;
 
 class DefaultNamingStrategy implements NamingStrategyInterface
