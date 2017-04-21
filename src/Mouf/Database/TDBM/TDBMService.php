@@ -234,133 +234,6 @@ class TDBMService
     }
 
     /**
-     * Returns a TDBMObject associated from table "$table_name".
-     * If the $filters parameter is an int/string, the object returned will be the object whose primary key = $filters.
-     * $filters can also be a set of TDBM_Filters (see the findObjects method for more details).
-     *
-     * For instance, if there is a table 'users', with a primary key on column 'user_id' and a column 'user_name', then
-     * 			$user = $tdbmService->getObject('users',1);
-     * 			echo $user->name;
-     * will return the name of the user whose user_id is one.
-     *
-     * If a table has a primary key over several columns, you should pass to $id an array containing the the value of the various columns.
-     * For instance:
-     * 			$group = $tdbmService->getObject('groups',array(1,2));
-     *
-     * Note that TDBMObject performs caching for you. If you get twice the same object, the reference of the object you will get
-     * will be the same.
-     *
-     * For instance:
-     * 			$user1 = $tdbmService->getObject('users',1);
-     * 			$user2 = $tdbmService->getObject('users',1);
-     * 			$user1->name = 'John Doe';
-     * 			echo $user2->name;
-     * will return 'John Doe'.
-     *
-     * You can use filters instead of passing the primary key. For instance:
-     * 			$user = $tdbmService->getObject('users',new EqualFilter('users', 'login', 'jdoe'));
-     * This will return the user whose login is 'jdoe'.
-     * Please note that if 2 users have the jdoe login in database, the method will throw a TDBM_DuplicateRowException.
-     *
-     * Also, you can specify the return class for the object (provided the return class extends TDBMObject).
-     * For instance:
-     *  	$user = $tdbmService->getObject('users',1,'User');
-     * will return an object from the "User" class. The "User" class must extend the "TDBMObject" class.
-     * Please be sure not to override any method or any property unless you perfectly know what you are doing!
-     *
-     * @param string $table_name   The name of the table we retrieve an object from
-     * @param mixed  $filters      If the filter is a string/integer, it will be considered as the id of the object (the value of the primary key). Otherwise, it can be a filter bag (see the filterbag parameter of the findObjects method for more details about filter bags)
-     * @param string $className    Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
-     * @param bool   $lazy_loading If set to true, and if the primary key is passed in parameter of getObject, the object will not be queried in database. It will be queried when you first try to access a column. If at that time the object cannot be found in database, an exception will be thrown
-     *
-     * @return TDBMObject
-     */
-/*	public function getObject($table_name, $filters, $className = null, $lazy_loading = false) {
-
-        if (is_array($filters) || $filters instanceof FilterInterface) {
-            $isFilterBag = false;
-            if (is_array($filters)) {
-                // Is this a multiple primary key or a filter bag?
-                // Let's have a look at the first item of the array to decide.
-                foreach ($filters as $filter) {
-                    if (is_array($filter) || $filter instanceof FilterInterface) {
-                        $isFilterBag = true;
-                    }
-                    break;
-                }
-            } else {
-                $isFilterBag = true;
-            }
-
-            if ($isFilterBag == true) {
-                // If a filter bag was passer in parameter, let's perform a findObjects.
-                $objects = $this->findObjects($table_name, $filters, null, null, null, $className);
-                if (count($objects) == 0) {
-                    return null;
-                } elseif (count($objects) > 1) {
-                    throw new DuplicateRowException("Error while querying an object for table '$table_name': ".count($objects)." rows have been returned, but we should have received at most one.");
-                }
-                // Return the first and only object.
-                if ($objects instanceof \Generator) {
-                    return $objects->current();
-                } else {
-                    return $objects[0];
-                }
-            }
-        }
-        $id = $filters;
-        if ($this->connection == null) {
-            throw new TDBMException("Error while calling TdbmService->getObject(): No connection has been established on the database!");
-        }
-        $table_name = $this->connection->toStandardcase($table_name);
-
-        // If the ID is null, let's throw an exception
-        if ($id === null) {
-            throw new TDBMException("The ID you passed to TdbmService->getObject is null for the object of type '$table_name'. Objects primary keys cannot be null.");
-        }
-
-        // If the primary key is split over many columns, the IDs are passed in an array. Let's serialize this array to store it.
-        if (is_array($id)) {
-            $id = serialize($id);
-        }
-
-        if ($className === null) {
-            if (isset($this->tableToBeanMap[$table_name])) {
-                $className = $this->tableToBeanMap[$table_name];
-            } else {
-                $className = "Mouf\\Database\\TDBM\\TDBMObject";
-            }
-        }
-
-        if ($this->objectStorage->has($table_name, $id)) {
-            $obj = $this->objectStorage->get($table_name, $id);
-            if (is_a($obj, $className)) {
-                return $obj;
-            } else {
-                throw new TDBMException("Error! The object with ID '$id' for table '$table_name' has already been retrieved. The type for this object is '".get_class($obj)."'' which is not a subtype of '$className'");
-            }
-        }
-
-        if ($className != "Mouf\\Database\\TDBM\\TDBMObject" && !is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
-            if (!class_exists($className)) {
-                throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." does not exist.");
-            } else {
-                throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." should extend TDBMObject.");
-            }
-        }
-        $obj = new $className($this, $table_name, $id);
-
-        if ($lazy_loading == false) {
-            // If we are not doing lazy loading, let's load the object:
-            $obj->_dbLoadIfNotLoaded();
-        }
-
-        $this->objectStorage->set($table_name, $id, $obj);
-
-        return $obj;
-    }*/
-
-    /**
      * Removes the given object from database.
      * This cannot be called on an object that is not attached to this TDBMService
      * (will throw a TDBMInvalidOperationException).
@@ -608,7 +481,7 @@ class TDBMService
      * This is used internally by TDBM to add an object to the list of objects that have been
      * created/updated but not saved yet.
      *
-     * @param AbstractTDBMObject $myObject
+     * @param DbRow $myObject
      */
     public function _addToToSaveObjectList(DbRow $myObject)
     {
@@ -634,14 +507,6 @@ class TDBMService
 
         $tdbmDaoGenerator->generateAllDaosAndBeans();
     }
-
-    /**
-     * @param array<string, string> $tableToBeanMap
-     */
-    /*public function setTableToBeanMap(array $tableToBeanMap)
-    {
-        $this->tableToBeanMap = $tableToBeanMap;
-    }*/
 
     /**
      * Returns the fully qualified class name of the bean associated with table $tableName.
