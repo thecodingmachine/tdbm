@@ -17,6 +17,9 @@ Minor changes:
 
 - Parameter "store in UTC" has been removed from TDBM user interface. The parameter was ignored since 4.0.
 
+Bugfix:
+
+- #138: fixing `findOneByXXX` parameters in generated DAOs
 
 4.2
 ===
