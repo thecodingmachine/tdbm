@@ -319,7 +319,7 @@ class $baseClassName
      *
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
-    public function findAll()
+    public function findAll() : iterable
     {
         if (\$this->defaultSort) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
@@ -343,7 +343,7 @@ class $baseClassName
      * @return $beanClassWithoutNameSpace
      * @throws TDBMException
      */
-    public function getById($primaryKeyPhpType \$id, \$lazyLoading = false)
+    public function getById($primaryKeyPhpType \$id, \$lazyLoading = false) : $beanClassWithoutNameSpace
     {
         return \$this->tdbmService->findObjectByPk('$tableName', ['$primaryKeyColumn' => \$id], [], \$lazyLoading);
     }
@@ -356,7 +356,7 @@ class $baseClassName
      * @param $beanClassWithoutNameSpace \$obj object to delete
      * @param bool \$cascade if true, it will delete all object linked to \$obj
      */
-    public function delete($beanClassWithoutNameSpace \$obj, \$cascade = false)
+    public function delete($beanClassWithoutNameSpace \$obj, \$cascade = false) : void
     {
         if (\$cascade === true) {
             \$this->tdbmService->deleteCascade(\$obj);
@@ -376,7 +376,7 @@ class $baseClassName
      * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
-    protected function find(\$filter = null, array \$parameters = [], \$orderBy=null, array \$additionalTablesFetch = [], \$mode = null)
+    protected function find(\$filter = null, array \$parameters = [], \$orderBy=null, array \$additionalTablesFetch = [], \$mode = null) : iterable
     {
         if (\$this->defaultSort && \$orderBy == null) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
@@ -399,7 +399,7 @@ class $baseClassName
      * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
      */
-    protected function findFromSql(\$from, \$filter = null, array \$parameters = [], \$orderBy = null, \$mode = null)
+    protected function findFromSql(\$from, \$filter = null, array \$parameters = [], \$orderBy = null, \$mode = null) : iterable
     {
         if (\$this->defaultSort && \$orderBy == null) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
@@ -412,9 +412,9 @@ class $baseClassName
      *
      * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
      * @param array \$parameters The parameters associated with the filter
-     * @return $beanClassWithoutNameSpace
+     * @return $beanClassWithoutNameSpace|null
      */
-    protected function findOne(\$filter = null, array \$parameters = [])
+    protected function findOne(\$filter = null, array \$parameters = []) : ?$beanClassWithoutNameSpace
     {
         return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters);
     }
@@ -430,9 +430,9 @@ class $baseClassName
      * @param string \$from The sql from statement
      * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
      * @param array \$parameters The parameters associated with the filter
-     * @return $beanClassWithoutNameSpace
+     * @return $beanClassWithoutNameSpace|null
      */
-    protected function findOneFromSql(\$from, \$filter = null, array \$parameters = [])
+    protected function findOneFromSql(\$from, \$filter = null, array \$parameters = []) : ?$beanClassWithoutNameSpace
     {
         return \$this->tdbmService->findObjectFromSql('$tableName', \$from, \$filter, \$parameters);
     }
@@ -442,7 +442,7 @@ class $baseClassName
      *
      * @param string \$defaultSort
      */
-    public function setDefaultSort(\$defaultSort)
+    public function setDefaultSort(string \$defaultSort) : void
     {
         \$this->defaultSort = \$defaultSort;
     }
@@ -552,7 +552,7 @@ class $daoFactoryClassName
      *
      * @return '.$daoClassName.'
      */
-    public function get'.$daoClassName.'()
+    public function get'.$daoClassName.'() : '.$daoClassName.'
     {
         return $this->'.$daoInstanceName.';
     }
@@ -562,7 +562,7 @@ class $daoFactoryClassName
      *
      * @param '.$daoClassName.' $'.$daoInstanceName.'
      */
-    public function set'.$daoClassName.'('.$daoClassName.' $'.$daoInstanceName.')
+    public function set'.$daoClassName.'('.$daoClassName.' $'.$daoInstanceName.') : void
     {
         $this->'.$daoInstanceName.' = $'.$daoInstanceName.';
     }';
@@ -701,23 +701,4 @@ class $daoFactoryClassName
 
         return isset($map[$type->getName()]) ? $map[$type->getName()] : $type->getName();
     }
-
-    /**
-     * @param string $beanNamespace
-     *
-     * @return \string[] Returns a map mapping table name to beans name
-     */
-    /*public function buildTableToBeanMap($beanNamespace)
-    {
-        $tableToBeanMap = [];
-
-        $tables = $this->schema->getTables();
-
-        foreach ($tables as $table) {
-            $tableName = $table->getName();
-            $tableToBeanMap[$tableName] = $beanNamespace.'\\'.$this->namingStrategy->getBeanClassName($tableName);
-        }
-
-        return $tableToBeanMap;
-    }*/
 }
