@@ -9,6 +9,11 @@ Major changes:
 - Configuration has been moved to a new "Configuration" class
 - Added support for generator listeners that are triggered when beans are created
 
+Minor changes:
+
+- Parameter "store in UTC" has been removed from TDBM user interface. The parameter was ignored since 4.0.
+
+
 4.2
 ===
 
