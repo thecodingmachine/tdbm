@@ -682,6 +682,7 @@ class $daoFactoryClassName
         $map = [
             Type::TARRAY => 'array',
             Type::SIMPLE_ARRAY => 'array',
+            'json' => 'array',  // 'json' is supported from Doctrine DBAL 2.6 only.
             Type::JSON_ARRAY => 'array',
             Type::BIGINT => 'string',
             Type::BOOLEAN => 'bool',
