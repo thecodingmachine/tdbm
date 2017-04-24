@@ -4,6 +4,8 @@ namespace Mouf\Database\TDBM\Controllers;
 
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Actions\InstallUtils;
+use Mouf\Console\ConsoleUtils;
+use Mouf\Database\TDBM\Commands\GenerateCommand;
 use Mouf\Database\TDBM\Configuration;
 use Mouf\Database\TDBM\MoufConfiguration;
 use Mouf\Database\TDBM\Utils\DefaultNamingStrategy;
@@ -210,6 +212,14 @@ class TdbmInstallController extends Controller
             $tdbmService = $this->moufManager->createInstance('Mouf\\Database\\TDBM\\TDBMService')->setName('tdbmService');
             $tdbmService->getConstructorArgumentProperty('configuration')->setValue($tdbmConfiguration);
         }
+
+        // We declare our instance of the Symfony command as a Mouf instance
+        $generateCommand = InstallUtils::getOrCreateInstance('generateCommand', GenerateCommand::class, $this->moufManager);
+        $generateCommand->getConstructorArgumentProperty('tdbmConfiguration')->setValue($tdbmConfiguration);
+
+        // We register that instance descriptor using "ConsoleUtils"
+        $consoleUtils = new ConsoleUtils($this->moufManager);
+        $consoleUtils->registerCommand($generateCommand);
 
         $this->moufManager->rewriteMouf();
 
