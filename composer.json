@@ -97,6 +97,9 @@
                     "title" : "Miscellaneous features",
                     "url" : "doc/miscellaneous.md"
                 }, {
+                    "title" : "Configuring TDBM",
+                    "url" : "doc/configuring.md"
+                }, {
                     "title" : "Memory management and batches processing",
                     "url" : "doc/memory_management.md"
                 },{
