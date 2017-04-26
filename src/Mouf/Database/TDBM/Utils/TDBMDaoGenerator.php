@@ -70,7 +70,7 @@ class TDBMDaoGenerator
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
         $this->rootPath = __DIR__.'/../../../../../../../../';
-        $this->composerFile = 'composer.json';
+        $this->composerFile = $configuration->getComposerFile();
         $this->namingStrategy = $configuration->getNamingStrategy();
         $this->eventDispatcher = $configuration->getGeneratorEventDispatcher();
     }

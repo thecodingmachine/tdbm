@@ -50,4 +50,12 @@ interface ConfigurationInterface
      * @return GeneratorListenerInterface
      */
     public function getGeneratorEventDispatcher(): GeneratorListenerInterface;
+
+    /**
+     * Get the Composer file used to detect the path where files should be written.
+     * Path is relative to the root directory (this function will typically return 'composer.json' unless you want to write the beans and DAOs in a package).
+     *
+     * @return null|string
+     */
+    public function getComposerFile() : string;
 }

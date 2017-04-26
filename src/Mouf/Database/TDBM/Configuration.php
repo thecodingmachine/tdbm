@@ -48,9 +48,11 @@ class Configuration implements ConfigurationInterface
      */
     private $namingStrategy;
     /**
-     * @var string|null
+     * The Composer file used to detect the path where files should be written.
+     *
+     * @var string
      */
-    private $customComposerFile;
+    private $composerFile;
 
     /**
      * @param string $beanNamespace The namespace hosting the beans
@@ -79,6 +81,7 @@ class Configuration implements ConfigurationInterface
         }
         $this->logger = $logger;
         $this->generatorEventDispatcher = new GeneratorEventDispatcher($generatorListeners);
+        $this->composerFile = 'composer.json';
     }
 
     /**
@@ -160,16 +163,18 @@ class Configuration implements ConfigurationInterface
     /**
      * @return null|string
      */
-    public function getCustomComposerFile() : ?string
+    public function getComposerFile() : string
     {
-        return $this->customComposerFile;
+        return $this->composerFile;
     }
 
     /**
-     * @param null|string $customComposerFile
+     * Sets the Composer file used to detect the path where files should be written.
+     *
+     * @param null|string $composerFile
      */
-    public function setCustomComposerFile($customComposerFile)
+    public function setComposerFile(string $composerFile)
     {
-        $this->customComposerFile = $customComposerFile;
+        $this->composerFile = $composerFile;
     }
 }
