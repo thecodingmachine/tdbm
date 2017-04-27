@@ -10,7 +10,9 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\Utils\GeneratorEventDispatcher;
 use Mouf\Database\TDBM\Utils\GeneratorListenerInterface;
 use Mouf\Database\TDBM\Utils\NamingStrategyInterface;
+use Mouf\Database\TDBM\Utils\PathFinder\PathFinderInterface;
 use Psr\Log\LoggerInterface;
+use Mouf\Database\TDBM\Utils\PathFinder\PathFinder;
 
 class Configuration implements ConfigurationInterface
 {
@@ -48,6 +50,10 @@ class Configuration implements ConfigurationInterface
      */
     private $namingStrategy;
     /**
+     * @var PathFinderInterface
+     */
+    private $pathFinder;
+    /**
      * The Composer file used to detect the path where files should be written.
      *
      * @var string
@@ -81,7 +87,7 @@ class Configuration implements ConfigurationInterface
         }
         $this->logger = $logger;
         $this->generatorEventDispatcher = new GeneratorEventDispatcher($generatorListeners);
-        $this->composerFile = 'composer.json';
+        $this->pathFinder = new PathFinder();
     }
 
     /**
@@ -161,20 +167,21 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * @return null|string
+     * Returns a class able to find the place of a PHP file based on the class name.
+     * Useful to find the path where DAOs and beans should be written to.
+     *
+     * @return PathFinderInterface
      */
-    public function getComposerFile() : string
+    public function getPathFinder(): PathFinderInterface
     {
-        return $this->composerFile;
+        return $this->pathFinder;
     }
 
     /**
-     * Sets the Composer file used to detect the path where files should be written.
-     *
-     * @param null|string $composerFile
+     * @param PathFinderInterface $pathFinder
      */
-    public function setComposerFile(string $composerFile)
+    public function setPathFinder(PathFinderInterface $pathFinder)
     {
-        $this->composerFile = $composerFile;
+        $this->pathFinder = $pathFinder;
     }
 }
