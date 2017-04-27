@@ -62,7 +62,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
-        $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->getConfiguration(), $schemaManager->createSchema(), $tdbmSchemaAnalyzer);
+        $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->getConfiguration(), $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__.'/../../../../';
         //$this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
     }
@@ -103,7 +103,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
-        $tdbmDaoGenerator = new TDBMDaoGenerator($configuration, $schemaManager->createSchema(), $tdbmSchemaAnalyzer);
+        $tdbmDaoGenerator = new TDBMDaoGenerator($configuration, $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__.'/../../../../';
         //$tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
 

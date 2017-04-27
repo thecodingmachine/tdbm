@@ -168,7 +168,7 @@ class TDBMService
     /**
      * @param ConfigurationInterface $configuration The configuration object
      */
-    public function __construct(ConfigurationInterface $configuration /*Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null*/)
+    public function __construct(ConfigurationInterface $configuration)
     {
         if (extension_loaded('weakref')) {
             $this->objectStorage = new WeakrefObjectStorage();
@@ -500,7 +500,7 @@ class TDBMService
         // Purge cache before generating anything.
         $this->cache->deleteAll();
 
-        $tdbmDaoGenerator = new TDBMDaoGenerator($this->configuration, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer);
+        $tdbmDaoGenerator = new TDBMDaoGenerator($this->configuration, $this->tdbmSchemaAnalyzer);
         if (null !== $composerFile) {
             $tdbmDaoGenerator->setComposerFile(__DIR__.'/../../../../../../../'.$composerFile);
         }

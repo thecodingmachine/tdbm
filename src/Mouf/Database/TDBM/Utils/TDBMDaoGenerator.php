@@ -58,13 +58,12 @@ class TDBMDaoGenerator
      * Constructor.
      *
      * @param ConfigurationInterface $configuration
-     * @param Schema $schema
      * @param TDBMSchemaAnalyzer $tdbmSchemaAnalyzer
      */
-    public function __construct(ConfigurationInterface $configuration, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
+    public function __construct(ConfigurationInterface $configuration, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
     {
         $this->configuration = $configuration;
-        $this->schema = $schema;
+        $this->schema = $tdbmSchemaAnalyzer->getSchema();
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
         $this->rootPath = __DIR__.'/../../../../../../../../';
         $this->namingStrategy = $configuration->getNamingStrategy();
