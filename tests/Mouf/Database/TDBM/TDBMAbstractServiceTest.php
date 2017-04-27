@@ -108,11 +108,6 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
         $stmt = $connection->prepare($sql);
         $stmt->execute();
-        /*do {
-            // Required due to "MySQL has gone away!" issue
-            $stmt->fetch();
-            $stmt->closeCursor();
-        } while ($stmt->nextRowset());*/
     }
 
     protected function getNamingStrategy()

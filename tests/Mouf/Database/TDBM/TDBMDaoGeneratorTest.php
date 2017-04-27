@@ -45,6 +45,7 @@ use Mouf\Database\TDBM\Test\Dao\DogDao;
 use Mouf\Database\TDBM\Test\Dao\Generated\UserBaseDao;
 use Mouf\Database\TDBM\Test\Dao\RoleDao;
 use Mouf\Database\TDBM\Test\Dao\UserDao;
+use Mouf\Database\TDBM\Utils\PathFinder\NoPathFoundException;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Symfony\Component\Process\Process;
 
@@ -63,7 +64,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
         $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->getConfiguration(), $schemaManager->createSchema(), $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__.'/../../../../';
-        $this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
+        //$this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
     }
 
     public function testDaoGeneration()
@@ -95,9 +96,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertFalse(class_exists('Mouf\\Database\\TDBM\\Test\\Dao\\RolesRightDao'));
     }
 
-    /**
-     * @expectedException \Mouf\Database\TDBM\TDBMException
-     */
     public function testGenerationException()
     {
         $configuration = new Configuration('UnknownVendor\\Dao', 'UnknownVendor\\Bean', $this->dbConnection, $this->getNamingStrategy());
@@ -107,8 +105,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
         $tdbmDaoGenerator = new TDBMDaoGenerator($configuration, $schemaManager->createSchema(), $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__.'/../../../../';
-        $tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
+        //$tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
 
+        $this->expectException(NoPathFoundException::class);
         $tdbmDaoGenerator->generateAllDaosAndBeans();
     }
 
@@ -116,8 +115,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      * Delete a file or recursively delete a directory.
      *
      * @param string $str Path to file or directory
+     * @return bool
      */
-    private function recursiveDelete($str)
+    private function recursiveDelete(string $str) : bool
     {
         if (is_file($str)) {
             return @unlink($str);

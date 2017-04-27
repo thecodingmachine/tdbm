@@ -9,6 +9,7 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\ConfigurationInterface;
 use Mouf\Database\TDBM\Utils\GeneratorListenerInterface;
 use Mouf\Database\TDBM\Utils\NamingStrategyInterface;
+use Mouf\Database\TDBM\Utils\PathFinder\PathFinderInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -109,13 +110,13 @@ class AlteredConfiguration implements ConfigurationInterface
     }
 
     /**
-     * Get the Composer file used to detect the path where files should be written.
-     * Path is relative to the root directory (this function will typically return 'composer.json' unless you want to write the beans and DAOs in a package).
+     * Returns a class able to find the place of a PHP file based on the class name.
+     * Useful to find the path where DAOs and beans should be written to.
      *
-     * @return null|string
+     * @return PathFinderInterface
      */
-    public function getComposerFile(): string
+    public function getPathFinder(): PathFinderInterface
     {
-        return $this->configuration->getComposerFile();
+        return $this->getPathFinder();
     }
 }
