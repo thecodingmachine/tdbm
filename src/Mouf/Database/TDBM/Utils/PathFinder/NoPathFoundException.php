@@ -2,6 +2,7 @@
 
 
 namespace Mouf\Database\TDBM\Utils\PathFinder;
+
 use Mouf\Database\TDBM\TDBMException;
 
 /**

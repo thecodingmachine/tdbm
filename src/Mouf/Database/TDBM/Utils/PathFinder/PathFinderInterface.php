@@ -3,7 +3,6 @@
 
 namespace Mouf\Database\TDBM\Utils\PathFinder;
 
-
 interface PathFinderInterface
 {
     /**

@@ -439,7 +439,7 @@ class $baseClassName
 
         $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($daonamespace.'\\Generated\\'.$baseClassName)->getPathname();
 
-            $this->ensureDirectoryExist($possibleBaseFileName);
+        $this->ensureDirectoryExist($possibleBaseFileName);
         file_put_contents($possibleBaseFileName, $str);
         @chmod($possibleBaseFileName, 0664);
 

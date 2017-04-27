@@ -2,7 +2,6 @@
 
 namespace Mouf\Database\TDBM\Utils\PathFinder;
 
-
 class PathFinderTest extends \PHPUnit_Framework_TestCase
 {
     public function testGetPath()

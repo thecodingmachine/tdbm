@@ -1,7 +1,6 @@
 <?php
 namespace Mouf\Database\TDBM\Commands;
 
-
 use Mouf\Database\TDBM\ConfigurationInterface;
 use Mouf\Database\TDBM\TDBMService;
 use Mouf\Utils\Log\Psr\MultiLogger;
