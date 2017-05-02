@@ -53,12 +53,6 @@ class Configuration implements ConfigurationInterface
      * @var PathFinderInterface
      */
     private $pathFinder;
-    /**
-     * The Composer file used to detect the path where files should be written.
-     *
-     * @var string
-     */
-    private $composerFile;
 
     /**
      * @param string $beanNamespace The namespace hosting the beans

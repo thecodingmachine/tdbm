@@ -5,6 +5,7 @@ namespace Mouf\Database\TDBM\Controllers;
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Controllers\AbstractMoufInstanceController;
 use Mouf\Database\TDBM\TDBMService;
+use Mouf\Database\TDBM\Utils\PathFinder\PathFinder;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Mouf\Html\HtmlElement\HtmlBlock;
 use Mouf\MoufManager;
@@ -45,7 +46,12 @@ class TdbmController extends AbstractMoufInstanceController
         $this->beanNamespace = self::getFromConfiguration($this->moufManager, $name, 'beanNamespace');
         $this->daoFactoryInstanceName = self::getFromConfiguration($this->moufManager, $name, 'daoFactoryInstanceName');
         //$this->storeInUtc = self::getFromConfiguration($this->moufManager, $name, 'storeInUtc');
-        $this->composerFile = self::getFromConfiguration($this->moufManager, $name, 'customComposerFile');
+        $pathFinder = self::getFromConfiguration($this->moufManager, $name, 'pathFinder');
+        if ($pathFinder !== null) {
+            $this->composerFile = $pathFinder->getConstructorArgumentProperty('composerFile')->getValue();
+        } else {
+            $this->composerFile = null;
+        }
         $this->useCustomComposer = $this->composerFile ? true : false;
 
         if ($this->daoNamespace == null && $this->beanNamespace == null) {
@@ -95,8 +101,6 @@ class TdbmController extends AbstractMoufInstanceController
      * @param string      $name
      * @param string      $daonamespace
      * @param string      $beannamespace
-     * @param string      $daofactoryclassname
-     * @param string      $daofactoryinstancename
      * @param string      $selfedit
      *
      * @throws \Mouf\MoufException
@@ -108,9 +112,11 @@ class TdbmController extends AbstractMoufInstanceController
         self::setInConfiguration($moufManager, $name, 'daoFactoryInstanceName', $daofactoryinstancename);
         //self::setInConfiguration($moufManager, $name, 'storeInUtc', $storeInUtc);
         if ($useCustomComposer) {
-            self::setInConfiguration($moufManager, $name, 'customComposerFile', $composerFile);
+            $pathFinder = $moufManager->createInstance(PathFinder::class);
+            $pathFinder->getConstructorArgumentProperty('composerFile')->setValue($composerFile);
+            self::setInConfiguration($moufManager, $name, 'pathFinder', $pathFinder);
         } else {
-            self::setInConfiguration($moufManager, $name, 'customComposerFile', null);
+            self::setInConfiguration($moufManager, $name, 'pathFinder', null);
         }
         // Let's rewrite before calling the DAO generator
         $moufManager->rewriteMouf();

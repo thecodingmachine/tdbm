@@ -13,7 +13,7 @@ class GenerateCommand extends Command
 {
 
     /**
-     * @var TDBMService
+     * @var ConfigurationInterface
      */
     private $configuration;
 
