@@ -122,13 +122,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         if (is_file($str)) {
             return @unlink($str);
         } elseif (is_dir($str)) {
-            $scan = glob(rtrim($str, '/').'/*');
+            $scan = glob(rtrim($str, '/') . '/*');
             foreach ($scan as $index => $path) {
                 $this->recursiveDelete($path);
             }
 
             return @rmdir($str);
         }
+        return false;
     }
 
     /**
