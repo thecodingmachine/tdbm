@@ -32,6 +32,7 @@ use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\QueryFactory\FindObjectsFromSqlQueryFactory;
 use Mouf\Database\TDBM\QueryFactory\FindObjectsQueryFactory;
+use Mouf\Database\TDBM\Utils\NamingStrategyInterface;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Phlib\Logger\LevelFilter;
 use Psr\Log\LoggerInterface;
@@ -151,36 +152,40 @@ class TDBMService
     private $orderByAnalyzer;
 
     /**
-     * @param Connection     $connection     The DBAL DB connection to use
-     * @param Cache|null     $cache          A cache service to be used
-     * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
-     *                                       Will be automatically created if not passed
+     * @var string
      */
-    public function __construct(Connection $connection, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null)
+    private $beanNamespace;
+
+    /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
+    /**
+     * @var ConfigurationInterface
+     */
+    private $configuration;
+
+    /**
+     * @param ConfigurationInterface $configuration The configuration object
+     */
+    public function __construct(ConfigurationInterface $configuration)
     {
         if (extension_loaded('weakref')) {
             $this->objectStorage = new WeakrefObjectStorage();
         } else {
             $this->objectStorage = new StandardObjectStorage();
         }
-        $this->connection = $connection;
-        if ($cache !== null) {
-            $this->cache = $cache;
-        } else {
-            $this->cache = new VoidCache();
-        }
-        if ($schemaAnalyzer) {
-            $this->schemaAnalyzer = $schemaAnalyzer;
-        } else {
-            $this->schemaAnalyzer = new SchemaAnalyzer($this->connection->getSchemaManager(), $this->cache, $this->getConnectionUniqueId());
-        }
+        $this->connection = $configuration->getConnection();
+        $this->cache = $configuration->getCache();
+        $this->schemaAnalyzer = $configuration->getSchemaAnalyzer();
 
         $this->magicQuery = new MagicQuery($this->connection, $this->cache, $this->schemaAnalyzer);
 
-        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, $this->cache, $this->schemaAnalyzer);
+        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->connection, $this->cache, $this->schemaAnalyzer);
         $this->cachePrefix = $this->tdbmSchemaAnalyzer->getCachePrefix();
 
         $this->toSaveObjects = new \SplObjectStorage();
+        $logger = $configuration->getLogger();
         if ($logger === null) {
             $this->logger = new NullLogger();
             $this->rootLogger = new NullLogger();
@@ -189,6 +194,9 @@ class TDBMService
             $this->setLogLevel(LogLevel::WARNING);
         }
         $this->orderByAnalyzer = new OrderByAnalyzer($this->cache, $this->cachePrefix);
+        $this->beanNamespace = $configuration->getBeanNamespace();
+        $this->namingStrategy = $configuration->getNamingStrategy();
+        $this->configuration = $configuration;
     }
 
     /**
@@ -196,19 +204,9 @@ class TDBMService
      *
      * @return Connection
      */
-    public function getConnection()
+    public function getConnection(): Connection
     {
         return $this->connection;
-    }
-
-    /**
-     * Creates a unique cache key for the current connection.
-     *
-     * @return string
-     */
-    private function getConnectionUniqueId()
-    {
-        return hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
     }
 
     /**
@@ -234,133 +232,6 @@ class TDBMService
 
         return $this;
     }
-
-    /**
-     * Returns a TDBMObject associated from table "$table_name".
-     * If the $filters parameter is an int/string, the object returned will be the object whose primary key = $filters.
-     * $filters can also be a set of TDBM_Filters (see the findObjects method for more details).
-     *
-     * For instance, if there is a table 'users', with a primary key on column 'user_id' and a column 'user_name', then
-     * 			$user = $tdbmService->getObject('users',1);
-     * 			echo $user->name;
-     * will return the name of the user whose user_id is one.
-     *
-     * If a table has a primary key over several columns, you should pass to $id an array containing the the value of the various columns.
-     * For instance:
-     * 			$group = $tdbmService->getObject('groups',array(1,2));
-     *
-     * Note that TDBMObject performs caching for you. If you get twice the same object, the reference of the object you will get
-     * will be the same.
-     *
-     * For instance:
-     * 			$user1 = $tdbmService->getObject('users',1);
-     * 			$user2 = $tdbmService->getObject('users',1);
-     * 			$user1->name = 'John Doe';
-     * 			echo $user2->name;
-     * will return 'John Doe'.
-     *
-     * You can use filters instead of passing the primary key. For instance:
-     * 			$user = $tdbmService->getObject('users',new EqualFilter('users', 'login', 'jdoe'));
-     * This will return the user whose login is 'jdoe'.
-     * Please note that if 2 users have the jdoe login in database, the method will throw a TDBM_DuplicateRowException.
-     *
-     * Also, you can specify the return class for the object (provided the return class extends TDBMObject).
-     * For instance:
-     *  	$user = $tdbmService->getObject('users',1,'User');
-     * will return an object from the "User" class. The "User" class must extend the "TDBMObject" class.
-     * Please be sure not to override any method or any property unless you perfectly know what you are doing!
-     *
-     * @param string $table_name   The name of the table we retrieve an object from
-     * @param mixed  $filters      If the filter is a string/integer, it will be considered as the id of the object (the value of the primary key). Otherwise, it can be a filter bag (see the filterbag parameter of the findObjects method for more details about filter bags)
-     * @param string $className    Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
-     * @param bool   $lazy_loading If set to true, and if the primary key is passed in parameter of getObject, the object will not be queried in database. It will be queried when you first try to access a column. If at that time the object cannot be found in database, an exception will be thrown
-     *
-     * @return TDBMObject
-     */
-/*	public function getObject($table_name, $filters, $className = null, $lazy_loading = false) {
-
-        if (is_array($filters) || $filters instanceof FilterInterface) {
-            $isFilterBag = false;
-            if (is_array($filters)) {
-                // Is this a multiple primary key or a filter bag?
-                // Let's have a look at the first item of the array to decide.
-                foreach ($filters as $filter) {
-                    if (is_array($filter) || $filter instanceof FilterInterface) {
-                        $isFilterBag = true;
-                    }
-                    break;
-                }
-            } else {
-                $isFilterBag = true;
-            }
-
-            if ($isFilterBag == true) {
-                // If a filter bag was passer in parameter, let's perform a findObjects.
-                $objects = $this->findObjects($table_name, $filters, null, null, null, $className);
-                if (count($objects) == 0) {
-                    return null;
-                } elseif (count($objects) > 1) {
-                    throw new DuplicateRowException("Error while querying an object for table '$table_name': ".count($objects)." rows have been returned, but we should have received at most one.");
-                }
-                // Return the first and only object.
-                if ($objects instanceof \Generator) {
-                    return $objects->current();
-                } else {
-                    return $objects[0];
-                }
-            }
-        }
-        $id = $filters;
-        if ($this->connection == null) {
-            throw new TDBMException("Error while calling TdbmService->getObject(): No connection has been established on the database!");
-        }
-        $table_name = $this->connection->toStandardcase($table_name);
-
-        // If the ID is null, let's throw an exception
-        if ($id === null) {
-            throw new TDBMException("The ID you passed to TdbmService->getObject is null for the object of type '$table_name'. Objects primary keys cannot be null.");
-        }
-
-        // If the primary key is split over many columns, the IDs are passed in an array. Let's serialize this array to store it.
-        if (is_array($id)) {
-            $id = serialize($id);
-        }
-
-        if ($className === null) {
-            if (isset($this->tableToBeanMap[$table_name])) {
-                $className = $this->tableToBeanMap[$table_name];
-            } else {
-                $className = "Mouf\\Database\\TDBM\\TDBMObject";
-            }
-        }
-
-        if ($this->objectStorage->has($table_name, $id)) {
-            $obj = $this->objectStorage->get($table_name, $id);
-            if (is_a($obj, $className)) {
-                return $obj;
-            } else {
-                throw new TDBMException("Error! The object with ID '$id' for table '$table_name' has already been retrieved. The type for this object is '".get_class($obj)."'' which is not a subtype of '$className'");
-            }
-        }
-
-        if ($className != "Mouf\\Database\\TDBM\\TDBMObject" && !is_subclass_of($className, "Mouf\\Database\\TDBM\\TDBMObject")) {
-            if (!class_exists($className)) {
-                throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." does not exist.");
-            } else {
-                throw new TDBMException("Error while calling TDBMService->getObject: The class ".$className." should extend TDBMObject.");
-            }
-        }
-        $obj = new $className($this, $table_name, $id);
-
-        if ($lazy_loading == false) {
-            // If we are not doing lazy loading, let's load the object:
-            $obj->_dbLoadIfNotLoaded();
-        }
-
-        $this->objectStorage->set($table_name, $id, $obj);
-
-        return $obj;
-    }*/
 
     /**
      * Removes the given object from database.
@@ -610,7 +481,7 @@ class TDBMService
      * This is used internally by TDBM to add an object to the list of objects that have been
      * created/updated but not saved yet.
      *
-     * @param AbstractTDBMObject $myObject
+     * @param DbRow $myObject
      */
     public function _addToToSaveObjectList(DbRow $myObject)
     {
@@ -620,33 +491,15 @@ class TDBMService
     /**
      * Generates all the daos and beans.
      *
-     * @param string $daoFactoryClassName The classe name of the DAO factory
-     * @param string $daonamespace        The namespace for the DAOs, without trailing \
-     * @param string $beannamespace       The Namespace for the beans, without trailing \
-     * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone
-     * @param string $composerFile        If it's set, location of custom Composer file. Relative to project root
-     *
-     * @return \string[] the list of tables
+     * @return \string[] the list of tables (key) and bean name (value)
      */
-    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc, $composerFile = null)
+    public function generateAllDaosAndBeans()
     {
         // Purge cache before generating anything.
         $this->cache->deleteAll();
 
-        $tdbmDaoGenerator = new TDBMDaoGenerator($this->schemaAnalyzer, $this->tdbmSchemaAnalyzer->getSchema(), $this->tdbmSchemaAnalyzer);
-        if (null !== $composerFile) {
-            $tdbmDaoGenerator->setComposerFile(__DIR__.'/../../../../../../../'.$composerFile);
-        }
-
-        return $tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
-    }
-
-    /**
-     * @param array<string, string> $tableToBeanMap
-     */
-    public function setTableToBeanMap(array $tableToBeanMap)
-    {
-        $this->tableToBeanMap = $tableToBeanMap;
+        $tdbmDaoGenerator = new TDBMDaoGenerator($this->configuration, $this->tdbmSchemaAnalyzer);
+        $tdbmDaoGenerator->generateAllDaosAndBeans();
     }
 
     /**
@@ -662,7 +515,14 @@ class TDBMService
         if (isset($this->tableToBeanMap[$tableName])) {
             return $this->tableToBeanMap[$tableName];
         } else {
-            throw new TDBMInvalidArgumentException(sprintf('Could not find a map between table "%s" and any bean. Does table "%s" exists?', $tableName, $tableName));
+            $className = $this->beanNamespace.'\\'.$this->namingStrategy->getBeanClassName($tableName);
+
+            if (!class_exists($className)) {
+                throw new TDBMInvalidArgumentException(sprintf('Could not find class "%s". Does table "%s" exist? If yes, consider regenerating the DAOs and beans.', $className, $tableName));
+            }
+
+            $this->tableToBeanMap[$tableName] = $className;
+            return $className;
         }
     }
 
@@ -1345,7 +1205,11 @@ class TDBMService
             // Only allowed if no inheritance.
             if (count($tables) === 1) {
                 if ($className === null) {
-                    $className = isset($this->tableToBeanMap[$table]) ? $this->tableToBeanMap[$table] : 'Mouf\\Database\\TDBM\\TDBMObject';
+                    try {
+                        $className = $this->getBeanClassName($table);
+                    } catch (TDBMInvalidArgumentException $e) {
+                        $className = TDBMObject::class;
+                    }
                 }
 
                 // Let's construct the bean
@@ -1481,11 +1345,13 @@ class TDBMService
         }
 
         // Only one table in this bean. Life is sweat, let's look at its type:
-        if (isset($this->tableToBeanMap[$tableName])) {
-            return [$this->tableToBeanMap[$tableName], $tableName, $allTables];
-        } else {
-            return ['Mouf\\Database\\TDBM\\TDBMObject', $tableName, $allTables];
+        try {
+            $className = $this->getBeanClassName($tableName);
+        } catch (TDBMInvalidArgumentException $e) {
+            $className = 'Mouf\\Database\\TDBM\\TDBMObject';
         }
+
+        return [$className, $tableName, $allTables];
     }
 
     /**

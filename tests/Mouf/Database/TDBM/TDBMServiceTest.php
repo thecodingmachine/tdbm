@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
+use Mouf\Database\TDBM\Utils\DefaultNamingStrategy;
 use Psr\Log\LogLevel;
 use Wa72\SimpleLogger\ArrayLogger;
 
@@ -124,7 +125,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testCompleteSave()
     {
-        $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe']);
+        $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe'], null, [], null, TDBMObject::class);
         $jane = $beans[0];
         $jane->setProperty('country_id', 2, 'users');
 
@@ -133,7 +134,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testCompleteSave2()
     {
-        $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe']);
+        $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe'], null, [], null, TDBMObject::class);
         $jane = $beans[0];
 
         $this->assertEquals(2, $jane->getProperty('country_id', 'users'));
@@ -203,8 +204,8 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $result = $magicQuery->parse("SELECT DISTINCT users.id, users.login FROM users");
         var_dump($result);*/
 
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
-        $beans2 = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1]);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans2 = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], null, TDBMObject::class);
 
         foreach ($beans as $bean) {
             $bean1 = $bean;
@@ -226,7 +227,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testArrayAccess()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         $this->assertTrue(isset($beans[0]));
         $this->assertFalse(isset($beans[42]));
@@ -253,7 +254,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
      */
     public function testArrayAccessException()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         $beans[-1];
     }
@@ -265,7 +266,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
      */
     public function testArrayAccessException2()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         $beans['foo'];
     }
@@ -277,7 +278,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
      */
     public function testBeanGetException()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
         $bean = $beans[0];
 
         // we don't specify the table on inheritance table => exception.
@@ -291,7 +292,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
      */
     public function testBeanSetException()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
         $bean = $beans[0];
 
         // we don't specify the table on inheritance table => exception.
@@ -300,7 +301,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testTake()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         $page = $beans->take(0, 2);
 
@@ -327,7 +328,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testTakeInCursorMode()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], TDBMService::MODE_CURSOR);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], TDBMService::MODE_CURSOR, TDBMObject::class);
 
         $page = $beans->take(0, 2);
 
@@ -354,7 +355,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testMap()
     {
-        $beans = $this->tdbmService->findObjects('person', null, [], 'person.id ASC');
+        $beans = $this->tdbmService->findObjects('person', null, [], 'person.id ASC', [], null, TDBMObject::class);
 
         $results = $beans->map(function ($item) {
             return $item->getProperty('id', 'person');
@@ -379,7 +380,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
      */
     public function testUnsetException()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         unset($beans[0]);
     }
@@ -391,7 +392,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
      */
     public function testSetException()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         $beans[0] = 'foo';
     }
@@ -403,7 +404,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
      */
     public function testPageUnsetException()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
         $page = $beans->take(0, 1);
         unset($page[0]);
     }
@@ -415,14 +416,14 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
      */
     public function testPageSetException()
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
         $page = $beans->take(0, 1);
         $page[0] = 'foo';
     }
 
     public function testToArray()
     {
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1]);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], null, TDBMObject::class);
 
         $beanArray = $beans->toArray();
 
@@ -432,7 +433,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testCursorMode()
     {
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], TDBMService::MODE_CURSOR);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], TDBMService::MODE_CURSOR, TDBMObject::class);
 
         $this->assertInstanceOf('\\Mouf\\Database\\TDBM\\ResultIterator', $beans);
 
@@ -464,7 +465,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     public function testSetFetchMode()
     {
         $this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1]);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], null, TDBMObject::class);
 
         $this->assertInstanceOf('\\Mouf\\Database\\TDBM\\ResultIterator', $beans);
 
@@ -510,12 +511,12 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testLinkedTableFetch()
     {
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, ['country']);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, ['country'], null, TDBMObject::class);
     }
 
     public function testFindObject()
     {
-        $bean = $this->tdbmService->findObject('contact', 'contact.id = :id', ['id' => -42]);
+        $bean = $this->tdbmService->findObject('contact', 'contact.id = :id', ['id' => -42], [], TDBMObject::class);
         $this->assertNull($bean);
     }
 
@@ -526,7 +527,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
      */
     public function testFindObjectOrFail()
     {
-        $bean = $this->tdbmService->findObjectOrFail('contact', 'contact.id = :id', ['id' => -42]);
+        $bean = $this->tdbmService->findObjectOrFail('contact', 'contact.id = :id', ['id' => -42], [], TDBMObject::class);
     }
 
     /**
@@ -541,9 +542,9 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testFindObjectsByBean()
     {
-        $countryBean = $this->tdbmService->findObject('country', 'id = :id', ['id' => 1]);
+        $countryBean = $this->tdbmService->findObject('country', 'id = :id', ['id' => 1], [], TDBMObject::class);
 
-        $users = $this->tdbmService->findObjects('users', $countryBean);
+        $users = $this->tdbmService->findObjects('users', $countryBean, [], null, [], null, TDBMObject::class);
         $this->assertCount(1, $users);
         $this->assertEquals('jean.dupont', $users[0]->getProperty('login', 'users'));
     }
@@ -617,7 +618,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     public function testFindObjectsFromSqlHierarchyDown()
     {
         $users = $this->tdbmService->findObjectsFromSql('person', 'person', 'name LIKE :name OR name LIKE :name2',
-            array('name' => 'Robert Marley', 'name2' => 'Bill Shakespeare'));
+            array('name' => 'Robert Marley', 'name2' => 'Bill Shakespeare'), null, null, TDBMObject::class);
         $this->assertCount(2, $users);
         $this->assertSame('robert.marley', $users[0]->getProperty('login', 'users'));
     }
@@ -625,7 +626,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     public function testFindObjectsFromSqlHierarchyUp()
     {
         $users = $this->tdbmService->findObjectsFromSql('users', 'users', 'login LIKE :login OR login LIKE :login2',
-            array('login' => 'robert.marley', 'login2' => 'bill.shakespeare'));
+            array('login' => 'robert.marley', 'login2' => 'bill.shakespeare'), null, null, TDBMObject::class);
         $this->assertCount(2, $users);
         $this->assertSame('Robert Marley', $users[0]->getProperty('name', 'person'));
     }
@@ -633,10 +634,10 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     public function testLogger()
     {
         $arrayLogger = new ArrayLogger();
-        $tdbmService = new TDBMService($this->dbConnection, null, null, $arrayLogger);
+        $tdbmService = new TDBMService(new Configuration('Mouf\\Database\\TDBM\\Test\\Dao\\Bean', 'Mouf\\Database\\TDBM\\Test\\Dao', $this->dbConnection, $this->getNamingStrategy(), null, null, $arrayLogger));
 
         $tdbmService->setLogLevel(LogLevel::DEBUG);
-        $beans = $tdbmService->findObjects('contact', null, [], 'contact.id ASC');
+        $beans = $tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
         $beans->first();
 
         $this->assertNotEmpty($arrayLogger->get());

@@ -1,3 +1,14 @@
+Migrating to TDBM 4.3
+=====================
+
+TDBM 4.3 changes considerably the way the TDBMService instance is configured since it features a brand new `Configuration` class.
+Hopefully, a new installer will smoothly migrate old installs to new one.
+
+When migrating from a TDBM <=4.2 release, simply run the Mouf installer to update TDBM bindings.
+
+Also, TDBM 4.3 adds PHP 7.1 specific type-hints like nullable types or void return types.
+If you extend some methods in your DAOs and beans from base DAOs and beans, you will have adapt the methods signatures.
+
 Migrating to TDBM 4
 ===================
 

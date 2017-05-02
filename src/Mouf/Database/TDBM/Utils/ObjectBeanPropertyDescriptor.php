@@ -21,12 +21,24 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @var SchemaAnalyzer
      */
     private $schemaAnalyzer;
+    /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
 
-    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, SchemaAnalyzer $schemaAnalyzer)
+    /**
+     * ObjectBeanPropertyDescriptor constructor.
+     * @param Table $table
+     * @param ForeignKeyConstraint $foreignKey
+     * @param SchemaAnalyzer $schemaAnalyzer
+     * @param NamingStrategyInterface $namingStrategy
+     */
+    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, SchemaAnalyzer $schemaAnalyzer, NamingStrategyInterface $namingStrategy)
     {
         parent::__construct($table);
         $this->foreignKey = $foreignKey;
         $this->schemaAnalyzer = $schemaAnalyzer;
+        $this->namingStrategy = $namingStrategy;
     }
 
     /**
@@ -46,7 +58,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getClassName()
     {
-        return TDBMDaoGenerator::getBeanNameFromTableName($this->foreignKey->getForeignTableName());
+        return $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
     }
 
     /**
@@ -158,15 +170,16 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $tableName = $this->table->getName();
         $getterName = $this->getGetterName();
         $setterName = $this->getSetterName();
+        $isNullable = !$this->isCompulsory();
 
-        $referencedBeanName = TDBMDaoGenerator::getBeanNameFromTableName($this->foreignKey->getForeignTableName());
+        $referencedBeanName = $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
 
         $str = '    /**
      * Returns the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getLocalColumns()).' column.
      *
-     * @return '.$referencedBeanName.'
+     * @return '.$referencedBeanName.($isNullable?'|null':'').'
      */
-    public function '.$getterName.'()
+    public function '.$getterName.'(): '.($isNullable?'?':'').$referencedBeanName.'
     {
         return $this->getRef('.var_export($this->foreignKey->getName(), true).', '.var_export($tableName, true).');
     }
@@ -174,9 +187,9 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     /**
      * The setter for the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getLocalColumns()).' column.
      *
-     * @param '.$referencedBeanName.' $object
+     * @param '.$referencedBeanName.($isNullable?'|null':'').' $object
      */
-    public function '.$setterName.'('.$referencedBeanName.' $object = null)
+    public function '.$setterName.'('.($isNullable?'?':'').$referencedBeanName.' $object) : void
     {
         $this->setRef('.var_export($this->foreignKey->getName(), true).', $object, '.var_export($tableName, true).');
     }

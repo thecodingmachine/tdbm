@@ -42,8 +42,10 @@ use Mouf\Database\TDBM\Test\Dao\CategoryDao;
 use Mouf\Database\TDBM\Test\Dao\ContactDao;
 use Mouf\Database\TDBM\Test\Dao\CountryDao;
 use Mouf\Database\TDBM\Test\Dao\DogDao;
+use Mouf\Database\TDBM\Test\Dao\Generated\UserBaseDao;
 use Mouf\Database\TDBM\Test\Dao\RoleDao;
 use Mouf\Database\TDBM\Test\Dao\UserDao;
+use Mouf\Database\TDBM\Utils\PathFinder\NoPathFoundException;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Symfony\Component\Process\Process;
 
@@ -60,36 +62,30 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
-        $this->tdbmDaoGenerator = new TDBMDaoGenerator($schemaAnalyzer, $schemaManager->createSchema(), $tdbmSchemaAnalyzer);
+        $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->getConfiguration(), $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__.'/../../../../';
-        $this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
-
-        $beannamespace = 'Mouf\\Database\\TDBM\\Test\\Dao\\Bean';
-        $tableToBeanMap = $this->tdbmDaoGenerator->buildTableToBeanMap($beannamespace);
-        $this->tdbmService->setTableToBeanMap($tableToBeanMap);
+        //$this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
     }
 
     public function testDaoGeneration()
     {
-        $daoFactoryClassName = 'DaoFactory';
-        $daonamespace = 'Mouf\\Database\\TDBM\\Test\\Dao';
-        $beannamespace = 'Mouf\\Database\\TDBM\\Test\\Dao\\Bean';
-        $storeInUtc = false;
-
         // Remove all previously generated files.
         $this->recursiveDelete($this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/');
 
-        $tables = $this->tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
+        $this->tdbmDaoGenerator->generateAllDaosAndBeans();
 
         // Let's require all files to check they are valid PHP!
         // Test the daoFactory
         require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Generated/DaoFactory.php';
         // Test the others
-        foreach ($tables as $table) {
-            $daoName = $this->tdbmDaoGenerator->getDaoNameFromTableName($table);
-            $daoBaseName = $this->tdbmDaoGenerator->getBaseDaoNameFromTableName($table);
-            $beanName = $this->tdbmDaoGenerator->getBeanNameFromTableName($table);
-            $baseBeanName = $this->tdbmDaoGenerator->getBaseBeanNameFromTableName($table);
+
+        $beanDescriptors = $this->getDummyGeneratorListener()->getBeanDescriptors();
+
+        foreach ($beanDescriptors as $beanDescriptor) {
+            $daoName = $beanDescriptor->getDaoClassName();
+            $daoBaseName = $beanDescriptor->getBaseDaoClassName();
+            $beanName = $beanDescriptor->getBeanClassName();
+            $baseBeanName = $beanDescriptor->getBaseBeanClassName();
             require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/Generated/'.$baseBeanName.'.php';
             require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Bean/'.$beanName.'.php';
             require_once $this->rootPath.'src/Mouf/Database/TDBM/Test/Dao/Generated/'.$daoBaseName.'.php';
@@ -97,39 +93,43 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         }
 
         // Check that pivot tables do not generate DAOs or beans.
-        $this->assertFalse(class_exists($daonamespace.'\\RolesRightDao'));
+        $this->assertFalse(class_exists('Mouf\\Database\\TDBM\\Test\\Dao\\RolesRightDao'));
     }
 
-    /**
-     * @expectedException \Mouf\Database\TDBM\TDBMException
-     */
     public function testGenerationException()
     {
-        $daoFactoryClassName = 'DaoFactory';
-        $daonamespace = 'UnknownVendor\\Dao';
-        $beannamespace = 'UnknownVendor\\Bean';
-        $storeInUtc = false;
+        $configuration = new Configuration('UnknownVendor\\Dao', 'UnknownVendor\\Bean', $this->dbConnection, $this->getNamingStrategy());
 
-        $this->tdbmDaoGenerator->generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $storeInUtc);
+        $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
+        $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
+        $tdbmDaoGenerator = new TDBMDaoGenerator($configuration, $tdbmSchemaAnalyzer);
+        $this->rootPath = __DIR__.'/../../../../';
+        //$tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
+
+        $this->expectException(NoPathFoundException::class);
+        $tdbmDaoGenerator->generateAllDaosAndBeans();
     }
 
     /**
      * Delete a file or recursively delete a directory.
      *
      * @param string $str Path to file or directory
+     * @return bool
      */
-    private function recursiveDelete($str)
+    private function recursiveDelete(string $str) : bool
     {
         if (is_file($str)) {
             return @unlink($str);
         } elseif (is_dir($str)) {
-            $scan = glob(rtrim($str, '/').'/*');
+            $scan = glob(rtrim($str, '/') . '/*');
             foreach ($scan as $index => $path) {
                 $this->recursiveDelete($path);
             }
 
             return @rmdir($str);
         }
+        return false;
     }
 
     /**
@@ -1343,6 +1343,18 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             echo $process->getOutput();
             $this->fail('Generated code is not PRS2 compliant');
         }
+    }
 
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testFindOneByGeneration()
+    {
+        $reflectionMethod = new \ReflectionMethod(UserBaseDao::class, 'findOneByLogin');
+        $parameters = $reflectionMethod->getParameters();
+
+        $this->assertCount(2, $parameters);
+        $this->assertSame('login', $parameters[0]->getName());
+        $this->assertSame('additionalTablesFetch', $parameters[1]->getName());
     }
 }

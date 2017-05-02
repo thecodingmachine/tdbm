@@ -23,17 +23,23 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      * @var ForeignKeyConstraint
      */
     private $remoteFk;
+    /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
 
     /**
-     * @param Table                $pivotTable The pivot table
+     * @param Table $pivotTable The pivot table
      * @param ForeignKeyConstraint $localFk
      * @param ForeignKeyConstraint $remoteFk
+     * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $pivotTable, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk)
+    public function __construct(Table $pivotTable, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, NamingStrategyInterface $namingStrategy)
     {
         $this->pivotTable = $pivotTable;
         $this->localFk = $localFk;
         $this->remoteFk = $remoteFk;
+        $this->namingStrategy = $namingStrategy;
     }
 
     /**
@@ -95,7 +101,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
     {
         $singularName = $this->getSingularName();
         $pluralName = $this->getPluralName();
-        $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($this->remoteFk->getForeignTableName());
+        $remoteBeanName = $this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName());
         $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
         $pluralVariableName = $variableName.'s';
 
@@ -104,7 +110,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      *
      * @return %s[]
      */
-    public function get%s()
+    public function get%s() : array
     {
         return $this->_getRelationships(%s);
     }
@@ -117,9 +123,9 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      *
      * @param %s %s
      */
-    public function add%s(%s %s)
+    public function add%s(%s %s) : void
     {
-        return $this->addRelationship(%s, %s);
+        $this->addRelationship(%s, %s);
     }
 ';
 
@@ -130,9 +136,9 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      *
      * @param %s %s
      */
-    public function remove%s(%s %s)
+    public function remove%s(%s %s) : void
     {
-        return $this->_removeRelationship(%s, %s);
+        $this->_removeRelationship(%s, %s);
     }
 ';
 
@@ -158,9 +164,9 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      *
      * @param %s[] %s
      */
-    public function set%s(array %s)
+    public function set%s(array %s) : void
     {
-        return $this->setRelationships(%s, %s);
+        $this->setRelationships(%s, %s);
     }
 ';
 
@@ -178,7 +184,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     public function getUsedClasses() : array
     {
-        return [TDBMDaoGenerator::getBeanNameFromTableName($this->remoteFk->getForeignTableName())];
+        return [$this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName())];
     }
 
     /**
@@ -188,7 +194,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     public function getJsonSerializeCode() : string
     {
-        $remoteBeanName = TDBMDaoGenerator::getBeanNameFromTableName($this->remoteFk->getForeignTableName());
+        $remoteBeanName = $this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName());
         $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
 
         return '        if (!$stopRecursion) {

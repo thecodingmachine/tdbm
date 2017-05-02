@@ -14,7 +14,7 @@ use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
 /**
  * This class represents a bean.
  */
-class BeanDescriptor
+class BeanDescriptor implements BeanDescriptorInterface
 {
     /**
      * @var Table
@@ -41,12 +41,25 @@ class BeanDescriptor
      */
     private $tdbmSchemaAnalyzer;
 
-    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
+    /**
+     * @var NamingStrategyInterface
+     */
+    private $namingStrategy;
+
+    /**
+     * @param Table $table
+     * @param SchemaAnalyzer $schemaAnalyzer
+     * @param Schema $schema
+     * @param TDBMSchemaAnalyzer $tdbmSchemaAnalyzer
+     * @param NamingStrategyInterface $namingStrategy
+     */
+    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy)
     {
         $this->table = $table;
         $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
+        $this->namingStrategy = $namingStrategy;
         $this->initBeanPropertyDescriptors();
     }
 
@@ -119,7 +132,7 @@ class BeanDescriptor
      *
      * @return AbstractBeanPropertyDescriptor[]
      */
-    public function getExposedProperties()
+    public function getExposedProperties(): array
     {
         $exposedProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
             return $property->getTable()->getName() == $this->table->getName();
@@ -194,9 +207,9 @@ class BeanDescriptor
                     continue;
                 }
 
-                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->schemaAnalyzer);
+                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->schemaAnalyzer, $this->namingStrategy);
             } else {
-                $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column);
+                $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column, $this->namingStrategy);
             }
         }
 
@@ -233,7 +246,7 @@ class BeanDescriptor
         return $beanPropertyDescriptorsMap;
     }
 
-    public function generateBeanConstructor()
+    private function generateBeanConstructor() : string
     {
         $constructorProperties = $this->getConstructorProperties();
 
@@ -276,20 +289,20 @@ class BeanDescriptor
         return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstructorCode, implode('', $assigns));
     }
 
-    public function getDirectForeignKeysDescriptors()
+    public function getDirectForeignKeysDescriptors(): array
     {
         $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($this->table->getName());
 
         $descriptors = [];
 
         foreach ($fks as $fk) {
-            $descriptors[] = new DirectForeignKeyMethodDescriptor($fk, $this->table);
+            $descriptors[] = new DirectForeignKeyMethodDescriptor($fk, $this->table, $this->namingStrategy);
         }
 
         return $descriptors;
     }
 
-    private function getPivotTableDescriptors()
+    private function getPivotTableDescriptors(): array
     {
         $descs = [];
         foreach ($this->schemaAnalyzer->detectJunctionTables(true) as $table) {
@@ -304,7 +317,7 @@ class BeanDescriptor
                 continue;
             }
 
-            $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk);
+            $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy);
         }
 
         return $descs;
@@ -315,7 +328,7 @@ class BeanDescriptor
      *
      * @return MethodDescriptorInterface[]
      */
-    private function getMethodDescriptors()
+    private function getMethodDescriptors(): array
     {
         $directForeignKeyDescriptors = $this->getDirectForeignKeysDescriptors();
         $pivotTableDescriptors = $this->getPivotTableDescriptors();
@@ -340,7 +353,7 @@ class BeanDescriptor
         return $descriptors;
     }
 
-    public function generateJsonSerialize()
+    public function generateJsonSerialize(): string
     {
         $tableName = $this->table->getName();
         $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
@@ -383,13 +396,14 @@ class BeanDescriptor
     /**
      * Returns as an array the class we need to extend from and the list of use statements.
      *
+     * @param ForeignKeyConstraint|null $parentFk
      * @return array
      */
-    private function generateExtendsAndUseStatements(ForeignKeyConstraint $parentFk = null)
+    private function generateExtendsAndUseStatements(ForeignKeyConstraint $parentFk = null): array
     {
         $classes = [];
         if ($parentFk !== null) {
-            $extends = TDBMDaoGenerator::getBeanNameFromTableName($parentFk->getForeignTableName());
+            $extends = $this->namingStrategy->getBeanClassName($parentFk->getForeignTableName());
             $classes[] = $extends;
         }
 
@@ -413,13 +427,14 @@ class BeanDescriptor
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
      * @param string $beannamespace The namespace of the bean
+     * @return string
      */
-    public function generatePhpCode($beannamespace)
+    public function generatePhpCode($beannamespace): string
     {
         $tableName = $this->table->getName();
-        $baseClassName = TDBMDaoGenerator::getBaseBeanNameFromTableName($tableName);
-        $className = TDBMDaoGenerator::getBeanNameFromTableName($tableName);
-        $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
+        $baseClassName = $this->namingStrategy->getBaseBeanClassName($tableName);
+        $className = $this->namingStrategy->getBeanClassName($tableName);
+        $parentFk = $this->schemaAnalyzer->getParentRelationship($this->table->getName());
 
         $classes = $this->generateExtendsAndUseStatements($parentFk);
 
@@ -428,9 +443,8 @@ class BeanDescriptor
         }, $classes);
         $use = implode('', $uses);
 
-        if ($parentFk !== null) {
-            $extends = TDBMDaoGenerator::getBeanNameFromTableName($parentFk->getForeignTableName());
-        } else {
+        $extends = $this->getExtendedBeanClassName();
+        if ($extends === null) {
             $extends = 'AbstractTDBMObject';
             $use .= "use Mouf\\Database\\TDBM\\AbstractTDBMObject;\n";
         }
@@ -451,7 +465,7 @@ $use
 /**
  * The $baseClassName class maps the '$tableName' table in database.
  */
-class $baseClassName extends $extends implements \\JsonSerializable
+abstract class $baseClassName extends $extends implements \\JsonSerializable
 {
 ";
 
@@ -519,10 +533,10 @@ class $baseClassName extends $extends implements \\JsonSerializable
             $fk = $this->isPartOfForeignKey($this->table, $this->table->getColumn($column));
             if ($fk !== null) {
                 if (!in_array($fk, $elements)) {
-                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->schemaAnalyzer);
+                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->schemaAnalyzer, $this->namingStrategy);
                 }
             } else {
-                $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column));
+                $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column), $this->namingStrategy);
             }
         }
 
@@ -549,15 +563,7 @@ class $baseClassName extends $extends implements \\JsonSerializable
             }
             $functionParameters[] = $functionParameter;
         }
-        if ($index->isUnique()) {
-            $methodName = 'findOneBy'.implode('And', $methodNameComponent);
-            $calledMethod = 'findOne';
-            $returnType = "{$beanClassName}";
-        } else {
-            $methodName = 'findBy'.implode('And', $methodNameComponent);
-            $returnType = "{$beanClassName}[]|ResultIterator|ResultArray";
-            $calledMethod = 'find';
-        }
+
         $functionParametersString = implode(', ', $functionParameters);
 
         $count = 0;
@@ -577,7 +583,30 @@ class $baseClassName extends $extends implements \\JsonSerializable
         }
         $paramsString = implode("\n", $params);
 
-        $code = "
+        if ($index->isUnique()) {
+            $methodName = 'findOneBy'.implode('And', $methodNameComponent);
+            $returnType = "{$beanClassName}";
+
+            $code = "
+    /**
+     * Get a $beanClassName filtered by ".implode(', ', $commentArguments).".
+     *
+$paramsString
+     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @return $returnType
+     */
+    public function $methodName($functionParametersString, array \$additionalTablesFetch = array()) : $returnType
+    {
+        \$filter = [
+".$filterArrayCode."        ];
+        return \$this->findOne(\$filter, [], \$additionalTablesFetch);
+    }
+";
+        } else {
+            $methodName = 'findBy'.implode('And', $methodNameComponent);
+            $returnType = "{$beanClassName}[]|ResultIterator|ResultArray";
+
+            $code = "
     /**
      * Get a list of $beanClassName filtered by ".implode(', ', $commentArguments).".
      *
@@ -587,13 +616,14 @@ $paramsString
      * @param string \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return $returnType
      */
-    public function $methodName($functionParametersString, \$orderBy = null, array \$additionalTablesFetch = array(), \$mode = null)
+    public function $methodName($functionParametersString, \$orderBy = null, array \$additionalTablesFetch = array(), \$mode = null) : iterable
     {
         \$filter = [
 ".$filterArrayCode."        ];
-        return \$this->$calledMethod(\$filter, [], \$orderBy, \$additionalTablesFetch, \$mode);
+        return \$this->find(\$filter, [], \$orderBy, \$additionalTablesFetch, \$mode);
     }
 ";
+        }
 
         return [$usedBeans, $code];
     }
@@ -621,7 +651,7 @@ $paramsString
      *
      * @return string[]
      */
-    protected function getUsedTables()
+    protected function getUsedTables() : array
     {
 %s
     }
@@ -644,7 +674,7 @@ $paramsString
      * Method called when the bean is removed from database.
      *
      */
-    protected function onDelete()
+    protected function onDelete() : void
     {
         parent::onDelete();
 %s    }
@@ -652,5 +682,70 @@ $paramsString
         }
 
         return '';
+    }
+
+    /**
+     * Returns the bean class name (without the namespace).
+     *
+     * @return string
+     */
+    public function getBeanClassName() : string
+    {
+        return $this->namingStrategy->getBeanClassName($this->table->getName());
+    }
+
+    /**
+     * Returns the base bean class name (without the namespace).
+     *
+     * @return string
+     */
+    public function getBaseBeanClassName() : string
+    {
+        return $this->namingStrategy->getBaseBeanClassName($this->table->getName());
+    }
+
+    /**
+     * Returns the DAO class name (without the namespace).
+     *
+     * @return string
+     */
+    public function getDaoClassName() : string
+    {
+        return $this->namingStrategy->getDaoClassName($this->table->getName());
+    }
+
+    /**
+     * Returns the base DAO class name (without the namespace).
+     *
+     * @return string
+     */
+    public function getBaseDaoClassName() : string
+    {
+        return $this->namingStrategy->getBaseDaoClassName($this->table->getName());
+    }
+
+    /**
+     * Returns the table used to build this bean.
+     *
+     * @return Table
+     */
+    public function getTable(): Table
+    {
+        return $this->table;
+    }
+
+    /**
+     * Returns the extended bean class name (without the namespace), or null if the bean is not extended.
+     *
+     * @return string
+     */
+    public function getExtendedBeanClassName(): ?string
+    {
+        $parentFk = $this->schemaAnalyzer->getParentRelationship($this->table->getName());
+        if ($parentFk !== null) {
+            return $this->namingStrategy->getBeanClassName($parentFk->getForeignTableName());
+        } else {
+            return null;
+        }
     }
 }

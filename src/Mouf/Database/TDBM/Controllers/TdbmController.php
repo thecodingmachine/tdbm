@@ -5,6 +5,7 @@ namespace Mouf\Database\TDBM\Controllers;
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Controllers\AbstractMoufInstanceController;
 use Mouf\Database\TDBM\TDBMService;
+use Mouf\Database\TDBM\Utils\PathFinder\PathFinder;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Mouf\Html\HtmlElement\HtmlBlock;
 use Mouf\MoufManager;
@@ -25,11 +26,11 @@ class TdbmController extends AbstractMoufInstanceController
 
     protected $daoNamespace;
     protected $beanNamespace;
-    protected $daoFactoryName;
     protected $daoFactoryInstanceName;
     protected $autoloadDetected;
-    protected $storeInUtc;
+    ///protected $storeInUtc;
     protected $useCustomComposer;
+    protected $composerFile;
 
     /**
      * Admin page used to display the DAO generation form.
@@ -41,23 +42,17 @@ class TdbmController extends AbstractMoufInstanceController
         $this->initController($name, $selfedit);
 
         // Fill variables
-        if ($this->moufManager->getVariable('tdbmDefaultSourceDirectory_'.$name) != null) {
-            $this->daoNamespace = $this->moufManager->getVariable('tdbmDefaultDaoNamespace_'.$name);
-            $this->beanNamespace = $this->moufManager->getVariable('tdbmDefaultBeanNamespace_'.$name);
-            $this->daoFactoryName = $this->moufManager->getVariable('tdbmDefaultDaoFactoryName_'.$name);
-            $this->daoFactoryInstanceName = $this->moufManager->getVariable('tdbmDefaultDaoFactoryInstanceName_'.$name);
-            $this->storeInUtc = $this->moufManager->getVariable('tdbmDefaultStoreInUtc_'.$name);
-            $this->useCustomComposer = $this->moufManager->getVariable('tdbmDefaultUseCustomComposer_'.$name);
-            $this->composerFile = $this->moufManager->getVariable('tdbmDefaultComposerFile_'.$name);
+        $this->daoNamespace = self::getFromConfiguration($this->moufManager, $name, 'daoNamespace');
+        $this->beanNamespace = self::getFromConfiguration($this->moufManager, $name, 'beanNamespace');
+        $this->daoFactoryInstanceName = self::getFromConfiguration($this->moufManager, $name, 'daoFactoryInstanceName');
+        //$this->storeInUtc = self::getFromConfiguration($this->moufManager, $name, 'storeInUtc');
+        $pathFinder = self::getFromConfiguration($this->moufManager, $name, 'pathFinder');
+        if ($pathFinder !== null) {
+            $this->composerFile = $pathFinder->getConstructorArgumentProperty('composerFile')->getValue();
         } else {
-            $this->daoNamespace = $this->moufManager->getVariable('tdbmDefaultDaoNamespace');
-            $this->beanNamespace = $this->moufManager->getVariable('tdbmDefaultBeanNamespace');
-            $this->daoFactoryName = $this->moufManager->getVariable('tdbmDefaultDaoFactoryName');
-            $this->daoFactoryInstanceName = $this->moufManager->getVariable('tdbmDefaultDaoFactoryInstanceName');
-            $this->storeInUtc = $this->moufManager->getVariable('tdbmDefaultStoreInUtc');
-            $this->useCustomComposer = $this->moufManager->getVariable('tdbmDefaultUseCustomComposer');
-            $this->composerFile = $this->moufManager->getVariable('tdbmDefaultComposerFile');
+            $this->composerFile = null;
         }
+        $this->useCustomComposer = $this->composerFile ? true : false;
 
         if ($this->daoNamespace == null && $this->beanNamespace == null) {
             $classNameMapper = ClassNameMapper::createFromComposerFile(__DIR__.'/../../../../../../../../composer.json');
@@ -89,11 +84,11 @@ class TdbmController extends AbstractMoufInstanceController
      * @param string $name
      * @param bool   $selfedit
      */
-    public function generate($name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $storeInUtc = 0, $selfedit = 'false', $useCustomComposer = false, $composerFile = '')
+    public function generate($name, $daonamespace, $beannamespace, $daofactoryinstancename, /*$storeInUtc = 0,*/ $selfedit = 'false', $useCustomComposer = false, $composerFile = '')
     {
         $this->initController($name, $selfedit);
 
-        self::generateDaos($this->moufManager, $name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $selfedit, $storeInUtc, $useCustomComposer, $composerFile);
+        self::generateDaos($this->moufManager, $name, $daonamespace, $beannamespace, $daofactoryinstancename, $selfedit, /*$storeInUtc,*/ $useCustomComposer, $composerFile);
 
         // TODO: better: we should redirect to a screen that list the number of DAOs generated, etc...
         header('Location: '.ROOT_URL.'ajaxinstance/?name='.urlencode($name).'&selfedit='.$selfedit);
@@ -106,60 +101,52 @@ class TdbmController extends AbstractMoufInstanceController
      * @param string      $name
      * @param string      $daonamespace
      * @param string      $beannamespace
-     * @param string      $daofactoryclassname
-     * @param string      $daofactoryinstancename
      * @param string      $selfedit
-     * @param bool        $storeInUtc
      *
      * @throws \Mouf\MoufException
      */
-    public static function generateDaos(MoufManager $moufManager, $name, $daonamespace, $beannamespace, $daofactoryclassname, $daofactoryinstancename, $selfedit = 'false', $storeInUtc = null, $useCustomComposer = null, $composerFile = null)
+    public static function generateDaos(MoufManager $moufManager, $name, $daonamespace, $beannamespace, $daofactoryinstancename, $selfedit = 'false', /*$storeInUtc = null,*/ $useCustomComposer = null, $composerFile = null)
     {
-        $moufManager->setVariable('tdbmDefaultDaoNamespace_'.$name, $daonamespace);
-        $moufManager->setVariable('tdbmDefaultBeanNamespace_'.$name, $beannamespace);
-        $moufManager->setVariable('tdbmDefaultDaoFactoryName_'.$name, $daofactoryclassname);
-        $moufManager->setVariable('tdbmDefaultDaoFactoryInstanceName_'.$name, $daofactoryinstancename);
-        $moufManager->setVariable('tdbmDefaultStoreInUtc_'.$name, $storeInUtc);
-        $moufManager->setVariable('tdbmDefaultUseCustomComposer_'.$name, $useCustomComposer);
-        $moufManager->setVariable('tdbmDefaultComposerFile_'.$name, $composerFile);
+        self::setInConfiguration($moufManager, $name, 'daoNamespace', $daonamespace);
+        self::setInConfiguration($moufManager, $name, 'beanNamespace', $beannamespace);
+        self::setInConfiguration($moufManager, $name, 'daoFactoryInstanceName', $daofactoryinstancename);
+        //self::setInConfiguration($moufManager, $name, 'storeInUtc', $storeInUtc);
+        if ($useCustomComposer) {
+            $pathFinder = $moufManager->createInstance(PathFinder::class);
+            $pathFinder->getConstructorArgumentProperty('composerFile')->setValue($composerFile);
+            self::setInConfiguration($moufManager, $name, 'pathFinder', $pathFinder);
+        } else {
+            self::setInConfiguration($moufManager, $name, 'pathFinder', null);
+        }
+        // Let's rewrite before calling the DAO generator
+        $moufManager->rewriteMouf();
 
-        // In case of instance renaming, let's use the last used settings
-        $moufManager->setVariable('tdbmDefaultDaoNamespace', $daonamespace);
-        $moufManager->setVariable('tdbmDefaultBeanNamespace', $beannamespace);
-        $moufManager->setVariable('tdbmDefaultDaoFactoryName', $daofactoryclassname);
-        $moufManager->setVariable('tdbmDefaultDaoFactoryInstanceName', $daofactoryinstancename);
-        $moufManager->setVariable('tdbmDefaultStoreInUtc', $storeInUtc);
-        $moufManager->setVariable('tdbmDefaultUseCustomComposer', $useCustomComposer);
-        $moufManager->setVariable('tdbmDefaultComposerFile', $composerFile);
-
-        // Remove first and last slash in namespace.
-        $daonamespace = trim($daonamespace, '\\');
-        $beannamespace = trim($beannamespace, '\\');
 
         $tdbmService = new InstanceProxy($name);
         /* @var $tdbmService TDBMService */
-        $tables = $tdbmService->generateAllDaosAndBeans($daofactoryclassname, $daonamespace, $beannamespace, $storeInUtc, ($useCustomComposer ? $composerFile : null));
+        $tdbmService->generateAllDaosAndBeans();
+    }
 
-        $moufManager->declareComponent($daofactoryinstancename, $daonamespace.'\\Generated\\'.$daofactoryclassname, false, MoufManager::DECLARE_ON_EXIST_KEEP_INCOMING_LINKS);
+    private static function getConfigurationDescriptor(MoufManager $moufManager, string $tdbmInstanceName)
+    {
+        return $moufManager->getInstanceDescriptor($tdbmInstanceName)->getConstructorArgumentProperty('configuration')->getValue();
+    }
 
-        $tableToBeanMap = [];
-
-        //$tdbmServiceDescriptor = $moufManager->getInstanceDescriptor('tdbmService');
-
-        foreach ($tables as $table) {
-            $daoName = TDBMDaoGenerator::getDaoNameFromTableName($table);
-
-            $instanceName = TDBMDaoGenerator::toVariableName($daoName);
-            if (!$moufManager->instanceExists($instanceName)) {
-                $moufManager->declareComponent($instanceName, $daonamespace.'\\'.$daoName);
-            }
-            $moufManager->setParameterViaConstructor($instanceName, 0, $name, 'object');
-            $moufManager->bindComponentViaSetter($daofactoryinstancename, 'set'.$daoName, $instanceName);
-
-            $tableToBeanMap[$table] = $beannamespace.'\\'.TDBMDaoGenerator::getBeanNameFromTableName($table);
+    private static function getFromConfiguration(MoufManager $moufManager, string $tdbmInstanceName, string $property)
+    {
+        $configuration = self::getConfigurationDescriptor($moufManager, $tdbmInstanceName);
+        if ($configuration === null) {
+            throw new \RuntimeException('Unable to find the configuration object linked to TDBMService.');
         }
-        $tdbmServiceDescriptor = $moufManager->getInstanceDescriptor($name);
-        $tdbmServiceDescriptor->getSetterProperty('setTableToBeanMap')->setValue($tableToBeanMap);
-        $moufManager->rewriteMouf();
+        return $configuration->getProperty($property)->getValue();
+    }
+
+    private static function setInConfiguration(MoufManager $moufManager, string $tdbmInstanceName, string $property, ?string $value)
+    {
+        $configuration = self::getConfigurationDescriptor($moufManager, $tdbmInstanceName);
+        if ($configuration === null) {
+            throw new \RuntimeException('Unable to find the configuration object linked to TDBMService.');
+        }
+        $configuration->getProperty($property)->setValue($value);
     }
 }

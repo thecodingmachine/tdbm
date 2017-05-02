@@ -1,3 +1,26 @@
+4.3
+===
+
+Potentially breaking changes:
+
+- TDBM now uses PHP 7.1 nullable return types and void types for base beans. **If your code overrides getter or setters** from base bean, and if you are not yet running PHP 7.2 (not released at the time of writing this), your extended method will have to strictly match the method of the base bean. You might have to add those nullable type hint and void type hint into your own getters and setters.
+
+Major changes:
+
+- TDBM now requires PHP 7.1+
+- Bean properties are type-hinted using the new nullable types if columns are nullable
+- Added support for a naming strategy (to change the name of generated beans and DAOs)
+- Configuration has been moved to a new "Configuration" class
+- Added support for generator listeners that are triggered when beans are created
+
+Minor changes:
+
+- Parameter "store in UTC" has been removed from TDBM user interface. The parameter was ignored since 4.0.
+
+Bugfix:
+
+- #138: fixing `findOneByXXX` parameters in generated DAOs
+
 4.2
 ===
 

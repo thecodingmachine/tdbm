@@ -10,7 +10,7 @@ $ composer require mouf/database.tdbm
 
 So far, TDBM requires the Mouf PHP framework for the UI part (it uses the Mouf user interface for configuration and 
 generation).
-This dependency might be removed in TDBM 4.1.
+This dependency will be removed in TDBM 5.0.
 
 Once composer install is done, access the Mouf user interface (http://[your server]/[your app]/vendor/mouf/mouf).
 In the user interface, run the graphical installer.
