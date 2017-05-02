@@ -41,7 +41,7 @@ class TDBMDaoGenerator
     private $tdbmSchemaAnalyzer;
 
     /**
-     * @var EventDispatcherInterface
+     * @var GeneratorListenerInterface
      */
     private $eventDispatcher;
 
