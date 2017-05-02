@@ -2,7 +2,6 @@
 
 namespace Mouf\Database\TDBM\Commands;
 
-
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\DriverManager;
 use Mouf\Database\TDBM\Configuration;

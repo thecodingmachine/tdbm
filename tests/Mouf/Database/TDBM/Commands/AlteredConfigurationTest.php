@@ -2,7 +2,6 @@
 
 namespace Mouf\Database\TDBM\Commands;
 
-
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
