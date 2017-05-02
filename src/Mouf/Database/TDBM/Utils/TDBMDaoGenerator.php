@@ -22,13 +22,6 @@ class TDBMDaoGenerator
     private $schema;
 
     /**
-     * The root directory of the project.
-     *
-     * @var string
-     */
-    private $rootPath;
-
-    /**
      * Name of composer file.
      *
      * @var string
@@ -65,7 +58,6 @@ class TDBMDaoGenerator
         $this->configuration = $configuration;
         $this->schema = $tdbmSchemaAnalyzer->getSchema();
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
-        $this->rootPath = __DIR__.'/../../../../../../../../';
         $this->namingStrategy = $configuration->getNamingStrategy();
         $this->eventDispatcher = $configuration->getGeneratorEventDispatcher();
     }
@@ -623,17 +615,6 @@ class $daoFactoryClassName
             }
         }
     }
-
-    /**
-     * Absolute path to composer json file.
-     *
-     * @param string $composerFile
-     */
-    /*public function setComposerFile($composerFile)
-    {
-        $this->rootPath = dirname($composerFile).'/';
-        $this->composerFile = basename($composerFile);
-    }*/
 
     /**
      * Transforms a DBAL type into a PHP type (for PHPDoc purpose).
