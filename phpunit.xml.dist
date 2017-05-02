@@ -33,8 +33,8 @@
     		<exclude>
       			<directory suffix=".php">src/Mouf/Database/TDBM/Controllers</directory>
                 <directory suffix=".php">src/Mouf/Database/TDBM/Test</directory>
-                <directory suffix=".php">src/Mouf/Database/TDBM/MoufConfiguration</directory>
-                <directory suffix=".php">src/Mouf/Database/TDBM/Utils/MoufDiListener</directory>
+                <file>src/Mouf/Database/TDBM/MoufConfiguration.php</file>
+                <file>src/Mouf/Database/TDBM/Utils/MoufDiListener.php</file>
     		</exclude>
   		</whitelist>
 	</filter>
