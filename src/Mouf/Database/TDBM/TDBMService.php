@@ -491,20 +491,14 @@ class TDBMService
     /**
      * Generates all the daos and beans.
      *
-     * @param string $composerFile        If it's set, location of custom Composer file. Relative to project root
-     *
      * @return \string[] the list of tables (key) and bean name (value)
      */
-    public function generateAllDaosAndBeans($composerFile = null)
+    public function generateAllDaosAndBeans()
     {
         // Purge cache before generating anything.
         $this->cache->deleteAll();
 
         $tdbmDaoGenerator = new TDBMDaoGenerator($this->configuration, $this->tdbmSchemaAnalyzer);
-        if (null !== $composerFile) {
-            $tdbmDaoGenerator->setComposerFile(__DIR__.'/../../../../../../../'.$composerFile);
-        }
-
         $tdbmDaoGenerator->generateAllDaosAndBeans();
     }
 

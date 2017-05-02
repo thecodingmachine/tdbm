@@ -124,7 +124,7 @@ class TdbmController extends AbstractMoufInstanceController
 
         $tdbmService = new InstanceProxy($name);
         /* @var $tdbmService TDBMService */
-        $tdbmService->generateAllDaosAndBeans(($useCustomComposer ? $composerFile : null));
+        $tdbmService->generateAllDaosAndBeans();
     }
 
     private static function getConfigurationDescriptor(MoufManager $moufManager, string $tdbmInstanceName)
