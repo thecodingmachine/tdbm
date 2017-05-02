@@ -90,7 +90,7 @@ class AlteredConfiguration implements ConfigurationInterface
      */
     public function getLogger(): ?LoggerInterface
     {
-        return $this->configuration->getLogger();
+        return $this->logger;
     }
 
     /**
@@ -117,6 +117,6 @@ class AlteredConfiguration implements ConfigurationInterface
      */
     public function getPathFinder(): PathFinderInterface
     {
-        return $this->getPathFinder();
+        return $this->configuration->getPathFinder();
     }
 }

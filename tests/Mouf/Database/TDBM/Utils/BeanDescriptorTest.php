@@ -79,6 +79,13 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
         $this->assertArrayNotHasKey('id', $constructorPropertyDescriptors);
     }
 
+    public function testGetTable()
+    {
+        $usersTable = $this->schema->getTable('users');
+        $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy(), new VoidListener());
+        $this->assertSame($usersTable, $beanDescriptor->getTable());
+    }
+
     /*public function testGeneratePhpCode() {
         $usersTable = $this->schema->getTable("users");
         $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema);
