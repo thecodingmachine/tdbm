@@ -44,6 +44,16 @@ $strategy->setBaseDaoPrefix('');
 $strategy->setBaseDaoSuffix('BaseDao');
 ```
 
+Furthermore, you can configure a set of exceptions. This can be useful if your table names are not in English or not in plural form.
+Let's assume you have a table named `chevaux` ('horses' in French). The singular form is 'cheval', so you would want a 'Cheval' bean and a 'ChevalDao'. That easy with the `setExceptions` method:
+
+```php
+$strategy->setExceptions([
+    'chevaux' => 'Cheval'
+]);
+```
+
+
 Implementing your own naming strategy
 -------------------------------------
 

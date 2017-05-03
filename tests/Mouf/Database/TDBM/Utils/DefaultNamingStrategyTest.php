@@ -70,4 +70,13 @@ class DefaultNamingStrategyTest extends \PHPUnit_Framework_TestCase
         $strategy = new DefaultNamingStrategy();
         $this->assertSame('DaoFactory', $strategy->getDaoFactoryClassName());
     }
+
+    public function testExceptions()
+    {
+        $strategy = new DefaultNamingStrategy();
+        $strategy->setExceptions([
+            'chevaux' => 'Cheval'
+        ]);
+        $this->assertSame('ChevalDao', $strategy->getDaoClassName('chevaux'));
+    }
 }
