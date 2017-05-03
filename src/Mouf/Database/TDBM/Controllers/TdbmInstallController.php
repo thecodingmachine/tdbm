@@ -215,7 +215,7 @@ class TdbmInstallController extends Controller
 
         // We declare our instance of the Symfony command as a Mouf instance
         $generateCommand = InstallUtils::getOrCreateInstance('generateCommand', GenerateCommand::class, $this->moufManager);
-        $generateCommand->getConstructorArgumentProperty('tdbmConfiguration')->setValue($tdbmConfiguration);
+        $generateCommand->getConstructorArgumentProperty('configuration')->setValue($tdbmConfiguration);
 
         // We register that instance descriptor using "ConsoleUtils"
         $consoleUtils = new ConsoleUtils($this->moufManager);
