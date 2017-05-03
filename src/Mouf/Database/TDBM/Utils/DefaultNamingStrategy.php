@@ -15,6 +15,7 @@ class DefaultNamingStrategy implements NamingStrategyInterface
     private $daoSuffix = 'Dao';
     private $baseDaoPrefix = 'Abstract';
     private $baseDaoSuffix = 'Dao';
+    private $exceptions = [];
 
     /**
      * Sets the string prefix to any bean class name.
@@ -105,7 +106,7 @@ class DefaultNamingStrategy implements NamingStrategyInterface
      */
     public function getBeanClassName(string $tableName): string
     {
-        return $this->beanPrefix.self::toSingularCamelCase($tableName).$this->beanSuffix;
+        return $this->beanPrefix.$this->toSingularCamelCase($tableName).$this->beanSuffix;
     }
 
     /**
@@ -116,7 +117,7 @@ class DefaultNamingStrategy implements NamingStrategyInterface
      */
     public function getBaseBeanClassName(string $tableName): string
     {
-        return $this->baseBeanPrefix.self::toSingularCamelCase($tableName).$this->baseBeanSuffix;
+        return $this->baseBeanPrefix.$this->toSingularCamelCase($tableName).$this->baseBeanSuffix;
     }
 
     /**
@@ -127,7 +128,7 @@ class DefaultNamingStrategy implements NamingStrategyInterface
      */
     public function getDaoClassName(string $tableName): string
     {
-        return $this->daoPrefix.self::toSingularCamelCase($tableName).$this->daoSuffix;
+        return $this->daoPrefix.$this->toSingularCamelCase($tableName).$this->daoSuffix;
     }
 
     /**
@@ -138,7 +139,7 @@ class DefaultNamingStrategy implements NamingStrategyInterface
      */
     public function getBaseDaoClassName(string $tableName): string
     {
-        return $this->baseDaoPrefix.self::toSingularCamelCase($tableName).$this->baseDaoSuffix;
+        return $this->baseDaoPrefix.$this->toSingularCamelCase($tableName).$this->baseDaoSuffix;
     }
 
     /**
@@ -149,8 +150,13 @@ class DefaultNamingStrategy implements NamingStrategyInterface
      *
      * @return string
      */
-    private static function toSingularCamelCase(string $str): string
+    private function toSingularCamelCase(string $str): string
     {
+        // Let's first check if this is not in the exceptions directory.
+        if (isset($this->exceptions[$str])) {
+            return $this->exceptions[$str];
+        }
+
         $tokens = preg_split("/[_ ]+/", $str);
         $tokens = array_map([Inflector::class, 'singularize'], $tokens);
 
@@ -170,5 +176,24 @@ class DefaultNamingStrategy implements NamingStrategyInterface
     public function getDaoFactoryClassName(): string
     {
         return 'DaoFactory';
+    }
+
+    /**
+     * Sets exceptions in the naming of classes.
+     * The key is the name of the table, the value the "base" name of beans and DAOs.
+     *
+     * This is very useful for dealing with plural to singular translations in non english table names.
+     *
+     * For instance if you are dealing with a table containing horses in French ("chevaux" that has a singular "cheval"):
+     *
+     * [
+     *     "chevaux" => "Cheval"
+     * ]
+     *
+     * @param array<string,string> $exceptions
+     */
+    public function setExceptions(array $exceptions)
+    {
+        $this->exceptions = $exceptions;
     }
 }
