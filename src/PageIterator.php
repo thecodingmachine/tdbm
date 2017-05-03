@@ -8,7 +8,7 @@ use Porpaginas\Page;
 use Psr\Log\LoggerInterface;
 
 /*
- Copyright (C) 2006-2016 David Négrier - THE CODING MACHINE
+ Copyright (C) 2006-2017 David Négrier - THE CODING MACHINE
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
