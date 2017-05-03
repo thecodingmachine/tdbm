@@ -10,6 +10,7 @@ use Mouf\Database\TDBM\ConfigurationInterface;
 use Mouf\Database\TDBM\TDBMException;
 use Mouf\Database\TDBM\TDBMSchemaAnalyzer;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * This class generates automatically DAOs and Beans for TDBM.
@@ -106,7 +107,6 @@ class TDBMDaoGenerator
      */
     private function generateDaoAndBean(Table $table) : BeanDescriptor
     {
-        // TODO: $storeInUtc is NOT USED.
         $tableName = $table->getName();
         $daoName = $this->namingStrategy->getDaoClassName($tableName);
         $beanName = $this->namingStrategy->getBeanClassName($tableName);
@@ -136,9 +136,7 @@ class TDBMDaoGenerator
 
         $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($beannamespace.'\\Generated\\'.$baseClassName)->getPathname();
 
-        $this->ensureDirectoryExist($possibleBaseFileName);
-        file_put_contents($possibleBaseFileName, $str);
-        @chmod($possibleBaseFileName, 0664);
+        $this->dumpFile($possibleBaseFileName, $str);
 
         $possibleFileName = $this->configuration->getPathFinder()->getPath($beannamespace.'\\'.$className)->getPathname();
 
@@ -161,9 +159,8 @@ class $className extends $baseClassName
 {
 }
 ";
-            $this->ensureDirectoryExist($possibleFileName);
-            file_put_contents($possibleFileName, $str);
-            @chmod($possibleFileName, 0664);
+
+            $this->dumpFile($possibleFileName, $str);
         }
     }
 
@@ -430,9 +427,7 @@ class $baseClassName
 
         $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($daonamespace.'\\Generated\\'.$baseClassName)->getPathname();
 
-        $this->ensureDirectoryExist($possibleBaseFileName);
-        file_put_contents($possibleBaseFileName, $str);
-        @chmod($possibleBaseFileName, 0664);
+        $this->dumpFile($possibleBaseFileName, $str);
 
         $possibleFileName = $this->configuration->getPathFinder()->getPath($daonamespace.'\\'.$className)->getPathname();
 
@@ -456,9 +451,7 @@ class $className extends $baseClassName
 {
 }
 ";
-            $this->ensureDirectoryExist($possibleFileName);
-            file_put_contents($possibleFileName, $str);
-            @chmod($possibleFileName, 0664);
+            $this->dumpFile($possibleFileName, $str);
         }
     }
 
@@ -537,9 +530,7 @@ class $daoFactoryClassName
 
         $possibleFileName = $this->configuration->getPathFinder()->getPath($daoNamespace.'\\Generated\\'.$daoFactoryClassName)->getPathname();
 
-        $this->ensureDirectoryExist($possibleFileName);
-        file_put_contents($possibleFileName, $str);
-        @chmod($possibleFileName, 0664);
+        $this->dumpFile($possibleFileName, $str);
     }
 
     /**
@@ -603,7 +594,7 @@ class $daoFactoryClassName
      *
      * @throws TDBMException
      */
-    private function ensureDirectoryExist($fileName)
+    private function ensureDirectoryExist(string $fileName)
     {
         $dirName = dirname($fileName);
         if (!file_exists($dirName)) {
@@ -614,6 +605,14 @@ class $daoFactoryClassName
                 throw new TDBMException("Unable to create directory: '".$dirName."'.");
             }
         }
+    }
+
+    private function dumpFile(string $fileName, string $content) : void
+    {
+        $this->ensureDirectoryExist($fileName);
+        $fileSystem = new Filesystem();
+        $fileSystem->dumpFile($fileName, $content);
+        @chmod($fileName, 0664);
     }
 
     /**
