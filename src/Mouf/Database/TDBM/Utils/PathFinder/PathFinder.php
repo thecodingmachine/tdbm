@@ -11,6 +11,11 @@ class PathFinder implements PathFinderInterface
     private $composerFile;
 
     /**
+     * @var string
+     */
+    private $rootPath;
+
+    /**
      * @var bool
      */
     private $useAutoloadDev;
@@ -20,16 +25,21 @@ class PathFinder implements PathFinderInterface
      */
     private $classNameMapper;
 
-    public function __construct(string $composerFile = null, bool $useAutoloadDev = false)
+    public function __construct(string $composerFile = null, string $rootPath = null, bool $useAutoloadDev = false)
     {
         $this->composerFile = $composerFile;
         $this->useAutoloadDev = $useAutoloadDev;
+        if ($rootPath === null) {
+            $this->rootPath = dirname(__DIR__, 9);
+        } else {
+            $this->rootPath = $rootPath;
+        }
     }
 
     private function getClassNameMapper() : ClassNameMapper
     {
         if ($this->classNameMapper === null) {
-            $this->classNameMapper = ClassNameMapper::createFromComposerFile($this->composerFile, null, $this->useAutoloadDev);
+            $this->classNameMapper = ClassNameMapper::createFromComposerFile($this->composerFile, $this->rootPath, $this->useAutoloadDev);
         }
         return $this->classNameMapper;
     }
@@ -47,6 +57,6 @@ class PathFinder implements PathFinderInterface
         if (empty($paths)) {
             throw NoPathFoundException::create($className);
         }
-        return new \SplFileInfo($paths[0]);
+        return new \SplFileInfo($this->rootPath.'/'.$paths[0]);
     }
 }

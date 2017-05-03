@@ -24,6 +24,7 @@ use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Mouf\Database\TDBM\Utils\DefaultNamingStrategy;
+use Mouf\Database\TDBM\Utils\PathFinder\PathFinder;
 
 abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 {
@@ -98,6 +99,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
             $this->dbConnection = DriverManager::getConnection($connectionParams, $config);
             $this->configuration = new Configuration('Mouf\\Database\\TDBM\\Test\\Dao\\Bean', 'Mouf\\Database\\TDBM\\Test\\Dao', $this->dbConnection, $this->getNamingStrategy(), new ArrayCache(), null, null, [$this->getDummyGeneratorListener()]);
+            $this->configuration->setPathFinder(new PathFinder(null, dirname(__DIR__, 4)));
         }
         return $this->configuration;
     }

@@ -6,13 +6,16 @@ class PathFinderTest extends \PHPUnit_Framework_TestCase
 {
     public function testGetPath()
     {
-        $pathFinder = new PathFinder();
-        $this->assertSame('src/Mouf/Database/TDBM/Utils/PathFinder/PathFinder.php', $pathFinder->getPath(PathFinder::class)->getPathname());
+        $pathFinder = new PathFinder(null, dirname(__DIR__, 6));
+        $path = realpath($pathFinder->getPath(PathFinder::class)->getPathname());
+        $expectedPath = (new \ReflectionClass(PathFinder::class))->getFileName();
+
+        $this->assertSame($expectedPath, $path);
     }
 
     public function testGetPathNotFound()
     {
-        $pathFinder = new PathFinder();
+        $pathFinder = new PathFinder(null, dirname(__DIR__, 6));
         $this->expectException(NoPathFoundException::class);
         $pathFinder->getPath("Not\\Exist");
     }
