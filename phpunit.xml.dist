@@ -31,10 +31,7 @@
   		<whitelist processUncoveredFilesFromWhitelist="true">
     		<directory suffix=".php">src/Mouf</directory>
     		<exclude>
-      			<directory suffix=".php">src/Mouf/Database/TDBM/Controllers</directory>
                 <directory suffix=".php">src/Mouf/Database/TDBM/Test</directory>
-                <file>src/Mouf/Database/TDBM/MoufConfiguration.php</file>
-                <file>src/Mouf/Database/TDBM/Utils/MoufDiListener.php</file>
     		</exclude>
   		</whitelist>
 	</filter>
