@@ -46,13 +46,13 @@
     },
     "autoload" : {
         "psr-4" : {
-            "Mouf\\Database\\TDBM\\" : "src/Mouf/Database/TDBM"
+            "TheCodingMachine\\TDBM\\" : "src/"
         }
     },
     "autoload-dev" : {
         "psr-4" : {
             "Test\\" : "src/Test",
-            "Mouf\\Database\\TDBM\\" : "tests/Mouf/Database/TDBM"
+            "TheCodingMachine\\TDBM\\" : "tests/"
         }
     },
     "minimum-stability" : "dev",

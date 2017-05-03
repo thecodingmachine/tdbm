@@ -30,13 +30,13 @@ $beanNamespace = 'MyApp\\Beans';
 $daoNamespace = 'MyApp\\Daos';
 
 // The naming strategy used to define the classname of DAOs and beans.
-$namingStrategy = new Mouf\Database\TDBM\Utils\DefaultNamingStrategy();
+$namingStrategy = new TheCodingMachine\TDBM\Utils\DefaultNamingStrategy();
 
 $cache = new Doctrine\Common\Cache\ApcuCache();
 
 $logger = new Monolog\Logger(); // $logger must be a PSR-3 compliant logger.
 
-$configuration = new Mouf\Database\TDBM\Configuration(
+$configuration = new TheCodingMachine\TDBM\Configuration(
     $beanNamespace,
     $daoNamespace,
     $dbConnection,

@@ -8,5 +8,5 @@ mouf/*
 composer.lock
 composer.phar
 phpunit.xml
-src/Mouf/Database/TDBM/Test/
+src/Test/
 build/

@@ -105,10 +105,10 @@ There are many kind of filters in TDBM: A filter can be:
 
   For instance:
   ```php
-  use Mouf\Database\TDBM\Filters\EqualFilter;
-  use Mouf\Database\TDBM\Filters\GreaterFilter;
-  use Mouf\Database\TDBM\Filters\OrFilter;
-  use Mouf\Database\TDBM\Filters\LikeFilter;
+  use TheCodingMachine\TDBM\Filters\EqualFilter;
+  use TheCodingMachine\TDBM\Filters\GreaterFilter;
+  use TheCodingMachine\TDBM\Filters\OrFilter;
+  use TheCodingMachine\TDBM\Filters\LikeFilter;
   
   class UserDao extends UserBaseDao {
       public function getUsersByCountryName($countryName) {
