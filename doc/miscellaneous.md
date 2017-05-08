@@ -74,7 +74,7 @@ $users = $userDao->findAll();
 
 // The callback passed to the map function will be called once for each record in the recordset.
 // You will get in $firstNames an array containing the list of callback results.
-$firstNames = $users->map(function(UserBean $user) {
+$firstNames = $users->map(function(User $user) {
     return $user->getFirstName();
 });
 ```
@@ -97,13 +97,13 @@ For instance, to log a specific SQL request, you can do:
 ```php
 use Psr\Log\LogLevel;
 
-class UserDao extends UserBaseDao {
+class UserDao extends AbstractUserDao {
 
 	/**
 	 * Returns the list of users starting with $firstLetter
 	 *
 	 * @param string $firstLetter
-	 * @return UserBean[]
+	 * @return User[]
 	 */
 	public function getUsersByLetter($firstLetter) {
         $this->tdbmService->setLogLevel(LogLevel::DEBUG);

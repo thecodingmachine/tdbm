@@ -27,37 +27,37 @@ an inheritance relationship between the two tables.
 
 In the PHP classes, TDBM will generate an inheritance hierarchy between the beans:
 
-`UserBean` > `UserBaseBean` > `ContactBean` > `ContactBaseBean` > `PersonBean`  > `PersonBaseBean` > `AbstractTDBMObject`
+`User` > `AbstractUser` > `Contact` > `AbstractContact` > `Person`  > `AbstractPerson` > `AbstractTDBMObject`
 
 So the generated code for the beans will look like this:
 
 ```php
-class UserBean extends UserBaseBean 
+class User extends AbstractUser 
 {
     ...
 }
 
-class UserBaseBean extends ContactBean
+class AbstractUser extends Contact
 {
     ...
 }
 
-class ContactBean extends ContactBaseBean 
+class Contact extends AbstractContact 
 {
     ...
 }
 
-class ContactBaseBean extends PersonBean
+class AbstractContact extends Person
 {
     ...
 }
 
-class PersonBean extends PersonBaseBean 
+class Person extends AbstractPerson 
 {
     ...
 }
 
-class PersonBaseBean extends AbstractTDBMObject
+class AbstractPerson extends AbstractTDBMObject
 {
     ...
 }

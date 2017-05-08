@@ -5,7 +5,7 @@ TODO: this documentation is outdated and needs some work
 --------------------------------------------------------
 
 In this advanced tutorial, we will learn how to use the `find` method in details, and see the behaviour of TDBM with more complex data model.
-If you are new to TDBM, you should start with the <a href="quickstart.html">quickstart guide</a>.
+If you are new to TDBM, you should start with the [quickstart guide](quickstart.md).
 
 Making complex queries: the find method
 --------------------------------------------------
@@ -13,17 +13,16 @@ Making complex queries: the find method
 Complex queries with filters and ordering is achieved in TDBM through the `xxxDao::find` protected method.
 
 ```php
-protected function find($filterBag=null, $parameters = [], $orderbyBag=null, $from=null, $limit=null);
+protected function find($filter = null, array $parameters = [], $orderBy=null, array $additionalTablesFetch = [], $mode = null) : iterable;
 ```
 
 The `find` method should be the preferred way to perform queries in TDBM.  (Note: if you want to query the database for an object by its primary key, use the `getById` method).
 The `find` method takes in parameter: 
 
-- filter_bag (optionnal): The filter bag is anything that you can use to filter your request. It can be a SQL Where clause,	a series of `xxxFilter` objects, or even `TDBMObjects` or `TDBMObjectArrays` that you will use as filters.
-- order_bag (optionnal): The order bag is what you use to order the results of your request. It can be a SQL OrderBy clause, a series of `OrderByColumn` objects or an array containing both.
-- from (optionnal): The offset from which the query should be performed. For instance, if `$from = 5`, the `find` method will return objects from the 6th row.
-- limit (optionnal): The maximum number of objects returned. Together with the `from` parameter, this can be used to implement paging.
-
+- filter (optional): The filter bag is anything that you can use to filter your request. It can be a SQL Where clause,	an associative array of keys (column names) => values (values to filter), or even `TDBMObjects` that you will use as filters.
+- parameters (optional): An associative array of values to feed in the query.
+- orderBy (optional): The order bag is what you use to order the results of your request. It can be a SQL OrderBy clause, a series of `OrderByColumn` objects or an array containing both.
+- TODO: continue here
 
 The `find` method will return an array (or a generator dependenging on the fetch mode used).
 
@@ -49,7 +48,7 @@ There are many kind of filters in TDBM: A filter can be:
   For instance,
   
   ```php
-  class UserDao extends UserBaseDao {
+  class UserDao extends AbstractUserDao {
       public function getUsersByCountryName($countryName) {
           return $this->find("countries.country_name='".addslashes($countryName)."'");
       }
@@ -65,9 +64,9 @@ There are many kind of filters in TDBM: A filter can be:
   For instance, we could get the France object and then find any users related to that object using:
 
   ```php
-  class UserDao extends UserBaseDao {
-      public function getUsersByCountry(CountryBean $countryBean) {
-          return $this->find($countryBean);
+  class UserDao extends AbstractUserDao {
+      public function getUsersByCountry(Country $country) {
+          return $this->find($country);
       }
   }
   ```
@@ -75,10 +74,10 @@ There are many kind of filters in TDBM: A filter can be:
 - A `DBM_ObjectArray` can be used as a filter too.
   
   ```php
-  class UserDao extends UserBaseDao {
+  class UserDao extends AbstractUserDao {
       /**
-       * @param CountryBean[] $countryBean
-       * @return UserBean[]
+       * @param Country[] $country
+       * @return User[]
        */
       public function getUsersByCountries(array $countries) {
           return $this->find($countries);
@@ -110,7 +109,7 @@ There are many kind of filters in TDBM: A filter can be:
   use TheCodingMachine\TDBM\Filters\OrFilter;
   use TheCodingMachine\TDBM\Filters\LikeFilter;
   
-  class UserDao extends UserBaseDao {
+  class UserDao extends AbstractUserDao {
       public function getUsersByCountryName($countryName) {
           // Let's search users based on country name.
           // Notice how we do can refer to a column of the 'countries' table without
@@ -140,11 +139,11 @@ There are many kind of filters in TDBM: A filter can be:
   In that case, filters are  'ANDed' together.  So a request like this is valid:
 
   ```php
-  class UserDao extends UserBaseDao {
-      public function getAdministratorsByCountry(CountryBean $countryBean) {
-          // Returns the users who have a administrator role and are linked to $countryBean
+  class UserDao extends AbstractUserDao {
+      public function getAdministratorsByCountry(Country $country) {
+          // Returns the users who have a administrator role and are linked to $country
       	  return $this->find(array(
-      	      $countryBean,
+      	      $country,
       	      new EqualFilter('role', 'role_name', 'Administrator')
       	  ));
       }
@@ -178,7 +177,7 @@ The order bag can contain two kinds of objects:
   This object models a single column in a database.
 
   ```php
-  class CountryDao extends CountryBaseDao {
+  class CountryDao extends AbstractCountryDao {
       public function getListByAlphabeticalOrder() {
           return $this->find(null, new OrderByColumn("country", "country_name", "ASC");
       }
@@ -209,7 +208,10 @@ This rule works for most of the problems you will encounter. However, there are 
 
 In this schema, a user is linked to 2 countries. One is its birth country and one is the country he works in. Here, TDBM cannot make any decision... If the user writes
 
-<code>$country = $userBean-&gt;getCountry();</code>
+```php
+$country = $user->getCountry();</code>
+```
+
 there is no way to know if it more likely that he wanted the birth country or the work country. So TDBM will throw an ambiguity exception. This exception will inform the user that its request is ambiguous and that he should solve it. Below is the exception the user will get:
 
 ```

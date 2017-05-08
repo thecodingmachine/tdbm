@@ -17,7 +17,7 @@ foreach ($users as $user) {
 
 If your dataset is big enough, you are almost sure to get an *out of memory* error.
 
-Why? The `$users` array keeps a reference of all `UserBean` objects
+Why? The `$users` array keeps a reference of all `User` objects
 that have been fetched from the database. Therefore, as the array fills, the memory gets low.
 
 What you want to do is to get a **cursor** instead of an array of results. As you iterate the
