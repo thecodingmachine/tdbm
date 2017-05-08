@@ -1,10 +1,10 @@
-[![Latest Stable Version](https://poser.pugx.org/mouf/database.tdbm/v/stable)](https://packagist.org/packages/mouf/database.tdbm)
-[![Total Downloads](https://poser.pugx.org/mouf/database.tdbm/downloads)](https://packagist.org/packages/mouf/database.tdbm)
-[![Latest Unstable Version](https://poser.pugx.org/mouf/database.tdbm/v/unstable)](https://packagist.org/packages/mouf/database.tdbm)
-[![License](https://poser.pugx.org/mouf/database.tdbm/license)](https://packagist.org/packages/mouf/database.tdbm)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/thecodingmachine/database.tdbm/badges/quality-score.png?b=4.2)](https://scrutinizer-ci.com/g/thecodingmachine/database.tdbm/?branch=4.2)
-[![Build Status](https://travis-ci.org/thecodingmachine/database.tdbm.svg?branch=4.2)](https://travis-ci.org/thecodingmachine/database.tdbm)
-[![Coverage Status](https://coveralls.io/repos/thecodingmachine/database.tdbm/badge.svg?branch=4.2&service=github)](https://coveralls.io/github/thecodingmachine/database.tdbm?branch=4.2)
+[![Latest Stable Version](https://poser.pugx.org/thecodingmachine/tdbm/v/stable)](https://packagist.org/packages/thecodingmachine/tdbm)
+[![Total Downloads](https://poser.pugx.org/thecodingmachine/tdbm/downloads)](https://packagist.org/packages/thecodingmachine/tdbm)
+[![Latest Unstable Version](https://poser.pugx.org/thecodingmachine/tdbm/v/unstable)](https://packagist.org/packages/thecodingmachine/tdbm)
+[![License](https://poser.pugx.org/thecodingmachine/tdbm/license)](https://packagist.org/packages/thecodingmachine/tdbm)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/thecodingmachine/database.tdbm/badges/quality-score.png?b=5.0)](https://scrutinizer-ci.com/g/thecodingmachine/database.tdbm/?branch=5.0)
+[![Build Status](https://travis-ci.org/thecodingmachine/database.tdbm.svg?branch=5.0)](https://travis-ci.org/thecodingmachine/database.tdbm)
+[![Coverage Status](https://coveralls.io/repos/thecodingmachine/database.tdbm/badge.svg?branch=5.0&service=github)](https://coveralls.io/github/thecodingmachine/database.tdbm?branch=5.0)
 
 
 About TDBM (The DataBase Machine)
