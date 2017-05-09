@@ -4,9 +4,8 @@ vendor/*
 .buildpath
 .project
 .settings
-mouf/*
-composer.lock
-composer.phar
-phpunit.xml
-src/Test/
-build/
+/composer.lock
+/phpunit.xml
+/src/Test/
+/build/
+/.couscous/

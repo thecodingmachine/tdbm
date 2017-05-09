@@ -39,7 +39,8 @@
         "satooshi/php-coveralls": "^1.0",
         "wa72/simplelogger" : "^1.0",
         "friendsofphp/php-cs-fixer": "^2.1",
-        "symfony/process": "^3.0"
+        "symfony/process": "^3.0",
+        "couscous/couscous": "^1.6"
     },
     "suggest" : {
         "ext/weakref" : "Allows efficient memory management. Useful for batches."
@@ -56,59 +57,5 @@
         }
     },
     "minimum-stability" : "dev",
-    "prefer-stable": true,
-    "extra" : {
-        "mouf" : {
-            "doc" : [
-                {
-                    "title" : "Install TDBM",
-                    "url" : "doc/install.md"
-                }, {
-                    "title" : "Getting started",
-                    "url" : "doc/quickstart.md"
-                }, {
-                    "title" : "Add limit and offsets to your queries",
-                    "url" : "doc/limit_offset_resultset.md"
-                }, {
-                    "title" : "About DAOs",
-                    "url" : "doc/generating_daos.md"
-                }, {
-                    "title" : "Modeling inheritance",
-                    "url" : "doc/modeling_inheritance.md"
-                }, {
-                    "title" : "Advanced filtering",
-                    "url" : "doc/advanced.md"
-                }, {
-                    "title" : "JSON serialization",
-                    "url" : "doc/json_serialization.md"
-                }, {
-                    "title" : "Miscellaneous features",
-                    "url" : "doc/miscellaneous.md"
-                }, {
-                    "title" : "Configuring TDBM",
-                    "url" : "doc/configuring.md"
-                }, {
-                    "title" : "Memory management and batches processing",
-                    "url" : "doc/memory_management.md"
-                },{
-                    "title" : "Configuring naming of beans and DAOs",
-                    "url" : "doc/configuring_naming.md"
-                }, {
-                    "title" : "A quick comparison with Doctrine",
-                    "url" : "doc/comparison_with_doctrine.md"
-                }, {
-                    "title" : "Migrating",
-                    "url" : "doc/migrating.md"
-                }, {
-                    "title" : "TDBM internals",
-                    "url" : "doc/internals.md"
-                }
-            ],
-            "section": {
-                "name": "Database",
-                "description": "This section contains ORM tools to access your database.",
-                "weight": 20
-            }
-        }
-    }
+    "prefer-stable": true
 }
