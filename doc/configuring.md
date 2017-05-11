@@ -3,7 +3,7 @@ Configuring TDBM
 
 All the configuration needed for TDBM is stored in a `Configuration` object.
 
-When you install TDBM, Mouf will create and set-up this configuration object for you.
+Depending on the framework you are using (and the integration package you chose), the way the `Configuration` object is set-up will vary. 
 
 If you are interested into setting up this configuration object yourself, it is quite easy to do.
 At minimum, you need a Doctrine database connection and a Doctrine cache object.
@@ -36,6 +36,7 @@ $cache = new Doctrine\Common\Cache\ApcuCache();
 
 $logger = new Monolog\Logger(); // $logger must be a PSR-3 compliant logger.
 
+// Let's build the configuration object
 $configuration = new TheCodingMachine\TDBM\Configuration(
     $beanNamespace,
     $daoNamespace,
@@ -47,5 +48,6 @@ $configuration = new TheCodingMachine\TDBM\Configuration(
     []       // A list of generator listeners to hook into code generation
 );
 
+// The TDBMService is created using the configuration object.
 $tdbmService = new TDBMService($configuration);
 ```

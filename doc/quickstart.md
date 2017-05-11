@@ -2,9 +2,8 @@ Quick start guide
 =================
 
 In this quick start guide, we will see how you can use TDBM to query, read and write data to your database
-We will assume that you successfully installed TDBM using Mouf, and therefore, that TDBM is connected
-to your database and that the TDBM DAOs have been generated. You can learn more about DAO generation in the
-<a href="generating_daos.md">Generating DAOs guide</a>.
+We will assume that you successfully installed TDBM into your favorite framework, and therefore, that TDBM is connected
+to your database and that the [TDBM DAOs and beans have been generated](generating_daos.md).
 
 Our playground data model
 -------------------------
@@ -15,18 +14,18 @@ For this tutorial, let's assume a very classic database schema for handling user
 - A group has a name.
 - A user has a name and is part of a country.
 
-<img src="images/schema1.png" alt="database schema" />
+![Database schema](images/schema1.png)
 
-Connecting to the database
---------------------------
+DAOs and beans
+--------------
 
-When you install TDBM in Mouf, you will be asked the connection to your database. This connection will be represented by a
-`dbalConnection` instance. This instance represents a pointer to your database and can be used to execute SQL queries.
-But we won't be using the `dbalConnection` instance. Indeed, the whole point of TDBM is to avoid writing SQL.
+When you installed TDBM, you spent some time configuring a connection to your database and then, you generated the DAOs and beans.
 
-Upon installation, TDBM will propose you to generate the DAOs (Data Access Objects). DAOs are classes that will help you access
-the objects in your database. There is one DAO per table in your database. Each DAO will return "beans". Each row in your database
+DAOs are "Data Access Objects". DAOs are classes that will help you access
+the objects in your database. There is roughly **one DAO per table in your database**. Each DAO will return "beans". Each row in your database
 will be represented by one instance of a bean.
+
+Each time your database model changes (if you add a new table, a new column, an index or a foreign key...), you will need to regenerate those DAOs and beans.
 
 Usage sample
 ------------
@@ -37,7 +36,7 @@ Let's now review a few samples:
 
 ```php
 // Create a new bean
-// Be default, you MUST pass to the bean constructor the list of all columns that are not nullable.
+// By default, you MUST pass to the bean constructor the list of all columns that are not nullable.
 $user = new User("myName");
 
 // Fill the remaining (nullable) columns of the bean using the setters
@@ -53,10 +52,10 @@ $userDao->save($user);
 ```
 
 Since we have a "users" table, TDBM generated
-a `UserDao` class and a `User` class. `UserDao` can be used to to create/update/delete/search any
+a `UserDao` class and a `User` class. `UserDao` can be used to create/update/delete/search any
 user.
 
-You can also notice that the "save()" method is not called on the `UserDao`, not on the `User`.
+You can also notice that the "save()" method is called on the `UserDao`, not on the `User`.
 
 ###Retrieving a user bean by its primary key:
 
@@ -69,7 +68,7 @@ echo $user->getName();
 ```
 
 TDBM will automatically detect the primary key of your table (of course, your table must have a primary key). There is
-no name convention to respect, your primary key column can be named anything ('id', 'userid', 'isuser', ...)
+no name convention to respect, your primary key column can be named anything ('id', 'userid', 'iduser', ...)
 
 To use this method, the primary key must be on a single column. If your primary key is on several columns, you can still use the
 search method (see below).
@@ -78,7 +77,7 @@ search method (see below).
 
 Now, what about getting the list of all users and displaying their name?
 
-Ok, that's easy, just use the `getUserList()` method!
+Ok, that's easy, just use the `findAll()` method!
 
 ```php
 // Let's get the list of users
@@ -154,7 +153,9 @@ $country = $countryDao->getById(1);
 $user = $userDao->findByLoginAndCountry('on', $country);
 ```
 
-Notice how the parameter passed for the for foreign key is a bean and not an ID.
+Notice how the parameter passed for the foreign key is a bean and not an ID.
+
+Generally, expect in the `getById` method, TDBM will do its best to shield you from passing IDs around. You are expected to use beans instead of ids. It helps writing cleaner code, that is more object oriented and that can benefit from type-hinting.
 
 ###Querying the database with filters
 
@@ -189,7 +190,7 @@ class UserDao extends AbstractUserDao {
 	 * @param string $firstLetter
 	 * @return User[]
 	 */
-	public function getUsersByLetter($firstLetter) {
+	public function findUsersByLetter($firstLetter) {
 		// The find can be used to retrieve a list of User
 		// It takes in parameter a SQL filter string and a list of parameters.
 		return $this->find("name LIKE :name", [ "name" => $firstLetter.'%' ]);
@@ -202,7 +203,7 @@ And you can simply use it like this:
 ```php
 $userDao = Mouf::getUserDao();
 
-$users = $userDao->getUsersByLetter("J");
+$users = $userDao->findUsersByLetter("J");
 foreach ($users as $user)
 {
 	/* @var $user User */
@@ -221,7 +222,7 @@ You should never write something like:
 $list = $this->find("name LIKE '".$firstLetter.'%"' );
 ```
 
-<div class="alert alert-info">First of all, be writing this, you are introducing a security flaw in your application (namely: an SQL injection).
+<div class="alert alert-info">First of all, by writing this, you are introducing a security flaw in your application (namely: an SQL injection).
 Furthermore, TDBM performs a very complex analysis on your SQL query. It takes a lot of time. Hopefully, it is cached,
 so the cost of the analysis will be negligible in the long run. But if you append parameters in the SQL query instead
 of using parameters, TDBM will not be able to find the query in the cache. The cache will grow with useless queries 
@@ -247,8 +248,8 @@ class ProductDao extends AbstractProductDao {
 	 */
 	public function getProductsByCategoryAndStore(Category $category = null, Store $store = null) {
 		return $this->find("category = :category AND store = :store", [ 
-		    "category" => $category?$category->getId():null,
-		    "store" => $store?$store->getId():null
+		    "category" => $category ? $category->getId() : null,
+		    "store" => $store ? $store->getId() : null
 		]);
 	}
 }
@@ -307,7 +308,7 @@ echo $country->getName();
 ```
 
 Notice how you can jump from the _user_ to the _country_ using the `getCountry` method.
-The user table has a *country_id* column that points (through a foreign key) to the `countries` table, so it has a `getCountry` method!
+The user table has a *country_id* column that points (through a foreign key) to the `countries` table, so the `User` object has a `getCountry` method!
 
 Of course, there is also a setter:
 
@@ -319,7 +320,7 @@ Notice how you set an object rather than an ID.
 
 ###One to many relationships
 
-Ok. What, now, if I want to find a list of users from a particular country?
+What if I want to find a list of users from a particular country?
 
 That's easy too.
 
@@ -336,7 +337,7 @@ $users = $country->getUsers();
 ![Users and roles](images/users_roles.png)
 
 TDBM can automatically detect pivot tables in your data model.
-Pivot tables will have no DAO and no Beans associated. Instead, TDBM will generate a complete list of methods in the beans
+Pivot tables will have no DAOs and no Beans associated. Instead, TDBM will generate a complete list of methods in the linked beans
 to edit them.
 
 ```php
@@ -405,10 +406,13 @@ class UserDao extends AbstractUserDao {
 
 Here, we called the `find` method passing a filter on the `name` column of the `country` table.
 
+Hey! But where is the "join"?
+
 Behind the scene, TDBM is calling a library called [MagicQuery](http://mouf-php.com/packages/mouf/magic-query/README.md).
 MagicQuery is smart enough to automatically detect the link between the `users` and the `countries` table. You just need
 to tell TDBM what filter you want on **any column** in **any table** in your database model and TDBM will find
-the right query for you.
+the right query for you. MagicQuery is looking for the shortest path between 2 tables using foreign key relationships.
+Our experience shows that 90% of the time, this is what your are looking for.
 
 ###Filtering by ID/bean
 

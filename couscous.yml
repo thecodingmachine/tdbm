@@ -1,6 +1,6 @@
 template:
-    #directory: template
-    url: https://github.com/thecodingmachine/tcm-couscous-template.git
+    directory: template
+    #url: https://github.com/thecodingmachine/tcm-couscous-template.git
     index: README.md
 
 exclude:
@@ -21,6 +21,8 @@ icon:
     burger: doc/images/hamburger.png
 body:
     bg: doc/images/bg-web.jpg
+
+google_analytics: UA-10196481-2
 
 githubForkUrl: https://github.com/thecodingmachine/discovery/blob/1.1/
 githubUrl: https://github.com/thecodingmachine/discovery

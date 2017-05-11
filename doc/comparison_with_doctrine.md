@@ -2,7 +2,7 @@ A quick comparison with Doctrine ORM
 ====================================
 
 TDBM is built by [TheCodingMachine](http://www.thecodingmachine.com), a parisian web-shop. The first version was started 
-in 2006 (!) and we use TDBM daily in our work since then. So in case you wonder, yes, it is production ready.
+in 2006 (!) and we use TDBM on a daily basis in our work since then. So in case you wonder, yes, it is production ready.
 
 There are other ORMs out there, the biggest one being Doctrine ORM. Actually, TDBM relies on Doctrine DBAL (the 
 database abstraction layer), but it does not use the higher level modules of Doctrine ORM. The TheCodingMachine developers 
@@ -12,7 +12,9 @@ to choose which ORM we are going to use on a per-project basis.
 ## Model based vs object based ORM
 
 In TDBM, you start writing your database model, then TDBM generates beans (= entities) and DAOs (= repositories) for you.
-In Doctrine, instead, you start writing your classes and the database model is created from the PHP code.
+In Doctrine, instead, you start writing your classes and the database model is created from the PHP code (to be 100% 
+accurate, Doctrine relies on a mapping between your objects and your database, but most of the users out there use the
+Doctrine annotations for writing this "mapping", hence the PHP code first approach).
 
 TDBM approach is best for simpler apps with a relatively simple database model. It is obviously simpler to use when 
 you are migrating an application with an existing database to TDBM.
@@ -30,5 +32,4 @@ with database models that have "loops" in their model (like a hierarchical relat
 in one table points on the same table). For those use cases, you should go back to plain SQL.
 
 Doctrine ORM on the other hand comes with a full query language (DQL). You can express almost any SQL queries in DQL, 
-so it is clearly more powerful. Of course, you have to learn DQL first, so less simple...
-
+so it is clearly more powerful. Of course, you have to learn DQL first, so it is less simple...

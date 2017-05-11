@@ -9,3 +9,4 @@ vendor/*
 /src/Test/
 /build/
 /.couscous/
+/template/
