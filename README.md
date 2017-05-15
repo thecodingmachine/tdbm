@@ -23,15 +23,6 @@ THE DATABASE MACHINE (TDBM) is a PHP library designed to ease your access to you
 
 The goal behind TDBM is to make database access as easy as possible. Users should access their objects easily, and store those objects as easily.
 
-Typical workflow
-----------------
-
-TDBM is a "database first" ORM. Everything starts from your database. TDBM is very good at understanding your database model and the intent behind it. It will generate PHP objects mapping your model.
-
-![Workflow](https://g.gravizo.com/svg?digraph%20prof%20{"Start%20with%20your%20existing%20database"->"Install%20and%20configure%20TDBM";"Install%20and%20configure%20TDBM"->%20"TDBM%20generates%20PHP%20code%20(DAOs%20and%20beans)";"TDBM%20generates%20PHP%20code%20(DAOs%20and%20beans)"->"You%20write%20your%20queries%20(in%20DAOs)";"You%20write%20your%20queries%20(in%20DAOs)"->"Use%20your%20objects,%20have%20fun!";"Use%20your%20objects,%20have%20fun!"->"Modify%20your%20schema%20in%20SQL";"Modify%20your%20schema%20in%20SQL"->"Regenerate%20PHP%20code%20(DAOs%20and%20beans)";"Regenerate%20PHP%20code%20(DAOs%20and%20beans)"->"Use%20your%20objects,%20have%20fun!";})
-
-
-
 Design philosophy
 -----------------
 
@@ -39,7 +30,9 @@ TDBM is an opiniated ORM. It will not suit everybody and all needs. Here is what
 
 ## TDBM starts with your database model and generates PHP files
 
-TODO: schema tout simple database => PHP files
+TDBM is a "database first" ORM. Everything starts from your database. TDBM is very good at understanding your database model and the intent behind it. It will generate PHP objects mapping your model.
+
+![TDBM generates your PHP classes](doc/images/tdbm_generates_php_classes.png)
 
 TDBM **understands your database model**. From it, it will generate PHP classes that will help you access your database:
  

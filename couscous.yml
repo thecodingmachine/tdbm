@@ -22,7 +22,7 @@ icon:
 body:
     bg: doc/images/bg-web.jpg
 
-google_analytics: UA-10196481-2
+google_analytics: UA-10196481-4
 
 githubForkUrl: https://github.com/thecodingmachine/tdbm/blob/5.0/
 githubUrl: https://github.com/thecodingmachine/tdbm
