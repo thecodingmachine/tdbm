@@ -1,6 +1,6 @@
 template:
-    directory: template
-    #url: https://github.com/thecodingmachine/tcm-couscous-template.git
+    #directory: template
+    url: https://github.com/thecodingmachine/tcm-couscous-template.git
     index: README.md
 
 exclude:
