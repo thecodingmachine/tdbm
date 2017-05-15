@@ -8,9 +8,9 @@ currentMenu: introduction
 [![Total Downloads](https://poser.pugx.org/thecodingmachine/tdbm/downloads)](https://packagist.org/packages/thecodingmachine/tdbm)
 [![Latest Unstable Version](https://poser.pugx.org/thecodingmachine/tdbm/v/unstable)](https://packagist.org/packages/thecodingmachine/tdbm)
 [![License](https://poser.pugx.org/thecodingmachine/tdbm/license)](https://packagist.org/packages/thecodingmachine/tdbm)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/thecodingmachine/tdbm/badges/quality-score.png?b=5.x)](https://scrutinizer-ci.com/g/thecodingmachine/tdbm/?branch=5.x)
-[![Build Status](https://travis-ci.org/thecodingmachine/tdbm.svg?branch=5.x)](https://travis-ci.org/thecodingmachine/tdbm)
-[![Coverage Status](https://coveralls.io/repos/thecodingmachine/tdbm/badge.svg?branch=5.x&service=github)](https://coveralls.io/github/thecodingmachine/tdbm?branch=5.x)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/thecodingmachine/tdbm/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/thecodingmachine/tdbm/?branch=master)
+[![Build Status](https://travis-ci.org/thecodingmachine/tdbm.svg?branch=master)](https://travis-ci.org/thecodingmachine/tdbm)
+[![Coverage Status](https://coveralls.io/repos/thecodingmachine/tdbm/badge.svg?branch=master&service=github)](https://coveralls.io/github/thecodingmachine/tdbm?branch=master)
 
 
 About TDBM (The DataBase Machine)
