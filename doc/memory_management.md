@@ -1,5 +1,8 @@
-Memory management and batches processing
-========================================
+---
+title: Memory management and batches processing
+subTitle: 
+currentMenu: memory_management
+---
 
 Starting with TDBM 3.3+, you can use advanced methods for a more efficient memory consumption.
 

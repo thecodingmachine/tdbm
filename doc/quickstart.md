@@ -1,5 +1,8 @@
-Quick start guide
-=================
+---
+title: Quick start guide
+subTitle: 
+currentMenu: getting_started
+---
 
 In this quick start guide, we will see how you can use TDBM to query, read and write data to your database
 We will assume that you successfully installed TDBM into your favorite framework, and therefore, that TDBM is connected

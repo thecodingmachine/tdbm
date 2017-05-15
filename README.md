@@ -37,7 +37,7 @@ Design philosophy
 
 TDBM is an opiniated ORM. It will not suit everybody and all needs. Here is what you need to know.
 
-### TDBM starts with your database model and generates PHP files
+## TDBM starts with your database model and generates PHP files
 
 TODO: schema tout simple database => PHP files
 
@@ -56,15 +56,54 @@ $login = $user->getLogin();
 
 Because PHP objects are generated (no magic properties), you get a nice **autocompletion** in your favorite IDE (PHPStorm, Eclipse PDT, Netbeans...).
 
-### TDBM is really good at understanding your database model
+## TDBM is really good at understanding your database model
 
 TDBM has one of **the most powerful database model analyzer** out there.
 
- - TDBM relies on your foreign key constraints to find joins between tables.
- - It can automatically detect pivot tables to generate **many to many relationships**. 
- - It can also detect **inheritance** relationships.
+### TDBM relies on your foreign keys
 
-### Simplicity first
+TDBM analyzes your foreign key and turns them into getters and setters.
+
+![One to many](doc/images/one_to_many.png)
+
+```php
+// Let's get the name of the country of the current user
+$user->getCountry()->getName();
+
+// Let's get all users in a given country
+$users = $country->getUsers();
+```
+
+### TDBM can detect pivot table
+
+TDBM can automatically detect pivot tables to generate **many to many relationships**.
+
+![Many to many](doc/images/many_to_many.png)
+
+```php
+// Let's directly access the list of roles from a user
+$roles = $user->getRoles();
+
+// Let's set all the roles at once
+$user->setRoles($roles);
+
+// Or one by one
+$user->addRole($role);
+
+$user->removeRole($role);
+```
+
+### TDBM understands inheritance
+
+TDBM can understand typical ways of representing inheritance in a SQL database (primary keys being also foreign keys)...
+
+![Inheritance diagram](doc/images/hierarchy.png)
+
+... and turn it into real OO inheritance!
+
+![UML inheritance](doc/images/uml_inheritance.png)
+
+## Simplicity first
 
 TDBM is meant to be easy to use and non obtrusive.
 
@@ -72,11 +111,11 @@ TDBM is meant to be easy to use and non obtrusive.
 But it makes as simple as possible those tasks you do 80% of the time. For the remaining 20% (like performance critical requests, and so on), you can use SQL.
 For instance, TDBM has a **unique feature that guesses jointures for you**. No need to write joins anymore!
 
-### Based on Doctrine DBAL
+## Based on Doctrine DBAL
 
 TDBM uses the hugely popular Doctrine database abstraction layer for low level database access. It allows compatibility with a very wide range of databases.
 
-### No configuration
+## No configuration
 
 There is no configuration needed for TDBM. TDBM needs a DBAL database connection and a Doctrine cache. That's it!
 

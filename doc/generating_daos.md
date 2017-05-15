@@ -1,5 +1,8 @@
-Generating DAOs
-===============
+---
+title: Generating DAOs
+subTitle: 
+currentMenu: generating_daos
+---
 
 Although TDBM can be used without generating DAOs, the easiest way to use it is to generate DAOs using Mouf.
 This feature will allow you to cleanly separate the database code (that you will put in DAOs) from the rest of your code.

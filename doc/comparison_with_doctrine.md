@@ -1,5 +1,8 @@
-A quick comparison with Doctrine ORM
-====================================
+---
+title: A quick comparison with Doctrine ORM
+subTitle: 
+currentMenu: comparison_with_doctrine
+---
 
 TDBM is built by [TheCodingMachine](http://www.thecodingmachine.com), a parisian web-shop. The first version was started 
 in 2006 (!) and we use TDBM on a daily basis in our work since then. So in case you wonder, yes, it is production ready.

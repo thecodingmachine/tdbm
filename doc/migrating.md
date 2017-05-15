@@ -1,5 +1,11 @@
+---
+title: Migration
+subTitle: 
+currentMenu: migrating
+---
+
 Migrating to TDBM 4.3
-=====================
+---------------------
 
 TDBM 4.3 changes considerably the way the TDBMService instance is configured since it features a brand new `Configuration` class.
 Hopefully, a new installer will smoothly migrate old installs to new one.
@@ -10,7 +16,7 @@ Also, TDBM 4.3 adds PHP 7.1 specific type-hints like nullable types or void retu
 If you extend some methods in your DAOs and beans from base DAOs and beans, you will have adapt the methods signatures.
 
 Migrating to TDBM 4
-===================
+-------------------
 
 TDBM 4 is almost a complete rewrite compared to TDBM 3.x. More than 90% of the code has been rewritten.
 

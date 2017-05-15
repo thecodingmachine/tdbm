@@ -1,5 +1,8 @@
-Miscellaneous features
-======================
+---
+title: Miscellaneous features
+subTitle: 
+currentMenu: miscellaneous
+---
 
 Deleting beans
 --------------

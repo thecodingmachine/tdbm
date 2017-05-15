@@ -1,5 +1,8 @@
-TDBM internals
-==============
+---
+title: TDBM internals
+subTitle: 
+currentMenu: internals
+---
 
 AbstractTDBMObject
 ------------------

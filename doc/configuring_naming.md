@@ -1,5 +1,8 @@
-Configuring the naming of beans and daos
-========================================
+---
+title: Configuring the naming of beans and DAOs
+subTitle: 
+currentMenu: configuring_naming
+---
 
 By default, if you have a `users` table, TDBM will generate those classes:
 

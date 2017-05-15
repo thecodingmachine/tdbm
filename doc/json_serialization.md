@@ -1,5 +1,8 @@
-JSON Serialization
-==================
+---
+title: JSON Serialization
+subTitle: 
+currentMenu: json_serialization
+---
 
 By default, beans implement the [JsonSerializable](http://php.net/manual/fr/class.jsonserializable.php) interface.
 As such, they can automatically be casted to JSON using the `json_encode` function.

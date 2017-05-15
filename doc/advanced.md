@@ -1,5 +1,8 @@
-Advanced tutorial
-=================
+---
+title: Advanced tutorial
+subTitle: 
+currentMenu: advanced
+---
 
 TODO: this documentation is outdated and needs some work
 --------------------------------------------------------

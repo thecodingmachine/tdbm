@@ -1,5 +1,8 @@
-Configuring TDBM
-================
+---
+title: Configuring TDBM
+subTitle: 
+currentMenu: configuring
+---
 
 All the configuration needed for TDBM is stored in a `Configuration` object.
 
