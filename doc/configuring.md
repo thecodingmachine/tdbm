@@ -11,7 +11,7 @@ Depending on the framework you are using (and the integration package you chose)
 If you are interested into setting up this configuration object yourself, it is quite easy to do.
 At minimum, you need a Doctrine database connection and a Doctrine cache object.
 
-We strongly advise to use the APCCache from Doctrine that will yield the best performances.
+We strongly advise to use the APCuCache from Doctrine that will yield the best performances.
 
 Without using any framework, a working TDBM setup could look like this:
 
