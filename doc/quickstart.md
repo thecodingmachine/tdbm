@@ -216,7 +216,7 @@ foreach ($users as $user)
 
 You can learn much more about filters in the [advanced section](advanced.md) of this documentation.
 
-<div class="alert"><strong>Very important</strong>: NEVER ever append dynamically parameters in the filter string. Use parameterized queries instead.</div>
+<div class="alert alert-danger"><strong>Very important</strong>: NEVER ever append dynamically parameters in the filter string. Use parameterized queries instead.</div>
 
 You should never write something like:
 
@@ -465,14 +465,14 @@ It turns out MagicQuery is clever enough to find the shortest path between any t
 your code can look like this:
 
 ```php
-class RoleDao extends AbstractRoleDao {
+class RightDao extends AbstractRightDao {
  	/**
-	 * Returns the list of roles for a given user
+	 * Returns the list of rights for a given user
 	 *
 	 * @param User $user
-	 * @return Role[]
+	 * @return Right[]
 	 */
-	public function getRolesForUser(User $user) {
+	public function getRightsForUser(User $user) {
 		// Behold the magic!
 		return $this->find($user);
 	}
@@ -491,7 +491,7 @@ You do this using the `findFromSql` or `findOneFromSql` methods.
 ```php
 class RoleDao extends AbstractRoleDao {
 	/**
-     * Returns the list of roles join rights where right label = CAN_SING.
+     * Returns the list of roles where right label = CAN_SING.
      *
      * @return Role[]
      */
@@ -503,7 +503,9 @@ class RoleDao extends AbstractRoleDao {
 }
 ```
 
-**Important**: the first parameter is the FROM statement. It MUST NOT start with "FROM". It MUST NOT put an alias on the table fetched.
+<div class="alert alert-danger">
+<b>Important</b>: the first parameter is the FROM statement. It MUST NOT start with "FROM". It MUST NOT be an alias on the table fetched.
+</div>
 
 For instance, if we are fetching results from the `roles` tables (because we are in the `RoleDao`), then:
 
