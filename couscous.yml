@@ -1,7 +1,7 @@
 template:
     #directory: template
     url: https://github.com/thecodingmachine/tcm-couscous-template.git
-    index: README.md
+    index: index.md
 
 exclude:
     - vendor
