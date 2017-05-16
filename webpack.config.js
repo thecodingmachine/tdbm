@@ -6,7 +6,7 @@ let ExtractTextPlugin = require("extract-text-webpack-plugin");
 module.exports = {
     entry: path.resolve(__dirname, './app.js'),
     output: {
-        path: './build/',
+        path: './assets/',
         filename: 'app.bundle.js',
         publicPath: ''
         //library: libraryName,
