@@ -15,5 +15,5 @@ before_script:
 script:
 - "./vendor/bin/phpunit"
 after_script:
-- "./vendor/bin/coveralls -v"
-- vendor/bin/couscous travis-auto-deploy --php-version=7.1
+- if [ -n "$PREFER_LOWEST" ]; then ./vendor/bin/coveralls -v; fi
+- if [ -n "$PREFER_LOWEST" ]; then vendor/bin/couscous travis-auto-deploy --php-version=7.1; fi
