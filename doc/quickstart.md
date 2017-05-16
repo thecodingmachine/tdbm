@@ -261,7 +261,7 @@ The interesting part is that TDBM will automatically **discard** any parameter t
 So let's imagine that your `$store` parameter is `null`. Suddenly, your filter will transform into: `category = :category`.
 The `AND store = :store` will be automatically dropped by TDBM.
 
-How is this possible? TDBM is built upon [MagicQuery](http://mouf-php.com/packages/mouf/magic-query/README.md) that has
+How is this possible? TDBM is built upon [MagicQuery](http://mouf-php.com/packages/mouf/magic-query/) that has
 such a feature. You can read more about this feature [here](http://mouf-php.com/packages/mouf/magic-query/doc/discard_unused_parameters.md) and [here](http://www.thecodingmachine.com/simplifier-des-requetes-sql-complexes-avec-magic-query-cest-magique/) (french link).
 
 ### Getting only one record
@@ -412,7 +412,7 @@ Here, we called the `find` method passing a filter on the `name` column of the `
 
 Hey! But where is the "join"?
 
-Behind the scene, TDBM is calling a library called [MagicQuery](http://mouf-php.com/packages/mouf/magic-query/README.md).
+Behind the scene, TDBM is calling a library called [MagicQuery](http://mouf-php.com/packages/mouf/magic-query/).
 MagicQuery is smart enough to automatically detect the link between the `users` and the `countries` table. You just need
 to tell TDBM what filter you want on **any column** in **any table** in your database model and TDBM will find
 the right query for you. MagicQuery is looking for the shortest path between 2 tables using foreign key relationships.

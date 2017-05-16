@@ -86,6 +86,12 @@ $user->addRole($role);
 $user->removeRole($role);
 ```
 
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-sm-offset-3">
+        <a href="doc/quickstart.html#navigating-the-object-model" class="btn btn-primary btn-large btn-block">Learn more about DB model to objects mapping</a>
+    </div>
+</div>
+
 ### TDBM understands inheritance
 
 TDBM can understand typical ways of representing inheritance in a SQL database (primary keys being also foreign keys)...
@@ -96,6 +102,12 @@ TDBM can understand typical ways of representing inheritance in a SQL database (
 
 ![UML inheritance](doc/images/uml_inheritance.png)
 
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-sm-offset-3">
+        <a href="doc/modeling_inheritance.html" class="btn btn-primary btn-large btn-block">Learn more about inheritance</a>
+    </div>
+</div>
+
 ## Simplicity first
 
 TDBM is meant to be easy to use and non obtrusive.
@@ -103,6 +115,12 @@ TDBM is meant to be easy to use and non obtrusive.
 **Making simple tasks should be simple.** TDBM does not cover everything you can do with a complete ORM system. 
 But it makes as simple as possible those tasks you do 80% of the time. For the remaining 20% (like performance critical requests, and so on), you can use SQL.
 For instance, TDBM has a **unique feature that guesses jointures for you**. No need to write joins anymore!
+
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-sm-offset-3">
+        <a href="doc/quickstart.html#joins-ans-filters" class="btn btn-primary btn-large btn-block">Learn more about simple joins</a>
+    </div>
+</div>
 
 ## Based on Doctrine DBAL
 
@@ -112,13 +130,14 @@ TDBM uses the hugely popular Doctrine database abstraction layer for low level d
 
 There is no configuration needed for TDBM. TDBM needs a DBAL database connection and a Doctrine cache. That's it!
 
+## Framework agnostic
+
 Ready to dive in? Let's get started!
 
-- [Install TDBM](doc/install.md)
-- [Access the database, perform queries, inserts and updates](doc/quickstart.md)
-- [Add limit and offsets to your queries](doc/limit_offset_resultset.md)
-- [Regenerating DAOs and beans](doc/generating_daos.md)
-- [Modeling inheritance](doc/modeling_inheritance.md)
-- [Improving memory usage](doc/memory_management.md)
-- [A quick comparison with Doctrine](doc/comparison_with_doctrine.md)
-- [TDBM internals](doc/internals.md)
+TDBM is framework agnostic so can be used in **any PHP application**, but also comes with installation packages for **the most popular PHP frameworks** out there.
+
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-sm-offset-3">
+        <a href="doc/install.html" class="btn btn-primary btn-large btn-block">Install TDBM</a>
+    </div>
+</div>
