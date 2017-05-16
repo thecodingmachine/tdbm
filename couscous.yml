@@ -24,26 +24,37 @@ body:
 
 google_analytics: UA-10196481-4
 
-githubForkUrl: https://github.com/thecodingmachine/tdbm/blob/5.0/
+githubForkUrl: https://github.com/thecodingmachine/tdbm/blob/master/
 githubUrl: https://github.com/thecodingmachine/tdbm
 
 menu:
     items:
-        doc:
-            text: Documentation
         introduction:
             text: Introduction
             relativeUrl: index.html
             # Useful for active menu when we don't use the markdown metadata
             originalUrl: index.md
+        install_main:
+            text: Installation
         install:
-            text: Install TDBM
+            text: Installing TDBM
             relativeUrl: doc/install.html
+        install_laravel:
+            text: Install in Laravel
+            relativeUrl: doc/install_laravel.html
+        install_mouf:
+            text: Install in Mouf
+            relativeUrl: doc/install_mouf.html
+        manual_install:
+            text: Manual install
+            relativeUrl: doc/manual_install.html
+        getting_started_main:
+            text: Basics
         getting_started:
             text: Getting started
             relativeUrl: doc/quickstart.html
         limit_offset_resultset:
-            text: Add limit and offsets to your queries
+            text: Playing with result sets
             relativeUrl: doc/limit_offset_resultset.html
         generating_daos:
             text: About DAOs
@@ -62,9 +73,6 @@ menu:
         miscellaneous:
             text: Miscellaneous features
             relativeUrl: doc/miscellaneous.html
-        configuring:
-            text: Configuring TDBM
-            relativeUrl: doc/configuring.html
         memory_management:
             text: Memory management and batches processing
             relativeUrl: doc/memory_management.html

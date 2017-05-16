@@ -1,57 +1,40 @@
 ---
-title: Generating DAOs
+title: Generating DAOs and beans
 subTitle: 
 currentMenu: generating_daos
 ---
 
-Although TDBM can be used without generating DAOs, the easiest way to use it is to generate DAOs using Mouf.
-This feature will allow you to cleanly separate the database code (that you will put in DAOs) from the rest of your code.
+TDBM generates PHP files from your database model.
 
-Getting started
----------------
+<div class="alert alert-info">Each time your database model is modified, you must to regenerate those files.</div>
 
-###The *tdbmService* instance
+The way you generate DAOs and beans **depends on the framework you use**.
+ 
+<div class="row">
+    <div class="col-xs-12 col-sm-6">
+         <a href="install_laravel.html#generating-beans-and-daos" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in Laravel</strong></a>
+    </div>
+    <div class="col-xs-12 col-sm-6">
+         <a href="install_mouf.html#generating-daos-and-beans" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in Mouf</strong></a>
+    </div>
+</div>
 
-During installation, TDBM will generate a "tdbmService" instance.
+<br/>
 
-This instance is already configured, but should you need to modify the configuration, you need to know that
-a `TDBMService` must be connected to a database connection, and to a caching service.
+<div class="row">
+    <div class="col-xs-12 col-sm-6">
+         <a href="manual_install.html#generating-daos-and-beans" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in a manual install (no framework)</strong></a>
+    </div>
+</div>
 
-![](images/tdbm_service_instance.png)
+<br/>
 
-###Setting up the cache service
+<div class="alert alert-info">
+TDBM has a feature allowing you to access the database directly through the <code>TDBMService</code>, without generating DAOs or beans.
+This is mostly for testing purpose and is not recommended. Should you need it, you can check the <code>tests/TDBMServiceTest.php</code> file for usage samples.</div>
 
-By default, Doctrine's `ApcCache` service is used.
-TDBM requires a cache in order to store database related data. Indeed TDBM stores in cache the structure of the database,
-and relies heavily on declared foreign keys to perform the "smartest" queries. Instead of querying the database for those
-foreign keys, it will query them once, and put them in cache. This means that if you modify the database model, you will
-need to purge the TDBM cache.
-
-TDBM relies on Doctrine cache system. You are free to choose the best one amongst the Doctrine services
-implementing the `Cache` interface.
-
-Generating the DAOs
--------------------
-
-In this chapter, we will see how to generate DAOs and beans, using the `TDBM_Service` instance.
-This process is automatically done when you install the package, but should you modify the data model, you will need to 
-regenerate the DAOs.
-First, go to the "`tdbmService`" instance page (select it from the "View declared instances", or use the full-text search feature).
-
-On the right part of the screen, select the "Generate DAOs" link.
-
-![Generating DAOs](images/generate_daos.png)
-
-On this screen, you can choose the namespace that will contain the DAO classes, and the namespace that will contain the Beans. Also,
-a `DAOFactory` object (that allows easy access to each DAO) will be generated. Let's just keep the default settings and click the
-"Generate DAOs" button.
-
-That's it, we generated all the DAOs for our database. Let's have a closer look at what was generated.
-
-Note: if you are using Eclipse, we strongly recommend you to refresh your project, to load the new classes.
-
-The DAOs structure
-------------------
+The DAOs and beans structure
+----------------------------
 
 For each table in your database, TDBM will generate a DAO and a bean. The DAO is the object you will use to
 query the database. Each row of the database will be mapped to a bean object.
@@ -76,9 +59,7 @@ Let's now have a closer look at the methods that are available in the "UserDao" 
 - `public function getById($id, $lazyLoading = false)` : Get a `User` specified by its ID (its primary key)
 - `public function delete($obj, $cascade=false)` : Deletes the User passed in parameter. If `$cascade` is set to true, it will delete all objects linked to `$obj`.
 
-
 The last 2 functions are _protected_. It means they are designed to be used in the UserDao class.
-
 
 - `protected function find($filter=null, $parameters = [], $orderbyBag=null)` : returns a list of
   users based on a filter bag (see the `TDBM_Service` documentation to learn more about filter bags). You can also

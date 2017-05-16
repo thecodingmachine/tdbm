@@ -1,5 +1,5 @@
 ---
-title: Limits, offsets, order by and result sets
+title: Playing with result sets
 subTitle: 
 currentMenu: limit_offset_resultset
 ---
