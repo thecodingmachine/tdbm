@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en-US" prefix="og: http://ogp.me/ns#" class="no-js">
+<head>
+    <meta charset="utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title>A quick comparison with Doctrine ORM | TDBM</title>
+
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/dist/img/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/dist/img/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/dist/img/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/dist/img/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/dist/img/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/dist/img/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/dist/img/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/dist/img/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/dist/img/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/dist/img/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/dist/img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/dist/img/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/dist/img/favicon/favicon-16x16.png">
+
+    <link href="//fonts.googleapis.com/css?family=Roboto:400,700,300,500" rel="stylesheet" type="text/css">
+
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/dist/img/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <meta name="msapplication-TileColor" content="#f01d4f">
+    <meta name="msapplication-TileImage" content="//www.thecodingmachine.com/wp-content/themes/thecodingmachine/library/images/win8-tile-icon.png">
+
+    <script>
+        window.resourceBaseUrl = 'https://thecodingmachine.github.io/tdbm';
+    </script>
+
+    <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+    </style>
+
+    <link rel="stylesheet" type="text/css" href="https://thecodingmachine.github.io/tdbm/build/main.css">
+                
+
+    <link rel='stylesheet' id='font-awesome-css'  href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css' type='text/css' media='all' />
+    <link rel='stylesheet' id='google-roboto-css'  href='//fonts.googleapis.com/css?family=Roboto%3A100%2C400%2C300%2C400italic%2C500%2C700' type='text/css' media='all' />
+
+    <style>
+        pre.hljs {padding: 5px;}
+        pre.hljs code {}
+            </style>
+        <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-10196481-4', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+    </head>
+<body class="">
+
+<!-- Navigation -->
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <img class="img-responsive" src="https://thecodingmachine.github.io/tdbm/doc/images/logo.png" alt="" width="85px" style="position: absolute;">
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav text-left">
+                <li><a href="https://thecodingmachine.github.io/tdbm/">ABOUT</a></li>
+                                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/index.html">
+                                Introduction
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
+                                Install TDBM
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
+                                Getting started
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
+                                Add limit and offsets to your queries
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
+                                About DAOs
+                            </a>
+                        </li>
+                                                                                                                    <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/advanced.html">
+                                Advanced filtering
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/modeling_inheritance.html">
+                                Modeling inheritance
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/json_serialization.html">
+                                JSON serialization
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
+                                Miscellaneous features
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
+                                Configuring TDBM
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/memory_management.html">
+                                Memory management and batches processing
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring_naming.html">
+                                Configuring naming of beans and DAOs
+                            </a>
+                        </li>
+                                                                                <li class="active visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/comparison_with_doctrine.html">
+                                A quick comparison with Doctrine
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/migrating.html">
+                                Migrating
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/internals.html">
+                                TDBM internals
+                            </a>
+                        </li>
+                                                    <li><a href="http://www.thecodingmachine.com/">TheCodingMachine</a></li>
+                                <li><a href="https://github.com/thecodingmachine/tdbm"><img src="https://thecodingmachine.github.io/tdbm/img/GitHub-Mark-Light-20px.png" /> Github</a></li>
+                            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+<!-- Full Width Image Header with Logo -->
+<!-- Image backgrounds are set within the full-width-pics.css file. -->
+<div id="wrapper">
+    <a href="#menu-toggle" class="burger-position" id="menu-toggle" ><img src="https://thecodingmachine.github.io/tdbm/doc/images/hamburger.png"> </a>
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+                                                <li>
+                        <h4>Documentation</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/index.html">
+                            Introduction
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
+                            Install TDBM
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
+                            Getting started
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
+                            Add limit and offsets to your queries
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
+                            About DAOs
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Advanced</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/advanced.html">
+                            Advanced filtering
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/modeling_inheritance.html">
+                            Modeling inheritance
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/json_serialization.html">
+                            JSON serialization
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
+                            Miscellaneous features
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
+                            Configuring TDBM
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/memory_management.html">
+                            Memory management and batches processing
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring_naming.html">
+                            Configuring naming of beans and DAOs
+                        </a>
+                    </li>
+                                                                <li class="active">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/comparison_with_doctrine.html">
+                            A quick comparison with Doctrine
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/migrating.html">
+                            Migrating
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/internals.html">
+                            TDBM internals
+                        </a>
+                    </li>
+                                    </ul>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+        <header class="image-bg-fluid-height skew">
+            <div class="wrapper content">
+                <!-- /
+              <h4 class="glitch">DISCOVERY</h4>
+               -->
+            </div>
+
+        </header>
+        <div class="container pt100">
+            <div class="row">
+                <div class="col-xs-12">
+                    <h1>A quick comparison with Doctrine ORM <small></small></h1>                    <p>TDBM is built by <a href="http://www.thecodingmachine.com">TheCodingMachine</a>, a parisian web-shop. The first version was started
+in 2006 (!) and we use TDBM on a daily basis in our work since then. So in case you wonder, yes, it is production ready.</p>
+<p>There are other ORMs out there, the biggest one being Doctrine ORM. Actually, TDBM relies on Doctrine DBAL (the
+database abstraction layer), but it does not use the higher level modules of Doctrine ORM. The TheCodingMachine developers
+use both TDBM and Doctrine ORM on their day to day work. Here is a quick comparison of both products and what we do
+to choose which ORM we are going to use on a per-project basis.</p>
+<h2 id="model-based-vs-object-based-orm">Model based vs object based ORM</h2>
+<p>In TDBM, you start writing your database model, then TDBM generates beans (= entities) and DAOs (= repositories) for you.
+In Doctrine, instead, you start writing your classes and the database model is created from the PHP code (to be 100%
+accurate, Doctrine relies on a mapping between your objects and your database, but most of the users out there use the
+Doctrine annotations for writing this &quot;mapping&quot;, hence the PHP code first approach).</p>
+<p>TDBM approach is best for simpler apps with a relatively simple database model. It is obviously simpler to use when
+you are migrating an application with an existing database to TDBM.</p>
+<p>Doctrine approach is great for more complex applications. It is the way to go if you want to do DDD (domain driven
+design), since the objects are relatively independent from the ORM (unlike in TDBM or all other &quot;active records&quot; ORM
+where your objects have to extend from a class provided by the framework).</p>
+<h2 id="simplicity-vs-completion">Simplicity vs completion</h2>
+<p>TDBM comes with a number of tools to help you write queries very easily. In particular, it can guess the jointures
+between tables, so you don't have to care about those. This works very well with simple to moderately complex data
+models, and you will find that you can be extremely efficient writing queries with TDBM. However, TDBM deals poorly
+with database models that have &quot;loops&quot; in their model (like a hierarchical relationship where a foreign key
+in one table points on the same table). For those use cases, you should go back to plain SQL.</p>
+<p>Doctrine ORM on the other hand comes with a full query language (DQL). You can express almost any SQL queries in DQL,
+so it is clearly more powerful. Of course, you have to learn DQL first, so it is less simple...</p>
+
+                    <p class="fork-and-edit">
+                        Found a typo? Something is wrong in this documentation? Just
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/5.0/doc/comparison_with_doctrine.md">fork and edit it</a>!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+</div>
+<div class="footer">
+    <div class="container-fluid">
+        <footer class="row" id="footer">
+            <div class="col-xs-12">
+                Made with <span class="pulse2 glyphicon glyphicon-heart" style="color: red" aria-hidden="true"></span><span class="sr-only">love</span> by <a href="https://www.thecodingmachine.com/"><img src="https://thecodingmachine.github.io/tdbm/img/logo.png" alt="TheCodingMachine"></a> for all open-source lovers
+                <span class="copyright">&copy; 2016 - 2017 <a href="https://www.thecodingmachine.com/">TheCodingMachine</a> - All Rights Reserved</span>
+                Powered by <a href="http://couscous.io/">Couscous</a></span>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- /#wrapper -->
+<script type='text/javascript' src='https://thecodingmachine.github.io/tdbm/build/app.bundle.js'></script>
+<script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+</script>
+</body>
+</html>

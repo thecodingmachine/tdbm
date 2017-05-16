@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en-US" prefix="og: http://ogp.me/ns#" class="no-js">
+<head>
+    <meta charset="utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title>Advanced tutorial | TDBM</title>
+
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/dist/img/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/dist/img/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/dist/img/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/dist/img/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/dist/img/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/dist/img/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/dist/img/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/dist/img/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/dist/img/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/dist/img/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/dist/img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/dist/img/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/dist/img/favicon/favicon-16x16.png">
+
+    <link href="//fonts.googleapis.com/css?family=Roboto:400,700,300,500" rel="stylesheet" type="text/css">
+
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/dist/img/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <meta name="msapplication-TileColor" content="#f01d4f">
+    <meta name="msapplication-TileImage" content="//www.thecodingmachine.com/wp-content/themes/thecodingmachine/library/images/win8-tile-icon.png">
+
+    <script>
+        window.resourceBaseUrl = 'https://thecodingmachine.github.io/tdbm';
+    </script>
+
+    <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+    </style>
+
+    <link rel="stylesheet" type="text/css" href="https://thecodingmachine.github.io/tdbm/build/main.css">
+                
+
+    <link rel='stylesheet' id='font-awesome-css'  href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css' type='text/css' media='all' />
+    <link rel='stylesheet' id='google-roboto-css'  href='//fonts.googleapis.com/css?family=Roboto%3A100%2C400%2C300%2C400italic%2C500%2C700' type='text/css' media='all' />
+
+    <style>
+        pre.hljs {padding: 5px;}
+        pre.hljs code {}
+            </style>
+        <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-10196481-4', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+    </head>
+<body class="">
+
+<!-- Navigation -->
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <img class="img-responsive" src="https://thecodingmachine.github.io/tdbm/doc/images/logo.png" alt="" width="85px" style="position: absolute;">
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav text-left">
+                <li><a href="https://thecodingmachine.github.io/tdbm/">ABOUT</a></li>
+                                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/index.html">
+                                Introduction
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
+                                Install TDBM
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
+                                Getting started
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
+                                Add limit and offsets to your queries
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
+                                About DAOs
+                            </a>
+                        </li>
+                                                                                                                    <li class="active visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/advanced.html">
+                                Advanced filtering
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/modeling_inheritance.html">
+                                Modeling inheritance
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/json_serialization.html">
+                                JSON serialization
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
+                                Miscellaneous features
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
+                                Configuring TDBM
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/memory_management.html">
+                                Memory management and batches processing
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring_naming.html">
+                                Configuring naming of beans and DAOs
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/comparison_with_doctrine.html">
+                                A quick comparison with Doctrine
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/migrating.html">
+                                Migrating
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/internals.html">
+                                TDBM internals
+                            </a>
+                        </li>
+                                                    <li><a href="http://www.thecodingmachine.com/">TheCodingMachine</a></li>
+                                <li><a href="https://github.com/thecodingmachine/tdbm"><img src="https://thecodingmachine.github.io/tdbm/img/GitHub-Mark-Light-20px.png" /> Github</a></li>
+                            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+<!-- Full Width Image Header with Logo -->
+<!-- Image backgrounds are set within the full-width-pics.css file. -->
+<div id="wrapper">
+    <a href="#menu-toggle" class="burger-position" id="menu-toggle" ><img src="https://thecodingmachine.github.io/tdbm/doc/images/hamburger.png"> </a>
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+                                                <li>
+                        <h4>Documentation</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/index.html">
+                            Introduction
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
+                            Install TDBM
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
+                            Getting started
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
+                            Add limit and offsets to your queries
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
+                            About DAOs
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Advanced</h4>
+                    </li>
+                                                                <li class="active">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/advanced.html">
+                            Advanced filtering
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/modeling_inheritance.html">
+                            Modeling inheritance
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/json_serialization.html">
+                            JSON serialization
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
+                            Miscellaneous features
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
+                            Configuring TDBM
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/memory_management.html">
+                            Memory management and batches processing
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring_naming.html">
+                            Configuring naming of beans and DAOs
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/comparison_with_doctrine.html">
+                            A quick comparison with Doctrine
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/migrating.html">
+                            Migrating
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/internals.html">
+                            TDBM internals
+                        </a>
+                    </li>
+                                    </ul>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+        <header class="image-bg-fluid-height skew">
+            <div class="wrapper content">
+                <!-- /
+              <h4 class="glitch">DISCOVERY</h4>
+               -->
+            </div>
+
+        </header>
+        <div class="container pt100">
+            <div class="row">
+                <div class="col-xs-12">
+                    <h1>Advanced tutorial <small></small></h1>                    <h2 id="todo-this-documentation-is-outdated-and-needs-some-work">TODO: this documentation is outdated and needs some work</h2>
+<p>In this advanced tutorial, we will learn how to use the <code>find</code> method in details, and see the behaviour of TDBM with more complex data model.
+If you are new to TDBM, you should start with the <a href="quickstart.html">quickstart guide</a>.</p>
+<h2 id="making-complex-queries-the-find-method">Making complex queries: the find method</h2>
+<p>Complex queries with filters and ordering is achieved in TDBM through the <code>xxxDao::find</code> protected method.</p>
+<pre><code class="language-php">protected function find($filter = null, array $parameters = [], $orderBy=null, array $additionalTablesFetch = [], $mode = null) : iterable;</code></pre>
+<p>The <code>find</code> method should be the preferred way to perform queries in TDBM.  (Note: if you want to query the database for an object by its primary key, use the <code>getById</code> method).
+The <code>find</code> method takes in parameter: </p>
+<ul>
+<li>filter (optional): The filter bag is anything that you can use to filter your request. It can be a SQL Where clause,  an associative array of keys (column names) =&gt; values (values to filter), or even <code>TDBMObjects</code> that you will use as filters.</li>
+<li>parameters (optional): An associative array of values to feed in the query.</li>
+<li>orderBy (optional): The order bag is what you use to order the results of your request. It can be a SQL OrderBy clause, a series of <code>OrderByColumn</code> objects or an array containing both.</li>
+<li>TODO: continue here</li>
+</ul>
+<p>The <code>find</code> method will return an array (or a generator dependenging on the fetch mode used).</p>
+<h3 id="more-about-the-filter-bag">More about the filter bag</h3>
+<p>A filter is anything that can change the set of objects returned by <code>find</code>.
+There are many kind of filters in TDBM: A filter can be: </p>
+<ul>
+<li>
+<p>A SQL WHERE clause:</p>
+<p>The clause is specified without the &quot;WHERE&quot; keyword. For instance:</p>
+<pre><code class="language-php">$filter = "users.first_name LIKE 'J%'";</code></pre>
+<p>is a valid filter. </p>
+<p>The only difference with SQL is that when you specify a column name, it should always be fully qualified with the table
+name: <code>country_name='France'</code> is not valid, while <code>countries.country_name='France'</code> is valid
+(if <code>countries</code> is a table and <code>country_name</code> a column in that table, sure.  </p>
+<p>For instance,</p>
+<pre><code class="language-php">class UserDao extends AbstractUserDao {
+  public function getUsersByCountryName($countryName) {
+      return $this-&gt;find("countries.country_name='".addslashes($countryName)."'");
+  }
+}</code></pre>
+<p>will return all the users that are French (based on trhe assumption that TDBM can find a way to connect the users
+table to the country table using foreign keys, see the manual for that point). </p>
+</li>
+<li>
+<p>Any bean (extending the <code>AbstractTDBMObject</code> class):</p>
+<p>An object can be used as a filter.
+For instance, we could get the France object and then find any users related to that object using:</p>
+<pre><code class="language-php">class UserDao extends AbstractUserDao {
+  public function getUsersByCountry(Country $country) {
+      return $this-&gt;find($country);
+  }
+}</code></pre>
+</li>
+<li>
+<p>A <code>DBM_ObjectArray</code> can be used as a filter too.</p>
+<pre><code class="language-php">class UserDao extends AbstractUserDao {
+  /**
+   * @param Country[] $country
+   * @return User[]
+   */
+  public function getUsersByCountries(array $countries) {
+      return $this-&gt;find($countries);
+  }
+}</code></pre>
+<p>This sample will return all the groups in which french users can be found.</p>
+</li>
+<li>
+<p>Finally,<code>xxxFilter</code> instances can be used.
+TDBM provides the developer a set of xxxFilters that can be used to model a SQL Where query.
+Using the appropriate filter object, you can model the operations:</p>
+<ul>
+<li><strong>=</strong> using <code>EqualFilter</code></li>
+<li><strong>&lt;</strong> using <code>LessFilter</code></li>
+<li><strong>&lt;=</strong> using <code>LessOrEqualFilter</code></li>
+<li><strong>&gt;</strong> using <code>GreaterFilter</code></li>
+<li><strong>&gt;=</strong> using <code>GreaterOrEqualFilter</code></li>
+<li><strong>IN</strong> using <code>InFilter</code></li>
+<li><strong>LIKE</strong> using <code>LikeFilter</code></li>
+<li><strong>AND</strong> using <code>AndFilter</code></li>
+<li><strong>OR</strong> using <code>OrFilter</code></li>
+<li><strong>IS NULL</strong> using <code>EqualFilter</code> passing <code>null</code> as the value</li>
+<li><strong>NOT</strong> using <code>NotFilter</code>.</li>
+</ul>
+<p>For instance:</p>
+<pre><code class="language-php">use TheCodingMachine\TDBM\Filters\EqualFilter;
+use TheCodingMachine\TDBM\Filters\GreaterFilter;
+use TheCodingMachine\TDBM\Filters\OrFilter;
+use TheCodingMachine\TDBM\Filters\LikeFilter;
+
+class UserDao extends AbstractUserDao {
+  public function getUsersByCountryName($countryName) {
+      // Let's search users based on country name.
+      // Notice how we do can refer to a column of the 'countries' table without
+      // specifying the joins
+      // TDBM will use the most obvious ones (i.e. the shortest route)
+      return $this-&gt;find(new EqualFilter('countries','country_name',$countryName));
+  }
+
+  public function getUsersCreatedThisYear() {
+      return $this-&gt;find(new GreaterFilter('users','create_date',date('Y-m-d'));
+  }
+
+  public function getUsersByName($name) {
+      // Let's search on the first name or last name:
+      return $this-&gt;find(new OrFilter(
+          new LikeFilter('users', 'first_name', '%'.$name.'%'),
+          new LikeFilter('users', 'last_name', '%'.$name.'%')
+      ));
+  }
+}</code></pre>
+<p>Refer to the documentation of the appropriate filters for more information.</p>
+<p>The nice thing about a filter bag is that it can be any filter, or any array of filters.
+In that case, filters are  'ANDed' together.  So a request like this is valid:</p>
+<pre><code class="language-php">class UserDao extends AbstractUserDao {
+  public function getAdministratorsByCountry(Country $country) {
+      // Returns the users who have a administrator role and are linked to $country
+      return $this-&gt;find(array(
+          $country,
+          new EqualFilter('role', 'role_name', 'Administrator')
+      ));
+  }
+}</code></pre>
+</li>
+</ul>
+<p>Finally, if <code>$filter_bag</code> is null, the whole table is returned.</p>
+<h3 id="more-about-the-order-bag">More about the order bag</h3>
+<p>The order bag contains anything that can be used to order the data that is passed back to you.
+The order bag can contain two kinds of objects: </p>
+<ul>
+<li>
+<p>A SQL ORDER BY clause:
+The clause is specified without the &quot;ORDER BY&quot; keyword. For instance:</p>
+<pre><code class="language-php">$orderby = "users.last_name ASC, users.first_name ASC";</code></pre>
+<p>The only difference with SQL is that when you specify a column name, it should always be fully qualified with the table name: <code>&quot;country_name ASC&quot;</code> is not valid, while <code>"countries.country_name ASC"</code> is valid (if &quot;countries&quot; is a table and &quot;country_name&quot; a column in that table, sure).</p>
+<pre><code class="language-php">$users = $this-&gt;find(null, "countries.country_name ASC");</code></pre>
+<p>This will return all the users sorted by country.</p>
+</li>
+<li>
+<p>A <code>OrderByColumn</code> object.
+This object models a single column in a database.</p>
+<pre><code class="language-php">class CountryDao extends AbstractCountryDao {
+  public function getListByAlphabeticalOrder() {
+      return $this-&gt;find(null, new OrderByColumn("country", "country_name", "ASC");
+  }
+}</code></pre>
+</li>
+</ul>
+<h2 id="about-ambiguity">About ambiguity</h2>
+<p>In the samples of the quick start guide, everything happens to be fine because the object model is quite simple. In 80% of the cases you will encounter, you will be able to stick to the access model presented in the quick start guide. There are, however, cases where there could be several ways to join two tables, as shown below.</p>
+<img src="images/schema2.png" alt="database schema"/>
+<p>In the example above, we added a company table. A company is attached to a country. A user is attached to a company, and still, a user is attached to a country (for instance, its birth place). Therefore, a user can be attached to a country that is different from the country of its company.</p>
+<p>Now, what if we write this piece of code:</p>
+<pre class="brush:php">$user = $userDao-&gt;getUserById(1);
+$country = $user-&gt;getCountry();
+echo $country-&gt;getName();</pre>
+<p>Will we get the country of user 1 (UK) or will we get the country of the company for which user 1 is working for (France)? The code above is to some extent ambiguous. How will TDBM decide?
+The answer lies in the first design choice of TDBM: <em>Simplicity</em>. TDBM will choose the simplest way to go because it is likely that this is what the developer meant. Here, obiously, the developer certainly meant that he wanted the country of the user, so this is what he will get.
+For TDBM, the simplest way is the way that requires the less joins between tables to get to the result.</p>
+<p>This rule works for most of the problems you will encounter. However, there are still cases where ambiguity can happen, and cannot be resolved by TDBM. Have a look at the schema below:</p>
+<img src="images/schema3.png" alt="database schema"/>
+<p>In this schema, a user is linked to 2 countries. One is its birth country and one is the country he works in. Here, TDBM cannot make any decision... If the user writes</p>
+<pre><code class="language-php">$country = $user-&gt;getCountry();&lt;/code&gt;</code></pre>
+<p>there is no way to know if it more likely that he wanted the birth country or the work country. So TDBM will throw an ambiguity exception. This exception will inform the user that its request is ambiguous and that he should solve it. Below is the exception the user will get:</p>
+<pre><code>Uncaught exception 'AmbiguityException' with message 'An ambiguity has been found during the search. Please catch this exception and execute the $exception-&amp;gt;explainAmbiguity() to get a nice graphical view of what you should do to solve this ambiguity.The table 'users' can be reached using several different ways from the table 'countries'.
+
+Solution 1:
+Table 'countries' is pointed by 'users' through its foreign key 'birth_country_id'
+
+Solution 2:
+Table 'countries' is pointed by 'users' through its foreign key 'work_country_id'</code></pre>
+<p>This exception message is quite clear on the ambiguity. However, on big data models, the message might get long enough, with a lot of possible ambiguities. TDBM offers you a nice graphical view of ambiguities (if you are in an HTML page, which is likely since we are using PHP). For this, just follow the steps in the exception message. It informs us that we should catch the exception and use the <code>$exception-&gt;explainAmbiguity();</code> function. Let's do that.</p>
+<pre><code class="language-php">$user = $tdbmService-&gt;getObject('users',1);
+try {
+    $country = $user-&gt;get_countries();
+} catch (AmbiguityException $ex) {
+    $ex-&gt;explainAmbiguity();
+}</code></pre>
+<p>By running the code, we get this display in our browser:</p>
+<img src="images/ambiguity_screenshot.png" />
+<p>We get a graphical view of the ambiguity. TDBM also proposes you a way of sorting this ambiguity.</p>
+
+                    <p class="fork-and-edit">
+                        Found a typo? Something is wrong in this documentation? Just
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/5.0/doc/advanced.md">fork and edit it</a>!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+</div>
+<div class="footer">
+    <div class="container-fluid">
+        <footer class="row" id="footer">
+            <div class="col-xs-12">
+                Made with <span class="pulse2 glyphicon glyphicon-heart" style="color: red" aria-hidden="true"></span><span class="sr-only">love</span> by <a href="https://www.thecodingmachine.com/"><img src="https://thecodingmachine.github.io/tdbm/img/logo.png" alt="TheCodingMachine"></a> for all open-source lovers
+                <span class="copyright">&copy; 2016 - 2017 <a href="https://www.thecodingmachine.com/">TheCodingMachine</a> - All Rights Reserved</span>
+                Powered by <a href="http://couscous.io/">Couscous</a></span>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- /#wrapper -->
+<script type='text/javascript' src='https://thecodingmachine.github.io/tdbm/build/app.bundle.js'></script>
+<script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+</script>
+</body>
+</html>

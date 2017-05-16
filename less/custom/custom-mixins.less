@@ -1,0 +1,105 @@
+// clearfix
+.clearfix (){
+	&:after {
+		content: " ";
+		display: block;
+		clear: both;
+	}
+}
+
+// reset for list
+.listreset (){
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+// hide text
+.hide-text (){
+	overflow:hidden;
+	text-indent:-9999px;
+}
+
+// position
+.position () {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+}
+
+// Sizing shortcuts
+.size(@width; @height) {
+	width: @width;
+	height: @height;
+}
+.square(@size) {
+	.size(@size; @size);
+}
+
+// box sizing
+.box-sizing () {
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+}
+
+// placeholder
+/*.placeholder(@color: @base-form-placeholder-color){
+	&::-webkit-input-placeholder {
+		color: @color;
+	}
+	&:-moz-placeholder {
+		color: @color;
+		opacity:1;
+	}
+	&::-moz-placeholder {
+		color: @color;
+		opacity:1;
+	}
+	&:-ms-input-placeholder {
+		color: @color;
+	}
+}*/
+
+// box shadow
+.box-shadow (@string) {
+	-webkit-box-shadow:	@string;
+	-moz-box-shadow:	@string;
+	box-shadow:			@string;
+}
+
+// opacity
+.opacity (@opacity: 0.9) {
+	-webkit-opacity: 	@opacity;
+	-moz-opacity: 		@opacity;
+	opacity: 			@opacity;
+}
+
+// transition
+.transition (@name, @time, @effect) {
+	-webkit-transition: @name, @time, @effect;  
+	-moz-transition:    @name, @time, @effect;
+	-ms-transition:     @name, @time, @effect; 
+	-o-transition:      @name, @time, @effect;
+	transition: @name, @time, @effect;
+}
+
+// font face
+.fontface (@fontfamily, @filename, @font-weight, @font-style) {
+	font-family: '@{fontfamily}';
+	src: url('../fonts/@{filename}.eot');
+	src: url('../fonts/@{filename}.eot?#iefix') format('embedded-opentype'),
+		 url('../fonts/@{filename}.woff') format('woff'),
+		 url('../fonts/@{filename}.ttf') format('truetype'),
+		 url('../fonts/@{filename}.svg#@{filename}') format('svg');
+	font-weight: @font-weight;
+  	font-style: @font-style;
+}
+
+// alignment 
+.alignment(@alignment : top) {
+	display:inline-block;
+	vertical-align:@alignment;
+}

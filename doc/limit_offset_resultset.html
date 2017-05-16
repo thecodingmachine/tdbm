@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en-US" prefix="og: http://ogp.me/ns#" class="no-js">
+<head>
+    <meta charset="utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title>Limits, offsets, order by and result sets | TDBM</title>
+
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/dist/img/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/dist/img/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/dist/img/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/dist/img/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/dist/img/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/dist/img/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/dist/img/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/dist/img/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/dist/img/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/dist/img/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/dist/img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/dist/img/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/dist/img/favicon/favicon-16x16.png">
+
+    <link href="//fonts.googleapis.com/css?family=Roboto:400,700,300,500" rel="stylesheet" type="text/css">
+
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/dist/img/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <meta name="msapplication-TileColor" content="#f01d4f">
+    <meta name="msapplication-TileImage" content="//www.thecodingmachine.com/wp-content/themes/thecodingmachine/library/images/win8-tile-icon.png">
+
+    <script>
+        window.resourceBaseUrl = 'https://thecodingmachine.github.io/tdbm';
+    </script>
+
+    <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+    </style>
+
+    <link rel="stylesheet" type="text/css" href="https://thecodingmachine.github.io/tdbm/build/main.css">
+                
+
+    <link rel='stylesheet' id='font-awesome-css'  href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css' type='text/css' media='all' />
+    <link rel='stylesheet' id='google-roboto-css'  href='//fonts.googleapis.com/css?family=Roboto%3A100%2C400%2C300%2C400italic%2C500%2C700' type='text/css' media='all' />
+
+    <style>
+        pre.hljs {padding: 5px;}
+        pre.hljs code {}
+            </style>
+        <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-10196481-4', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+    </head>
+<body class="">
+
+<!-- Navigation -->
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <img class="img-responsive" src="https://thecodingmachine.github.io/tdbm/doc/images/logo.png" alt="" width="85px" style="position: absolute;">
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav text-left">
+                <li><a href="https://thecodingmachine.github.io/tdbm/">ABOUT</a></li>
+                                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/index.html">
+                                Introduction
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
+                                Install TDBM
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
+                                Getting started
+                            </a>
+                        </li>
+                                                                                <li class="active visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
+                                Add limit and offsets to your queries
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
+                                About DAOs
+                            </a>
+                        </li>
+                                                                                                                    <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/advanced.html">
+                                Advanced filtering
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/modeling_inheritance.html">
+                                Modeling inheritance
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/json_serialization.html">
+                                JSON serialization
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
+                                Miscellaneous features
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
+                                Configuring TDBM
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/memory_management.html">
+                                Memory management and batches processing
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring_naming.html">
+                                Configuring naming of beans and DAOs
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/comparison_with_doctrine.html">
+                                A quick comparison with Doctrine
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/migrating.html">
+                                Migrating
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/internals.html">
+                                TDBM internals
+                            </a>
+                        </li>
+                                                    <li><a href="http://www.thecodingmachine.com/">TheCodingMachine</a></li>
+                                <li><a href="https://github.com/thecodingmachine/tdbm"><img src="https://thecodingmachine.github.io/tdbm/img/GitHub-Mark-Light-20px.png" /> Github</a></li>
+                            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+<!-- Full Width Image Header with Logo -->
+<!-- Image backgrounds are set within the full-width-pics.css file. -->
+<div id="wrapper">
+    <a href="#menu-toggle" class="burger-position" id="menu-toggle" ><img src="https://thecodingmachine.github.io/tdbm/doc/images/hamburger.png"> </a>
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+                                                <li>
+                        <h4>Documentation</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/index.html">
+                            Introduction
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
+                            Install TDBM
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
+                            Getting started
+                        </a>
+                    </li>
+                                                                <li class="active">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
+                            Add limit and offsets to your queries
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
+                            About DAOs
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Advanced</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/advanced.html">
+                            Advanced filtering
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/modeling_inheritance.html">
+                            Modeling inheritance
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/json_serialization.html">
+                            JSON serialization
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
+                            Miscellaneous features
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
+                            Configuring TDBM
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/memory_management.html">
+                            Memory management and batches processing
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring_naming.html">
+                            Configuring naming of beans and DAOs
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/comparison_with_doctrine.html">
+                            A quick comparison with Doctrine
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/migrating.html">
+                            Migrating
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/internals.html">
+                            TDBM internals
+                        </a>
+                    </li>
+                                    </ul>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+        <header class="image-bg-fluid-height skew">
+            <div class="wrapper content">
+                <!-- /
+              <h4 class="glitch">DISCOVERY</h4>
+               -->
+            </div>
+
+        </header>
+        <div class="container pt100">
+            <div class="row">
+                <div class="col-xs-12">
+                    <h1>Limits, offsets, order by and result sets <small></small></h1>                    <h2 id="paginating-data-with-limits-and-offsets">Paginating data with limits and offsets</h2>
+<p>When you perform a query with TDBM, you never pass the limit or offset to the DAO method you are querying.</p>
+<pre><code class="language-php">$users = $userDao-&gt;findAll();
+
+// Iterate all users
+foreach ($users as $user) {
+    // Do stuff...
+}</code></pre>
+<p>If you want to limit the number of records returned, or start at a given offset, you can use the <code>take</code> method.</p>
+<pre><code class="language-php">$users = $userDao-&gt;findAll();
+
+$page = $users-&gt;take(0, 10);
+
+// Iterate only the first 10 records
+foreach ($page as $user) {
+    // Do stuff...
+}</code></pre>
+<p>What is going on behind the scene? When you query a TDBM DAO for a list, instead of returning an array containing the
+results, TDBM will return a <code>ResultIterator</code> object. This object behaves like an array, so you can call <code>foreach</code> on it.
+It is important to understand that the SQL query is not actually performed until <code>foreach</code> is called! This is
+actually a nice thing, since we can call additional methods afterwards to modify the query. Like the <code>take</code> method.</p>
+<h2 id="sorting">Sorting</h2>
+<p>We can also modify the sorting of your result set using the <code>withOrder</code> method:</p>
+<pre><code class="language-php">$users = $userDao-&gt;findAll();
+
+// Changes the order of the query.
+// Warning, this returns a new ResultIterator object!
+$users = $users-&gt;withOrder('name asc, firstname asc');
+
+foreach ($users as $user) {
+    // Do stuff...
+}</code></pre>
+<h2 id="parameters">Parameters</h2>
+<p>We can modify the named parameters of a query with the <code>withParameters</code> method:</p>
+<pre><code class="language-php">$users = $this-&gt;find("login LIKE :login");
+
+// Changes the parameters of the query.
+// Warning, this returns a new ResultIterator object!
+$users = $users-&gt;withParameters([ 'login' =&gt; 'david%' ]);
+
+foreach ($users as $user) {
+    // Do stuff...
+}</code></pre>
+<h2 id="resultiterator-utility-methods">ResultIterator utility methods</h2>
+<p>Here is a list of the methods you can call on a <code>ResultIterator</code>:</p>
+<ul>
+<li><code>take($offset, $limit)</code>: this will add an OFFSET and a LIMIT to the query performed. The <code>take</code> method returns a
+<code>PageIterator</code> instance that represents the &quot;limited&quot; results.</li>
+<li><code>count()</code>: will return the total count of records.</li>
+<li><code>first()</code>: will return the first element of the result set.</li>
+<li><code>toArray()</code>: will cast the <code>ResultIterator</code> into a plain old PHP array.</li>
+<li><code>map(callable $callback)</code>: will call the <code>$callback</code> on every bean of the recordset and return the matching array.</li>
+<li><code>withOrder($orderBy) : ResultIterator</code>: changes the ORDER BY clause of your query (returns a <strong>new</strong> ResultIterator)</li>
+<li><code>withParameters($parameters) : ResultIterator</code>: changes the named parameters of your query (returns a <strong>new</strong> ResultIterator)</li>
+</ul>
+<p>Pages (retrieved with the <code>take</code> method) also have additional methods you can call:</p>
+<ul>
+<li><code>count()</code>: will return the count of records in the page</li>
+<li><code>totalCount()</code>: will return the total count of records (bypassing the limit and offset)</li>
+<li><code>getCurrentOffset()</code>: returns the offset</li>
+<li><code>getCurrentLimit()</code>: returns the limit</li>
+<li><code>getCurrentPage()</code>: returns the page number (starting at one and based on the limit and offset given)</li>
+<li><code>toArray()</code>: will cast the <code>PageIterator</code> into a plain old PHP array.</li>
+<li><code>map(callable $callback)</code>: will call the <code>$callback</code> on every bean of the page and return the matching array.</li>
+</ul>
+<h2 id="implements-porpiginas">Implements Porpiginas</h2>
+<p>If you are already familiar with <a href="https://github.com/beberlei/porpaginas">beberlei/porpaginas</a>, you probably noticed
+that TDBM result sets implement Porpaginas interfaces (the <code>Result</code> and <code>Page</code> concept comes from Porpaginas).</p>
+<p>This means that you can easily migrate to and from any ORM that uses Porpaginas for its results. You can also
+use any pagination library compatible with Porpaginas, like Pagerfanta.</p>
+<h2 id="next-step">Next step</h2>
+<p>Let's now learn how to <a href="generating_daos.html">regenerate DAOs</a> when your data model changes.
+Or if you want to have a look at advanced stuff, learn how to <a href="modeling_inheritance.html">model inheritance in your database</a>.</p>
+
+                    <p class="fork-and-edit">
+                        Found a typo? Something is wrong in this documentation? Just
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/5.0/doc/limit_offset_resultset.md">fork and edit it</a>!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+</div>
+<div class="footer">
+    <div class="container-fluid">
+        <footer class="row" id="footer">
+            <div class="col-xs-12">
+                Made with <span class="pulse2 glyphicon glyphicon-heart" style="color: red" aria-hidden="true"></span><span class="sr-only">love</span> by <a href="https://www.thecodingmachine.com/"><img src="https://thecodingmachine.github.io/tdbm/img/logo.png" alt="TheCodingMachine"></a> for all open-source lovers
+                <span class="copyright">&copy; 2016 - 2017 <a href="https://www.thecodingmachine.com/">TheCodingMachine</a> - All Rights Reserved</span>
+                Powered by <a href="http://couscous.io/">Couscous</a></span>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- /#wrapper -->
+<script type='text/javascript' src='https://thecodingmachine.github.io/tdbm/build/app.bundle.js'></script>
+<script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+</script>
+</body>
+</html>

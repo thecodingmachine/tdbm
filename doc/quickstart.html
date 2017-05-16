@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en-US" prefix="og: http://ogp.me/ns#" class="no-js">
+<head>
+    <meta charset="utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title>Quick start guide | TDBM</title>
+
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/dist/img/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/dist/img/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/dist/img/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/dist/img/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/dist/img/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/dist/img/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/dist/img/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/dist/img/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/dist/img/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/dist/img/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/dist/img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/dist/img/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/dist/img/favicon/favicon-16x16.png">
+
+    <link href="//fonts.googleapis.com/css?family=Roboto:400,700,300,500" rel="stylesheet" type="text/css">
+
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/dist/img/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <meta name="msapplication-TileColor" content="#f01d4f">
+    <meta name="msapplication-TileImage" content="//www.thecodingmachine.com/wp-content/themes/thecodingmachine/library/images/win8-tile-icon.png">
+
+    <script>
+        window.resourceBaseUrl = 'https://thecodingmachine.github.io/tdbm';
+    </script>
+
+    <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+    </style>
+
+    <link rel="stylesheet" type="text/css" href="https://thecodingmachine.github.io/tdbm/build/main.css">
+                
+
+    <link rel='stylesheet' id='font-awesome-css'  href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css' type='text/css' media='all' />
+    <link rel='stylesheet' id='google-roboto-css'  href='//fonts.googleapis.com/css?family=Roboto%3A100%2C400%2C300%2C400italic%2C500%2C700' type='text/css' media='all' />
+
+    <style>
+        pre.hljs {padding: 5px;}
+        pre.hljs code {}
+            </style>
+        <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-10196481-4', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+    </head>
+<body class="">
+
+<!-- Navigation -->
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <img class="img-responsive" src="https://thecodingmachine.github.io/tdbm/doc/images/logo.png" alt="" width="85px" style="position: absolute;">
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav text-left">
+                <li><a href="https://thecodingmachine.github.io/tdbm/">ABOUT</a></li>
+                                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/index.html">
+                                Introduction
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
+                                Install TDBM
+                            </a>
+                        </li>
+                                                                                <li class="active visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
+                                Getting started
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
+                                Add limit and offsets to your queries
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
+                                About DAOs
+                            </a>
+                        </li>
+                                                                                                                    <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/advanced.html">
+                                Advanced filtering
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/modeling_inheritance.html">
+                                Modeling inheritance
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/json_serialization.html">
+                                JSON serialization
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
+                                Miscellaneous features
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
+                                Configuring TDBM
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/memory_management.html">
+                                Memory management and batches processing
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring_naming.html">
+                                Configuring naming of beans and DAOs
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/comparison_with_doctrine.html">
+                                A quick comparison with Doctrine
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/migrating.html">
+                                Migrating
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/internals.html">
+                                TDBM internals
+                            </a>
+                        </li>
+                                                    <li><a href="http://www.thecodingmachine.com/">TheCodingMachine</a></li>
+                                <li><a href="https://github.com/thecodingmachine/tdbm"><img src="https://thecodingmachine.github.io/tdbm/img/GitHub-Mark-Light-20px.png" /> Github</a></li>
+                            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+<!-- Full Width Image Header with Logo -->
+<!-- Image backgrounds are set within the full-width-pics.css file. -->
+<div id="wrapper">
+    <a href="#menu-toggle" class="burger-position" id="menu-toggle" ><img src="https://thecodingmachine.github.io/tdbm/doc/images/hamburger.png"> </a>
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+                                                <li>
+                        <h4>Documentation</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/index.html">
+                            Introduction
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
+                            Install TDBM
+                        </a>
+                    </li>
+                                                                <li class="active">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
+                            Getting started
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
+                            Add limit and offsets to your queries
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
+                            About DAOs
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Advanced</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/advanced.html">
+                            Advanced filtering
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/modeling_inheritance.html">
+                            Modeling inheritance
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/json_serialization.html">
+                            JSON serialization
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
+                            Miscellaneous features
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
+                            Configuring TDBM
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/memory_management.html">
+                            Memory management and batches processing
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring_naming.html">
+                            Configuring naming of beans and DAOs
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/comparison_with_doctrine.html">
+                            A quick comparison with Doctrine
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/migrating.html">
+                            Migrating
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/internals.html">
+                            TDBM internals
+                        </a>
+                    </li>
+                                    </ul>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+        <header class="image-bg-fluid-height skew">
+            <div class="wrapper content">
+                <!-- /
+              <h4 class="glitch">DISCOVERY</h4>
+               -->
+            </div>
+
+        </header>
+        <div class="container pt100">
+            <div class="row">
+                <div class="col-xs-12">
+                    <h1>Quick start guide <small></small></h1>                    <p>In this quick start guide, we will see how you can use TDBM to query, read and write data to your database
+We will assume that you successfully installed TDBM into your favorite framework, and therefore, that TDBM is connected
+to your database and that the <a href="generating_daos.html">TDBM DAOs and beans have been generated</a>.</p>
+<h2 id="our-playground-data-model">Our playground data model</h2>
+<p>For this tutorial, let's assume a very classic database schema for handling users.</p>
+<ul>
+<li>We have users. Users can be part of several groups, and obviously, a group can contain several users.</li>
+<li>A group has a name.</li>
+<li>A user has a name and is part of a country.</li>
+</ul>
+<p><img src="images/schema1.png" alt="Database schema" /></p>
+<h2 id="daos-and-beans">DAOs and beans</h2>
+<p>When you installed TDBM, you spent some time configuring a connection to your database and then, you generated the DAOs and beans.</p>
+<p>DAOs are &quot;Data Access Objects&quot;. DAOs are classes that will help you access
+the objects in your database. There is roughly <strong>one DAO per table in your database</strong>. Each DAO will return &quot;beans&quot;. Each row in your database
+will be represented by one instance of a bean.</p>
+<p>Each time your database model changes (if you add a new table, a new column, an index or a foreign key...), you will need to regenerate those DAOs and beans.</p>
+<h2 id="usage-sample">Usage sample</h2>
+<p>Let's now review a few samples:</p>
+<h3 id="creating-a-new-row-in-the-quotusersquot-table">Creating a new row in the &quot;users&quot; table:</h3>
+<pre><code class="language-php">// Create a new bean
+// By default, you MUST pass to the bean constructor the list of all columns that are not nullable.
+$user = new User("myName");
+
+// Fill the remaining (nullable) columns of the bean using the setters
+$user-&gt;setPassword(password_hash("myPassword", PASSWORD_DEFAULT));
+$user-&gt;setMail("me@mail.com");
+// Any date should be passed as a PHP DateTime or DateTimeImmutable
+$user-&gt;setCreateDate(new DateTimeImmutable());
+
+// Finally, let's save this bean.
+// For this, we need an instance of the DAO.
+// The $userDao will be typically returned by the container of your application.
+$userDao-&gt;save($user);</code></pre>
+<p>Since we have a &quot;users&quot; table, TDBM generated
+a <code>UserDao</code> class and a <code>User</code> class. <code>UserDao</code> can be used to create/update/delete/search any
+user.</p>
+<p>You can also notice that the &quot;save()&quot; method is called on the <code>UserDao</code>, not on the <code>User</code>.</p>
+<h3 id="retrieving-a-user-bean-by-its-primary-key">Retrieving a user bean by its primary key:</h3>
+<pre><code class="language-php">// Let's get the bean
+$user = $userDao-&gt;getById(42);
+
+// Let's display the name
+echo $user-&gt;getName();</code></pre>
+<p>TDBM will automatically detect the primary key of your table (of course, your table must have a primary key). There is
+no name convention to respect, your primary key column can be named anything ('id', 'userid', 'iduser', ...)</p>
+<p>To use this method, the primary key must be on a single column. If your primary key is on several columns, you can still use the
+search method (see below).</p>
+<h3 id="querying-the-database">Querying the database</h3>
+<p>Now, what about getting the list of all users and displaying their name?</p>
+<p>Ok, that's easy, just use the <code>findAll()</code> method!</p>
+<pre><code class="language-php">// Let's get the list of users
+$userList = $userDao-&gt;findAll();
+
+// Let's display the names
+foreach ($userList as $user) {
+    /* @var $user User */
+    echo $user-&gt;getName()."&lt;br/&gt;";
+}</code></pre>
+<p>In our example, we would see</p>
+<pre><code>John Doe
+Jean Dupont
+Robert Marley
+Bill Shakespeare</code></pre>
+<p>The <code>findAll</code> method will return the list of beans.
+Of course, most of the time, you don't want all the rows in a database.
+You want to perform a query with filters.</p>
+<h3 id="querying-the-database-on-indexed-columns">Querying the database on indexed columns</h3>
+<p>TDBM will do its best to help you query your database easily. In particular, if you put an index on one or many columns,
+it is likely that you will want to perform a query on this index. TDBM will detect the index and generate a method in
+the DAO.</p>
+<p>Here is a sample:</p>
+<pre><code class="language-sql">CREATE INDEX users_status_idx ON users (status);</code></pre>
+<p>The <code>users</code> table has an index on the <code>status</code> column.</p>
+<p>Automatically, TDBM will generate a <code>findByStatus</code> method in the <code>AbstractUserDao</code> class:</p>
+<pre><code>$users = $userDao-&gt;findByStatus('on');</code></pre>
+<p>See how cool this is?</p>
+<p>But wait, there is more! What about unique indexes?</p>
+<pre><code class="language-sql">CREATE UNIQUE INDEX users_login_idx ON users (login);</code></pre>
+<p>TDBM will generate a <code>findOneByLogin</code> method:</p>
+<pre><code>$user = $userDao-&gt;findOneByLogin('alice');</code></pre>
+<p>Please note how a <strong>unique</strong> index generates a <code>findOneBy...</code> method instead of a <code>findBy...</code> method.</p>
+<p>Finally, TDBM can also deal with multi-columns indexes, or indexes on foreign keys:</p>
+<pre><code class="language-sql">CREATE INDEX users_status_country_idx ON users (status, country_id);</code></pre>
+<p>This index on both the <code>status</code> and the <code>country_id</code> column will be turned into a <code>findByLoginAndCountry</code> method:</p>
+<pre><code>$country = $countryDao-&gt;getById(1);
+$user = $userDao-&gt;findByLoginAndCountry('on', $country);</code></pre>
+<p>Notice how the parameter passed for the foreign key is a bean and not an ID.</p>
+<p>Generally, expect in the <code>getById</code> method, TDBM will do its best to shield you from passing IDs around. You are expected to use beans instead of ids. It helps writing cleaner code, that is more object oriented and that can benefit from type-hinting.</p>
+<h3 id="querying-the-database-with-filters">Querying the database with filters</h3>
+<p>Now, what if I want to get something more difficult, like the list of users with name starting with a 'J'?</p>
+<p>To do this, I need to call the <code>find</code> method and pass the filter in parameter.</p>
+<p>At this point, it might be a good idea to have a look at the code TDBM did generate. For the <code>users</code> table, TDBM
+generated 4 classes:</p>
+<ul>
+<li><code>AbstractUserDao</code>: the base class that contains methods to access the &quot;users&quot; table. It is generated by TDBM. You should
+never modify this class.</li>
+<li><code>UserDao</code>: this class extends <code>AbstractUserDao</code>. If you have some custom requests, you should perform them in this class. You can
+edit it as TDBM will never overwrite it.</li>
+<li><code>AbstractUser</code>: the bean mapping the columns of the &quot;users&quot; table. This class contains getters and setters for each and every
+column of the &quot;users&quot; table. It is generated by TDBM and you should never modify this class.</li>
+<li><code>User</code>: this class extends <code>AbstractUser</code>. If you have some custom getters and setters, you should implement them in this class. You can
+edit it as TDBM will never overwrite it.</li>
+</ul>
+<p>In our example, we want to perform a query that retrieves any name starting with a &quot;J&quot;. This is a new
+kind of query. Since any request should be part of a DAO, we will add this request to the <code>UserDao</code>.</p>
+<p>Therefore, our code will be:</p>
+<pre><code class="language-php">class UserDao extends AbstractUserDao {
+
+    /**
+     * Returns the list of users starting with $firstLetter
+     *
+     * @param string $firstLetter
+     * @return User[]
+     */
+    public function findUsersByLetter($firstLetter) {
+        // The find can be used to retrieve a list of User
+        // It takes in parameter a SQL filter string and a list of parameters.
+        return $this-&gt;find("name LIKE :name", [ "name" =&gt; $firstLetter.'%' ]);
+    }
+}</code></pre>
+<p>And you can simply use it like this: </p>
+<pre><code class="language-php">$userDao = Mouf::getUserDao();
+
+$users = $userDao-&gt;findUsersByLetter("J");
+foreach ($users as $user)
+{
+    /* @var $user User */
+    echo $user-&gt;getName().'&amp;lt;br/&gt;';
+}</code></pre>
+<p>You can learn much more about filters in the <a href="advanced.html">advanced section</a> of this documentation.</p>
+<div class="alert alert-danger"><strong>Very important</strong>: NEVER ever append dynamically parameters in the filter string. Use parameterized queries instead.</div>
+<p>You should never write something like:</p>
+<pre><code class="language-php">// NEVER DO THIS!
+$list = $this-&gt;find("name LIKE '".$firstLetter.'%"' );</code></pre>
+<div class="alert alert-info">First of all, by writing this, you are introducing a security flaw in your application (namely: an SQL injection).
+Furthermore, TDBM performs a very complex analysis on your SQL query. It takes a lot of time. Hopefully, it is cached,
+so the cost of the analysis will be negligible in the long run. But if you append parameters in the SQL query instead
+of using parameters, TDBM will not be able to find the query in the cache. The cache will grow with useless queries 
+while your application will be very slow. You have been warned!</div>
+<h3 id="discarding-parameters-automatically-with-quotmagic-parametersquot">Discarding parameters automatically with &quot;Magic parameters&quot;</h3>
+<p>TDBM helps you build queries with a variable number of parameters in a very efficient way.</p>
+<p>Let's say you want to filter products by category and store.</p>
+<p>Your request might look like this:</p>
+<pre><code class="language-php">class ProductDao extends AbstractProductDao {
+
+    /**
+     * Returns the list of products filtered by category and/or store
+     *
+     * @param Category $category
+     * @param Store $store
+     * @return Country[]
+     */
+    public function getProductsByCategoryAndStore(Category $category = null, Store $store = null) {
+        return $this-&gt;find("category = :category AND store = :store", [ 
+            "category" =&gt; $category ? $category-&gt;getId() : null,
+            "store" =&gt; $store ? $store-&gt;getId() : null
+        ]);
+    }
+}</code></pre>
+<p>The interesting part is that TDBM will automatically <strong>discard</strong> any parameter that is set to null.
+So let's imagine that your <code>$store</code> parameter is <code>null</code>. Suddenly, your filter will transform into: <code>category = :category</code>.
+The <code>AND store = :store</code> will be automatically dropped by TDBM.</p>
+<p>How is this possible? TDBM is built upon <a href="http://mouf-php.com/packages/mouf/magic-query/index.html">MagicQuery</a> that has
+such a feature. You can read more about this feature <a href="http://mouf-php.com/packages/mouf/magic-query/doc/discard_unused_parameters.html">here</a> and <a href="http://www.thecodingmachine.com/simplifier-des-requetes-sql-complexes-avec-magic-query-cest-magique/">here</a> (french link).</p>
+<h3 id="getting-only-one-record">Getting only one record</h3>
+<p>If you are confident that your query will only ever return one record (for instance, you are performing a lookup by <code>login</code> on the <code>Users</code> table, then, you can use the <code>findOne</code> method instead of <code>find</code>.</p>
+<pre><code class="language-php">class UserDao extends AbstractUserDao {
+
+    /**
+     * Returns a user by login
+     *
+     * @param string $login
+     * @return User|null
+     */
+    public function getUserByLogin($login) {
+        // The findOne method can be used to retrieve a single User
+        // It takes in parameter a SQL filter string and a list of parameters.
+        // If will return the User, or null of no user is found
+        // If more than 1 user is found, it will throw an exception.
+        return $this-&gt;findOne("login = :login", [ "login" =&gt; $login ]);
+    }
+}</code></pre>
+<p>So far, so good, we have had enough play with the <code>Users</code> table. But the users table is not alone and it would be good to get some more information.</p>
+<h2 id="navigating-the-object-model">Navigating the object model</h2>
+<h3 id="many-to-one-relationships">Many to one relationships</h3>
+<p><img src="images/users_countries.png" alt="Users and countries" /></p>
+<p>So what if I want to get the name of the country in which the first user is located?</p>
+<pre><code class="language-php">// Let's get the user bean
+$user = $userDao-&gt;getById(1);
+
+// Let's get the country bean
+$country = $user-&gt;getCountry();
+
+// Let's display the country name
+echo $country-&gt;getName();</code></pre>
+<p>Notice how you can jump from the <em>user</em> to the <em>country</em> using the <code>getCountry</code> method.
+The user table has a <em>country_id</em> column that points (through a foreign key) to the <code>countries</code> table, so the <code>User</code> object has a <code>getCountry</code> method!</p>
+<p>Of course, there is also a setter:</p>
+<pre><code class="language-php">$user-&gt;setCountry($country);</code></pre>
+<p>Notice how you set an object rather than an ID.</p>
+<h3 id="one-to-many-relationships">One to many relationships</h3>
+<p>What if I want to find a list of users from a particular country?</p>
+<p>That's easy too.</p>
+<pre><code class="language-php">// Let's get the country bean
+$country = $countryDao-&gt;getById(1);
+
+// Let's get the users from that country
+$users = $country-&gt;getUsers();</code></pre>
+<h3 id="many-to-many-relationships">Many to many relationships</h3>
+<p><img src="images/users_roles.png" alt="Users and roles" /></p>
+<p>TDBM can automatically detect pivot tables in your data model.
+Pivot tables will have no DAOs and no Beans associated. Instead, TDBM will generate a complete list of methods in the linked beans
+to edit them.</p>
+<pre><code class="language-php">// Getter
+$roles = $user-&gt;getRoles();
+
+// Adder
+$user-&gt;addRole($role);
+
+// Remover
+$user-&gt;removeRole($role);
+
+// Check existence
+$hasRole = $user-&gt;hasRole($role);
+
+// Set all beans at once
+$user-&gt;setRoles($roles);</code></pre>
+<p>Unlike in Doctrine, TDBM does not need to have a notion of <em>owning</em> and <em>inverse</em> side of a many to many relationship.
+Many to many relationships are symmetrical. Therefore, you will find the same methods in the <code>Role</code> class:</p>
+<pre><code class="language-php">// Getter
+$users = $role-&gt;getUsers();
+
+// Adder
+$user-&gt;addUser($role);
+
+// Remover
+$user-&gt;removeUser($role);
+
+// Check existence
+$hasUser = $role-&gt;hasUser($role);
+
+// Set all beans at once
+$role-&gt;setUsers($users);</code></pre>
+<h2 id="joins-ans-filters">Joins ans filters</h2>
+<h3 id="simple-joins">Simple joins</h3>
+<p>In the previous chapter, we saw how to apply filters on a table (for instance to get all users whose name starts with a
+'J'). In this chapter, we will see how to apply JOINs in the filters.</p>
+<p>In the example below, we will perform a query to get all users living in a country whose name starts by a given letter.</p>
+<pre><code class="language-php">class UserDao extends AbstractUserDao {
+    /**
+     * Returns the list of users whose country name starts by "$countryName"
+     *
+     * @param string $countryName
+     * @return User[]
+     */
+    public function getUsersByCountryName($countryName) {
+        // Behold the magic!
+        return $this-&gt;find("country.name LIKE :country", [ 'country' =&gt; $countryName.'%' ] );
+    }
+}</code></pre>
+<p>Here, we called the <code>find</code> method passing a filter on the <code>name</code> column of the <code>country</code> table.</p>
+<p>Hey! But where is the &quot;join&quot;?</p>
+<p>Behind the scene, TDBM is calling a library called <a href="http://mouf-php.com/packages/mouf/magic-query/index.html">MagicQuery</a>.
+MagicQuery is smart enough to automatically detect the link between the <code>users</code> and the <code>countries</code> table. You just need
+to tell TDBM what filter you want on <strong>any column</strong> in <strong>any table</strong> in your database model and TDBM will find
+the right query for you. MagicQuery is looking for the shortest path between 2 tables using foreign key relationships.
+Our experience shows that 90% of the time, this is what your are looking for.</p>
+<h3 id="filtering-by-idbean">Filtering by ID/bean</h3>
+<p>Most of the time, of course, you will not pass the name of the country but the ID of the country. Actually,
+using TDBM you can just pass the object. Have a look!</p>
+<pre><code class="language-php">class UserDao extends AbstractUserDao {
+    /**
+     * Returns the list of users whose country is "$country"
+     *
+     * @param Country $country
+     * @return User[]
+     */
+    public function getUsersByCountry(Country $country) {
+        // You can pass a Country instance directly to the find method!
+        return $this-&gt;find($country);
+    }
+}</code></pre>
+<p>You would use this method like this:</p>
+<pre><code class="language-php">// Let's get the country bean
+$country = $countryDao-&gt;getCountryById(12);
+
+// Let's get the users from this country
+$userList = $user-&gt;getUsersByCountry($country);
+
+// Let's display the list of users in this country
+foreach ($userList as $user)
+{
+    /* @var $user User */
+    echo $user-&gt;getName().'&lt;br/&gt;';
+}</code></pre>
+<h3 id="complex-joins">Complex joins</h3>
+<p><img src="images/user_role_right.png" alt="Users, roles and rights" /></p>
+<p>So now, what if I want to find what rights the user &quot;Robert Marley&quot; has?</p>
+<p>Well this is really easy. Remember how TDBM relies on MagicQuery to find the relationship between tables?
+It turns out MagicQuery is clever enough to find the shortest path between any table in your data model. This means
+your code can look like this:</p>
+<pre><code class="language-php">class RightDao extends AbstractRightDao {
+    /**
+     * Returns the list of rights for a given user
+     *
+     * @param User $user
+     * @return Right[]
+     */
+    public function getRightsForUser(User $user) {
+        // Behold the magic!
+        return $this-&gt;find($user);
+    }
+}</code></pre>
+<p>Powerful, isn't it? TDBM automatically detected the two pivot tables and performed 4 joins to retrieve the roles our user has.<br/></p>
+<h3 id="specifying-the-joins">Specifying the joins</h3>
+<p>TDBM will do its best to automatically detect joins for you. This will save you the hassle of writing tedious JOIN statements.
+To find the joins, TDBM will look for the shortest path between tables. However, sometimes, the JOIN you want to perform is not on the shortest path. In this case, you will need to provide TDBM with the JOINs you want to do.</p>
+<p>You do this using the <code>findFromSql</code> or <code>findOneFromSql</code> methods.</p>
+<pre><code class="language-php">class RoleDao extends AbstractRoleDao {
+    /**
+     * Returns the list of roles where right label = CAN_SING.
+     *
+     * @return Role[]
+     */
+    public function getRolesByRightCanSing()
+    {
+        return $this-&gt;findFromSql('roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right', ['right' =&gt; 'CAN_SING']);
+    }
+}</code></pre>
+<div class="alert alert-danger">
+<b>Important</b>: the first parameter is the FROM statement. It MUST NOT start with "FROM". It MUST NOT be an alias on the table fetched.
+</div>
+<p>For instance, if we are fetching results from the <code>roles</code> tables (because we are in the <code>RoleDao</code>), then:</p>
+<pre><code class="language-php">// This is ok
+$this-&gt;findFromSql("roles JOIN ...", ...);
+
+// This is NOT ok
+$this-&gt;findFromSql("roles r JOIN ...", ...);</code></pre>
+<h3 id="simple-filter-syntax">Simple filter syntax</h3>
+<p>If your filter is only made of &quot;=&quot; and &quot;AND&quot; statements, you can use the shortcut &quot;array&quot; syntax in your queries.
+Here, we filter a <code>products</code> table by <code>category_id</code> and <code>status</code>:</p>
+<pre><code class="language-php">class ProductDao extends AbstractProductDao {
+    /**
+     * Returns the list of products filtered by category_id and status
+     *
+     * @param int $category_id
+     * @param int $status
+     * @return Product[]
+     */
+    public function findProductsByCategoryAndStatus(int $category_id, int $status) {
+        return $this-&gt;find([
+            'category_id' =&gt; $category_id,
+            'status' =&gt; $status,
+        ]);
+    }
+}</code></pre>
+<h2 id="ordering">Ordering</h2>
+<p>You can get your results in a specific order using the third parameter of the <code>find</code> method:</p>
+<pre><code class="language-php">class UserDao extends AbstractUserDao {
+
+    /**
+     * Returns the list of users by alphabetical order
+     *
+     * @return User[]
+     */
+    public function getUsersByAlphabeticalOrder() {
+        // The third parameter will be used in the "ORDER BY" clause of the SQL query.
+        return $this-&gt;find(null, [], 'name ASC');
+    }
+}</code></pre>
+<p>Alternatively, you can use the <code>sort</code> method of the <code>ResultSet</code> to sort results. This is explained in the <a href="limit_offset_resultset.html">ResultSet documentation</a></p>
+<p><strong>Important:</strong> TDBM does its best to protect you from SQL injection. In particular, it will only allow column names in the &quot;ORDER BY&quot; clause. This means you are safe to pass input from the user directly in the ORDER BY parameter.</p>
+<pre><code class="language-php">// This is actually safe
+$resultSet = $this-&gt;find(null, [], $_GET['order']);</code></pre>
+<pre><code class="language-php">// This will throw an exception because only columns are allowed, not expressions
+$resultSet = $this-&gt;find(null, [], 'RAND()');</code></pre>
+<p>If you want to pass an expression to the ORDER BY clause, you will need to tell TDBM to stop checking for SQL injections. You do this by passing a <code>UncheckedOrderBy</code> object as a parameter:</p>
+<pre><code class="language-php">// This is actually OK. We tell TDBM that we know what we are doing.
+$resultSet = $this-&gt;find(null, [], new UncheckedOrderBy('RAND()'));</code></pre>
+<pre><code class="language-php">// This is the worst you can do, you are opening a SQL injection on the order query parameter.
+$resultSet = $this-&gt;find(null, [], new UncheckedOrderBy($_GET['order']));</code></pre>
+<h2 id="restricting-results-fetched-using-limits-and-offsets">Restricting results fetched using limits and offsets</h2>
+<p>Let's now learn how to <a href="limit_offset_resultset.html">use limit and offsets</a> to limit the number of results fetched in a query.</p>
+
+                    <p class="fork-and-edit">
+                        Found a typo? Something is wrong in this documentation? Just
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/5.0/doc/quickstart.md">fork and edit it</a>!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+</div>
+<div class="footer">
+    <div class="container-fluid">
+        <footer class="row" id="footer">
+            <div class="col-xs-12">
+                Made with <span class="pulse2 glyphicon glyphicon-heart" style="color: red" aria-hidden="true"></span><span class="sr-only">love</span> by <a href="https://www.thecodingmachine.com/"><img src="https://thecodingmachine.github.io/tdbm/img/logo.png" alt="TheCodingMachine"></a> for all open-source lovers
+                <span class="copyright">&copy; 2016 - 2017 <a href="https://www.thecodingmachine.com/">TheCodingMachine</a> - All Rights Reserved</span>
+                Powered by <a href="http://couscous.io/">Couscous</a></span>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- /#wrapper -->
+<script type='text/javascript' src='https://thecodingmachine.github.io/tdbm/build/app.bundle.js'></script>
+<script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+</script>
+</body>
+</html>

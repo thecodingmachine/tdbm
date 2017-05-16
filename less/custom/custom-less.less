@@ -1,0 +1,369 @@
+
+body {
+  overflow-x: hidden;
+  background-image: linear-gradient(to top, #F4F4F4 0%, #DFDEDC 100%);
+  color:dimgrey;
+  margin-top: 50px;
+}
+
+/* Toggle Styles */
+
+#wrapper {
+  padding-left: 0;
+  -webkit-transition: all 0.5s ease;
+  -moz-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+
+#wrapper.toggled {
+  padding-left: 250px;
+}
+#sidebar-wrapper {
+  top: 50px;
+  position: fixed;
+  left: 250px;
+  width: 0;
+  height: 100%;
+  margin-left: -250px;
+  overflow-y: auto;
+  background: #222;
+  -webkit-transition: all 0.5s ease;
+  -moz-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+#wrapper.toggled #sidebar-wrapper {
+  width: 250px;
+}
+#page-content-wrapper {
+
+  width: 100%;
+  position: absolute;
+  h1 {
+    overflow: hidden;
+    color: black;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  h1:after {
+    background-color: #00a19a;
+    content: "";
+    display: inline-block;
+    height: 2px;
+    position: relative;
+    vertical-align: middle;
+    width: 50%;
+  }
+  h1:after {
+    left: 0.5em;
+    margin-right: -50%;
+  }
+h2{
+  color:black;
+}
+
+  h2:after{
+    content:"▧";
+  }
+}
+#wrapper.toggled #page-content-wrapper {
+  /* position: absolute; */
+  margin-right: -250px;
+
+
+}
+
+// Fix an issue when zooming with open menu on Firefox
+#page-content-wrapper {
+  & > .container {
+    max-width: 100%
+  }
+}
+
+/* Sidebar Styles */
+
+.sidebar-nav {
+  position: absolute;
+  top: 0;
+  width: 250px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  h4{
+    color:#009d6b;
+  }
+  li {
+    padding-left: 20px;
+    line-height: 14px;
+    padding-top: 13px;
+    padding-bottom: 13px;
+    padding-right: 5px;
+    font-size: 13px;
+    color: white;
+    a {
+      display: block;
+      text-decoration: none;
+      color: #999999;
+    }
+    &.active {
+      background: rgba(255,255,255,0.2);
+    }
+  }
+}
+
+
+.sidebar-nav li:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+
+.sidebar-nav li a:hover {
+  text-decoration: none;
+  color: #fff;
+}
+
+.sidebar-nav li a:active,
+.sidebar-nav li a:focus {
+  text-decoration: none;
+}
+
+.sidebar-nav > .sidebar-brand {
+  height: 65px;
+  font-size: 18px;
+  line-height: 60px;
+}
+
+.sidebar-nav > .sidebar-brand a {
+  color: #999999;
+}
+
+.sidebar-nav > .sidebar-brand a:hover {
+  color: #fff;
+  background: none;
+}
+
+@media(min-width:768px) {
+  #wrapper {
+    padding-left: 250px;
+  }
+
+  #wrapper.toggled {
+    padding-left: 0;
+  }
+
+  #sidebar-wrapper {
+    width: 250px;
+  }
+
+  #wrapper.toggled #sidebar-wrapper {
+    width: 0;
+  }
+
+  #page-content-wrapper {
+    position: relative;
+    top: -50px;
+  }
+  #wrapper.toggled #page-content-wrapper {
+    position: relative;
+    margin-right: 0;
+  }
+  .navbar-nav {
+    float: right;
+    margin: 0;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: white;
+    font-size: small;
+  }
+}
+#burger{
+  position: absolute;
+  top: 15px;
+  left: 15px;
+}
+@media (max-width: 768px){
+
+#page-content-wrapper {
+  position: relative;
+  top: -70px;
+}
+}
+
+.skew{
+  -webkit-transform: skew(0deg, -4deg);
+  transform: skew(0deg, -4deg);
+}
+
+.content{
+  -webkit-transform: skew(0deg, 4deg);
+  transform: skew(0deg, 4deg);
+}
+
+.pt100{
+  padding-top: 100px;
+}
+
+
+.wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-bg-fluid-height,
+.image-bg-fixed-height {
+  text-align: center;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  background-size: cover;
+  -o-background-size: cover;
+}
+
+.image-bg-fluid-height {
+  background: url('../../img/bg-web.jpg') no-repeat center center scroll;
+  margin-top: 18px;
+  padding: 81px;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.image-bg-fixed-height {
+  background: url('../../img/bg-web.jpg') no-repeat center center scroll;
+  height: 450px;
+}
+
+.img-center {
+  margin: 0 auto;
+}
+
+section {
+  padding: 75px 0;
+}
+
+.section-heading {
+  margin: 30px 0;
+  font-size: 4em;
+}
+
+.section-lead {
+  margin: 30px 0;
+}
+
+.section-paragraph {
+  margin: 30px 0;
+}
+
+
+@media(max-width:768px) {
+  section {
+    padding-top: 25px;
+    padding-bottom: 25px;
+  }
+
+  .section-heading {
+    font-size: 2em;
+  }
+}
+.navbar-header{
+  margin-left: 46%!important;
+}
+.burger-position{
+  position: fixed;
+  top: 51px;
+  padding: 11px 12px;
+  z-index: 92!important;
+  background-color: black;
+}
+.navbar-inverse {
+  background-color: black;
+  border-color:transparent;
+}
+
+.img-responsive, .thumbnail > img, .thumbnail a > img, .carousel-inner > .item > img, .carousel-inner > .item > a > img {
+  display: initial;
+  max-width: 100%;
+  height: auto;
+}
+
+
+
+.pulse2 {
+  -webkit-animation: pulse2 1s linear infinite;
+  -moz-animation: pulse2 1s linear infinite;
+  -ms-animation: pulse2 1s linear infinite;
+  animation: pulse2 1s linear infinite;
+}
+
+@keyframes "pulse2" {
+  0% {
+    -webkit-transform: scale(1.1);
+    -moz-transform: scale(1.1);
+    -o-transform: scale(1.1);
+    -ms-transform: scale(1.1);
+    transform: scale(1.1);
+  }
+  50% {
+    -webkit-transform: scale(0.8);
+    -moz-transform: scale(0.8);
+    -o-transform: scale(0.8);
+    -ms-transform: scale(0.8);
+    transform: scale(0.8);
+  }
+  100% {
+    -webkit-transform: scale(1);
+    -moz-transform: scale(1);
+    -o-transform: scale(1);
+    -ms-transform: scale(1);
+    transform: scale(1);
+  }
+
+}
+
+@-moz-keyframes pulse2 {
+  0% {
+    -moz-transform: scale(1.1);
+    transform: scale(1.1);
+  }
+  50% {
+    -moz-transform: scale(0.8);
+    transform: scale(0.8);
+  }
+  100% {
+    -moz-transform: scale(1);
+    transform: scale(1);
+  }
+
+}
+
+@-webkit-keyframes "pulse2" {
+  0% {
+    -webkit-transform: scale(1.1);
+    transform: scale(1.1);
+  }
+  50% {
+    -webkit-transform: scale(0.8);
+    transform: scale(0.8);
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+}
+
+@-ms-keyframes "pulse2" {
+  0% {
+    -ms-transform: scale(1.1);
+    transform: scale(1.1);
+  }
+  50% {
+    -ms-transform: scale(0.8);
+    transform: scale(0.8);
+  }
+  100% {
+    -ms-transform: scale(1);
+    transform: scale(1);
+  }
+}
