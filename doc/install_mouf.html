@@ -83,24 +83,39 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav text-left">
                 <li><a href="https://thecodingmachine.github.io/tdbm/">ABOUT</a></li>
-                                                                                                <li class=" visible-xs-block">
+                                                            <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/index.html">
                                 Introduction
                             </a>
                         </li>
-                                                                                <li class=" visible-xs-block">
+                                                                                                                    <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
-                                Install TDBM
+                                Installing TDBM
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_laravel.html">
+                                Install in Laravel
+                            </a>
+                        </li>
+                                                                                <li class="active visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_mouf.html">
+                                Install in Mouf
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/manual_install.html">
+                                Manual install
+                            </a>
+                        </li>
+                                                                                                                    <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
                                 Getting started
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
-                                Add limit and offsets to your queries
+                                Playing with result sets
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
@@ -126,11 +141,6 @@
                                                                                 <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
                                 Miscellaneous features
-                            </a>
-                        </li>
-                                                                                <li class=" visible-xs-block">
-                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
-                                Configuring TDBM
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
@@ -174,18 +184,36 @@
     <!-- Sidebar -->
     <div id="sidebar-wrapper">
         <ul class="sidebar-nav">
-                                                <li>
-                        <h4>Documentation</h4>
-                    </li>
-                                                                <li class="">
+                                                <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/index.html">
                             Introduction
                         </a>
                     </li>
+                                                                <li>
+                        <h4>Installation</h4>
+                    </li>
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
-                            Install TDBM
+                            Installing TDBM
                         </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_laravel.html">
+                            Install in Laravel
+                        </a>
+                    </li>
+                                                                <li class="active">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_mouf.html">
+                            Install in Mouf
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/manual_install.html">
+                            Manual install
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Basics</h4>
                     </li>
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
@@ -194,7 +222,7 @@
                     </li>
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
-                            Add limit and offsets to your queries
+                            Playing with result sets
                         </a>
                     </li>
                                                                 <li class="">
@@ -223,11 +251,6 @@
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
                             Miscellaneous features
-                        </a>
-                    </li>
-                                                                <li class="">
-                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
-                            Configuring TDBM
                         </a>
                     </li>
                                                                 <li class="">
@@ -281,12 +304,47 @@ $ composer require mouf/database.tdbm ^5.0</code></pre>
 In the user interface, run the graphical installer.</p>
 <p>The installer will help you set up the complete environment.</p>
 <p>Mouf integration also offers a nice UI in the &quot;Database&quot; menu that helps you regenerate your DAOs and beans.</p>
+<h2 id="generating-daos-and-beans">Generating DAOs and beans</h2>
+<p>In order to generate the DAOs and beans, the easiest way is to connect to the Mouf user interface, then click on:</p>
+<ul>
+<li><strong>DB</strong> &gt; <strong>TDBM</strong> &gt; <strong>Generate DAOs and beans</strong></li>
+</ul>
+<div class="alert alert-info">This process is automatically done when you install the package, but should you modify the data model, you will need to 
+regenerate the DAOs.</div>
+<p><img src="images/generate_daos.png" alt="Generating DAOs and beans" /></p>
+<p>On this screen, you can choose the namespace that will contain the DAO classes, and the namespace that will contain the Beans. Also,
+a <code>DAOFactory</code> object (that allows easy access to each DAO) will be generated. Let's just keep the default settings and click the
+&quot;Generate DAOs&quot; button.</p>
+<p>That's it, we generated all the DAOs for our database. Let's have a closer look at what was generated.</p>
+<p>Note: if you are using Eclipse, we strongly recommend you to refresh your project, to load the new classes.</p>
+<h2 id="about-tdbm-install-advanced">About TDBM install (advanced)</h2>
+<h3 id="the">The <em>tdbmService</em> instance</h3>
+<p>During installation, TDBM will generate a &quot;tdbmService&quot; instance.</p>
+<p><img src="images/tdbm_service_instance.png" alt="" /></p>
+<p>As you can see, this instance only relies on a &quot;tdbmConfiguration&quot; instance.</p>
+<p><img src="images/tdbm_configuration_instance.png" alt="" /></p>
+<p>This instance is already configured, but should you need to modify any configuration, you should modify this very instance.</p>
+<p>In particular, it is the place where you can customize:</p>
+<ul>
+<li>the database connection</li>
+<li>the cache used by default</li>
+<li>the <a href="configuring_naming.html">&quot;naming strategy&quot;</a></li>
+</ul>
+<h3 id="setting-up-the-cache-service">Setting up the cache service</h3>
+<p>By default, Doctrine's <code>ApcuCache</code> service is used if available and will fallback to <code>PhpFileCache</code> otherwise.
+If the Mouf's <code>DEBUG</code> configuration is set to <code>true</code>, the cache is disabled.</p>
+<p>TDBM requires a cache in order to store database related data. Indeed TDBM stores in cache the structure of the database,
+and relies heavily on declared foreign keys to perform the &quot;smartest&quot; queries. Instead of querying the database for those
+foreign keys, it will query them once, and put them in cache. This means that if you modify the database model, you will
+need to purge the TDBM cache.</p>
+<p>TDBM relies on Doctrine cache system. You are free to choose the best one amongst the Doctrine services
+implementing the <code>Cache</code> interface.</p>
 <h2 id="next-step">Next step</h2>
 <p>Let's now learn how to <a href="quickstart.html">access the database</a>.</p>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
-                        <a href="https://github.com/thecodingmachine/tdbm/blob/5.0/doc/install_mouf.md">fork and edit it</a>!
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/install_mouf.md">fork and edit it</a>!
                     </p>
                 </div>
             </div>

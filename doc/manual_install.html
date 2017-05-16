@@ -5,7 +5,7 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-    <title>Configuring TDBM | TDBM</title>
+    <title>Manual installation | TDBM</title>
 
     <meta name="HandheldFriendly" content="True">
     <meta name="MobileOptimized" content="320">
@@ -83,24 +83,39 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav text-left">
                 <li><a href="https://thecodingmachine.github.io/tdbm/">ABOUT</a></li>
-                                                                                                <li class=" visible-xs-block">
+                                                            <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/index.html">
                                 Introduction
                             </a>
                         </li>
-                                                                                <li class=" visible-xs-block">
+                                                                                                                    <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
-                                Install TDBM
+                                Installing TDBM
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_laravel.html">
+                                Install in Laravel
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_mouf.html">
+                                Install in Mouf
+                            </a>
+                        </li>
+                                                                                <li class="active visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/manual_install.html">
+                                Manual install
+                            </a>
+                        </li>
+                                                                                                                    <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
                                 Getting started
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
-                                Add limit and offsets to your queries
+                                Playing with result sets
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
@@ -126,11 +141,6 @@
                                                                                 <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
                                 Miscellaneous features
-                            </a>
-                        </li>
-                                                                                <li class="active visible-xs-block">
-                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
-                                Configuring TDBM
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
@@ -174,18 +184,36 @@
     <!-- Sidebar -->
     <div id="sidebar-wrapper">
         <ul class="sidebar-nav">
-                                                <li>
-                        <h4>Documentation</h4>
-                    </li>
-                                                                <li class="">
+                                                <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/index.html">
                             Introduction
                         </a>
                     </li>
+                                                                <li>
+                        <h4>Installation</h4>
+                    </li>
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
-                            Install TDBM
+                            Installing TDBM
                         </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_laravel.html">
+                            Install in Laravel
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_mouf.html">
+                            Install in Mouf
+                        </a>
+                    </li>
+                                                                <li class="active">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/manual_install.html">
+                            Manual install
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Basics</h4>
                     </li>
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
@@ -194,7 +222,7 @@
                     </li>
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
-                            Add limit and offsets to your queries
+                            Playing with result sets
                         </a>
                     </li>
                                                                 <li class="">
@@ -223,11 +251,6 @@
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
                             Miscellaneous features
-                        </a>
-                    </li>
-                                                                <li class="active">
-                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
-                            Configuring TDBM
                         </a>
                     </li>
                                                                 <li class="">
@@ -272,11 +295,12 @@
         <div class="container pt100">
             <div class="row">
                 <div class="col-xs-12">
-                    <h1>Configuring TDBM <small></small></h1>                    <p>All the configuration needed for TDBM is stored in a <code>Configuration</code> object.</p>
-<p>Depending on the framework you are using (and the integration package you chose), the way the <code>Configuration</code> object is set-up will vary. </p>
-<p>If you are interested into setting up this configuration object yourself, it is quite easy to do.
-At minimum, you need a Doctrine database connection and a Doctrine cache object.</p>
-<p>We strongly advise to use the APCuCache from Doctrine that will yield the best performances.</p>
+                    <h1>Manual installation <small></small></h1>                    <p>At the core of TDBM, there is the <code>TDBMService</code> class. This service is used to generate the PHP code, and also by all DAOs to retrieve beans from the database.</p>
+<p>The <code>TDBMService</code> constructor takes a <code>Configuration</code> object that contains all the configuration needed by TDBM.</p>
+<p>Depending <a href="install.html">on the framework you are using</a> (and the integration package you chose), the way the <code>Configuration</code> object is set-up will vary.</p>
+<p>Hopefully, if your framework is not supported yet (or if you use no framework), setting up TDBM yourself is quite easy to do.</p>
+<p>At minimum, you need a <a href="http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html">Doctrine database <code>Connection</code></a> and a <a href="http://doctrine-orm.readthedocs.io/projects/doctrine-orm/en/latest/reference/caching.html">Doctrine cache object</a>.</p>
+<p>We strongly advise to use the <code>APCuCache</code> from Doctrine that will yield the best performances.</p>
 <p>Without using any framework, a working TDBM setup could look like this:</p>
 <pre><code class="language-php">$config = new \Doctrine\DBAL\Configuration();
 
@@ -299,7 +323,7 @@ $namingStrategy = new TheCodingMachine\TDBM\Utils\DefaultNamingStrategy();
 
 $cache = new Doctrine\Common\Cache\ApcuCache();
 
-$logger = new Monolog\Logger(); // $logger must be a PSR-3 compliant logger.
+$logger = new Monolog\Logger(); // $logger must be a PSR-3 compliant logger (optional).
 
 // Let's build the configuration object
 $configuration = new TheCodingMachine\TDBM\Configuration(
@@ -315,10 +339,32 @@ $configuration = new TheCodingMachine\TDBM\Configuration(
 
 // The TDBMService is created using the configuration object.
 $tdbmService = new TDBMService($configuration);</code></pre>
+<p>Ok, we have our <code>$tdbmService</code>. What's next?</p>
+<h2 id="generating-daos-and-beans">Generating DAOs and beans</h2>
+<div class="alert alert-danger">You must regenerate DAOs and beans <strong>each time your database model changes</strong>.</div>
+<h3 id="using-php-code">Using PHP code</h3>
+<p>In order to generate the DAOs and beans, you simply need to call the <code>generateAllDaosAndBeans</code> method:</p>
+<pre><code class="language-php">$tdbmService-&gt;generateAllDaosAndBeans();
+// Shazam! All PHP files have been written!</code></pre>
+<h3 id="using-symfony-console">Using Symfony console</h3>
+<p>If your application supports the <a href="http://symfony.com/doc/current/components/console.html">Symfony console</a>, Mouf comes with a &quot;tdbm:generate&quot; command that will generate those DAOs and beans:</p>
+<pre><code class="language-php">// The command takes in parameter the same Configuration object used by the TDBMService.
+$command = new TheCodingMachine\TDBM\Commands\GenerateCommand($configuration);
+
+// $application is your Symfony console object
+$application-&gt;add($command);</code></pre>
+<h2 id="instantiating-daos">Instantiating DAOs</h2>
+<p>You now have one DAO per database table. In order to create a DAO, you simply need pass it the <code>$tdbmService</code>.</p>
+<pre><code class="language-php">$userDao = new UserDao($tdbmService);
+
+$user = $userDao-&gt;getById(42);
+echo $user-&gt;getLogin();</code></pre>
+<h2 id="next-step">Next step</h2>
+<p>Let's now learn how to <a href="quickstart.html">access the database</a>.</p>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
-                        <a href="https://github.com/thecodingmachine/tdbm/blob/5.0/doc/configuring.md">fork and edit it</a>!
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/manual_install.md">fork and edit it</a>!
                     </p>
                 </div>
             </div>

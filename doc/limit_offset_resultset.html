@@ -5,7 +5,7 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-    <title>Limits, offsets, order by and result sets | TDBM</title>
+    <title>Playing with result sets | TDBM</title>
 
     <meta name="HandheldFriendly" content="True">
     <meta name="MobileOptimized" content="320">
@@ -83,24 +83,39 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav text-left">
                 <li><a href="https://thecodingmachine.github.io/tdbm/">ABOUT</a></li>
-                                                                                                <li class=" visible-xs-block">
+                                                            <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/index.html">
                                 Introduction
                             </a>
                         </li>
-                                                                                <li class=" visible-xs-block">
+                                                                                                                    <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
-                                Install TDBM
+                                Installing TDBM
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_laravel.html">
+                                Install in Laravel
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_mouf.html">
+                                Install in Mouf
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/manual_install.html">
+                                Manual install
+                            </a>
+                        </li>
+                                                                                                                    <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
                                 Getting started
                             </a>
                         </li>
                                                                                 <li class="active visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
-                                Add limit and offsets to your queries
+                                Playing with result sets
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
@@ -126,11 +141,6 @@
                                                                                 <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
                                 Miscellaneous features
-                            </a>
-                        </li>
-                                                                                <li class=" visible-xs-block">
-                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
-                                Configuring TDBM
                             </a>
                         </li>
                                                                                 <li class=" visible-xs-block">
@@ -174,18 +184,36 @@
     <!-- Sidebar -->
     <div id="sidebar-wrapper">
         <ul class="sidebar-nav">
-                                                <li>
-                        <h4>Documentation</h4>
-                    </li>
-                                                                <li class="">
+                                                <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/index.html">
                             Introduction
                         </a>
                     </li>
+                                                                <li>
+                        <h4>Installation</h4>
+                    </li>
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
-                            Install TDBM
+                            Installing TDBM
                         </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_laravel.html">
+                            Install in Laravel
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_mouf.html">
+                            Install in Mouf
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/manual_install.html">
+                            Manual install
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Basics</h4>
                     </li>
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
@@ -194,7 +222,7 @@
                     </li>
                                                                 <li class="active">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
-                            Add limit and offsets to your queries
+                            Playing with result sets
                         </a>
                     </li>
                                                                 <li class="">
@@ -223,11 +251,6 @@
                                                                 <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
                             Miscellaneous features
-                        </a>
-                    </li>
-                                                                <li class="">
-                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring.html">
-                            Configuring TDBM
                         </a>
                     </li>
                                                                 <li class="">
@@ -272,7 +295,7 @@
         <div class="container pt100">
             <div class="row">
                 <div class="col-xs-12">
-                    <h1>Limits, offsets, order by and result sets <small></small></h1>                    <h2 id="paginating-data-with-limits-and-offsets">Paginating data with limits and offsets</h2>
+                    <h1>Playing with result sets <small></small></h1>                    <h2 id="paginating-data-with-limits-and-offsets">Paginating data with limits and offsets</h2>
 <p>When you perform a query with TDBM, you never pass the limit or offset to the DAO method you are querying.</p>
 <pre><code class="language-php">$users = $userDao-&gt;findAll();
 
@@ -348,7 +371,7 @@ Or if you want to have a look at advanced stuff, learn how to <a href="modeling_
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
-                        <a href="https://github.com/thecodingmachine/tdbm/blob/5.0/doc/limit_offset_resultset.md">fork and edit it</a>!
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/limit_offset_resultset.md">fork and edit it</a>!
                     </p>
                 </div>
             </div>
