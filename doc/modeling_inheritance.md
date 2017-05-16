@@ -65,8 +65,3 @@ class AbstractPerson extends AbstractTDBMObject
     ...
 }
 ```
-
-Next step
----------
-
-Let's now learn how to [regenerate DAOs](generating_daos.md) when your data model changes.

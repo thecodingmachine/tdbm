@@ -70,6 +70,23 @@ foreach ($users as $user) {
 }
 ```
 
+Mapping result sets
+-------------------
+
+Please notice that result sets have a very useful `map` method.
+
+Let's say you want to build an array of all your users first name:
+
+```php
+$users = $userDao->findAll();
+
+// The callback passed to the map function will be called once for each record in the recordset.
+// You will get in $firstNames an array containing the list of callback results.
+$firstNames = $users->map(function(User $user) {
+    return $user->getFirstName();
+});
+```
+
 ResultIterator utility methods
 ------------------------------
 

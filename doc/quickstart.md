@@ -5,7 +5,7 @@ currentMenu: getting_started
 ---
 
 In this quick start guide, we will see how you can use TDBM to query, read and write data to your database
-We will assume that you successfully installed TDBM into your favorite framework, and therefore, that TDBM is connected
+We will assume that you successfully [installed TDBM](install.md) into your favorite framework, and therefore, that TDBM is connected
 to your database and that the [TDBM DAOs and beans have been generated](generating_daos.md).
 
 Our playground data model
@@ -22,7 +22,7 @@ For this tutorial, let's assume a very classic database schema for handling user
 DAOs and beans
 --------------
 
-When you installed TDBM, you spent some time configuring a connection to your database and then, you generated the DAOs and beans.
+When you [installed TDBM](install.md), you spent some time configuring a connection to your database and then, you generated the DAOs and beans.
 
 DAOs are "Data Access Objects". DAOs are classes that will help you access
 the objects in your database. There is roughly **one DAO per table in your database**. Each DAO will return "beans". Each row in your database
@@ -204,13 +204,12 @@ class UserDao extends AbstractUserDao {
 And you can simply use it like this: 
 
 ```php
-$userDao = Mouf::getUserDao();
-
 $users = $userDao->findUsersByLetter("J");
+
 foreach ($users as $user)
 {
 	/* @var $user User */
-	echo $user->getName().'&lt;br/>';
+	echo $user->getName()."\n";
 }
 ```
 
@@ -231,7 +230,7 @@ so the cost of the analysis will be negligible in the long run. But if you appen
 of using parameters, TDBM will not be able to find the query in the cache. The cache will grow with useless queries 
 while your application will be very slow. You have been warned!</div>
 
-###Discarding parameters automatically with "Magic parameters"
+### Discarding parameters automatically with "Magic parameters"
 
 TDBM helps you build queries with a variable number of parameters in a very efficient way.
 
@@ -265,7 +264,7 @@ The `AND store = :store` will be automatically dropped by TDBM.
 How is this possible? TDBM is built upon [MagicQuery](http://mouf-php.com/packages/mouf/magic-query/README.md) that has
 such a feature. You can read more about this feature [here](http://mouf-php.com/packages/mouf/magic-query/doc/discard_unused_parameters.md) and [here](http://www.thecodingmachine.com/simplifier-des-requetes-sql-complexes-avec-magic-query-cest-magique/) (french link).
 
-###Getting only one record
+### Getting only one record
 
 If you are confident that your query will only ever return one record (for instance, you are performing a lookup by `login` on the `Users` table, then, you can use the `findOne` method instead of `find`.
 
@@ -287,6 +286,8 @@ class UserDao extends AbstractUserDao {
 	}
 }
 ```
+
+<div class="alert alert-danger">The <code>findOne</code> method will throw an exception if your query returns more than one row. If your query returns many rows but you are only interested in the first one, you should use the <a href="limit_offset_resultset.html#resultiterator-utility-methods"><code>first</code> method of the result set object</a>.</div>
 
 So far, so good, we have had enough play with the `Users` table. But the users table is not alone and it would be good to get some more information.
 
@@ -310,7 +311,7 @@ $country = $user->getCountry();
 echo $country->getName();
 ```
 
-Notice how you can jump from the _user_ to the _country_ using the `getCountry` method.
+Notice how you can jump from the _users_ to the _countries_ using the `getCountry` method.
 The user table has a *country_id* column that points (through a foreign key) to the `countries` table, so the `User` object has a `getCountry` method!
 
 Of course, there is also a setter:

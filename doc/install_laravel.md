@@ -67,8 +67,8 @@ return [
 ];
 ```
 
-Usage
------
+Accessing DAOs
+--------------
 
 In Laravel, you would typically inject the DAOs in your services/controllers constructor.
 

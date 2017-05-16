@@ -43,6 +43,24 @@ That's it, we generated all the DAOs for our database. Let's have a closer look 
 
 Note: if you are using Eclipse, we strongly recommend you to refresh your project, to load the new classes.
 
+Accessing DAOs
+--------------
+
+TDBM will automatically generate in Mouf **one instance per DAO**.
+
+So if you have a `UserDao` class, you will find in Mouf a `userDao` instance.
+
+Therefore, you can access it using:
+
+```php
+$userDao = Mouf::getUserDao();
+
+$user = $userDao->getById(42);
+echo $user->getLogin();
+```
+
+But of course, we all know you should not use the `Mouf::getXXX` methods and instead inject the DAOs you need in your services' or controllers' constructors!
+
 About TDBM install (advanced)
 -----------------------------
 
