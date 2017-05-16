@@ -168,6 +168,11 @@
                                 TDBM internals
                             </a>
                         </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/faq.html">
+                                Frequently asked questions
+                            </a>
+                        </li>
                                                     <li><a href="http://www.thecodingmachine.com/">TheCodingMachine</a></li>
                                 <li><a href="https://github.com/thecodingmachine/tdbm"><img src="https://thecodingmachine.github.io/tdbm/img/GitHub-Mark-Light-20px.png" /> Github</a></li>
                             </ul>
@@ -278,6 +283,11 @@
                             TDBM internals
                         </a>
                     </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/faq.html">
+                            Frequently asked questions
+                        </a>
+                    </li>
                                     </ul>
     </div>
     <!-- /#sidebar-wrapper -->
@@ -296,7 +306,7 @@
             <div class="row">
                 <div class="col-xs-12">
                     <h1>Quick start guide <small></small></h1>                    <p>In this quick start guide, we will see how you can use TDBM to query, read and write data to your database
-We will assume that you successfully installed TDBM into your favorite framework, and therefore, that TDBM is connected
+We will assume that you successfully <a href="install.html">installed TDBM</a> into your favorite framework, and therefore, that TDBM is connected
 to your database and that the <a href="generating_daos.html">TDBM DAOs and beans have been generated</a>.</p>
 <h2 id="our-playground-data-model">Our playground data model</h2>
 <p>For this tutorial, let's assume a very classic database schema for handling users.</p>
@@ -307,7 +317,7 @@ to your database and that the <a href="generating_daos.html">TDBM DAOs and beans
 </ul>
 <p><img src="images/schema1.png" alt="Database schema" /></p>
 <h2 id="daos-and-beans">DAOs and beans</h2>
-<p>When you installed TDBM, you spent some time configuring a connection to your database and then, you generated the DAOs and beans.</p>
+<p>When you <a href="install.html">installed TDBM</a>, you spent some time configuring a connection to your database and then, you generated the DAOs and beans.</p>
 <p>DAOs are &quot;Data Access Objects&quot;. DAOs are classes that will help you access
 the objects in your database. There is roughly <strong>one DAO per table in your database</strong>. Each DAO will return &quot;beans&quot;. Each row in your database
 will be represented by one instance of a bean.</p>
@@ -417,13 +427,12 @@ kind of query. Since any request should be part of a DAO, we will add this reque
     }
 }</code></pre>
 <p>And you can simply use it like this: </p>
-<pre><code class="language-php">$userDao = Mouf::getUserDao();
+<pre><code class="language-php">$users = $userDao-&gt;findUsersByLetter("J");
 
-$users = $userDao-&gt;findUsersByLetter("J");
 foreach ($users as $user)
 {
     /* @var $user User */
-    echo $user-&gt;getName().'&amp;lt;br/&gt;';
+    echo $user-&gt;getName()."\n";
 }</code></pre>
 <p>You can learn much more about filters in the <a href="advanced.html">advanced section</a> of this documentation.</p>
 <div class="alert alert-danger"><strong>Very important</strong>: NEVER ever append dynamically parameters in the filter string. Use parameterized queries instead.</div>
@@ -478,6 +487,7 @@ such a feature. You can read more about this feature <a href="http://mouf-php.co
         return $this-&gt;findOne("login = :login", [ "login" =&gt; $login ]);
     }
 }</code></pre>
+<div class="alert alert-danger">The <code>findOne</code> method will throw an exception if your query returns more than one row. If your query returns many rows but you are only interested in the first one, you should use the <a href="limit_offset_resultset.html#resultiterator-utility-methods"><code>first</code> method of the result set object</a>.</div>
 <p>So far, so good, we have had enough play with the <code>Users</code> table. But the users table is not alone and it would be good to get some more information.</p>
 <h2 id="navigating-the-object-model">Navigating the object model</h2>
 <h3 id="many-to-one-relationships">Many to one relationships</h3>
@@ -491,7 +501,7 @@ $country = $user-&gt;getCountry();
 
 // Let's display the country name
 echo $country-&gt;getName();</code></pre>
-<p>Notice how you can jump from the <em>user</em> to the <em>country</em> using the <code>getCountry</code> method.
+<p>Notice how you can jump from the <em>users</em> to the <em>countries</em> using the <code>getCountry</code> method.
 The user table has a <em>country_id</em> column that points (through a foreign key) to the <code>countries</code> table, so the <code>User</code> object has a <code>getCountry</code> method!</p>
 <p>Of course, there is also a setter:</p>
 <pre><code class="language-php">$user-&gt;setCountry($country);</code></pre>

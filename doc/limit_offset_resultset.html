@@ -168,6 +168,11 @@
                                 TDBM internals
                             </a>
                         </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/faq.html">
+                                Frequently asked questions
+                            </a>
+                        </li>
                                                     <li><a href="http://www.thecodingmachine.com/">TheCodingMachine</a></li>
                                 <li><a href="https://github.com/thecodingmachine/tdbm"><img src="https://thecodingmachine.github.io/tdbm/img/GitHub-Mark-Light-20px.png" /> Github</a></li>
                             </ul>
@@ -278,6 +283,11 @@
                             TDBM internals
                         </a>
                     </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/faq.html">
+                            Frequently asked questions
+                        </a>
+                    </li>
                                     </ul>
     </div>
     <!-- /#sidebar-wrapper -->
@@ -338,6 +348,16 @@ $users = $users-&gt;withParameters([ 'login' =&gt; 'david%' ]);
 foreach ($users as $user) {
     // Do stuff...
 }</code></pre>
+<h2 id="mapping-result-sets">Mapping result sets</h2>
+<p>Please notice that result sets have a very useful <code>map</code> method.</p>
+<p>Let's say you want to build an array of all your users first name:</p>
+<pre><code class="language-php">$users = $userDao-&gt;findAll();
+
+// The callback passed to the map function will be called once for each record in the recordset.
+// You will get in $firstNames an array containing the list of callback results.
+$firstNames = $users-&gt;map(function(User $user) {
+    return $user-&gt;getFirstName();
+});</code></pre>
 <h2 id="resultiterator-utility-methods">ResultIterator utility methods</h2>
 <p>Here is a list of the methods you can call on a <code>ResultIterator</code>:</p>
 <ul>

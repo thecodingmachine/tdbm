@@ -168,6 +168,11 @@
                                 TDBM internals
                             </a>
                         </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/faq.html">
+                                Frequently asked questions
+                            </a>
+                        </li>
                                                     <li><a href="http://www.thecodingmachine.com/">TheCodingMachine</a></li>
                                 <li><a href="https://github.com/thecodingmachine/tdbm"><img src="https://thecodingmachine.github.io/tdbm/img/GitHub-Mark-Light-20px.png" /> Github</a></li>
                             </ul>
@@ -278,6 +283,11 @@
                             TDBM internals
                         </a>
                     </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/faq.html">
+                            Frequently asked questions
+                        </a>
+                    </li>
                                     </ul>
     </div>
     <!-- /#sidebar-wrapper -->
@@ -317,6 +327,15 @@ a <code>DAOFactory</code> object (that allows easy access to each DAO) will be g
 &quot;Generate DAOs&quot; button.</p>
 <p>That's it, we generated all the DAOs for our database. Let's have a closer look at what was generated.</p>
 <p>Note: if you are using Eclipse, we strongly recommend you to refresh your project, to load the new classes.</p>
+<h2 id="accessing-daos">Accessing DAOs</h2>
+<p>TDBM will automatically generate in Mouf <strong>one instance per DAO</strong>.</p>
+<p>So if you have a <code>UserDao</code> class, you will find in Mouf a <code>userDao</code> instance.</p>
+<p>Therefore, you can access it using:</p>
+<pre><code class="language-php">$userDao = Mouf::getUserDao();
+
+$user = $userDao-&gt;getById(42);
+echo $user-&gt;getLogin();</code></pre>
+<p>But of course, we all know you should not use the <code>Mouf::getXXX</code> methods and instead inject the DAOs you need in your services' or controllers' constructors!</p>
 <h2 id="about-tdbm-install-advanced">About TDBM install (advanced)</h2>
 <h3 id="the">The <em>tdbmService</em> instance</h3>
 <p>During installation, TDBM will generate a &quot;tdbmService&quot; instance.</p>
