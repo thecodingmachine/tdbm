@@ -309,7 +309,8 @@
 <p>This is typically useful when you want to fetch large datasets from the database.</p>
 <p>Let's assume you have a big &quot;users&quot; table with 100.000 records and you want to perform some processing on each row of the dataset.
 You will typically write:</p>
-<pre><code class="language-php">$users = Mouf::getUserDao-&gt;findAll();
+<pre><code class="language-php">$users = $userDao-&gt;findAll();
+
 foreach ($users as $user) {
     // Do stuff
 }</code></pre>
@@ -319,21 +320,24 @@ that have been fetched from the database. Therefore, as the array fills, the mem
 <p>What you want to do is to get a <strong>cursor</strong> instead of an array of results. As you iterate the
 cursor, it will not keep a reference of records that have already been processed in the <code>foreach</code> loop.</p>
 <p>To do this, you simply need to use the <strong>cursor</strong> mode:</p>
-<pre><code class="language-php">Mouf::getTdbmService()-&gt;setFetchMode(TDBMService::MODE_CURSOR);
-$users = Mouf::getUserDao-&gt;findAll();
+<pre><code class="language-php">$tdbmService-&gt;setFetchMode(TDBMService::MODE_CURSOR);
+
+$users = $userDao-&gt;findAll();
+
 foreach ($users as $user) {
     // Do stuff
 }</code></pre>
-<p>In <strong>cursor</strong> mode, the <code>$users</code> variable is no more an array, but a PHP 5.5 <a href="http://php.net/manual/fr/language.generators.syntax.php">Generator</a>.</p>
-<div class="alert alert-info">Using the cursor mode has a number of drawbacks. In particular,
-the cursor cannot be rewinded. This means you will not be able to perform 2 successive "foreach"
-on the data set. Furthermore, you cannot access the data set via indexes (like you would in a 
+<p>In <strong>cursor</strong> mode, the <code>$users</code> variable becomes a &quot;cursor&quot;.</p>
+<div class="alert alert-danger">Using the cursor mode has a number of consequences. Since the results
+are not stored in memory, if you perform 2 successive <code>foreach</code> calls on the result set,
+the SQL query will be executed twice by the database.<br>
+Furthermore, you cannot access the data set via indexes (like you would in a 
 typical array).</div>
 <p>If you retry the sample code using <strong>cursor</strong> mode, you will see that your processing will begin,
 but you will still end up with an <em>out of memory</em> error.</p>
 <p>Why? Because TDBM keeps a second reference to all beans in the TDBMService. You do not have direct
 access to this reference, but hopefully, you don't have to bother about it. All you need to do
-is install the <a href="php.net/manual/book.weakref.php"><strong>weakref</strong></a> extension. With this extension
+is install the <a href="http://php.net/manual/fr/class.weakref.php"><strong>weakref</strong></a> extension. With this extension
 enabled, and cursor mode enabled, TDBM will be able to manage memory much more efficiently,
 and only keep track of beans you are actively using.</p>
 <div class="alert alert-info">To sum up, if you have very large datasets to fetch, you should
