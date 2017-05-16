@@ -467,7 +467,7 @@ while your application will be very slow. You have been warned!</div>
 <p>The interesting part is that TDBM will automatically <strong>discard</strong> any parameter that is set to null.
 So let's imagine that your <code>$store</code> parameter is <code>null</code>. Suddenly, your filter will transform into: <code>category = :category</code>.
 The <code>AND store = :store</code> will be automatically dropped by TDBM.</p>
-<p>How is this possible? TDBM is built upon <a href="http://mouf-php.com/packages/mouf/magic-query/index.html">MagicQuery</a> that has
+<p>How is this possible? TDBM is built upon <a href="http://mouf-php.com/packages/mouf/magic-query/">MagicQuery</a> that has
 such a feature. You can read more about this feature <a href="http://mouf-php.com/packages/mouf/magic-query/doc/discard_unused_parameters.html">here</a> and <a href="http://www.thecodingmachine.com/simplifier-des-requetes-sql-complexes-avec-magic-query-cest-magique/">here</a> (french link).</p>
 <h3 id="getting-only-one-record">Getting only one record</h3>
 <p>If you are confident that your query will only ever return one record (for instance, you are performing a lookup by <code>login</code> on the <code>Users</code> table, then, you can use the <code>findOne</code> method instead of <code>find</code>.</p>
@@ -568,7 +568,7 @@ $role-&gt;setUsers($users);</code></pre>
 }</code></pre>
 <p>Here, we called the <code>find</code> method passing a filter on the <code>name</code> column of the <code>country</code> table.</p>
 <p>Hey! But where is the &quot;join&quot;?</p>
-<p>Behind the scene, TDBM is calling a library called <a href="http://mouf-php.com/packages/mouf/magic-query/index.html">MagicQuery</a>.
+<p>Behind the scene, TDBM is calling a library called <a href="http://mouf-php.com/packages/mouf/magic-query/">MagicQuery</a>.
 MagicQuery is smart enough to automatically detect the link between the <code>users</code> and the <code>countries</code> table. You just need
 to tell TDBM what filter you want on <strong>any column</strong> in <strong>any table</strong> in your database model and TDBM will find
 the right query for you. MagicQuery is looking for the shortest path between 2 tables using foreign key relationships.
