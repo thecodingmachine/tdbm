@@ -12,6 +12,8 @@ currentMenu: introduction
 [![Build Status](https://travis-ci.org/thecodingmachine/tdbm.svg?branch=master)](https://travis-ci.org/thecodingmachine/tdbm)
 [![Coverage Status](https://coveralls.io/repos/thecodingmachine/tdbm/badge.svg?branch=master&service=github)](https://coveralls.io/github/thecodingmachine/tdbm?branch=master)
 
+Previous version (TDBM <5):
+[![Total Downloads](https://poser.pugx.org/mouf/database.tdbm/downloads)](https://packagist.org/packages/mouf/database.tdbm)
 
 About TDBM (The DataBase Machine)
 =================================
