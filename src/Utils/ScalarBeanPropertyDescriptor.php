@@ -15,10 +15,6 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @var Column
      */
     private $column;
-    /**
-     * @var NamingStrategyInterface
-     */
-    private $namingStrategy;
 
     /**
      * ScalarBeanPropertyDescriptor constructor.
@@ -28,10 +24,9 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function __construct(Table $table, Column $column, NamingStrategyInterface $namingStrategy)
     {
-        parent::__construct($table);
+        parent::__construct($table, $namingStrategy);
         $this->table = $table;
         $this->column = $column;
-        $this->namingStrategy = $namingStrategy;
     }
 
     /**
@@ -57,11 +52,6 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $str = '     * @param %s %s';
 
         return sprintf($str, $paramType, $this->getVariableName());
-    }
-
-    public function getUpperCamelCaseName()
-    {
-        return TDBMDaoGenerator::toCamelCase($this->column->getName());
     }
 
     /**
@@ -197,9 +187,9 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $normalizedType = TDBMDaoGenerator::dbalTypeToPhpType($type);
 
         if ($normalizedType == '\\DateTimeInterface') {
-            return '        $array['.var_export($this->getLowerCamelCaseName(), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
+            return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
         } else {
-            return '        $array['.var_export($this->getLowerCamelCaseName(), true).'] = $this->'.$this->getGetterName()."();\n";
+            return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."();\n";
         }
     }
 
