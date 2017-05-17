@@ -22,7 +22,6 @@
         "mouf/magic-query" : "^1.2.1",
         "mouf/schema-analyzer": "^1.1",
         "doctrine/dbal": "~2.5",
-        "doctrine/cache": "~1.5",
         "psr/log": "~1.0",
         "doctrine/inflector": "~1.0",
         "beberlei/porpaginas": "~1.0",
@@ -56,8 +55,6 @@
             "TheCodingMachine\\TDBM\\" : "tests/"
         }
     },
-    "minimum-stability" : "dev",
-    "prefer-stable": true,
     "extra": {
         "branch-alias": {
             "dev-master": "5.0.x-dev"
