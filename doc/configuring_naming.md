@@ -26,6 +26,15 @@ When configuring the naming, you have 2 solutions:
 - configure the default `DefaultNamingStrategy` instance
 - provide your own `NamingStrategyInterface` implementation to TDBM
 
+<div class="alert alert-info"><b>Note:</b> The naming strategy also covers:
+<ul>
+    <li>Name of getters</li>
+    <li>Name of setters</li>
+    <li>Name of find-by-index methods</li>
+    <li>Name of JSON serialized properties</li>
+</ul>
+</div>
+
 Configuring the default naming strategy
 ---------------------------------------
 
@@ -60,6 +69,6 @@ $strategy->setExceptions([
 Implementing your own naming strategy
 -------------------------------------
 
-If you need a more fine-grained control over the naming strategy, you can simply implement your own `NamingStrategyInterface` class.
+If you need a more fine-grained control over the naming strategy, you can simply implement your own `NamingStrategyInterface` class. Or you can extend the `AbstractNamingStrategy` class that implements most of the boilerplate code you will need and still offers a large degree of freedom.
 
 The naming strategy is passed as a parameter of the `Configuration` class used to configure the `TDBMService`.

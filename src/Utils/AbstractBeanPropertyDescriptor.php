@@ -20,13 +20,19 @@ abstract class AbstractBeanPropertyDescriptor
      * @var bool
      */
     protected $alternativeName = false;
+    /**
+     * @var NamingStrategyInterface
+     */
+    protected $namingStrategy;
 
     /**
      * @param Table $table
+     * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $table)
+    public function __construct(Table $table, NamingStrategyInterface $namingStrategy)
     {
         $this->table = $table;
+        $this->namingStrategy = $namingStrategy;
     }
 
     /**
@@ -53,24 +59,17 @@ abstract class AbstractBeanPropertyDescriptor
 
     public function getVariableName()
     {
-        return '$'.$this->getLowerCamelCaseName();
+        return $this->namingStrategy->getVariableName($this);
     }
-
-    public function getLowerCamelCaseName()
-    {
-        return TDBMDaoGenerator::toVariableName($this->getUpperCamelCaseName());
-    }
-
-    abstract public function getUpperCamelCaseName();
 
     public function getSetterName()
     {
-        return 'set'.$this->getUpperCamelCaseName();
+        return $this->namingStrategy->getSetterName($this);
     }
 
     public function getGetterName()
     {
-        return 'get'.$this->getUpperCamelCaseName();
+        return $this->namingStrategy->getGetterName($this);
     }
 
     /**
@@ -136,4 +135,12 @@ abstract class AbstractBeanPropertyDescriptor
      * @return string
      */
     abstract public function getJsonSerializeCode();
+
+    /**
+     * @return bool
+     */
+    public function isAlternativeName(): bool
+    {
+        return $this->alternativeName;
+    }
 }

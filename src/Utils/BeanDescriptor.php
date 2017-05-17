@@ -217,7 +217,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         /** @var $names AbstractBeanPropertyDescriptor[] */
         $names = [];
         foreach ($beanPropertyDescriptors as $beanDescriptor) {
-            $name = $beanDescriptor->getUpperCamelCaseName();
+            $name = $beanDescriptor->getGetterName();
             if (isset($names[$name])) {
                 $names[$name]->useAlternativeName();
                 $beanDescriptor->useAlternativeName();
@@ -229,7 +229,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         // Final check (throw exceptions if problem arises)
         $names = [];
         foreach ($beanPropertyDescriptors as $beanDescriptor) {
-            $name = $beanDescriptor->getUpperCamelCaseName();
+            $name = $beanDescriptor->getGetterName();
             if (isset($names[$name])) {
                 throw new TDBMException('Unsolvable name conflict while generating method name');
             } else {
@@ -240,7 +240,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         // Last step, let's rebuild the list with a map:
         $beanPropertyDescriptorsMap = [];
         foreach ($beanPropertyDescriptors as $beanDescriptor) {
-            $beanPropertyDescriptorsMap[$beanDescriptor->getLowerCamelCaseName()] = $beanDescriptor;
+            $beanPropertyDescriptorsMap[$beanDescriptor->getVariableName()] = $beanDescriptor;
         }
 
         return $beanPropertyDescriptorsMap;
@@ -545,11 +545,9 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
             return [[], ''];
         }
 
-        $methodNameComponent = [];
         $functionParameters = [];
         $first = true;
         foreach ($elements as $element) {
-            $methodNameComponent[] = $element->getUpperCamelCaseName();
             $functionParameter = $element->getClassName();
             if ($functionParameter) {
                 $usedBeans[] = $beanNamespace.'\\'.$functionParameter;
@@ -583,8 +581,9 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
         }
         $paramsString = implode("\n", $params);
 
+        $methodName = $this->namingStrategy->getFindByIndexMethodName($index, $elements);
+
         if ($index->isUnique()) {
-            $methodName = 'findOneBy'.implode('And', $methodNameComponent);
             $returnType = "{$beanClassName}";
 
             $code = "
@@ -603,7 +602,6 @@ $paramsString
     }
 ";
         } else {
-            $methodName = 'findBy'.implode('And', $methodNameComponent);
             $returnType = "{$beanClassName}[]|ResultIterator|ResultArray";
 
             $code = "

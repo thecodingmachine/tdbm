@@ -57,13 +57,13 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
         $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy(), new VoidListener());
         $propertyDescriptors = $beanDescriptor->getBeanPropertyDescriptors();
         $firstElem = reset($propertyDescriptors);
-        $idProperty = $propertyDescriptors['id'];
+        $idProperty = $propertyDescriptors['$id'];
         $this->assertEquals($firstElem, $idProperty);
         $this->assertEquals('person', $idProperty->getTable()->getName());
         $this->assertInstanceOf('TheCodingMachine\\TDBM\\Utils\\ScalarBeanPropertyDescriptor', $idProperty);
-        $countryProperty = $propertyDescriptors['country'];
+        $countryProperty = $propertyDescriptors['$country'];
         $this->assertInstanceOf('TheCodingMachine\\TDBM\\Utils\\ObjectBeanPropertyDescriptor', $countryProperty);
-        $nameProperty = $propertyDescriptors['name'];
+        $nameProperty = $propertyDescriptors['$name'];
         $this->assertInstanceOf('TheCodingMachine\\TDBM\\Utils\\ScalarBeanPropertyDescriptor', $nameProperty);
     }
 
@@ -72,11 +72,11 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
         $usersTable = $this->schema->getTable('users');
         $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy(), new VoidListener());
         $constructorPropertyDescriptors = $beanDescriptor->getConstructorProperties();
-        $this->assertArrayHasKey('name', $constructorPropertyDescriptors);
+        $this->assertArrayHasKey('$name', $constructorPropertyDescriptors);
         // password is nullable
-        $this->assertArrayNotHasKey('password', $constructorPropertyDescriptors);
+        $this->assertArrayNotHasKey('$password', $constructorPropertyDescriptors);
         // id is autoincremented
-        $this->assertArrayNotHasKey('id', $constructorPropertyDescriptors);
+        $this->assertArrayNotHasKey('$id', $constructorPropertyDescriptors);
     }
 
     public function testGetTable()

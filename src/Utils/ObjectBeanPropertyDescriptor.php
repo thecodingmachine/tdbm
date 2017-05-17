@@ -21,10 +21,6 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @var SchemaAnalyzer
      */
     private $schemaAnalyzer;
-    /**
-     * @var NamingStrategyInterface
-     */
-    private $namingStrategy;
 
     /**
      * ObjectBeanPropertyDescriptor constructor.
@@ -35,10 +31,9 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function __construct(Table $table, ForeignKeyConstraint $foreignKey, SchemaAnalyzer $schemaAnalyzer, NamingStrategyInterface $namingStrategy)
     {
-        parent::__construct($table);
+        parent::__construct($table, $namingStrategy);
         $this->foreignKey = $foreignKey;
         $this->schemaAnalyzer = $schemaAnalyzer;
-        $this->namingStrategy = $namingStrategy;
     }
 
     /**
@@ -71,35 +66,6 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $str = '     * @param %s %s';
 
         return sprintf($str, $this->getClassName(), $this->getVariableName());
-    }
-
-    public function getUpperCamelCaseName()
-    {
-        // First, are there many column or only one?
-        // If one column, we name the setter after it. Otherwise, we name the setter after the table name
-        if (count($this->foreignKey->getLocalColumns()) > 1) {
-            $name = TDBMDaoGenerator::toSingular(TDBMDaoGenerator::toCamelCase($this->foreignKey->getForeignTableName()));
-            if ($this->alternativeName) {
-                $camelizedColumns = array_map(['TheCodingMachine\\TDBM\\Utils\\TDBMDaoGenerator', 'toCamelCase'], $this->foreignKey->getLocalColumns());
-
-                $name .= 'By'.implode('And', $camelizedColumns);
-            }
-        } else {
-            $column = $this->foreignKey->getLocalColumns()[0];
-            // Let's remove any _id or id_.
-            if (strpos(strtolower($column), 'id_') === 0) {
-                $column = substr($column, 3);
-            }
-            if (strrpos(strtolower($column), '_id') === strlen($column) - 3) {
-                $column = substr($column, 0, strlen($column) - 3);
-            }
-            $name = TDBMDaoGenerator::toCamelCase($column);
-            if ($this->alternativeName) {
-                $name .= 'Object';
-            }
-        }
-
-        return $name;
     }
 
     /**
@@ -208,8 +174,9 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     {
         return '        if (!$stopRecursion) {
             $object = $this->'.$this->getGetterName().'();
-            $array['.var_export($this->getLowerCamelCaseName(), true).'] = $object ? $object->jsonSerialize(true) : null;
+            $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $object ? $object->jsonSerialize(true) : null;
         }
 ';
     }
+
 }

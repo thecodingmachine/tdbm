@@ -4,8 +4,11 @@
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\Common\Inflector\Inflector;
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use TheCodingMachine\TDBM\TDBMException;
 
-class DefaultNamingStrategy implements NamingStrategyInterface
+class DefaultNamingStrategy extends AbstractNamingStrategy
 {
     private $beanPrefix = '';
     private $beanSuffix = '';
@@ -158,11 +161,34 @@ class DefaultNamingStrategy implements NamingStrategyInterface
         }
 
         $tokens = preg_split("/[_ ]+/", $str);
-        $tokens = array_map([Inflector::class, 'singularize'], $tokens);
 
         $str = '';
         foreach ($tokens as $token) {
             $str .= ucfirst(Inflector::singularize($token));
+        }
+
+        return $str;
+    }
+
+    /**
+     * Put string to camel case form.
+     *
+     * @param $str string
+     *
+     * @return string
+     */
+    private function toCamelCase(string $str): string
+    {
+        // Let's first check if this is not in the exceptions directory.
+        if (isset($this->exceptions[$str])) {
+            return $this->exceptions[$str];
+        }
+
+        $tokens = preg_split("/[_ ]+/", $str);
+
+        $str = '';
+        foreach ($tokens as $token) {
+            $str .= ucfirst($token);
         }
 
         return $str;
@@ -192,8 +218,53 @@ class DefaultNamingStrategy implements NamingStrategyInterface
      *
      * @param array<string,string> $exceptions
      */
-    public function setExceptions(array $exceptions)
+    public function setExceptions(array $exceptions): void
     {
         $this->exceptions = $exceptions;
+    }
+
+    protected function getForeignKeyUpperCamelCaseName(ForeignKeyConstraint $foreignKey, bool $alternativeName): string
+    {
+        // First, are there many column or only one?
+        // If one column, we name the setter after it. Otherwise, we name the setter after the table name
+        if (count($foreignKey->getLocalColumns()) > 1) {
+            $name = $this->toSingularCamelCase($foreignKey->getForeignTableName());
+            if ($alternativeName) {
+                $camelizedColumns = array_map(['TheCodingMachine\\TDBM\\Utils\\TDBMDaoGenerator', 'toCamelCase'], $foreignKey->getLocalColumns());
+
+                $name .= 'By'.implode('And', $camelizedColumns);
+            }
+        } else {
+            $column = $foreignKey->getLocalColumns()[0];
+            // Let's remove any _id or id_.
+            if (strpos(strtolower($column), 'id_') === 0) {
+                $column = substr($column, 3);
+            }
+            if (strrpos(strtolower($column), '_id') === strlen($column) - 3) {
+                $column = substr($column, 0, strlen($column) - 3);
+            }
+            $name = $this->toCamelCase($column);
+            if ($alternativeName) {
+                $name .= 'Object';
+            }
+        }
+
+        return $name;
+    }
+
+    protected function getScalarColumnUpperCamelCaseName(string $columnName, bool $alternativeName): string
+    {
+        return $this->toCamelCase($columnName);
+    }
+
+    protected function getUpperCamelCaseName(AbstractBeanPropertyDescriptor $property): string
+    {
+        if ($property instanceof ObjectBeanPropertyDescriptor) {
+            return $this->getForeignKeyUpperCamelCaseName($property->getForeignKey(), $property->isAlternativeName());
+        } elseif ($property instanceof ScalarBeanPropertyDescriptor) {
+            return $this->getScalarColumnUpperCamelCaseName($property->getColumnName(), $property->isAlternativeName());
+        } else {
+            throw new TDBMException('Unexpected property type. Should be either ObjectBeanPropertyDescriptor or ScalarBeanPropertyDescriptor'); // @codeCoverageIgnore
+        }
     }
 }
