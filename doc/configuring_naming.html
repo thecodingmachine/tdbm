@@ -326,6 +326,12 @@ The default naming strategy is a class named <code>DefaultNamingStrategy</code> 
 <li>configure the default <code>DefaultNamingStrategy</code> instance</li>
 <li>provide your own <code>NamingStrategyInterface</code> implementation to TDBM</li>
 </ul>
+<div class="alert alert-info"><b>Note:</b> The naming strategy also covers:
+<ul><li>Name of getters</li>
+    <li>Name of setters</li>
+    <li>Name of find-by-index methods</li>
+    <li>Name of JSON serialized properties</li>
+</ul></div>
 <h2 id="configuring-the-default-naming-strategy">Configuring the default naming strategy</h2>
 <p>The default naming strategy assumes the name of the tables are in English and in plural form.
 The default naming strategy will put the table name in CamelCase, in singular form and then add suffixes and prefixes.</p>
@@ -346,7 +352,7 @@ Let's assume you have a table named <code>chevaux</code> ('horses' in French). T
     'chevaux' =&gt; 'Cheval'
 ]);</code></pre>
 <h2 id="implementing-your-own-naming-strategy">Implementing your own naming strategy</h2>
-<p>If you need a more fine-grained control over the naming strategy, you can simply implement your own <code>NamingStrategyInterface</code> class.</p>
+<p>If you need a more fine-grained control over the naming strategy, you can simply implement your own <code>NamingStrategyInterface</code> class. Or you can extend the <code>AbstractNamingStrategy</code> class that implements most of the boilerplate code you will need and still offers a large degree of freedom.</p>
 <p>The naming strategy is passed as a parameter of the <code>Configuration</code> class used to configure the <code>TDBMService</code>.</p>
 
                     <p class="fork-and-edit">
