@@ -5,7 +5,7 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-    <title>Miscellaneous features | TDBM</title>
+    <title>Installing TDBM in Lumen | TDBM</title>
 
     <meta name="HandheldFriendly" content="True">
     <meta name="MobileOptimized" content="320">
@@ -98,7 +98,7 @@
                                 Install in Laravel
                             </a>
                         </li>
-                                                                                <li class=" visible-xs-block">
+                                                                                <li class="active visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/install_lumen.html">
                                 Install in Lumen
                             </a>
@@ -143,7 +143,7 @@
                                 JSON serialization
                             </a>
                         </li>
-                                                                                <li class="active visible-xs-block">
+                                                                                <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
                                 Miscellaneous features
                             </a>
@@ -212,7 +212,7 @@
                             Install in Laravel
                         </a>
                     </li>
-                                                                <li class="">
+                                                                <li class="active">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/install_lumen.html">
                             Install in Lumen
                         </a>
@@ -263,7 +263,7 @@
                             JSON serialization
                         </a>
                     </li>
-                                                                <li class="active">
+                                                                <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
                             Miscellaneous features
                         </a>
@@ -315,71 +315,81 @@
         <div class="container pt100">
             <div class="row">
                 <div class="col-xs-12">
-                    <h1>Miscellaneous features <small></small></h1>                    <h2 id="deleting-beans">Deleting beans</h2>
-<p>Each DAO comes with a <code>delete</code> method to delete beans from the database.</p>
-<pre><code class="language-php">$userDao-&gt;delete($user);</code></pre>
-<p>When <code>delete</code> is called on a bean, the many-to-many relationships are automatically deleted as well.</p>
-<h3 id="cascading-deletes">Cascading deletes</h3>
-<p>The <code>delete</code> method accepts a second <code>$cascade</code> parameter, that can be set to true is you want to perform cascade delete operations.</p>
-<pre><code class="language-php">// Delete $user and any bean that is pointing to the user.
-$userDao-&gt;delete($user, true);</code></pre>
-<p>When using &quot;cascading delete&quot;, any bean pointing to the deleted bean will be deleted as well.</p>
-<h2 id="discarding-changes-on-a-bean">Discarding changes on a bean</h2>
-<p>If your bean is coming from database, you can at any time cancel any changes you performed using the <code>discardChanges</code>
-method.</p>
-<pre><code class="language-php">$user = $userDao-&gt;getById(1);
+                    <h1>Installing TDBM in Lumen <small></small></h1>                    <div class="text-center">
+<svg xmlns="http://www.w3.org/2000/svg" class="iconic iconic-lightbulb" width="128" height="128" viewbox="0 0 128 128"><g class="iconic-metadata"><title>Lightbulb</title></g><defs><clippath id="iconic-size-lg-lightbulb-clip-0"><path d="M16.583 94h33.417v2.667l-39.083 6.375-.333-6.417z"></path></clippath><clippath id="iconic-size-lg-lightbulb-clip-1"><path d="M64 57l-14.5 8.25v16.75h-34.25l-1.5-16 50.25-23z"></path></clippath></defs><g data-width="64" data-height="128" class="iconic-lightbulb-lg iconic-container iconic-lg" display="inline" transform="translate(32)"><path stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-screw iconic-lightbulb-screw-4 iconic-property-accent iconic-property-stroke" d="M44 122l-23.834 4.001"></path><path stroke="#000" stroke-width="4" stroke-linecap="round" class="iconic-lightbulb-screw iconic-lightbulb-screw-3 iconic-property-accent iconic-property-stroke" d="M48 112l-32 6" fill="none"></path><path stroke="#000" stroke-width="4" stroke-linecap="round" class="iconic-lightbulb-screw iconic-lightbulb-screw-2 iconic-property-accent iconic-property-stroke" d="M48 102l-32 6" fill="none"></path><path clip-path="url(#iconic-size-lg-lightbulb-clip-0)" stroke="#000" stroke-width="4" stroke-linecap="round" class="iconic-lightbulb-screw iconic-lightbulb-screw-1 iconic-property-accent iconic-property-stroke" d="M48 92.5l-32 6" fill="none"></path><path clip-path="url(#iconic-size-lg-lightbulb-clip-1)" stroke="#000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-6 iconic-property-stroke" d="M60 54l-20 9v18.75" fill="none"></path><path clip-path="url(#iconic-size-lg-lightbulb-clip-1)" stroke="#000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-5 iconic-property-stroke" d="M24 68v13.75" fill="none"></path><path d="M47 94h-30c-1.657 0-3.221-1.325-3.493-2.959l-1.014-6.082c-.272-1.634.85-2.959 2.507-2.959h34c1.657 0 2.779 1.325 2.507 2.959l-1.014 6.082c-.272 1.634-1.836 2.959-3.493 2.959z" class="iconic-lightbulb-base iconic-property-fill"></path><path stroke="#000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-4 iconic-property-stroke" d="M60 38l-56 26" fill="none"></path><path stroke="#000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-3 iconic-property-stroke" d="M60 22l-56 26" fill="none"></path><path stroke="#000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-2 iconic-property-stroke" d="M60 6l-56 26" fill="none"></path><path stroke="#000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-1 iconic-property-stroke" d="M30 4.114l-26 11.886" fill="none"></path></g><g data-width="16" data-height="32" class="iconic-lightbulb-md iconic-container iconic-md" display="none" transform="scale(4) translate(8)"><path stroke="#000" stroke-linecap="round" class="iconic-lightbulb-screw iconic-lightbulb-screw-4 iconic-property-accent iconic-property-stroke" d="M5.5 31.5l5-1.429" fill="none"></path><path stroke="#000" stroke-linecap="round" class="iconic-lightbulb-screw iconic-lightbulb-screw-3 iconic-property-accent iconic-property-stroke" d="M4.5 29.5l7-2" fill="none"></path><path stroke="#000" stroke-linecap="round" class="iconic-lightbulb-screw iconic-lightbulb-screw-2 iconic-property-accent iconic-property-stroke" d="M4.5 27.5l7-2" fill="none"></path><path stroke="#000" stroke-linecap="round" class="iconic-lightbulb-screw iconic-lightbulb-screw-1 iconic-property-accent iconic-property-stroke" d="M4.5 25.5l7-2" fill="none"></path><path stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-5 iconic-property-stroke" d="M12.5 18.5l-2 1v3.5" fill="none"></path><path stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-4 iconic-property-stroke" d="M5.5 23v-1.5" fill="none"></path><path stroke="#000" stroke-width="3" stroke-linecap="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-3 iconic-property-stroke" d="M14.5 11.5l-13 6" fill="none"></path><path stroke="#000" stroke-width="3" stroke-linecap="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-2 iconic-property-stroke" d="M14.5 5.5l-13 6" fill="none"></path><path stroke="#000" stroke-width="3" stroke-linecap="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-1 iconic-property-stroke" d="M10.5 1.5l-9 4" fill="none"></path><path d="M11 25h-6c-.552 0-1.142-.425-1.316-.949l-.367-1.103c-.175-.524.131-.949.684-.949h8c.552 0 .858.425.684.949l-.367 1.103c-.175.524-.764.949-1.316.949z" class="iconic-lightbulb-base iconic-property-fill"></path></g><g data-width="10" data-height="16" class="iconic-lightbulb-sm iconic-container iconic-sm" display="none" transform="scale(8) translate(3)"><path d="M7 14c0 1.105-.895 2-2 2s-2-.895-2-2" class="iconic-lightbulb-screw iconic-property-accent iconic-property-fill"></path><path stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-4 iconic-property-stroke" d="M8 8l-2 1v2" fill="none"></path><path stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-3 iconic-property-stroke" d="M4 10.5v.5" fill="none"></path><path stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-2 iconic-property-stroke" d="M1 8l8-4" fill="none"></path><path stroke="#000" stroke-width="2" stroke-linecap="round" class="iconic-lightbulb-coil iconic-lightbulb-coil-1 iconic-property-stroke" d="M7 1l-6 3" fill="none"></path><path d="M1.776 12.553l-.553-1.106c-.123-.247 0-.447.276-.447h7c.276 0 .4.2.276.447l-.553 1.106c-.124.247-.448.447-.724.447h-5c-.276 0-.6-.2-.724-.447z" class="iconic-lightbulb-base iconic-property-fill"></path></g></svg><p><strong>Lumen 5.x integration</strong></p>
+</div>
+<h2 id="installation">Installation</h2>
+<p>To install TDBM in Lumen 5.x:</p>
+<pre><code class="language-bash">composer require thecodingmachine/tdbm-laravel ^5.0</code></pre>
+<div class="alert alert-info">There is no typo here. The <i>thecodingmachine/tdbm-laravel</i> can be used both for Laravel and Lumen integration.</div>
+<p>Then edit your <code>bootstrap/app.php</code> file and register these 2 service providers:</p>
+<pre><code class="language-php">$app-&gt;register(Nayjest\LaravelDoctrineDBAL\ServiceProvider::class);
+$app-&gt;register(TheCodingMachine\TDBM\Laravel\Providers\TdbmServiceProvider::class);</code></pre>
+<div class="alert alert-info">The <code>Nayjest\LaravelDoctrineDBAL\ServiceProvider</code> provides a "Doctrine DBAL connection" needed by TDBM. This connection reuses the default database connection used by Lumen.</div>
+<h2 id="generating-beans-and-daos">Generating beans and DAOs</h2>
+<p>When installation is done, you need to generate DAOs and beans from your data model.</p>
+<p>Run the following command:</p>
+<pre><code class="language-bash">php artisan tdbm:generate</code></pre>
+<div class="alert alert-danger">You must run this command after the installation of the package, and <strong>each time you run a migration</strong> (i.e. each time the database model changes).</div>
+<h2 id="advanced-configuration">Advanced configuration</h2>
+<p>By default, TDBM will write DAOs in the <code>App\Daos</code> namespace and beans in the <code>App\Beans</code> namespace.
+If you want to customize this, you can edit the <code>bootstrap/app.php</code> file:</p>
+<pre><code class="language-php">config([
+    'database.tdbm.daoNamespace' =&gt; 'App\\Daos',
+    'database.tdbm.beanNamespace' =&gt; 'App\\Beans'    
+]);</code></pre>
+<h2 id="accessing-daos-through-a-route-closure">Accessing DAOs through a route closure</h2>
+<p>In Lumen, you would typically inject the DAOs in your route closure.</p>
+<p><strong>bootstrap/app.php</strong></p>
+<pre><code class="language-php">use App\Daos\UserDao;
 
-echo $user-&gt;getName();
-// outputs 'Foo'
+// ...
 
-$user-&gt;setName('Bar');
+$app-&gt;get('test', function(UserDao $userDao) {
+    $user = $this-&gt;userDao-&gt;getById($id);
+    // do stuff
+});</code></pre>
+<h2 id="accessing-daos-through-a-controller">Accessing DAOs through a Controller</h2>
+<p>Alternatively, if you use controllers, you can also inject the DAOs in your controllers constructor (or in any class resolved by the Lumen container).</p>
+<p>Typically:</p>
+<p><strong>bootstrap/app.php</strong></p>
+<pre><code class="language-php">$app-&gt;get('test', [
+    'uses' =&gt; 'TestController@index'
+]);</code></pre>
+<p><strong>app/Http/Controllers/TestController.php</strong></p>
+<pre><code class="language-php">&lt;?php
+namespace App\Http\Controllers;
 
-// Cancels any changes
-$user-&gt;discardChanges();
+use App\Daos\MigrationDao;
+use Illuminate\Http\Request;
 
-echo $user-&gt;getName();
-// outputs 'Foo' again, not 'Bar'</code></pre>
-<h2 id="cloning-beans">Cloning beans</h2>
-<p>You can clone beans using the <code>clone</code> keyword.</p>
-<pre><code class="language-php">$user = $userDao-&gt;getById(1);
-
-$userCopy = clone $user;</code></pre>
-<p>Cloned beans have the following properties:</p>
-<ul>
-<li>The primary key of the cloned bean is set to <code>null</code>. This enables you to <code>save</code> the cloned bean easily (if you use auto-incremented primary keys).</li>
-<li>The cloned bean is &quot;detached&quot; from TDBM. You will have to call the <code>save</code> method of the DAO to save the bean in database.</li>
-<li>Many to many relationships are also passed to the cloned bean.</li>
-</ul>
-<h2 id="logging-and-debugging">Logging and debugging</h2>
-<p>TDBM uses MagicQuery to automatically guess the joins you want. If for some reason, the guess is bad, it can be quite
-difficult to understand the request performed.</p>
-<p>In these cases, you will want to enable logging.</p>
-<p>For this, <strong>you need to pass a <a href="http://www.php-fig.org/psr/psr-3/">PSR-3</a> compatible logger</strong> as the 4th parameter of the <code>TDBMService</code> constructor.</p>
-<p>TDBM can log quite a lot so by default, TDBM will restrict itself to only logging &quot;warning&quot; messages (or above).
-If you enable logging of &quot;debug&quot; messages, you will see any SELECT request performed by TDBM.</p>
-<p>For instance, to log a specific SQL request, you can do:</p>
-<pre><code class="language-php">use Psr\Log\LogLevel;
-
-class UserDao extends AbstractUserDao {
+class TestController extends Controller
+{
+    /**
+     * @var UserDao
+     */
+    private $userDao;
 
     /**
-     * Returns the list of users starting with $firstLetter
-     *
-     * @param string $firstLetter
-     * @return User[]
+     * The DAO we need is injected in the constructor
      */
-    public function getUsersByLetter($firstLetter) {
-        $this-&gt;tdbmService-&gt;setLogLevel(LogLevel::DEBUG);
-        $results = $this-&gt;find("name LIKE :name", [ "name" =&gt; $firstLetter.'%' ]);
-        $this-&gt;tdbmService-&gt;setLogLevel(LogLevel::WARNING);
-        return $results;
+    public function __construct(UserDao $userDao)
+    {
+        $this-&gt;userDao = $userDao;
+    }
+
+    public function index($id)
+    {
+        $user = $this-&gt;userDao-&gt;getById($id);
+        // do stuff
     }
 }</code></pre>
-<p><strong>Do not forget to register a PSR-3 logger in your <code>TDBMService</code>, otherwise, nothing will be logged!</strong></p>
+<h2 id="next-step">Next step</h2>
+<p>Let's now learn how to <a href="quickstart.html">access the database</a>.</p>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
-                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/miscellaneous.md">fork and edit it</a>!
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/install_lumen.md">fork and edit it</a>!
                     </p>
                 </div>
             </div>
