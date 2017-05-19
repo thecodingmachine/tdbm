@@ -42,6 +42,9 @@ menu:
         install_laravel:
             text: Install in Laravel
             relativeUrl: doc/install_laravel.html
+        install_lumen:
+            text: Install in Lumen
+            relativeUrl: doc/install_lumen.html
         install_mouf:
             text: Install in Mouf
             relativeUrl: doc/install_mouf.html

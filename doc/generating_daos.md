@@ -15,13 +15,16 @@ The way you generate DAOs and beans **depends on the framework you use**.
          <a href="install_laravel.html#generating-beans-and-daos" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in Laravel</strong></a>
     </div>
     <div class="col-xs-12 col-sm-6">
-         <a href="install_mouf.html#generating-daos-and-beans" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in Mouf</strong></a>
+         <a href="install_lumen.html#generating-beans-and-daos" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in Lumen</strong></a>
     </div>
 </div>
 
 <br/>
 
 <div class="row">
+    <div class="col-xs-12 col-sm-6">
+         <a href="install_mouf.html#generating-daos-and-beans" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in Mouf</strong></a>
+    </div>
     <div class="col-xs-12 col-sm-6">
          <a href="manual_install.html#generating-daos-and-beans" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in a manual install (no framework)</strong></a>
     </div>
