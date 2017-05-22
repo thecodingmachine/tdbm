@@ -24,9 +24,10 @@ body {
   position: fixed;
   left: 250px;
   width: 0;
-  height: 100%;
+  height: ~"calc(100% - 90px)";
   margin-left: -250px;
   overflow-y: auto;
+  overflow-x: hidden;
   background: #222;
   -webkit-transition: all 0.5s ease;
   -moz-transition: all 0.5s ease;
@@ -191,13 +192,13 @@ h2{
 }
 
 .skew{
-  -webkit-transform: skew(0deg, -4deg);
-  transform: skew(0deg, -4deg);
+  -webkit-transform: skew(0deg, -2deg);
+  transform: skew(0deg, -2deg);
 }
 
 .content{
-  -webkit-transform: skew(0deg, 4deg);
-  transform: skew(0deg, 4deg);
+  -webkit-transform: skew(0deg, 2deg);
+  transform: skew(0deg, 2deg);
 }
 
 .pt100{

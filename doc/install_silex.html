@@ -5,7 +5,7 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-    <title>Generating DAOs and beans | TDBM</title>
+    <title>Installing TDBM in Silex | TDBM</title>
 
     <meta name="HandheldFriendly" content="True">
     <meta name="MobileOptimized" content="320">
@@ -103,7 +103,7 @@
                                 Install in Lumen
                             </a>
                         </li>
-                                                                                <li class=" visible-xs-block">
+                                                                                <li class="active visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/install_silex.html">
                                 Install in Silex
                             </a>
@@ -128,7 +128,7 @@
                                 Playing with result sets
                             </a>
                         </li>
-                                                                                <li class="active visible-xs-block">
+                                                                                <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
                                 About DAOs
                             </a>
@@ -222,7 +222,7 @@
                             Install in Lumen
                         </a>
                     </li>
-                                                                <li class="">
+                                                                <li class="active">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/install_silex.html">
                             Install in Silex
                         </a>
@@ -250,7 +250,7 @@
                             Playing with result sets
                         </a>
                     </li>
-                                                                <li class="active">
+                                                                <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
                             About DAOs
                         </a>
@@ -325,70 +325,70 @@
         <div class="container pt100">
             <div class="row">
                 <div class="col-xs-12">
-                    <h1>Generating DAOs and beans <small></small></h1>                    <p>TDBM generates PHP files from your database model.</p>
-<div class="alert alert-info">Each time your database model is modified, you must to regenerate those files.</div>
-<p>The way you generate DAOs and beans <strong>depends on the framework you use</strong>.</p>
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
-         <a href="install_laravel.html#generating-beans-and-daos" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in Laravel</strong></a>
-    </div>
-    <div class="col-xs-12 col-sm-6">
-         <a href="install_lumen.html#generating-beans-and-daos" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in Lumen</strong></a>
-    </div>
+                    <h1>Installing TDBM in Silex <small></small></h1>                    <h2 id="installation">Installation</h2>
+<p>To install TDBM in Silex 2:</p>
+<pre><code class="language-bash">composer require thecodingmachine/tdbm-silex ^5.0</code></pre>
+<div class="alert alert-warning">
+In this document, we will assume you started your Silex application using the <a href="https://github.com/silexphp/Silex-Skeleton">silex-skeleton</a> package.
+If you did not use this package to start your project, you might need to adjust the paths of files in this documentation.
 </div>
-<p><br/></p>
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
-         <a href="install_silex.html#generating-daos-and-beans" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in Silex</strong></a>
-    </div>
-    <div class="col-xs-12 col-sm-6">
-         <a href="install_mouf.html#generating-daos-and-beans" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in Mouf</strong></a>
-    </div>
-</div>
-<p><br/></p>
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
-         <a href="manual_install.html#generating-daos-and-beans" class="btn btn-primary btn-large btn-block">Generating DAOs and beans <strong>in a manual install (no framework)</strong></a>
-    </div>
-</div>
-<p><br/></p>
-<div class="alert alert-info">
-TDBM has a feature allowing you to access the database directly through the <code>TDBMService</code>, without generating DAOs or beans.
-This is mostly for testing purpose and is not recommended. Should you need it, you can check the <code>tests/TDBMServiceTest.php</code> file for usage samples.</div>
-<h2 id="the-daos-and-beans-structure">The DAOs and beans structure</h2>
-<p>For each table in your database, TDBM will generate a DAO and a bean. The DAO is the object you will use to
-query the database. Each row of the database will be mapped to a bean object.</p>
-<p>Both DAOs and beans are divided in 2 parts. Let's assume you have a &quot;users&quot; table. TDBM will generate those classes for you:</p>
+<h3 id="registering-the-service-provider">Registering the service provider</h3>
+<p>Then edit your <code>src/app.php</code> file and register these 3 service providers:</p>
+<pre><code class="language-php">// Let's register the database connection
+$app-&gt;register(new Silex\Provider\DoctrineServiceProvider(), array(
+    'db.options' =&gt; array(
+        'driver'   =&gt; 'pdo_mysql',
+        'dbname'   =&gt; 'my_db',
+        'host'     =&gt; 'localhost',
+        'user'     =&gt; 'my_user',
+        'password' =&gt; 'my_password'
+    ),
+));
+
+// Let's register the Doctrine cache
+$app-&gt;register(new \CHH\Silex\CacheServiceProvider, [
+    'cache.options' =&gt; [
+        'default' =&gt; [
+            // Customize this to another cache driver if you don't have APCu installed
+            'driver' =&gt; \Doctrine\Common\Cache\ApcuCache::class,
+        ],
+    ],
+]);
+
+// Finally, let's register TDBM
+$app-&gt;register(new \TheCodingMachine\TDBM\Silex\Providers\TdbmServiceProvider(), [
+    'tdbm.daoNamespace' =&gt; 'App\Daos',
+    'tdbm.beanNamespace' =&gt; 'App\Beans'
+]);</code></pre>
+<h3 id="registering-the-console-command">Registering the console command</h3>
+<p>Now, we need to register a command in the Silex console.</p>
+<p>Assuming you started from the <a href="https://github.com/silexphp/Silex-Skeleton">silex-skeleton</a> package, you should edit the <code>src/console.php</code> file.</p>
+<pre><code class="language-php">$console-&gt;add(new \TheCodingMachine\TDBM\Commands\GenerateCommand($app['tdbm.configuration']));</code></pre>
+<p>Note: if you do not have a console (because you started from a blank Silex project), you can use the <a href="https://github.com/KnpLabs/ConsoleServiceProvider">KnpLabs' Console Service Provider</a> to add support for the Symfony console and then, register the <code>TheCodingMachine\TDBM\Commands\GenerateCommand</code> command provided by TDBM.</p>
+<h2 id="generating-beans-and-daos">Generating beans and DAOs</h2>
+<p>When installation is done, you need to generate DAOs and beans from your data model.</p>
+<p>Run the following command:</p>
+<pre><code class="language-bash">bin/console tdbm:generate</code></pre>
+<div class="alert alert-danger">You must run this command after the installation of the package, and <strong>each time you run a migration</strong> (i.e. each time the database model changes).</div>
+<h2 id="accessing-daos">Accessing DAOs</h2>
+<p>The TDBM service provider will create one service per DAO.</p>
+<p>The service name is the shot class name with the first character in lower case.</p>
+<p>For instance:</p>
 <ul>
-<li><code>AbstractUserDao</code>: the base class that contains methods to access the &quot;users&quot; table. It is generated by TDBM and you should
-never modify this class.</li>
-<li><code>UserDao</code>: this class extends AbstractUserDao. If you have some custom requests, you should perform them in this class. You can
-edit it as TDBM will never overwrite it.</li>
-<li><code>AbstractUser</code>: the bean mapping the columns of the &quot;users&quot; table. This class contains getters and setters for each and every
-column of the &quot;users&quot; table. It is generated by TDBM and you should
-never modify this class.</li>
-<li><code>User</code>: this class extends AbstractUser. If you have some custom getters and setters, you should implement them in this class. You can
-edit it as TDBM will never overwrite it.</li>
+<li>App\Daos\UserDao =&gt; userDao</li>
+<li>App\Daos\ProjectDao =&gt; projectDao</li>
 </ul>
-<p>Let's now have a closer look at the methods that are available in the &quot;UserDao&quot; class:</p>
-<ul>
-<li><code>public function save(User $obj)</code> : saves a <code>User</code> object in database</li>
-<li><code>public function findAll()</code> : returns all users records as an array of <code>User</code> objects.</li>
-<li><code>public function getById($id, $lazyLoading = false)</code> : Get a <code>User</code> specified by its ID (its primary key)</li>
-<li><code>public function delete($obj, $cascade=false)</code> : Deletes the User passed in parameter. If <code>$cascade</code> is set to true, it will delete all objects linked to <code>$obj</code>.</li>
-</ul>
-<p>The last 2 functions are <em>protected</em>. It means they are designed to be used in the UserDao class.</p>
-<ul>
-<li><code>protected function find($filter=null, $parameters = [], $orderbyBag=null)</code> : returns a list of
-users based on a filter bag (see the <code>TDBM_Service</code> documentation to learn more about filter bags). You can also
-provide an order, and an offset / limit range.</li>
-<li><code>protected function findOne($filter=null, $parameters = [])</code> : this has exactly the same purpose as find except
-it returns only 1 bean object instead of a list of bean objects.</li>
-</ul>
+<p>In Silex, you will typically access the DAOs fomr the <code>$app</code> variable passed in the closure:</p>
+<pre><code class="language-php">$app-&gt;get('test', function($app) {
+    $user = $app['userDao']-&gt;getById($id);
+    // do stuff
+});</code></pre>
+<h2 id="next-step">Next step</h2>
+<p>Let's now learn how to <a href="quickstart.html">access the database</a>.</p>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
-                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/generating_daos.md">fork and edit it</a>!
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/install_silex.md">fork and edit it</a>!
                     </p>
                 </div>
             </div>
