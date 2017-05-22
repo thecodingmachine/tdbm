@@ -127,7 +127,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      */
     public function getUsedClasses() : array
     {
-        return [$this->namingStrategy->getBeanClassName($this->fk->getForeignTableName())];
+        return [$this->namingStrategy->getBeanClassName($this->fk->getLocalTableName())];
     }
 
     /**
