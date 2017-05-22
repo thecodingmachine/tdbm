@@ -45,6 +45,9 @@ menu:
         install_lumen:
             text: Install in Lumen
             relativeUrl: doc/install_lumen.html
+        install_silex:
+            text: Install in Silex
+            relativeUrl: doc/install_silex.html
         install_mouf:
             text: Install in Mouf
             relativeUrl: doc/install_mouf.html
