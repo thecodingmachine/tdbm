@@ -4,6 +4,12 @@ hidetitle: true
 currentMenu: introduction
 ---
 
+<div class="text-center">
+<img src="doc/images/logo_full.png" alt="logo" />
+</div>
+
+<h1>The DataBase Machine</h1>
+
 [![Latest Stable Version](https://poser.pugx.org/thecodingmachine/tdbm/v/stable)](https://packagist.org/packages/thecodingmachine/tdbm)
 [![Total Downloads](https://poser.pugx.org/thecodingmachine/tdbm/downloads)](https://packagist.org/packages/thecodingmachine/tdbm)
 [![Latest Unstable Version](https://poser.pugx.org/thecodingmachine/tdbm/v/unstable)](https://packagist.org/packages/thecodingmachine/tdbm)
@@ -15,8 +21,6 @@ currentMenu: introduction
 Previous version (TDBM <5):
 [![Total Downloads](https://poser.pugx.org/mouf/database.tdbm/downloads)](https://packagist.org/packages/mouf/database.tdbm)
 
-About TDBM (The DataBase Machine)
-=================================
 
 What is it?
 -----------
