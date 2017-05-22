@@ -17,6 +17,7 @@ site:
 
 logo:
     logo: doc/images/logo.png
+    align: left
 icon:
     burger: doc/images/hamburger.png
 body:
