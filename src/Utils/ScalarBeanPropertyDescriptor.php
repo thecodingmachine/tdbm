@@ -46,8 +46,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getParamAnnotation()
     {
-        $className = $this->getClassName();
-        $paramType = $className ?: TDBMDaoGenerator::dbalTypeToPhpType($this->column->getType());
+        $paramType = $this->getPhpType();
 
         $str = '     * @param %s %s';
 
@@ -59,9 +58,20 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return null|string
      */
-    public function getClassName()
+    public function getClassName(): ?string
     {
-        return;
+        return null;
+    }
+
+    /**
+     * Returns the PHP type for the property (it can be a scalar like int, bool, or class names, like \DateTimeInterface, App\Bean\User....)
+     *
+     * @return string
+     */
+    public function getPhpType(): string
+    {
+        $type = $this->column->getType();
+        return TDBMDaoGenerator::dbalTypeToPhpType($type);
     }
 
     /**
@@ -121,8 +131,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getGetterSetterCode()
     {
-        $type = $this->column->getType();
-        $normalizedType = TDBMDaoGenerator::dbalTypeToPhpType($type);
+        $normalizedType = $this->getPhpType();
 
         $columnGetterName = $this->getGetterName();
         $columnSetterName = $this->getSetterName();
@@ -183,8 +192,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getJsonSerializeCode()
     {
-        $type = $this->column->getType();
-        $normalizedType = TDBMDaoGenerator::dbalTypeToPhpType($type);
+        $normalizedType = $this->getPhpType();
 
         if ($normalizedType == '\\DateTimeInterface') {
             return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
@@ -202,4 +210,5 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     {
         return $this->column->getName();
     }
+
 }

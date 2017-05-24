@@ -48,7 +48,14 @@ abstract class AbstractBeanPropertyDescriptor
      *
      * @return null|string
      */
-    abstract public function getClassName();
+    abstract public function getClassName(): ?string;
+
+    /**
+     * Returns the PHP type for the property (it can be a scalar like int, bool, or class names, like \DateTimeInterface, App\Bean\User....)
+     *
+     * @return string
+     */
+    abstract public function getPhpType(): string;
 
     /**
      * Returns the param annotation for this property (useful for constructor).

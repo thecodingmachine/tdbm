@@ -51,10 +51,21 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return null|string
      */
-    public function getClassName()
+    public function getClassName(): ?string
     {
         return $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
     }
+
+    /**
+     * Returns the PHP type for the property (it can be a scalar like int, bool, or class names, like \DateTimeInterface, App\Bean\User....)
+     *
+     * @return string
+     */
+    public function getPhpType(): string
+    {
+        return $this->getClassName();
+    }
+
 
     /**
      * Returns the param annotation for this property (useful for constructor).
