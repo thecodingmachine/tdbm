@@ -601,6 +601,15 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertCount(6, $users);
         $this->assertEquals('bill.shakespeare', $users[0]->getLogin());
         $this->assertEquals('jean.dupont', $users[1]->getLogin());
+
+        $users = $userDao->getUsersByCountryOrder();
+        $this->assertCount(6, $users);
+        $countryName1 = $users[0]->getCountry()->getLabel();
+        for ($i = 1; $i < 6; $i++) {
+            $countryName2 = $users[$i]->getCountry()->getLabel();
+            $this->assertLessThanOrEqual(0, strcmp($countryName1, $countryName2));
+            $countryName1 = $countryName2;
+        }
     }
 
     /**
@@ -614,6 +623,15 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertCount(6, $users);
         $this->assertEquals('bill.shakespeare', $users[0]->getLogin());
         $this->assertEquals('jean.dupont', $users[1]->getLogin());
+
+        $users = $userDao->getUsersFromSqlByCountryOrder();
+        $this->assertCount(6, $users);
+        $countryName1 = $users[0]->getCountry()->getLabel();
+        for ($i = 1; $i < 6; $i++) {
+            $countryName2 = $users[$i]->getCountry()->getLabel();
+            $this->assertLessThanOrEqual(0, strcmp($countryName1, $countryName2));
+            $countryName1 = $countryName2;
+        }
     }
 
     /**
