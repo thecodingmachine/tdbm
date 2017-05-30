@@ -40,30 +40,9 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
         $allFetchedTables = $this->tdbmService->_getRelatedTablesByInheritance($this->mainTable);
 
-        $columnDescList = [];
+        list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy);
 
-        $tableGroupName = $this->getTableGroupName($allFetchedTables);
-
-        foreach ($this->schema->getTable($this->mainTable)->getColumns() as $column) {
-            $columnName = $column->getName();
-            $columnDescList[] = [
-                'as' => $columnName,
-                'table' => $this->mainTable,
-                'column' => $columnName,
-                'type' => $column->getType(),
-                'tableGroup' => $tableGroupName,
-            ];
-        }
-
-        $sql = 'SELECT DISTINCT '.implode(', ', array_map(function ($columnDesc) {
-            return $this->tdbmService->getConnection()->quoteIdentifier($this->mainTable).'.'.$this->tdbmService->getConnection()->quoteIdentifier($columnDesc['column']);
-        }, $columnDescList)).' FROM '.$this->from;
-
-        if (count($allFetchedTables) > 1) {
-            list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy);
-        } elseif ($this->orderBy) {
-            list(, , $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy);
-        }
+        $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM '.$this->from;
 
         // Let's compute the COUNT.
         $pkColumnNames = $this->schema->getTable($this->mainTable)->getPrimaryKeyColumns();
@@ -73,20 +52,8 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
         $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM '.$this->from;
 
-        if (!empty($this->filterString)) {
-            $sql .= ' WHERE '.$this->filterString;
-            $countSql .= ' WHERE '.$this->filterString;
-        }
-
-        if (!empty($orderString)) {
-            $sql .= ' ORDER BY '.$orderString;
-        }
-
-        if (stripos($countSql, 'GROUP BY') !== false) {
-            throw new TDBMException('Unsupported use of GROUP BY in SQL request.');
-        }
-
-        if ($columnsList !== null) {
+        // Add joins on inherited tables if necessary
+        if (count($allFetchedTables) > 1) {
             $joinSql = '';
             $parentFks = $this->getParentRelationshipForeignKeys($this->mainTable);
             foreach ($parentFks as $fk) {
@@ -110,10 +77,20 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
                 );
             }
 
-            $sql = 'SELECT '.implode(', ', $columnsList).' FROM ('.$sql.') AS '.$this->mainTable.' '.$joinSql;
-            if (!empty($orderString)) {
-                $sql .= ' ORDER BY '.$orderString;
-            }
+            $sql .= $joinSql;
+        }
+
+        if (!empty($this->filterString)) {
+            $sql .= ' WHERE '.$this->filterString;
+            $countSql .= ' WHERE '.$this->filterString;
+        }
+
+        if (!empty($orderString)) {
+            $sql .= ' ORDER BY '.$orderString;
+        }
+
+        if (stripos($countSql, 'GROUP BY') !== false) {
+            throw new TDBMException('Unsupported use of GROUP BY in SQL request.');
         }
 
         $this->magicSql = $sql;

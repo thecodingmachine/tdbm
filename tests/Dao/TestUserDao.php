@@ -32,6 +32,27 @@ class TestUserDao extends UserBaseDao
     }
 
     /**
+     * Returns the list of users by alphabetical order.
+     *
+     * @return UserBean[]
+     */
+    public function getUsersByCountryOrder()
+    {
+        // The third parameter will be used in the "ORDER BY" clause of the SQL query.
+        return $this->find(null, [], 'country.label ASC', ['country']);
+    }
+    /**
+     * Returns the list of users by alphabetical order.
+     *
+     * @return UserBean[]
+     */
+    public function getUsersFromSqlByCountryOrder()
+    {
+        // The third parameter will be used in the "ORDER BY" clause of the SQL query.
+        return $this->findFromSql('users JOIN country ON country.id = users.country_id', null, [], 'country.label ASC');
+    }
+
+    /**
      * Returns the list of users whose login starts with $login.
      *
      * @param string $login
