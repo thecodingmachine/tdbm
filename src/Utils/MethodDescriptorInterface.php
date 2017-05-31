@@ -12,6 +12,13 @@ interface MethodDescriptorInterface
     public function getName() : string;
 
     /**
+     * Returns the name of the class that will be returned by the getter (short name).
+     *
+     * @return string
+     */
+    public function getBeanClassName(): string;
+
+    /**
      * Requests the use of an alternative name for this method.
      */
     public function useAlternativeName();
