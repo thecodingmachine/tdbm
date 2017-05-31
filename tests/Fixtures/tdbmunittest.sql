@@ -352,6 +352,10 @@ ALTER TABLE `users`
 ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`country_id`) REFERENCES `country` (`id`),
 ADD CONSTRAINT `users_ibfk_2` FOREIGN KEY (`id`) REFERENCES `contact` (`id`);
 
+-- This is not a typo, we are willingly creating 2 constraints on the same column to see if TDBM behaves correctly in these conditions.
+ALTER TABLE `users`
+ADD CONSTRAINT `users_ibfk_3` FOREIGN KEY (`country_id`) REFERENCES `country` (`id`);
+
 --
 -- Constraints for table `users`
 --

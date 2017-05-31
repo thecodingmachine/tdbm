@@ -118,10 +118,11 @@ class TDBMSchemaAnalyzer
     /**
      * Returns the list of foreign keys pointing to the table represented by this bean, excluding foreign keys
      * from junction tables and from inheritance.
+     * It will also suppress doubles if 2 foreign keys are using the same columns.
      *
      * @return ForeignKeyConstraint[]
      */
-    public function getIncomingForeignKeys($tableName)
+    public function getIncomingForeignKeys($tableName): array
     {
         $junctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
         $junctionTableNames = array_map(function (Table $table) {
@@ -131,7 +132,8 @@ class TDBMSchemaAnalyzer
 
         $fks = [];
         foreach ($this->getSchema()->getTables() as $table) {
-            foreach ($table->getForeignKeys() as $fk) {
+            $uniqueForeignKeys = $this->removeDuplicates($table->getForeignKeys());
+            foreach ($uniqueForeignKeys as $fk) {
                 if ($fk->getForeignTableName() === $tableName) {
                     if (in_array($fk->getLocalTableName(), $junctionTableNames)) {
                         continue;
@@ -147,5 +149,24 @@ class TDBMSchemaAnalyzer
         }
 
         return $fks;
+    }
+
+    /**
+     * Remove duplicate foreign keys (assumes that all foreign yes are from the same local table)
+     *
+     * @param ForeignKeyConstraint[] $foreignKeys
+     * @return ForeignKeyConstraint[]
+     */
+    private function removeDuplicates(array $foreignKeys): array
+    {
+        $fks = [];
+        foreach ($foreignKeys as $foreignKey) {
+            $key = implode('__`__', $foreignKey->getLocalColumns());
+            if (!isset($fks[$key])) {
+                $fks[$key] = $foreignKey;
+            }
+        }
+
+        return array_values($fks);
     }
 }
