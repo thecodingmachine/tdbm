@@ -60,6 +60,16 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
     }
 
     /**
+     * Returns the name of the class that will be returned by the getter (short name).
+     *
+     * @return string
+     */
+    public function getBeanClassName(): string
+    {
+        return $this->namingStrategy->getBeanClassName($this->fk->getLocalTableName());
+    }
+
+    /**
      * Requests the use of an alternative name for this method.
      */
     public function useAlternativeName()
@@ -88,7 +98,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
 
 ';
 
-        $beanClass = $this->namingStrategy->getBeanClassName($this->fk->getLocalTableName());
+        $beanClass = $this->getBeanClassName();
         $code .= sprintf($getterCode,
             $beanClass,
             implode(', ', $this->fk->getColumns()),
@@ -127,7 +137,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      */
     public function getUsedClasses() : array
     {
-        return [$this->namingStrategy->getBeanClassName($this->fk->getLocalTableName())];
+        return [$this->getBeanClassName()];
     }
 
     /**

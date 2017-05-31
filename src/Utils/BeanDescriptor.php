@@ -289,7 +289,12 @@ class BeanDescriptor implements BeanDescriptorInterface
         return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstructorCode, implode('', $assigns));
     }
 
-    public function getDirectForeignKeysDescriptors(): array
+    /**
+     * Returns the descriptors of one-to-many relationships (the foreign keys pointing on this beans)
+     *
+     * @return DirectForeignKeyMethodDescriptor[]
+     */
+    private function getDirectForeignKeysDescriptors(): array
     {
         $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($this->table->getName());
 
@@ -302,6 +307,9 @@ class BeanDescriptor implements BeanDescriptorInterface
         return $descriptors;
     }
 
+    /**
+     * @return PivotTableMethodsDescriptor[]
+     */
     private function getPivotTableDescriptors(): array
     {
         $descs = [];
@@ -328,7 +336,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      *
      * @return MethodDescriptorInterface[]
      */
-    private function getMethodDescriptors(): array
+    public function getMethodDescriptors(): array
     {
         $directForeignKeyDescriptors = $this->getDirectForeignKeysDescriptors();
         $pivotTableDescriptors = $this->getPivotTableDescriptors();

@@ -57,4 +57,11 @@ interface BeanDescriptorInterface
      * @return AbstractBeanPropertyDescriptor[]
      */
     public function getExposedProperties(): array;
+
+    /**
+     * Returns the list of method descriptors (and applies the alternative name if needed).
+     *
+     * @return MethodDescriptorInterface[]
+     */
+    public function getMethodDescriptors(): array;
 }

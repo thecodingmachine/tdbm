@@ -65,6 +65,16 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
     }
 
     /**
+     * Returns the name of the class that will be returned by the getter (short name).
+     *
+     * @return string
+     */
+    public function getBeanClassName(): string
+    {
+        return $this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName());
+    }
+
+    /**
      * Returns the plural name.
      *
      * @return string
@@ -101,7 +111,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
     {
         $singularName = $this->getSingularName();
         $pluralName = $this->getPluralName();
-        $remoteBeanName = $this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName());
+        $remoteBeanName = $this->getBeanClassName();
         $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
         $pluralVariableName = $variableName.'s';
 
@@ -184,7 +194,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     public function getUsedClasses() : array
     {
-        return [$this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName())];
+        return [$this->getBeanClassName()];
     }
 
     /**
@@ -194,7 +204,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     public function getJsonSerializeCode() : string
     {
-        $remoteBeanName = $this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName());
+        $remoteBeanName = $this->getBeanClassName();
         $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
 
         return '        if (!$stopRecursion) {
