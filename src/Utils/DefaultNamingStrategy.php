@@ -160,6 +160,11 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
             return $this->exceptions[$str];
         }
 
+        // If everything is in uppercase (Oracle), let's lowercase everything
+        if (strtoupper($str) === $str) {
+            $str = strtolower($str);
+        }
+
         $tokens = preg_split("/[_ ]+/", $str);
 
         $str = '';
@@ -182,6 +187,11 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
         // Let's first check if this is not in the exceptions directory.
         if (isset($this->exceptions[$str])) {
             return $this->exceptions[$str];
+        }
+
+        // If everything is in uppercase (Oracle), let's lowercase everything
+        if (strtoupper($str) === $str) {
+            $str = strtolower($str);
         }
 
         $tokens = preg_split("/[_ ]+/", $str);
