@@ -2,6 +2,7 @@
 
 namespace TheCodingMachine\TDBM;
 
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use Psr\Log\LoggerInterface;
@@ -77,10 +78,16 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
         $this->logger = $logger;
     }
 
-    protected function executeQuery()
+    private function getQuery(): string
     {
         $sql = $this->magicQuery->build($this->magicSql, $this->parameters);
         $sql = $this->tdbmService->getConnection()->getDatabasePlatform()->modifyLimitQuery($sql, $this->limit, $this->offset);
+        return $sql;
+    }
+
+    protected function executeQuery()
+    {
+        $sql = $this->getQuery();
 
         $this->logger->debug('Running SQL request: '.$sql);
 
@@ -96,11 +103,46 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     public function count()
     {
+        if ($this->count !== null) {
+            return $this->count;
+        }
+
+        if ($this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            // Optimisation: we don't need a separate "count" SQL request in MySQL.
+            return $this->getRowCountViaRowCountFunction();
+        } else {
+            return $this->getRowCountViaSqlQuery();
+        }
+    }
+
+    private $count = null;
+
+    /**
+     * Get the row count from the rowCount function (only works with MySQL)
+     */
+    private function getRowCountViaRowCountFunction(): int
+    {
         if (!$this->fetchStarted) {
             $this->executeQuery();
         }
 
-        return $this->statement->rowCount();
+        $this->count = $this->statement->rowCount();
+        return $this->count;
+    }
+
+
+    /**
+     * Makes a separate SQL query to compute the row count.
+     * (not needed in MySQL)
+     */
+    private function getRowCountViaSqlQuery(): int
+    {
+        $countSql = 'SELECT COUNT(1) FROM ('.$this->getQuery().') c';
+
+        $this->logger->debug('Running count SQL request: '.$countSql);
+
+        $this->count = $this->tdbmService->getConnection()->fetchColumn($countSql, $this->parameters);
+        return $this->count;
     }
 
     /**
