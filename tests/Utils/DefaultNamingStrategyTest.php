@@ -79,4 +79,12 @@ class DefaultNamingStrategyTest extends \PHPUnit_Framework_TestCase
         ]);
         $this->assertSame('ChevalDao', $strategy->getDaoClassName('chevaux'));
     }
+
+    public function testUppercaseNames()
+    {
+        $strategy = new DefaultNamingStrategy();
+        $strategy->setDaoPrefix('');
+        $strategy->setDaoSuffix('Dao');
+        $this->assertSame('UserDao', $strategy->getDaoClassName("USERS"));
+    }
 }
