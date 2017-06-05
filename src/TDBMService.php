@@ -1246,14 +1246,20 @@ class TDBMService
     {
         $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
         $page = $objects->take(0, 2);
-        $count = $page->count();
+
+
+        $pageArr = $page->toArray();
+        // Optimisation: the $page->count() query can trigger an additional SQL query in platforms other than MySQL.
+        // We try to avoid calling at by fetching all 2 columns instead.
+        $count = count($pageArr);
+
         if ($count > 1) {
             throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
         } elseif ($count === 0) {
             return;
         }
 
-        return $page[0];
+        return $pageArr[0];
     }
 
     /**
