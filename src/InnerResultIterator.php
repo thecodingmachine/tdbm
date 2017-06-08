@@ -171,13 +171,17 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     public function next()
     {
-        $row = $this->statement->fetch(\PDO::FETCH_NUM);
+        $row = $this->statement->fetch(\PDO::FETCH_LAZY);
         if ($row) {
 
             // array<tablegroup, array<table, array<column, value>>>
             $beansData = [];
-            foreach ($row as $i => $value) {
-                $columnDescriptor = $this->columnDescriptors[$i];
+            foreach ($row as $key => $value) {
+                if (!isset($this->columnDescriptors[$key])) {
+                    continue;
+                }
+
+                $columnDescriptor = $this->columnDescriptors[$key];
 
                 if ($columnDescriptor['tableGroup'] === null) {
                     // A column can have no tableGroup (if it comes from an ORDER BY expression)

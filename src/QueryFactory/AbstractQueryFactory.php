@@ -109,7 +109,7 @@ abstract class AbstractQueryFactory implements QueryFactory
                 } elseif ($orderByColumn['type'] === 'expr') {
                     $sortColumnName = 'sort_column_'.$sortColumn;
                     $columnsList[] = $orderByColumn['expr'].' as '.$sortColumnName;
-                    $columnDescList[] = [
+                    $columnDescList[$sortColumnName] = [
                         'tableGroup' => null,
                     ];
                     ++$sortColumn;
@@ -141,7 +141,7 @@ abstract class AbstractQueryFactory implements QueryFactory
         foreach ($allFetchedTables as $table) {
             foreach ($this->schema->getTable($table)->getColumns() as $column) {
                 $columnName = $column->getName();
-                $columnDescList[] = [
+                $columnDescList[$table.'____'.$columnName] = [
                     'as' => $table.'____'.$columnName,
                     'table' => $table,
                     'column' => $columnName,
