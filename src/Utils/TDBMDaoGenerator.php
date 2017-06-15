@@ -380,6 +380,25 @@ class $baseClassName
     }
 
     /**
+     * Get a list of $beanClassWithoutNameSpace from a SQL query.
+     * Unlike the `find` and `findFromSql` methods, here you can pass the whole \$sql query.
+     *
+     * You should not put an alias on the main table name, and select its columns using `*`. So the SELECT part of you \$sql should look like:
+     *
+     *   \"SELECT $tableName.* FROM ...\"
+     *
+     * @param string \$sql The sql query
+     * @param array \$parameters The parameters associated with the filter
+     * @param string \$countSql The count sql query (automatically computed if not provided)
+     * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
+     * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
+     */
+    protected function findFromRawSql(\$sql, array \$parameters = [], \$countSql = null, \$mode = null) : iterable
+    {
+        return \$this->tdbmService->findObjectsFromRawSql('$tableName', \$sql, \$parameters, \$mode, null, \$countSql);
+    }
+
+    /**
      * Get a single $beanClassWithoutNameSpace specified by its filters.
      *
      * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
