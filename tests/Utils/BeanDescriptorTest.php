@@ -54,7 +54,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
     public function testConstructor()
     {
         $usersTable = $this->schema->getTable('users');
-        $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy(), new VoidListener());
+        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy());
         $propertyDescriptors = $beanDescriptor->getBeanPropertyDescriptors();
         $firstElem = reset($propertyDescriptors);
         $idProperty = $propertyDescriptors['$id'];
@@ -70,7 +70,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
     public function testGetConstructorProperties()
     {
         $usersTable = $this->schema->getTable('users');
-        $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy(), new VoidListener());
+        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy());
         $constructorPropertyDescriptors = $beanDescriptor->getConstructorProperties();
         $this->assertArrayHasKey('$name', $constructorPropertyDescriptors);
         // password is nullable
@@ -82,7 +82,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
     public function testGetTable()
     {
         $usersTable = $this->schema->getTable('users');
-        $beanDescriptor = new BeanDescriptor($usersTable, $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy(), new VoidListener());
+        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy());
         $this->assertSame($usersTable, $beanDescriptor->getTable());
     }
 
