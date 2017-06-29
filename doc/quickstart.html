@@ -683,6 +683,39 @@ Here, we filter a <code>products</code> table by <code>category_id</code> and <c
         ]);
     }
 }</code></pre>
+<h3 id="writing-the-whole-sql">Writing the whole SQL</h3>
+<p>In the case of complex queries, you may want to use method <code>findFromRawSql</code>, allowing you to write the whole query.
+For instance, a query using a <code>GROUP BY</code> statement will not be supported by method <code>findFromSql</code>.</p>
+<pre><code class="language-php">class CountryDao extends AbstractCountryDao
+{
+    /**
+     * Returns the list of countries ordered by their users count (descending)
+     * @return Country[]
+     */
+    public function getCountriesByUserCount()
+    {
+        $sql = &lt;&lt;&lt;SQL
+SELECT country.*
+FROM country
+LEFT JOIN users ON users.country_id = country.id
+GROUP BY country.id
+ORDER BY COUNT(users.id) DESC
+SQL;
+
+        return $this-&gt;findFromRawSql($sql);
+    }
+}</code></pre>
+<p>The SQL query will actually be formatted, so that the result fetched is well formed for bean reconstruction. The only
+condition you will have to respect is the presence of <code>main_table.*</code> in the <code>SELECT</code> statement (as well as the inherited
+tables in case of tables inheritance; refer to the page about <a href="modeling_inheritance.html">modeling inheritance</a> for more
+details).
+You may also provide the SQL code for the corresponding <code>COUNT</code> query; if you don't it will automatically be computed,
+even when using <code>GROUP BY</code> and <code>HAVING</code> statements.
+In the example above, the count SQL computed would be:</p>
+<pre><code class="language-sql">SELECT COUNT(DISTINCT country.id)
+FROM country
+LEFT JOIN users ON users.country_id = country.id</code></pre>
+<p>(the <code>GROUP BY x</code> statement is translated as a <code>COUNT(DISTINCT x)</code>)</p>
 <h2 id="ordering">Ordering</h2>
 <p>You can get your results in a specific order using the third parameter of the <code>find</code> method:</p>
 <pre><code class="language-php">class UserDao extends AbstractUserDao {
