@@ -64,4 +64,18 @@ interface BeanDescriptorInterface
      * @return MethodDescriptorInterface[]
      */
     public function getMethodDescriptors(): array;
+
+    /**
+     * Returns the namespace of the main bean.
+     *
+     * @return string
+     */
+    public function getBeanNamespace(): string;
+
+    /**
+     * Returns the namespace of the generated bean (base bean class).
+     *
+     * @return string
+     */
+    public function getGeneratedBeanNamespace(): string;
 }
