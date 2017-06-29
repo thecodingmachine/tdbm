@@ -23,6 +23,7 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
@@ -645,6 +646,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertCount(2, $roles);
         $this->assertEquals('Singers', $roles[0]->getName());
         $this->assertEquals('Admins', $roles[1]->getName());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testFindFromRawSqlOrderByUserCount()
+    {
+        $countryDao = new TestCountryDao($this->tdbmService);
+        $countries = $countryDao->getCountriesByUserCount();
+
+        $this->assertCount(4, $countries);
+        for ($i = 1; $i < count($countries); $i++) {
+            $this->assertLessThanOrEqual($countries[$i - 1]->getUsers()->count(), $countries[$i]->getUsers()->count());
+        }
     }
 
     /**
