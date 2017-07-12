@@ -189,5 +189,4 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         }
 ';
     }
-
 }

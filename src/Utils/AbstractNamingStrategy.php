@@ -11,7 +11,7 @@ use Doctrine\DBAL\Schema\Index;
  */
 abstract class AbstractNamingStrategy implements NamingStrategyInterface
 {
-    protected abstract function getUpperCamelCaseName(AbstractBeanPropertyDescriptor $property): string;
+    abstract protected function getUpperCamelCaseName(AbstractBeanPropertyDescriptor $property): string;
 
     protected function getLowerCamelCaseName(AbstractBeanPropertyDescriptor $property): string
     {

@@ -5,6 +5,8 @@ namespace TheCodingMachine\TDBM\Utils;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Ramsey\Uuid\Uuid;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 
 /**
  * This class represent a property in a bean (a property has a getter, a setter, etc...).
@@ -81,17 +83,29 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function isCompulsory()
     {
-        return $this->column->getNotnull() && !$this->column->getAutoincrement() && $this->column->getDefault() === null;
+        return $this->column->getNotnull() && !$this->column->getAutoincrement() && $this->column->getDefault() === null && !$this->hasUuidAnnotation();
+    }
+
+    private function hasUuidAnnotation(): bool
+    {
+        $comment = $this->column->getComment();
+        if ($comment === null) {
+            return false;
+        }
+        $parser = new AnnotationParser();
+        $annotations = $parser->parse($comment);
+        $uuidAnnotation = $annotations->findAnnotation('UUID');
+        return $uuidAnnotation !== null;
     }
 
     /**
-     * Returns true if the property has a default value.
+     * Returns true if the property has a default value (or if the @UUID annotation is set for the column)
      *
      * @return bool
      */
     public function hasDefault()
     {
-        return $this->column->getDefault() !== null;
+        return $this->column->getDefault() !== null || $this->hasUuidAnnotation();
     }
 
     /**
@@ -103,12 +117,17 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     {
         $str = '        $this->%s(%s);';
 
-        $default = $this->column->getDefault();
-
-        if (strtoupper($default) === 'CURRENT_TIMESTAMP') {
-            $defaultCode = 'new \DateTimeImmutable()';
+        if ($this->hasUuidAnnotation()) {
+            // We generate a UUID1 because it is always handy to have IDs sorted chronologically (UUID4 on the other had is completely random)
+            $defaultCode = 'Uuid::uuid1()';
         } else {
-            $defaultCode = var_export($this->column->getDefault(), true);
+            $default = $this->column->getDefault();
+
+            if (strtoupper($default) === 'CURRENT_TIMESTAMP') {
+                $defaultCode = 'new \DateTimeImmutable()';
+            } else {
+                $defaultCode = var_export($this->column->getDefault(), true);
+            }
         }
 
         return sprintf($str, $this->getSetterName(), $defaultCode);
@@ -210,5 +229,4 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     {
         return $this->column->getName();
     }
-
 }

@@ -2,6 +2,7 @@
 
 
 namespace TheCodingMachine\TDBM\Utils;
+
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;

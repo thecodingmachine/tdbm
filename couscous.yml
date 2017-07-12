@@ -68,6 +68,9 @@ menu:
             relativeUrl: doc/generating_daos.html
         adv:
             text: Advanced
+        annotations:
+            text: Annotations
+            relativeUrl: doc/annotations.html
         advanced:
             text: Advanced filtering
             relativeUrl: doc/advanced.html

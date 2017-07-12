@@ -413,6 +413,12 @@ CREATE TABLE IF NOT EXISTS `category` (
 ALTER TABLE `category`
   ADD CONSTRAINT `fk_parent_category` FOREIGN KEY (`parent_id`) REFERENCES `category` (`id`);
 
+CREATE TABLE IF NOT EXISTS `article` (
+  `id` varchar(36) NOT NULL COMMENT '@UUID',
+  `content` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
