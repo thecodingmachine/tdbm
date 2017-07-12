@@ -5,7 +5,7 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-    <title>Frequently asked questions | TDBM</title>
+    <title>Annotations | TDBM</title>
 
     <meta name="HandheldFriendly" content="True">
     <meta name="MobileOptimized" content="320">
@@ -133,7 +133,7 @@
                                 About DAOs
                             </a>
                         </li>
-                                                                                                                    <li class=" visible-xs-block">
+                                                                                                                    <li class="active visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/annotations.html">
                                 Annotations
                             </a>
@@ -183,7 +183,7 @@
                                 TDBM internals
                             </a>
                         </li>
-                                                                                <li class="active visible-xs-block">
+                                                                                <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/faq.html">
                                 Frequently asked questions
                             </a>
@@ -263,7 +263,7 @@
                                                                 <li>
                         <h4>Advanced</h4>
                     </li>
-                                                                <li class="">
+                                                                <li class="active">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/annotations.html">
                             Annotations
                         </a>
@@ -313,7 +313,7 @@
                             TDBM internals
                         </a>
                     </li>
-                                                                <li class="active">
+                                                                <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/faq.html">
                             Frequently asked questions
                         </a>
@@ -335,19 +335,22 @@
         <div class="container pt100">
             <div class="row">
                 <div class="col-xs-12">
-                    <h1>Frequently asked questions <small></small></h1>                    <h3 id="is-this-used-in-production">Is this used in production?</h3>
-<p>Hell yes! TheCodingMachine has been using TDBM as far back as 2006 in a lot of its projects.</p>
-<p>TDBM is well tested, used and stable. It will not fit anyone needs however. If you want to learn more, check out <a href="comparison_with_doctrine.html">our comparison with Doctrine</a>. Dependending on the use case, we use both ORMs at TheCodingMachine.</p>
-<h3 id="where-are-the-other-tdbm-versions">Where are the other TDBM versions?</h3>
-<p>Did you notice that the <a href="https://github.com/thecodingmachine/tdbm">TDBM Github repository</a> starts with TDBM 5?</p>
-<p>This is because earlier version were part of the <a href="http://mouf-php.com">Mouf 2 framework</a>, and therefore in a <a href="https://github.com/thecodingmachine/database.tdbm">Mouf specific repository here</a>.</p>
-<p>The Mouf Github repository goes back to TDBM v3.</p>
-<p>TDBM v2 was part Mouf 1, hosted on a SVN repository (it was the dark ages of the pre-composer eon)</p>
-<p>TDBM v1 was a single PHP file (yes yes...) copied from project to project and now long gone (the first version goes back as far as 2006) :)</p>
+                    <h1>Annotations <small></small></h1>                    <p>TDBM can read annotations to alter the generation of beans and DAOs.</p>
+<p>If you have used annotations in the past, you are probably used to put annotations in your PHP documentation blocks.
+But TDBM being a database-driven ORM, everything starts from the database. So TDBM will actually read annotations... from your database comments!</p>
+<p>Right now, TDBM supports only one annotation.</p>
+<h2 id="the-uuid-annotation">The @UUID annotation</h2>
+<p>By adding a <code>@UUID</code> annotation in your column comment, you inform TDBM that the column contains a generated random <a href="https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_.28date-time_and_MAC_address.29">UUID v1</a> value.</p>
+<p>On object instantiation, TDBM will automatically fill the column with a random UUID. You would typically use this annotation in a primary key column.</p>
+<pre><code class="language-sql">CREATE TABLE `articles` (
+  `id` varchar(36) NOT NULL COMMENT '@UUID',
+  `content` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+);</code></pre>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
-                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/faq.md">fork and edit it</a>!
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/annotations.md">fork and edit it</a>!
                     </p>
                 </div>
             </div>
