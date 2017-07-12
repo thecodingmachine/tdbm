@@ -340,11 +340,32 @@
 But TDBM being a database-driven ORM, everything starts from the database. So TDBM will actually read annotations... from your database comments!</p>
 <p>Right now, TDBM supports only one annotation.</p>
 <h2 id="the-uuid-annotation">The @UUID annotation</h2>
-<p>By adding a <code>@UUID</code> annotation in your column comment, you inform TDBM that the column contains a generated random <a href="https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_.28date-time_and_MAC_address.29">UUID v1</a> value.</p>
+<p>By adding a <code>@UUID</code> annotation in your column comment, you inform TDBM that the column contains a generated random <a href="https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_.28date-time_and_MAC_address.29">UUID</a> value.</p>
 <p>On object instantiation, TDBM will automatically fill the column with a random UUID. You would typically use this annotation in a primary key column.</p>
 <pre><code class="language-sql">CREATE TABLE `articles` (
   `id` varchar(36) NOT NULL COMMENT '@UUID',
-  `content` varchar(255) NOT NULL,
+  `content` varchar(255),
+  PRIMARY KEY (`id`)
+);</code></pre>
+<p>This will generate a bean with the following code:</p>
+<pre><code class="language-php">use Ramsey\Uuid\Uuid;
+
+abstract class AbstractArticle extends AbstractTDBMObject implements \JsonSerializable
+{
+    public function __construct()
+    {
+        parent::__construct();
+        $this-&gt;setId(Uuid::uuid1());
+    }
+    // ...
+}</code></pre>
+<h3 id="choosing-the-uui-version">Choosing the UUI version</h3>
+<p>By default, <strong>UUID v1</strong> is used. UUID v1 is timestamp-based. Therefore, your database rows will be sorted according to the creation order (just like with an autoincremented ID).</p>
+<p>However, this also means that your ID contains the creation timestamp of the field. If this is a sensitive information that you want to hide, you can instead use UUID v4.</p>
+<p>To do so, simply use the <code>@UUID v4</code> annotation like this:</p>
+<pre><code class="language-sql">CREATE TABLE `articles` (
+  `id` varchar(36) NOT NULL COMMENT '@UUID v4',
+  `content` varchar(255),
   PRIMARY KEY (`id`)
 );</code></pre>
 
