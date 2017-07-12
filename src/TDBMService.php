@@ -32,6 +32,7 @@ use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsFromSqlQueryFactory;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsQueryFactory;
+use TheCodingMachine\TDBM\QueryFactory\FindObjectsFromRawSqlQueryFactory;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Phlib\Logger\LevelFilter;
@@ -1287,6 +1288,32 @@ class TDBMService
         }
 
         return $page[0];
+    }
+
+    /**
+     * @param string $mainTable
+     * @param string $sql
+     * @param array $parameters
+     * @param $mode
+     * @param string|null $className
+     * @param string $sqlCount
+     *
+     * @return ResultIterator
+     *
+     * @throws TDBMException
+     */
+    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), $mode, string $className = null, string $sqlCount = null)
+    {
+        // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
+            throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
+        }
+
+        $mode = $mode ?: $this->mode;
+
+        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this, $this->tdbmSchemaAnalyzer->getSchema(), $mainTable, $sql, $sqlCount);
+
+        return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**

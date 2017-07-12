@@ -79,7 +79,7 @@ Accessing DAOs
 
 The TDBM service provider will create one service per DAO.
 
-The service name is the shot class name with the first character in lower case.
+The service name is the short class name with the first character in lower case.
 
 For instance:
 

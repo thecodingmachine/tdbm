@@ -225,6 +225,86 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         //var_dump($beans);
     }
 
+    public function testRawSqlFilterCountriesByUserCount()
+    {
+        $sql = <<<SQL
+SELECT country.*, GROUP_CONCAT(users.id) AS ids
+FROM country
+JOIN users ON country.id= users.country_id
+GROUP BY country.id
+HAVING COUNT(users.id) > 1;
+SQL;
+        /** @var Test\Dao\Bean\CountryBean[]|\Porpaginas\Result $beans */
+        $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class);
+
+        $count = 0;
+        foreach ($beans as $country) {
+            $this->assertGreaterThan(1, count($country->getUsers()));
+            $count++;
+        }
+        $this->assertEquals($count, $beans->count());
+    }
+
+    public function testRawSqlOrderCountriesByUserCount()
+    {
+        $sql = <<<SQL
+SELECT country.*, GROUP_CONCAT(users.id) AS ids
+FROM country
+JOIN users ON country.id= users.country_id
+GROUP BY country.id
+ORDER BY COUNT(users.id);
+SQL;
+
+        /** @var Test\Dao\Bean\CountryBean[]|\Porpaginas\Result $beans */
+        $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class);
+
+        $count = 0;
+        foreach ($beans as $country) {
+            $count++;
+        }
+        $this->assertEquals($count, $beans->count());
+
+        for ($i = 1; $i < count($beans); $i++) {
+            $this->assertLessThanOrEqual(count($beans[$i]->getUsers()), count($beans[$i - 1]->getUsers()));
+        }
+    }
+
+    public function testRawSqlOrderUsersByCustomRoleOrder()
+    {
+        $sql = <<<SQL
+SELECT `person`.*, `contact`.*, `users`.*
+FROM `contact`
+JOIN `users` ON `users`.`id` = `contact`.`id`
+JOIN `person` ON `person`.`id` = `users`.`id`
+JOIN `users_roles` ON users.id = users_roles.user_id
+JOIN `roles` ON roles.id = users_roles.role_id
+GROUP BY users.id
+ORDER BY MAX(IF(roles.name = 'Admins', 3, IF(roles.name = 'Writers', 2, IF(roles.name = 'Singers', 1, 0)))) DESC
+SQL;
+
+        /** @var Test\Dao\Bean\UserBean[]|\Porpaginas\Result $beans */
+        $beans = $this->tdbmService->findObjectsFromRawSql('contact', $sql, [], null, Test\Dao\Bean\UserBean::class);
+
+        function getCustomOrder(Test\Dao\Bean\UserBean $contact)
+        {
+            $max = 0;
+            foreach ($contact->getRoles() as $role) {
+                $max = max($max, [
+                    'Admins' => 3,
+                    'Writers' => 2,
+                    'Singers' => 1,
+                ][$role->getName()]);
+            }
+            return $max;
+        }
+
+        $this->assertCount(4, $beans);
+
+        for ($i = 1; $i < count($beans); $i++) {
+            $this->assertGreaterThanOrEqual(getCustomOrder($beans[$i]), getCustomOrder($beans[$i - 1]), 'Beans order does not comply with expected result.');
+        }
+    }
+
     public function testArrayAccess()
     {
         $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);

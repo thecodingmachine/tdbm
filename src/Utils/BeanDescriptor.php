@@ -45,17 +45,29 @@ class BeanDescriptor implements BeanDescriptorInterface
      * @var NamingStrategyInterface
      */
     private $namingStrategy;
+    /**
+     * @var string
+     */
+    private $beanNamespace;
+    /**
+     * @var string
+     */
+    private $generatedBeanNamespace;
 
     /**
      * @param Table $table
+     * @param string $beanNamespace
+     * @param string $generatedBeanNamespace
      * @param SchemaAnalyzer $schemaAnalyzer
      * @param Schema $schema
      * @param TDBMSchemaAnalyzer $tdbmSchemaAnalyzer
      * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $table, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy)
+    public function __construct(Table $table, string $beanNamespace, string $generatedBeanNamespace, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy)
     {
         $this->table = $table;
+        $this->beanNamespace = $beanNamespace;
+        $this->generatedBeanNamespace = $generatedBeanNamespace;
         $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
@@ -434,10 +446,9 @@ class BeanDescriptor implements BeanDescriptorInterface
     /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
-     * @param string $beannamespace The namespace of the bean
      * @return string
      */
-    public function generatePhpCode($beannamespace): string
+    public function generatePhpCode(): string
     {
         $tableName = $this->table->getName();
         $baseClassName = $this->namingStrategy->getBaseBeanClassName($tableName);
@@ -446,8 +457,8 @@ class BeanDescriptor implements BeanDescriptorInterface
 
         $classes = $this->generateExtendsAndUseStatements($parentFk);
 
-        $uses = array_map(function ($className) use ($beannamespace) {
-            return 'use '.$beannamespace.'\\'.$className.";\n";
+        $uses = array_map(function ($className) {
+            return 'use '.$this->beanNamespace.'\\'.$className.";\n";
         }, $classes);
         $use = implode('', $uses);
 
@@ -458,7 +469,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         }
 
         $str = "<?php
-namespace {$beannamespace}\\Generated;
+namespace {$this->generatedBeanNamespace};
 
 use TheCodingMachine\\TDBM\\ResultIterator;
 use TheCodingMachine\\TDBM\\ResultArray;
@@ -753,5 +764,21 @@ $paramsString
         } else {
             return null;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getBeanNamespace(): string
+    {
+        return $this->beanNamespace;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGeneratedBeanNamespace(): string
+    {
+        return $this->generatedBeanNamespace;
     }
 }

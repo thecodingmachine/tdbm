@@ -541,6 +541,45 @@ class ProductDao extends AbstractProductDao {
 }
 ```
 
+###Writing the whole SQL
+
+In the case of complex queries, you may want to use method `findFromRawSql`, allowing you to write the whole query.
+For instance, a query using a `GROUP BY` statement will not be supported by method `findFromSql`.
+```php
+class CountryDao extends AbstractCountryDao
+{
+    /**
+     * Returns the list of countries ordered by their users count (descending)
+     * @return Country[]
+     */
+    public function getCountriesByUserCount()
+    {
+        $sql = <<<SQL
+SELECT country.*
+FROM country
+LEFT JOIN users ON users.country_id = country.id
+GROUP BY country.id
+ORDER BY COUNT(users.id) DESC
+SQL;
+
+        return $this->findFromRawSql($sql);
+    }
+}
+```
+The SQL query will actually be formatted, so that the result fetched is well formed for bean reconstruction. The only
+condition you will have to respect is the presence of `main_table.*` in the `SELECT` statement (as well as the inherited
+tables in case of tables inheritance; refer to the page about [modeling inheritance](modeling_inheritance.md) for more
+details).
+You may also provide the SQL code for the corresponding `COUNT` query; if you don't it will automatically be computed,
+even when using `GROUP BY` and `HAVING` statements.
+In the example above, the count SQL computed would be:
+```sql
+SELECT COUNT(DISTINCT country.id)
+FROM country
+LEFT JOIN users ON users.country_id = country.id
+```
+(the `GROUP BY x` statement is translated as a `COUNT(DISTINCT x)`)
+
 Ordering
 --------
 
