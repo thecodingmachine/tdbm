@@ -42,7 +42,7 @@ abstract class AbstractArticle extends AbstractTDBMObject implements \JsonSerial
 }
 ```
 
-### Choosing the UUI version
+### Choosing the UUID version
 
 By default, **UUID v1** is used. UUID v1 is timestamp-based. Therefore, your database rows will be sorted according to the creation order (just like with an autoincremented ID).
 
