@@ -6,6 +6,8 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Ramsey\Uuid\Uuid;
+use TheCodingMachine\TDBM\TDBMException;
+use TheCodingMachine\TDBM\Utils\Annotation\Annotation;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 
 /**
@@ -88,14 +90,18 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
     private function hasUuidAnnotation(): bool
     {
+        return $this->getUuidAnnotation() !== null;
+    }
+
+    private function getUuidAnnotation(): ?Annotation
+    {
         $comment = $this->column->getComment();
         if ($comment === null) {
-            return false;
+            return null;
         }
         $parser = new AnnotationParser();
         $annotations = $parser->parse($comment);
-        $uuidAnnotation = $annotations->findAnnotation('UUID');
-        return $uuidAnnotation !== null;
+        return $annotations->findAnnotation('UUID');
     }
 
     /**
@@ -117,9 +123,20 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     {
         $str = '        $this->%s(%s);';
 
-        if ($this->hasUuidAnnotation()) {
-            // We generate a UUID1 because it is always handy to have IDs sorted chronologically (UUID4 on the other had is completely random)
-            $defaultCode = 'Uuid::uuid1()';
+        $uuidAnnotation = $this->getUuidAnnotation();
+        if ($uuidAnnotation !== null) {
+            $comment = trim($uuidAnnotation->getAnnotationComment(), '\'"');
+            switch ($comment) {
+                case '':
+                case 'v1':
+                    $defaultCode = 'Uuid::uuid1()';
+                    break;
+                case 'v4':
+                    $defaultCode = 'Uuid::uuid4()';
+                    break;
+                default:
+                    throw new TDBMException('@UUID annotation accepts either "v1" or "v4" parameter. Unexpected parameter: '.$comment);
+            }
         } else {
             $default = $this->column->getDefault();
 

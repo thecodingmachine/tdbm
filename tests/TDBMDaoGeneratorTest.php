@@ -23,12 +23,14 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\Article2Bean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArticleBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\BoatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CatBean;
@@ -1400,5 +1402,19 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $article = new ArticleBean('content');
         $this->assertSame('content', $article->getContent());
         $this->assertNotEmpty($article->getId());
+        $uuid = Uuid::fromString($article->getId());
+        $this->assertSame(1, $uuid->getVersion());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testUuidv4()
+    {
+        $article = new Article2Bean('content');
+        $this->assertSame('content', $article->getContent());
+        $this->assertNotEmpty($article->getId());
+        $uuid = Uuid::fromString($article->getId());
+        $this->assertSame(4, $uuid->getVersion());
     }
 }
