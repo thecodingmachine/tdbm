@@ -29,6 +29,7 @@ use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\ArticleBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\BoatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CategoryBean;
@@ -1389,5 +1390,15 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertCount(2, $parameters);
         $this->assertSame('login', $parameters[0]->getName());
         $this->assertSame('additionalTablesFetch', $parameters[1]->getName());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testUuid()
+    {
+        $article = new ArticleBean('content');
+        $this->assertSame('content', $article->getContent());
+        $this->assertNotEmpty($article->getId());
     }
 }
