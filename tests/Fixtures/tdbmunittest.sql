@@ -371,6 +371,7 @@ ADD CONSTRAINT `users_roles_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (
 
 -- Add index
 CREATE UNIQUE INDEX users_login_idx ON users (login);
+CREATE UNIQUE INDEX users_login_idx_2 ON users (login); -- We create the same index twice
 CREATE INDEX users_status_country_idx ON users (status, country_id);
 
 CREATE TABLE `boats` (
