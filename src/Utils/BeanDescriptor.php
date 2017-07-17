@@ -520,7 +520,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
     {
         $code = '';
         $usedBeans = [];
-        foreach ($this->table->getIndexes() as $index) {
+        foreach ($this->removeDuplicateIndexes($this->table->getIndexes()) as $index) {
             if (!$index->isPrimary()) {
                 list($usedBeansForIndex, $codeForIndex) = $this->generateFindByDaoCodeForIndex($index, $beanNamespace, $beanClassName);
                 $code .= $codeForIndex;
@@ -529,6 +529,22 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
         }
 
         return [$usedBeans, $code];
+    }
+
+    /**
+     * Remove identical indexes (indexes on same columns)
+     *
+     * @param Index[] $indexes
+     * @return Index[]
+     */
+    private function removeDuplicateIndexes(array $indexes): array
+    {
+        $indexesByKey = [];
+        foreach ($indexes as $index) {
+            $indexesByKey[implode('__`__', $index->getColumns())] = $index;
+        }
+
+        return array_values($indexesByKey);
     }
 
     /**
