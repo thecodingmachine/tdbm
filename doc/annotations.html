@@ -359,7 +359,7 @@ abstract class AbstractArticle extends AbstractTDBMObject implements \JsonSerial
     }
     // ...
 }</code></pre>
-<h3 id="choosing-the-uui-version">Choosing the UUI version</h3>
+<h3 id="choosing-the-uuid-version">Choosing the UUID version</h3>
 <p>By default, <strong>UUID v1</strong> is used. UUID v1 is timestamp-based. Therefore, your database rows will be sorted according to the creation order (just like with an autoincremented ID).</p>
 <p>However, this also means that your ID contains the creation timestamp of the field. If this is a sensitive information that you want to hide, you can instead use UUID v4.</p>
 <p>To do so, simply use the <code>@UUID v4</code> annotation like this:</p>
