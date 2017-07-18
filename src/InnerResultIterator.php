@@ -171,7 +171,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     public function next()
     {
-        $row = $this->statement->fetch(\PDO::FETCH_LAZY);
+        $row = $this->statement->fetch(\PDO::FETCH_BOTH);
         if ($row) {
 
             // array<tablegroup, array<table, array<column, value>>>
