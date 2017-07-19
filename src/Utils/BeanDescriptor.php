@@ -270,7 +270,8 @@ class BeanDescriptor implements BeanDescriptorInterface
     public function __construct(%s)
     {
 %s%s    }
-    ';
+
+';
 
         $paramAnnotations = [];
         $arguments = [];
