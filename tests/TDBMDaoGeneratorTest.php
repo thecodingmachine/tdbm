@@ -37,6 +37,7 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\CatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CategoryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\DogBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RoleBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\UserBean;
@@ -1416,5 +1417,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNotEmpty($article->getId());
         $uuid = Uuid::fromString($article->getId());
         $this->assertSame(4, $uuid->getVersion());
+    }
+
+    public function testTypeHintedConstructors()
+    {
+        $userBaseBeanReflectionConstructor = new \ReflectionMethod(UserBaseBean::class, '__construct');
+        $nameParam = $userBaseBeanReflectionConstructor->getParameters()[0];
+
+        $this->assertSame('string', (string) $nameParam->getType());
     }
 }
