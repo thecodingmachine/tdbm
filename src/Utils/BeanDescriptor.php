@@ -468,7 +468,6 @@ class BeanDescriptor implements BeanDescriptorInterface
 namespace {$this->generatedBeanNamespace};
 
 use TheCodingMachine\\TDBM\\ResultIterator;
-use TheCodingMachine\\TDBM\\ResultArray;
 use TheCodingMachine\\TDBM\\AlterableResultIterator;
 use Ramsey\\Uuid\\Uuid;
 $use
@@ -634,7 +633,7 @@ $paramsString
     }
 ";
         } else {
-            $returnType = "{$beanClassName}[]|ResultIterator|ResultArray";
+            $returnType = "{$beanClassName}[]|ResultIterator";
 
             $code = "
     /**
