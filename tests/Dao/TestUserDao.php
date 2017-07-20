@@ -58,7 +58,7 @@ class TestUserDao extends UserBaseDao
      * @param string $login
      * @param string $mode
      *
-     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]|\TheCodingMachine\TDBM\Test\Dao\ResultArray
+     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]
      */
     public function getUsersByLoginStartingWith($login = null, $mode = null)
     {
@@ -85,7 +85,7 @@ class TestUserDao extends UserBaseDao
     /**
      * Triggers an error because table "contacts" does not exist.
      *
-     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]|\TheCodingMachine\TDBM\Test\Dao\Generated\ResultArray
+     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]
      */
     public function getUsersWrongTableName()
     {
@@ -95,7 +95,7 @@ class TestUserDao extends UserBaseDao
     /**
      * Returns a list of users, sorted by a table on an external column.
      *
-     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]|\TheCodingMachine\TDBM\Test\Dao\Generated\ResultArray
+     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]
      */
     public function getUsersByCountryName()
     {
@@ -105,7 +105,7 @@ class TestUserDao extends UserBaseDao
     /**
      * A test to sort by function.
      *
-     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]|\TheCodingMachine\TDBM\Test\Dao\Generated\ResultArray
+     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]
      */
     public function getUsersByReversedCountryName()
     {
@@ -115,7 +115,7 @@ class TestUserDao extends UserBaseDao
     /**
      * A test to check exceptions when providing expressions in ORDER BY clause.
      *
-     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]|\TheCodingMachine\TDBM\Test\Dao\Generated\ResultArray
+     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]
      */
     public function getUsersByInvalidOrderBy()
     {

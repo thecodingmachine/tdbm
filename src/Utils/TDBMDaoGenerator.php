@@ -238,7 +238,6 @@ namespace {$daonamespace}\\Generated;
 
 use TheCodingMachine\\TDBM\\TDBMService;
 use TheCodingMachine\\TDBM\\ResultIterator;
-use TheCodingMachine\\TDBM\\ArrayIterator;
 ".implode('', $useStatements)."
 /**
  * The $baseClassName class will maintain the persistence of $beanClassWithoutNameSpace class into the $tableName table.
@@ -289,7 +288,7 @@ class $baseClassName
     /**
      * Get all $tableCamel records.
      *
-     * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
+     * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
     public function findAll() : iterable
     {
@@ -346,7 +345,7 @@ class $baseClassName
      * @param mixed \$orderBy The order string
      * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
      * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
-     * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
+     * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
     protected function find(\$filter = null, array \$parameters = [], \$orderBy=null, array \$additionalTablesFetch = [], \$mode = null) : iterable
     {
@@ -369,7 +368,7 @@ class $baseClassName
      * @param array \$parameters The parameters associated with the filter
      * @param mixed \$orderBy The order string
      * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
-     * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
+     * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
     protected function findFromSql(\$from, \$filter = null, array \$parameters = [], \$orderBy = null, \$mode = null) : iterable
     {
@@ -391,7 +390,7 @@ class $baseClassName
      * @param array \$parameters The parameters associated with the filter
      * @param string \$countSql The count sql query (automatically computed if not provided)
      * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
-     * @return {$beanClassWithoutNameSpace}[]|ResultIterator|ResultArray
+     * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
     protected function findFromRawSql(\$sql, array \$parameters = [], \$countSql = null, \$mode = null) : iterable
     {
