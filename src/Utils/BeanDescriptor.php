@@ -279,12 +279,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         $parentConstructorArguments = [];
 
         foreach ($constructorProperties as $property) {
-            $className = $property->getClassName();
-            if ($className) {
-                $arguments[] = $className.' '.$property->getVariableName();
-            } else {
-                $arguments[] = $property->getVariableName();
-            }
+            $arguments[] = $property->getPhpType().' '.$property->getVariableName();
             $paramAnnotations[] = $property->getParamAnnotation();
             if ($property->getTable()->getName() === $this->table->getName()) {
                 $assigns[] = $property->getConstructorAssignCode()."\n";
