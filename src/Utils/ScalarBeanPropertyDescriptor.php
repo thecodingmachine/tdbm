@@ -230,7 +230,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     {
         $normalizedType = $this->getPhpType();
 
-        if ($normalizedType == '\\DateTimeInterface') {
+        if ($normalizedType == '\\DateTimeImmutable') {
             return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
         } else {
             return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."();\n";

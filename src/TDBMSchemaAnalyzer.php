@@ -4,9 +4,12 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\DateType;
+use Doctrine\DBAL\Types\Type;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 
 /**
@@ -76,11 +79,40 @@ class TDBMSchemaAnalyzer
                 $this->schema = $this->cache->fetch($cacheKey);
             } else {
                 $this->schema = $this->connection->getSchemaManager()->createSchema();
+                $this->castSchemaToImmutable($this->schema);
                 $this->cache->save($cacheKey, $this->schema);
             }
         }
 
         return $this->schema;
+    }
+
+    private function castSchemaToImmutable(Schema $schema): void
+    {
+        foreach ($schema->getTables() as $table) {
+            foreach ($table->getColumns() as $column) {
+                $this->toImmutableType($column);
+            }
+        }
+    }
+
+    /**
+     * Changes the type of a column to an immutable date type if the type is a date.
+     * This is needed because by default, when reading a Schema, Doctrine assumes a mutable datetime.
+     */
+    private function toImmutableType(Column $column): void
+    {
+        $mapping = [
+            Type::DATE => Type::DATE_IMMUTABLE,
+            Type::DATETIME => Type::DATETIME_IMMUTABLE,
+            Type::DATETIMETZ => Type::DATETIMETZ_IMMUTABLE,
+            Type::TIME => Type::TIME_IMMUTABLE
+        ];
+
+        $typeName = $column->getType()->getName();
+        if (isset($mapping[$typeName])) {
+            $column->setType(Type::getType($mapping[$typeName]));
+        }
     }
 
     /**
