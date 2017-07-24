@@ -129,10 +129,10 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             switch ($comment) {
                 case '':
                 case 'v1':
-                    $defaultCode = 'Uuid::uuid1()';
+                    $defaultCode = '(string) Uuid::uuid1()';
                     break;
                 case 'v4':
-                    $defaultCode = 'Uuid::uuid4()';
+                    $defaultCode = '(string) Uuid::uuid4()';
                     break;
                 default:
                     throw new TDBMException('@UUID annotation accepts either "v1" or "v4" parameter. Unexpected parameter: '.$comment);
