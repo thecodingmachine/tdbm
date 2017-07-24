@@ -188,41 +188,7 @@ class DbRow
     {
         $this->_dbLoadIfNotLoaded();
 
-        // Let's first check if the key exist.
-        if (!isset($this->dbRow[$var])) {
-            /*
-            // Unable to find column.... this is an error if the object has been retrieved from database.
-            // If it's a new object, well, that may not be an error after all!
-            // Let's check if the column does exist in the table
-            $column_exist = $this->db_connection->checkColumnExist($this->dbTableName, $var);
-            // If the column DOES exist, then the object is new, and therefore, we should
-            // return null.
-            if ($column_exist === true) {
-                return null;
-            }
-
-            // Let's try to be accurate in error reporting. The checkColumnExist returns an array of closest matches.
-            $result_array = $column_exist;
-
-            if (count($result_array)==1)
-            $str = "Could not find column \"$var\" in table \"$this->dbTableName\". Maybe you meant this column: '".$result_array[0]."'";
-            else
-            $str = "Could not find column \"$var\" in table \"$this->dbTableName\". Maybe you meant one of those columns: '".implode("', '",$result_array)."'";
-
-            throw new TDBMException($str);*/
-            return;
-        }
-
-        $value = $this->dbRow[$var];
-        if ($value instanceof \DateTime) {
-            if (method_exists('DateTimeImmutable', 'createFromMutable')) { // PHP 5.6+ only
-                return \DateTimeImmutable::createFromMutable($value);
-            } else {
-                return new \DateTimeImmutable($value->format('c'));
-            }
-        }
-
-        return $this->dbRow[$var];
+        return $this->dbRow[$var] ?? null;
     }
 
     /**
