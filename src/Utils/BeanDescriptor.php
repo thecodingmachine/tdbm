@@ -642,10 +642,10 @@ $paramsString
 $paramsString
      * @param mixed \$orderBy The order string
      * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
-     * @param string \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
+     * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return $returnType
      */
-    public function $methodName($functionParametersString, \$orderBy = null, array \$additionalTablesFetch = array(), \$mode = null) : iterable
+    public function $methodName($functionParametersString, \$orderBy = null, array \$additionalTablesFetch = array(), ?int \$mode = null) : iterable
     {
         \$filter = [
 ".$filterArrayCode."        ];
