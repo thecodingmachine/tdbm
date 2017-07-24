@@ -129,10 +129,10 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             switch ($comment) {
                 case '':
                 case 'v1':
-                    $defaultCode = 'Uuid::uuid1()';
+                    $defaultCode = '(string) Uuid::uuid1()';
                     break;
                 case 'v4':
-                    $defaultCode = 'Uuid::uuid4()';
+                    $defaultCode = '(string) Uuid::uuid4()';
                     break;
                 default:
                     throw new TDBMException('@UUID annotation accepts either "v1" or "v4" parameter. Unexpected parameter: '.$comment);
@@ -230,7 +230,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     {
         $normalizedType = $this->getPhpType();
 
-        if ($normalizedType == '\\DateTimeInterface') {
+        if ($normalizedType == '\\DateTimeImmutable') {
             return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
         } else {
             return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."();\n";
