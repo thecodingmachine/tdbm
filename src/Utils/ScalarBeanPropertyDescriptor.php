@@ -208,7 +208,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             var_export($this->table->getName(), true),
             // Setter
             $this->column->getName(),
-            $normalizedType,
+            $normalizedType.($isNullable ? '|null' : ''),
             $this->column->getName(),
             $columnSetterName,
             $this->column->getNotnull() ? '' : '?',
