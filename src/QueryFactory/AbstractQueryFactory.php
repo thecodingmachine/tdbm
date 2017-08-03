@@ -2,6 +2,7 @@
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
 use TheCodingMachine\TDBM\TDBMInvalidArgumentException;
