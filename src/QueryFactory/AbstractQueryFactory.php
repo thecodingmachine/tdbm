@@ -136,6 +136,9 @@ abstract class AbstractQueryFactory implements QueryFactory
 
         // Let's remove any duplicate
         $allFetchedTables = array_flip(array_flip($allFetchedTables));
+        
+        // We quote in MySQL because MagicJoin requires MySQL style quotes
+        $mysqlPlatform = new MySqlPlatform();
 
         // Now, let's build the column list
         foreach ($allFetchedTables as $table) {
@@ -148,7 +151,7 @@ abstract class AbstractQueryFactory implements QueryFactory
                     'type' => $column->getType(),
                     'tableGroup' => $tableGroups[$table],
                 ];
-                $columnsList[] = $connection->quoteIdentifier($table).'.'.$connection->quoteIdentifier($columnName).' as '.
+                $columnsList[] = $mysqlPlatform->quoteIdentifier($table).'.'.$mysqlPlatform->quoteIdentifier($columnName).' as '.
                     $connection->quoteIdentifier($table.'____'.$columnName);
             }
         }
