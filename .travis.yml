@@ -1,22 +1,33 @@
 language: php
 php:
 - 7.1
+sudo: required
 cache:
   directories:
-    - $HOME/.composer/cache
+  - "$HOME/.composer/cache"
 env:
   matrix:
-  - PREFER_LOWEST="--prefer-lowest"
-  - PREFER_LOWEST=""
+  - PREFER_LOWEST="--prefer-lowest" DB=mysql
+  - PREFER_LOWEST="" DB=mysql
+  - PREFER_LOWEST="--prefer-lowest" DB=oracle
+  - PREFER_LOWEST="" DB=oracle
   global:
-      - GIT_NAME: "'Couscous auto deploy'"
-      - GIT_EMAIL: d.negrier@thecodingmachine.com
-      - GH_REF: github.com/thecodingmachine/tdbm
-      - secure: pAdXEBkhe0KJbbZEP61lcZzvKKMkVK2RDIZTf1RzjQRgk+PxIG5JLBiHKuvG3MgtFjZbdtl2Vf6nAZbeMyy3H0eCryQCjjqdb5mS3eDekJ4WwviN6hQDc7+Xw6R1saHvDvJs9GQENUzHPWfAfY7LuwUgHXdc+BCLZmV+j0H6liZMNlXIYqP1kdwl7u5a/Y3FvXFws6R7A0giUBCb4HOYkInaXV0yzuAEsB6XBDbTjw3EqI0GBs6746O4tn7NOGaFlFSZan6RZe6jEkw7A+U3xLCfFnIN2q1uk/tk511KkOcSFQyGKRMDSKRDesdMQaOt/ze14+t+ISTqOSn8bUrCBhpj4VsjvzZE0FOS3WWGXpayODqdxuDjacwCZwiOHG7FWbwyQ3APiIrfO82ABbI8HoJURbgOb/Qnl2iPg9tCcvDqhsHxppGq5oOyhBq+GGtucOTW6lO6QnlMaez4nJJ7a3cn8WJB6NxaCZLii3aOXSLMahzFCcQxtq9/WfKwbOtf4GWUSLk28kDMov5h7tzuuHXmzOivzRxztQ9WC2GT7eMCIL8mvWFRMNiLJTE03J0ZbQDZ9N4OU3tdcgjV+d6pU6bu4SrCFtjCJnLaeLfIjoHkx+kK+kyCOQpOcuHMM6zq8l+ztd7VGZ3Br8HJTs1CxiWXrs+JIx2i8V06IE8nLKA=
+  - GIT_NAME: "'Couscous auto deploy'"
+  - GIT_EMAIL: d.negrier@thecodingmachine.com
+  - GH_REF: github.com/thecodingmachine/tdbm
+  - secure: pAdXEBkhe0KJbbZEP61lcZzvKKMkVK2RDIZTf1RzjQRgk+PxIG5JLBiHKuvG3MgtFjZbdtl2Vf6nAZbeMyy3H0eCryQCjjqdb5mS3eDekJ4WwviN6hQDc7+Xw6R1saHvDvJs9GQENUzHPWfAfY7LuwUgHXdc+BCLZmV+j0H6liZMNlXIYqP1kdwl7u5a/Y3FvXFws6R7A0giUBCb4HOYkInaXV0yzuAEsB6XBDbTjw3EqI0GBs6746O4tn7NOGaFlFSZan6RZe6jEkw7A+U3xLCfFnIN2q1uk/tk511KkOcSFQyGKRMDSKRDesdMQaOt/ze14+t+ISTqOSn8bUrCBhpj4VsjvzZE0FOS3WWGXpayODqdxuDjacwCZwiOHG7FWbwyQ3APiIrfO82ABbI8HoJURbgOb/Qnl2iPg9tCcvDqhsHxppGq5oOyhBq+GGtucOTW6lO6QnlMaez4nJJ7a3cn8WJB6NxaCZLii3aOXSLMahzFCcQxtq9/WfKwbOtf4GWUSLk28kDMov5h7tzuuHXmzOivzRxztQ9WC2GT7eMCIL8mvWFRMNiLJTE03J0ZbQDZ9N4OU3tdcgjV+d6pU6bu4SrCFtjCJnLaeLfIjoHkx+kK+kyCOQpOcuHMM6zq8l+ztd7VGZ3Br8HJTs1CxiWXrs+JIx2i8V06IE8nLKA=
+  - ORACLE_LOGIN_ssousername: d.negrier@thecodingmachine.com
+  - secure: I/UG6q9O+oGyuVBwCrnnKwGamH5U2cE8D4nlpPExHQdOV36T5Zr+s9XKLosDoxBP51esq9+zjS7hkKTAmcofEeJE+d5dptrQVmN87YRmEIar6u8K8IXH91+Y2ikWJ8SdBvKNw8X2TZSSp1XVAmMgnEN2dM4CAhOJ1AFPxGja/UrS0xXCnuemiHcqs0iBWA1pLW4Z3biUqhxw8AlsWHfUKmqKXaV0tjsxYC0Tm1GvVkILvobLcbgJGDe4qlskDJwGYnCA3OckAVBDoFf/3/78OB1ArLdeoUdNOeMCUg3IqXmXGsekdLKu45Ep9xpslMMCJv+52YF/8qE2rb8NXQzSDF4LsWxE5RO+RnVLCOaZvY7IPPYD4GA9RBkBVohVGgse5NBjxXgY1nSRCTw6/Xqcz/tOAFxV79FFsN2nTMWahJ9V32P1ELeIdkCMhGkXmLmnChdmoQYyOnhceIE+arAnyEZGUqAuzMHlnFxFkfpiwLYVoSrRMVZNyMqvRE0Aq8ckRFIW/51zHdNZ7vw2FBowUrG0z9SbKiG9odcVo8tbj0NrxWPbiwNl4wANEstow0s0KjYABFiW+4gDghrVBXyPU67tyP39yXK+A1aOvG0+SQmnA5gzYWubjP2NkArg2KQiV9AQLLUU1AsAHpfg5VpvPN1hkFQiAPQ4ZYc5wVRdNMM=
+  - ORACLE_COOKIE=sqldev
+  - ORACLE_FILE=oracle11g/xe/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
+  - ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe
+  - ORACLE_SID=XE
 before_script:
+- if [ "$DB" = "oracle" ]; then wget 'https://github.com/cbandy/travis-oracle/archive/v2.0.2.tar.gz'; mkdir -p .travis/oracle; tar x -C .travis/oracle --strip-components=1 -f v2.0.2.tar.gz; .travis/oracle/download.sh; .travis/oracle/install.sh; fi
 - composer update --prefer-dist $PREFER_LOWEST
 script:
 - "./vendor/bin/phpunit"
 after_script:
 - if [ -z "$PREFER_LOWEST" ]; then ./vendor/bin/coveralls -v; fi
-- if [ -z "$PREFER_LOWEST" ]; then vendor/bin/couscous travis-auto-deploy -vvv --php-version=7.1; fi
+- if [ -z "$PREFER_LOWEST" ]; then vendor/bin/couscous travis-auto-deploy -vvv --php-version=7.1;
+  fi
