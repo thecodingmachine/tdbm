@@ -23,6 +23,7 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
@@ -367,6 +368,9 @@ class TDBMService
      */
     public function buildFilterFromFilterBag($filter_bag, $counter = 1)
     {
+        // We quote in MySQL because MagicJoin requires MySQL style quotes
+        $mysqlPlatform = new MySqlPlatform();
+
         if ($filter_bag === null) {
             return ['', []];
         } elseif (is_string($filter_bag)) {
@@ -374,6 +378,7 @@ class TDBMService
         } elseif (is_array($filter_bag)) {
             $sqlParts = [];
             $parameters = [];
+
             foreach ($filter_bag as $column => $value) {
                 if (is_int($column)) {
                     list($subSqlPart, $subParameters) = $this->buildFilterFromFilterBag($value, $counter);
@@ -382,9 +387,9 @@ class TDBMService
                 } else {
                     $paramName = 'tdbmparam'.$counter;
                     if (is_array($value)) {
-                        $sqlParts[] = $this->connection->quoteIdentifier($column).' IN :'.$paramName;
+                        $sqlParts[] = $mysqlPlatform->quoteIdentifier($column).' IN :'.$paramName;
                     } else {
-                        $sqlParts[] = $this->connection->quoteIdentifier($column).' = :'.$paramName;
+                        $sqlParts[] = $mysqlPlatform->quoteIdentifier($column).' = :'.$paramName;
                     }
                     $parameters[$paramName] = $value;
                     ++$counter;
@@ -401,7 +406,7 @@ class TDBMService
 
             foreach ($primaryKeys as $column => $value) {
                 $paramName = 'tdbmparam'.$counter;
-                $sqlParts[] = $this->connection->quoteIdentifier($dbRow->_getDbTableName()).'.'.$this->connection->quoteIdentifier($column).' = :'.$paramName;
+                $sqlParts[] = $mysqlPlatform->quoteIdentifier($dbRow->_getDbTableName()).'.'.$mysqlPlatform->quoteIdentifier($column).' = :'.$paramName;
                 $parameters[$paramName] = $value;
                 ++$counter;
             }
