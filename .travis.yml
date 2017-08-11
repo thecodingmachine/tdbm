@@ -23,7 +23,12 @@ env:
   - ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe
   - ORACLE_SID=XE
 before_script:
-- if [ "$DB" = "oracle" ]; then wget 'https://github.com/cbandy/travis-oracle/archive/v2.0.2.tar.gz' && mkdir -p .travis/oracle && tar x -C .travis/oracle --strip-components=1 -f v2.0.2.tar.gz && .travis/oracle/download.sh && .travis/oracle/install.sh; fi
+- if [ "$DB" = "oracle" ]; then wget 'https://github.com/cbandy/travis-oracle/archive/v2.0.2.tar.gz' && mkdir -p .travis/oracle && tar x -C .travis/oracle --strip-components=1 -f v2.0.2.tar.gz; fi
+- if [ "$DB" = "oracle" ]; then .travis/oracle/download.sh; fi
+- if [ "$DB" = "oracle" ]; then ls -alh oracle-xe-11.2.0-1.0.x86_64.rpm.zip; fi
+- if [ "$DB" = "oracle" ]; then .travis/oracle/install.sh; fi
+
+
 - composer update --prefer-dist $PREFER_LOWEST
 script:
 - "./vendor/bin/phpunit"
