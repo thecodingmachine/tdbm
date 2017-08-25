@@ -23,6 +23,7 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
@@ -360,17 +361,14 @@ class TDBMService
      * and gives back a proper Filter object.
      *
      * @param mixed $filter_bag
-     * @param int   $counter
-     *
+     * @param AbstractPlatform $platform The platform used to quote identifiers
+     * @param int $counter
      * @return array First item: filter string, second item: parameters
      *
      * @throws TDBMException
      */
-    public function buildFilterFromFilterBag($filter_bag, $counter = 1)
+    public function buildFilterFromFilterBag($filter_bag, AbstractPlatform $platform, $counter = 1)
     {
-        // We quote in MySQL because MagicJoin requires MySQL style quotes
-        $mysqlPlatform = new MySqlPlatform();
-
         if ($filter_bag === null) {
             return ['', []];
         } elseif (is_string($filter_bag)) {
@@ -381,15 +379,15 @@ class TDBMService
 
             foreach ($filter_bag as $column => $value) {
                 if (is_int($column)) {
-                    list($subSqlPart, $subParameters) = $this->buildFilterFromFilterBag($value, $counter);
+                    list($subSqlPart, $subParameters) = $this->buildFilterFromFilterBag($value, $platform, $counter);
                     $sqlParts[] = $subSqlPart;
                     $parameters += $subParameters;
                 } else {
                     $paramName = 'tdbmparam'.$counter;
                     if (is_array($value)) {
-                        $sqlParts[] = $mysqlPlatform->quoteIdentifier($column).' IN :'.$paramName;
+                        $sqlParts[] = $platform->quoteIdentifier($column).' IN :'.$paramName;
                     } else {
-                        $sqlParts[] = $mysqlPlatform->quoteIdentifier($column).' = :'.$paramName;
+                        $sqlParts[] = $platform->quoteIdentifier($column).' = :'.$paramName;
                     }
                     $parameters[$paramName] = $value;
                     ++$counter;
@@ -406,14 +404,14 @@ class TDBMService
 
             foreach ($primaryKeys as $column => $value) {
                 $paramName = 'tdbmparam'.$counter;
-                $sqlParts[] = $mysqlPlatform->quoteIdentifier($dbRow->_getDbTableName()).'.'.$mysqlPlatform->quoteIdentifier($column).' = :'.$paramName;
+                $sqlParts[] = $platform->quoteIdentifier($dbRow->_getDbTableName()).'.'.$platform->quoteIdentifier($column).' = :'.$paramName;
                 $parameters[$paramName] = $value;
                 ++$counter;
             }
 
             return [implode(' AND ', $sqlParts), $parameters];
         } elseif ($filter_bag instanceof \Iterator) {
-            return $this->buildFilterFromFilterBag(iterator_to_array($filter_bag), $counter);
+            return $this->buildFilterFromFilterBag(iterator_to_array($filter_bag), $platform, $counter);
         } else {
             throw new TDBMException('Error in filter. An object has been passed that is neither a SQL string, nor an array, nor a bean, nor null.');
         }
@@ -1138,7 +1136,9 @@ class TDBMService
 
         $mode = $mode ?: $this->mode;
 
-        list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter);
+        // We quote in MySQL because MagicJoin requires MySQL style quotes
+        $mysqlPlatform = new MySqlPlatform();
+        list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter, $mysqlPlatform);
 
         $parameters = array_merge($parameters, $additionalParameters);
 
@@ -1169,7 +1169,9 @@ class TDBMService
 
         $mode = $mode ?: $this->mode;
 
-        list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter);
+        // We quote in MySQL because MagicJoin requires MySQL style quotes
+        $mysqlPlatform = new MySqlPlatform();
+        list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter, $mysqlPlatform);
 
         $parameters = array_merge($parameters, $additionalParameters);
 
@@ -1517,14 +1519,14 @@ class TDBMService
      */
     public function _getColumnTypesForTable(string $tableName)
     {
-        if (!isset($typesForTable[$tableName])) {
+        if (!isset($this->typesForTable[$tableName])) {
             $columns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getColumns();
-            $typesForTable[$tableName] = array_map(function (Column $column) {
-                return $column->getType();
-            }, $columns);
+            foreach ($columns as $column) {
+                $this->typesForTable[$tableName][$column->getName()] = $column->getType();
+            }
         }
 
-        return $typesForTable[$tableName];
+        return $this->typesForTable[$tableName];
     }
 
     /**

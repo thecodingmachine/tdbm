@@ -159,17 +159,16 @@ class DbRow
         if ($this->status == TDBMObjectStateEnum::STATE_NOT_LOADED) {
             $connection = $this->tdbmService->getConnection();
 
-            /// buildFilterFromFilterBag($filter_bag)
-            list($sql_where, $parameters) = $this->tdbmService->buildFilterFromFilterBag($this->primaryKeys);
+            list($sql_where, $parameters) = $this->tdbmService->buildFilterFromFilterBag($this->primaryKeys, $connection->getDatabasePlatform());
 
             $sql = 'SELECT * FROM '.$connection->quoteIdentifier($this->dbTableName).' WHERE '.$sql_where;
             $result = $connection->executeQuery($sql, $parameters);
 
-            if ($result->rowCount() === 0) {
-                throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \"\".");
-            }
-
             $row = $result->fetch(\PDO::FETCH_ASSOC);
+
+            if ($row === false) {
+                throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \".$sql_where.\" with data \"".var_export($parameters, true)."\".");
+            }
 
             $this->dbRow = [];
             $types = $this->tdbmService->_getColumnTypesForTable($this->dbTableName);
