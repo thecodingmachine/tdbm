@@ -40,7 +40,8 @@
         "wa72/simplelogger" : "^1.0",
         "friendsofphp/php-cs-fixer": "^2.1",
         "symfony/process": "^3.0",
-        "couscous/couscous": "^1.6"
+        "couscous/couscous": "^1.6",
+        "thecodingmachine/dbal-fluid-schema-builder": "^1.2.1"
     },
     "suggest" : {
         "ext/weakref" : "Allows efficient memory management. Useful for batches."
