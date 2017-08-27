@@ -103,7 +103,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testGenerationException()
     {
-        $configuration = new Configuration('UnknownVendor\\Dao', 'UnknownVendor\\Bean', $this->dbConnection, $this->getNamingStrategy());
+        $configuration = new Configuration('UnknownVendor\\Dao', 'UnknownVendor\\Bean', self::getConnection(), $this->getNamingStrategy());
 
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
@@ -1268,13 +1268,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testExceptionOnMultipleInheritance()
     {
-        $this->dbConnection->insert('animal', [
+        self::getConnection()->insert('animal', [
             'id' => 99, 'name' => 'Snoofield',
         ]);
-        $this->dbConnection->insert('dog', [
+        self::getConnection()->insert('dog', [
             'id' => 99, 'race' => 'dog',
         ]);
-        $this->dbConnection->insert('cat', [
+        self::getConnection()->insert('cat', [
             'id' => 99, 'cuteness_level' => 0,
         ]);
 
@@ -1287,9 +1287,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         }
         $this->assertTrue($catched, 'Exception TDBMInheritanceException was not catched');
 
-        $this->dbConnection->delete('cat', ['id' => 99]);
-        $this->dbConnection->delete('dog', ['id' => 99]);
-        $this->dbConnection->delete('animal', ['id' => 99]);
+        self::getConnection()->delete('cat', ['id' => 99]);
+        self::getConnection()->delete('dog', ['id' => 99]);
+        self::getConnection()->delete('animal', ['id' => 99]);
     }
 
     /**
@@ -1359,6 +1359,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testCorrectTypeForPrimaryKeyAfterSave()
     {
+        // PosqtgreSQL does not particularly like empty inserts (i.e.: "INSERT INTO all_nullable () VALUES ()" )
+        $this->onlyMySql();
+
         $allNullableDao = new AllNullableDao($this->tdbmService);
         $allNullable = new AllNullableBean();
         $allNullableDao->save($allNullable);

@@ -3,6 +3,7 @@
 namespace TheCodingMachine\TDBM\QueryFactory;
 
 use Doctrine\Common\Cache\Cache;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
@@ -34,7 +35,8 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
     protected function compute()
     {
-        $connection = $this->tdbmService->getConnection();
+        // We quote in MySQL because of MagicQuery that will be applied.
+        $mySqlPlatform = new MySqlPlatform();
 
         $columnsList = null;
 
@@ -46,8 +48,8 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
         // Let's compute the COUNT.
         $pkColumnNames = $this->schema->getTable($this->mainTable)->getPrimaryKeyColumns();
-        $pkColumnNames = array_map(function ($pkColumn) {
-            return $this->tdbmService->getConnection()->quoteIdentifier($this->mainTable).'.'.$this->tdbmService->getConnection()->quoteIdentifier($pkColumn);
+        $pkColumnNames = array_map(function ($pkColumn) use ($mySqlPlatform) {
+            return $mySqlPlatform->quoteIdentifier($this->mainTable).'.'.$mySqlPlatform->quoteIdentifier($pkColumn);
         }, $pkColumnNames);
 
         $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM '.$this->from;
@@ -58,22 +60,22 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
             $parentFks = $this->getParentRelationshipForeignKeys($this->mainTable);
             foreach ($parentFks as $fk) {
                 $joinSql .= sprintf(' JOIN %s ON (%s.%s = %s.%s)',
-                    $connection->quoteIdentifier($fk->getForeignTableName()),
-                    $connection->quoteIdentifier($fk->getLocalTableName()),
-                    $connection->quoteIdentifier($fk->getLocalColumns()[0]),
-                    $connection->quoteIdentifier($fk->getForeignTableName()),
-                    $connection->quoteIdentifier($fk->getForeignColumns()[0])
+                    $mySqlPlatform->quoteIdentifier($fk->getForeignTableName()),
+                    $mySqlPlatform->quoteIdentifier($fk->getLocalTableName()),
+                    $mySqlPlatform->quoteIdentifier($fk->getLocalColumns()[0]),
+                    $mySqlPlatform->quoteIdentifier($fk->getForeignTableName()),
+                    $mySqlPlatform->quoteIdentifier($fk->getForeignColumns()[0])
                 );
             }
 
             $childrenFks = $this->getChildrenRelationshipForeignKeys($this->mainTable);
             foreach ($childrenFks as $fk) {
                 $joinSql .= sprintf(' LEFT JOIN %s ON (%s.%s = %s.%s)',
-                    $connection->quoteIdentifier($fk->getLocalTableName()),
-                    $connection->quoteIdentifier($fk->getForeignTableName()),
-                    $connection->quoteIdentifier($fk->getForeignColumns()[0]),
-                    $connection->quoteIdentifier($fk->getLocalTableName()),
-                    $connection->quoteIdentifier($fk->getLocalColumns()[0])
+                    $mySqlPlatform->quoteIdentifier($fk->getLocalTableName()),
+                    $mySqlPlatform->quoteIdentifier($fk->getForeignTableName()),
+                    $mySqlPlatform->quoteIdentifier($fk->getForeignColumns()[0]),
+                    $mySqlPlatform->quoteIdentifier($fk->getLocalTableName()),
+                    $mySqlPlatform->quoteIdentifier($fk->getLocalColumns()[0])
                 );
             }
 

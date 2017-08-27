@@ -105,7 +105,9 @@ abstract class AbstractQueryFactory implements QueryFactory
                         $additionalTablesFetch[] = $orderByColumn['table'];
                     }
                     if ($securedOrderBy) {
-                        $reconstructedOrderBys[] = ($orderByColumn['table'] !== null ? $connection->quoteIdentifier($orderByColumn['table']).'.' : '').$connection->quoteIdentifier($orderByColumn['column']).' '.$orderByColumn['direction'];
+                        // Let's protect via MySQL since we go through MagicJoin
+                        $mysqlPlatform = new MySqlPlatform();
+                        $reconstructedOrderBys[] = ($orderByColumn['table'] !== null ? $mysqlPlatform->quoteIdentifier($orderByColumn['table']).'.' : '').$mysqlPlatform->quoteIdentifier($orderByColumn['column']).' '.$orderByColumn['direction'];
                     }
                 } elseif ($orderByColumn['type'] === 'expr') {
                     $sortColumnName = 'sort_column_'.$sortColumn;

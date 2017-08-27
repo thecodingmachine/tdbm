@@ -314,7 +314,7 @@ class DbRow
         if ($this->tdbmService) {
             $pk_array = $this->tdbmService->getPrimaryKeyColumns($this->dbTableName);
             foreach ($pk_array as $pk) {
-                $this->dbRow[$pk] = null;
+                unset($this->dbRow[$pk]);
             }
         }
     }

@@ -1,16 +1,34 @@
 language: php
 php:
 - 7.1
-sudo: required
 cache:
   directories:
-  - "$HOME/.composer/cache"
+    - $HOME/.composer/cache
+matrix:
+  include:
+    - php: 7.1
+      env: PREFER_LOWEST="" DB=mysql
+    - php: 7.1
+      env: PREFER_LOWEST="--prefer-lowest" DB=mysql
+    - php: 7.1
+      env: PREFER_LOWEST="--prefer-lowest" DB=postgres PHPUNITFILE="-c phpunit.postgres.xml"
+      addons:
+        postgresql: "9.6"
+      services:
+        - postgresql
+    - php: 7.1
+      env: PREFER_LOWEST="" DB=postgres PHPUNITFILE="-c phpunit.postgres.xml"
+      addons:
+        postgresql: "9.6"
+      services:
+        - postgresql
+    - php: 7.1
+      env: PREFER_LOWEST="--prefer-lowest" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
+      sudo: required
+    - php: 7.1
+      env: PREFER_LOWEST="" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
+      sudo: required
 env:
-  matrix:
-  - PREFER_LOWEST="--prefer-lowest" DB=mysql
-  - PREFER_LOWEST="" DB=mysql
-  - PREFER_LOWEST="--prefer-lowest" DB=oracle
-  - PREFER_LOWEST="" DB=oracle
   global:
   - GIT_NAME: "'Couscous auto deploy'"
   - GIT_EMAIL: d.negrier@thecodingmachine.com
@@ -23,11 +41,11 @@ env:
   - ORACLE_HOME: /u01/app/oracle/product/11.2.0/xe
   - ORACLE_SID: XE
 before_script:
-- if [ -n "$ORACLE_LOGIN_password" ] && [ "$DB" = "oracle" ] ; then wget 'https://github.com/cbandy/travis-oracle/archive/v2.0.2.tar.gz' && mkdir -p .travis/oracle && tar x -C .travis/oracle --strip-components=1 -f v2.0.2.tar.gz && .travis/oracle/download.sh && .travis/oracle/install.sh; fi
+- if [ -n "$ORACLE_LOGIN_password" ] && [ "$DB" = "oracle" ] ; then ./travis/install_oracle.sh; fi
 - if [ -n "$ORACLE_LOGIN_password" ] || [ "$DB" != "oracle" ] ; then composer update --prefer-dist $PREFER_LOWEST ; fi
 script:
 # Let's run the Oracle script only when the password is available (it is not available in forks unfortunately)
-- if [ -n "$ORACLE_LOGIN_password" ] || [ "$DB" != "oracle" ] ; then ./vendor/bin/phpunit; else echo "Oracle tests cannot run in forks"; fi
+- if [ -n "$ORACLE_LOGIN_password" ] || [ "$DB" != "oracle" ] ; then ./vendor/bin/phpunit $PHPUNITFILE; else echo "Oracle tests cannot run in forks"; fi
 after_script:
 - if [ -z "$PREFER_LOWEST" ] && [ "$DB" = "mysql" ] ; then ./vendor/bin/coveralls -v; fi
 - if [ -z "$PREFER_LOWEST" ] && [ "$DB" = "mysql" ] ; then vendor/bin/couscous travis-auto-deploy -vvv --php-version=7.1; fi
