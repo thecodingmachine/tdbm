@@ -4,10 +4,25 @@ php:
 cache:
   directories:
     - $HOME/.composer/cache
+matrix:
+  include:
+    - php: 7.1
+      env: PREFER_LOWEST="" DB=mysql
+    - php: 7.1
+      env: PREFER_LOWEST="--prefer-lowest" DB=mysql
+    - php: 7.1
+      env: PREFER_LOWEST="--prefer-lowest" DB=postgres PHPUNITFILE="-c phpunit.postgres.xml"
+      addons:
+        postgresql: "9.6"
+      services:
+        - postgresql
+    - php: 7.1
+      env: PREFER_LOWEST="" DB=postgres PHPUNITFILE="-c phpunit.postgres.xml"
+      addons:
+        postgresql: "9.6"
+      services:
+        - postgresql
 env:
-  matrix:
-  - PREFER_LOWEST="--prefer-lowest"
-  - PREFER_LOWEST=""
   global:
       - GIT_NAME: "'Couscous auto deploy'"
       - GIT_EMAIL: d.negrier@thecodingmachine.com
@@ -16,7 +31,7 @@ env:
 before_script:
 - composer update --prefer-dist $PREFER_LOWEST
 script:
-- "./vendor/bin/phpunit"
+- vendor/bin/phpunit $PHPUNITFILE
 after_script:
 - if [ -z "$PREFER_LOWEST" ]; then ./vendor/bin/coveralls -v; fi
 - if [ -z "$PREFER_LOWEST" ]; then vendor/bin/couscous travis-auto-deploy -vvv --php-version=7.1; fi

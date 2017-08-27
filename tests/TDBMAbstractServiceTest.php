@@ -23,6 +23,7 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
@@ -32,7 +33,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
     /**
      * @var Connection
      */
-    protected $dbConnection;
+    protected static $dbConnection;
 
     /**
      * @var TDBMService
@@ -51,24 +52,74 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
     public static function setUpBeforeClass()
     {
+        self::resetConnection();
+
         $config = new \Doctrine\DBAL\Configuration();
 
-        $connectionParams = array(
-            'user' => $GLOBALS['db_username'],
-            'password' => $GLOBALS['db_password'],
-            'host' => $GLOBALS['db_host'],
-            'port' => $GLOBALS['db_port'],
-            'driver' => $GLOBALS['db_driver'],
-        );
+        $dbDriver = $GLOBALS['db_driver'];
 
-        $adminConn = DriverManager::getConnection($connectionParams, $config);
-        $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
+        if ($dbDriver === 'pdo_sqlite') {
+            $dbConnection = self::getConnection();
+            $dbConnection->exec('PRAGMA foreign_keys = ON;');
+        } else {
+            $connectionParams = array(
+                'user' => $GLOBALS['db_username'],
+                'password' => $GLOBALS['db_password'],
+                'host' => $GLOBALS['db_host'],
+                'port' => $GLOBALS['db_port'],
+                'driver' => $dbDriver,
+            );
 
-        $connectionParams['dbname'] = $GLOBALS['db_name'];
+            $adminConn = DriverManager::getConnection($connectionParams, $config);
+            $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
 
-        $dbConnection = DriverManager::getConnection($connectionParams, $config);
+            $connectionParams['dbname'] = $GLOBALS['db_name'];
+
+            $dbConnection = DriverManager::getConnection($connectionParams, $config);
+        }
+
 
         self::initSchema($dbConnection);
+    }
+
+    private static function resetConnection(): void
+    {
+        self::$dbConnection = null;
+    }
+
+    protected static function getConnection(): Connection
+    {
+        if (self::$dbConnection === null) {
+            $config = new \Doctrine\DBAL\Configuration();
+
+            $dbDriver = $GLOBALS['db_driver'];
+
+            if ($dbDriver === 'pdo_sqlite') {
+                $connectionParams = array(
+                    'memory' => true,
+                    'driver' => 'pdo_sqlite',
+                );
+            } else {
+                $connectionParams = array(
+                    'user' => $GLOBALS['db_username'],
+                    'password' => $GLOBALS['db_password'],
+                    'host' => $GLOBALS['db_host'],
+                    'port' => $GLOBALS['db_port'],
+                    'driver' => $GLOBALS['db_driver'],
+                    'dbname' => $GLOBALS['db_name'],
+                );
+            }
+
+            self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
+        }
+        return self::$dbConnection;
+    }
+
+    protected function onlyMySql()
+    {
+        if (!self::getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            $this->markTestSkipped('MySQL specific test');
+        }
     }
 
     protected function setUp()
@@ -87,19 +138,8 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
     protected function getConfiguration() : ConfigurationInterface
     {
         if ($this->configuration === null) {
-            $config = new \Doctrine\DBAL\Configuration();
 
-            $connectionParams = array(
-                'user' => $GLOBALS['db_username'],
-                'password' => $GLOBALS['db_password'],
-                'host' => $GLOBALS['db_host'],
-                'port' => $GLOBALS['db_port'],
-                'driver' => $GLOBALS['db_driver'],
-                'dbname' => $GLOBALS['db_name'],
-            );
-
-            $this->dbConnection = DriverManager::getConnection($connectionParams, $config);
-            $this->configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', $this->dbConnection, $this->getNamingStrategy(), new ArrayCache(), null, null, [$this->getDummyGeneratorListener()]);
+            $this->configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), new ArrayCache(), null, null, [$this->getDummyGeneratorListener()]);
             $this->configuration->setPathFinder(new PathFinder(null, dirname(__DIR__, 4)));
         }
         return $this->configuration;

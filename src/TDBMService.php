@@ -627,7 +627,7 @@ class TDBMService
 
                 $this->connection->insert($tableName, $escapedDbRowData, $types);
 
-                if (!$isPkSet && count($primaryKeyColumns) == 1) {
+                if (!$isPkSet && count($primaryKeyColumns) === 1) {
                     $id = $this->connection->lastInsertId();
                     $pkColumn = $primaryKeyColumns[0];
                     // lastInsertId returns a string but the column type is usually a int. Let's convert it back to the correct type.

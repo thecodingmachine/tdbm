@@ -28,7 +28,7 @@ class TestUserDao extends UserBaseDao
     public function getUsersFromSqlByAlphabeticalOrder()
     {
         // The third parameter will be used in the "ORDER BY" clause of the SQL query.
-        return $this->findFromSql('users', null, [], 'login ASC');
+        return $this->findFromSql('users', null, [], 'users.login ASC');
     }
 
     /**

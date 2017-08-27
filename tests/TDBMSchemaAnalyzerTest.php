@@ -33,16 +33,16 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
     protected function setUp()
     {
         parent::setUp();
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
-        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, new ArrayCache(), $schemaAnalyzer);
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer);
     }
 
     public function testGetSchema()
     {
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer1 = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
-        $tdbmSchemaAnalyzer2 = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer1 = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer2 = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
 
         // Why don't we go in all lines of code????
         $schema1 = $tdbmSchemaAnalyzer1->getSchema();
@@ -53,9 +53,9 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
 
     public function testGetIncomingForeignKeys()
     {
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('users');
         $this->assertCount(0, $fks);
@@ -63,9 +63,9 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
 
     public function testGetIncomingForeignKeys2()
     {
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('contact');
         $this->assertCount(1, $fks);
@@ -73,9 +73,9 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
 
     public function testGetIncomingForeignKeys3()
     {
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('country');
         $this->assertCount(3, $fks);
@@ -87,9 +87,9 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
 
     public function testGetPivotTableLinkedToTable()
     {
-        $schemaAnalyzer = new SchemaAnalyzer($this->dbConnection->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->dbConnection, $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
 
         $pivotTables = $tdbmSchemaAnalyzer->getPivotTableLinkedToTable('rights');
         $this->assertCount(1, $pivotTables);
