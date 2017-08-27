@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace TheCodingMachine\TDBM;
 
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use Psr\Log\LogLevel;
 use Wa72\SimpleLogger\ArrayLogger;
@@ -227,6 +228,8 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testRawSqlFilterCountriesByUserCount()
     {
+        $this->onlyMySql();
+
         $sql = <<<SQL
 SELECT country.*, GROUP_CONCAT(users.id) AS ids
 FROM country
@@ -247,6 +250,8 @@ SQL;
 
     public function testRawSqlOrderCountriesByUserCount()
     {
+        $this->onlyMySql();
+
         $sql = <<<SQL
 SELECT country.*, GROUP_CONCAT(users.id) AS ids
 FROM country
@@ -271,6 +276,8 @@ SQL;
 
     public function testRawSqlOrderUsersByCustomRoleOrder()
     {
+        $this->onlyMySql();
+
         $sql = <<<SQL
 SELECT `person`.*, `contact`.*, `users`.*
 FROM `contact`
@@ -649,7 +656,7 @@ SQL;
     public function testFindObjectsFromSql()
     {
         $roles = $this->tdbmService->findObjectsFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
-            'rights.label = :right', array('right' => 'CAN_SING'), 'name DESC');
+            'rights.label = :right', array('right' => 'CAN_SING'), 'roles.name DESC');
         $this->assertCount(2, $roles);
         $this->assertInstanceOf(AbstractTDBMObject::class, $roles[0]);
     }
@@ -714,7 +721,7 @@ SQL;
     public function testLogger()
     {
         $arrayLogger = new ArrayLogger();
-        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', $this->dbConnection, $this->getNamingStrategy(), null, null, $arrayLogger));
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, $arrayLogger));
 
         $tdbmService->setLogLevel(LogLevel::DEBUG);
         $beans = $tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
