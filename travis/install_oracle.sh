@@ -26,4 +26,7 @@ phpize
 ./configure --with-oci8=shared,$ORACLE_HOME
 make
 make install
-php -i
+cd ..
+phpenv config-add travis/oci8.ini
+phpenv rehash
+
