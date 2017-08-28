@@ -295,8 +295,15 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
         $toSchema->getTable('users')
             ->addUniqueIndex(['login'], 'users_login_idx')
-            ->addUniqueIndex(['login'], 'users_login_idx_2') // We create the same index twice
             ->addIndex(['status', 'country_id'], 'users_status_country_idx');
+
+        // We create the same index twice
+        // except for Oracle that won't let us create twice the same index.
+        if (!$connection->getDatabasePlatform() instanceof OraclePlatform) {
+            $toSchema->getTable('users')
+                ->addUniqueIndex(['login'], 'users_login_idx_2');
+        }
+
 
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
