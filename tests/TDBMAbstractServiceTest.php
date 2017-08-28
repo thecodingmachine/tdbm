@@ -26,6 +26,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
 use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
@@ -199,12 +200,21 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
             ->column('name')->string(255);
 
-        $toSchema->getTable('person')
-            ->addColumn(
-                'created_at',
-                'datetime',
-                ['columnDefinition' => 'timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP']
-            );
+        if ($connection->getDatabasePlatform() instanceof OraclePlatform) {
+            $toSchema->getTable('person')
+                ->addColumn(
+                    'created_at',
+                    'datetime',
+                    ['columnDefinition' => 'TIMESTAMP(0) DEFAULT SYSDATE NOT NULL']
+                );
+        } else {
+            $toSchema->getTable('person')
+                ->addColumn(
+                    'created_at',
+                    'datetime',
+                    ['columnDefinition' => 'timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP']
+                );
+        }
 
         $db->table('person')
             ->column('modified_at')->datetime()->null()
