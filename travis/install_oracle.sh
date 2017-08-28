@@ -15,3 +15,15 @@ grant select any dictionary to "tdbm";
 
 exit
 SQL
+
+
+# Now, let's install the PHP driver
+pear download pecl/oci8-2.1.4
+tar xvzf oci8-2.1.4.tgz
+cd oci8-2.1.4/
+phpize
+# export PHP_DTRACE=yes
+./configure --with-oci8=shared,$ORACLE_HOME
+make
+make install
+php -i
