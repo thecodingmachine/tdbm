@@ -21,8 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
@@ -99,6 +101,25 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                     'memory' => true,
                     'driver' => 'pdo_sqlite',
                 );
+            } elseif ($dbDriver === 'oci8') {
+                $evm = new EventManager();
+                $evm->addEventSubscriber(new OracleSessionInit(array(
+                    'NLS_TIME_FORMAT' => 'HH24:MI:SS',
+                )));
+
+                $connectionParams = array(
+                    'servicename' => 'XE',
+                    'user' => $GLOBALS['db_username'],
+                    'password' => $GLOBALS['db_password'],
+                    'host' => $GLOBALS['db_host'],
+                    'port' => $GLOBALS['db_port'],
+                    'driver' => $GLOBALS['db_driver'],
+                    'dbname' => $GLOBALS['db_name'],
+                    'charset' => 'utf-8',
+                );
+                $connection = DriverManager::getConnection($connectionParams, $config, $evm);
+                $connection->setAutoCommit(true);
+
             } else {
                 $connectionParams = array(
                     'user' => $GLOBALS['db_username'],
