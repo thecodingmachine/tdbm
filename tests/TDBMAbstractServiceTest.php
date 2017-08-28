@@ -63,6 +63,9 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         if ($dbDriver === 'pdo_sqlite') {
             $dbConnection = self::getConnection();
             $dbConnection->exec('PRAGMA foreign_keys = ON;');
+        } elseif ($dbDriver === 'oci8') {
+            // In the case of Oracle, there is no easy way to reset the database. Let's assume it is empty (this is true with Travis tests)
+            $dbConnection = self::getConnection();
         } else {
             $connectionParams = array(
                 'user' => $GLOBALS['db_username'],
