@@ -109,6 +109,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                 $evm = new EventManager();
                 $evm->addEventSubscriber(new OracleSessionInit(array(
                     'NLS_TIME_FORMAT' => 'HH24:MI:SS',
+                    'NLS_DATE_FORMAT' => 'YYYY-MM-DD HH24:MI:SS',
                 )));
 
                 $connectionParams = array(
