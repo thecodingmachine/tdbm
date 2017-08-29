@@ -65,7 +65,20 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             $dbConnection = self::getConnection();
             $dbConnection->exec('PRAGMA foreign_keys = ON;');
         } elseif ($dbDriver === 'oci8') {
-            // In the case of Oracle, there is no easy way to reset the database. Let's assume it is empty (this is true with Travis tests)
+            $connectionParams = array(
+                'servicename' => 'XE',
+                'user' => $GLOBALS['db_admin_username'],
+                'password' => $GLOBALS['db_admin_password'],
+                'host' => $GLOBALS['db_host'],
+                'port' => $GLOBALS['db_port'],
+                'driver' => $GLOBALS['db_driver'],
+                'dbname' => $GLOBALS['db_admin_username'],
+                'charset' => 'utf-8',
+            );
+
+            $adminConn = DriverManager::getConnection($connectionParams, $config);
+            $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
+
             $dbConnection = self::getConnection();
         } else {
             $connectionParams = array(
