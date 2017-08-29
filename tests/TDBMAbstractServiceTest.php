@@ -104,6 +104,9 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
     private static function resetConnection(): void
     {
+        if (self::$dbConnection !== null) {
+            self::$dbConnection->close();
+        }
         self::$dbConnection = null;
     }
 
