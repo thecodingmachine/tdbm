@@ -21,7 +21,6 @@
         <!-- "Real" test database -->
         <var name="db_host" value="localhost" />
         <var name="db_admin_username" value="tdbm_admin" />
-        <var name="db_admin_password" value="tdbm_admin" />
         <var name="db_username" value="tdbm" />
         <var name="db_password" value="tdbm" />
         <var name="db_name" value="tdbm" />

@@ -68,7 +68,8 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             $connectionParams = array(
                 'servicename' => 'XE',
                 'user' => $GLOBALS['db_admin_username'],
-                'password' => $GLOBALS['db_admin_password'],
+                // Because of issues in DBAL, admin and normal user password have to be the same.
+                'password' => $GLOBALS['db_password'],
                 'host' => $GLOBALS['db_host'],
                 'port' => $GLOBALS['db_port'],
                 'driver' => $GLOBALS['db_driver'],
