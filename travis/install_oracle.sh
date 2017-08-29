@@ -9,10 +9,11 @@ tar x -C .travis/oracle --strip-components=1 -f v2.0.2.tar.gz
 .travis/oracle/install.sh
 
 "$ORACLE_HOME/bin/sqlplus" -L -S / AS SYSDBA <<SQL
-create user tdbm identified by tdbm quota unlimited on USERS default tablespace USERS;
-GRANT CONNECT,RESOURCE,DBA TO tdbm;
-grant create session, create procedure, create type, create table, create sequence, create view to tdbm;
-grant select any dictionary to tdbm;
+create user tdbm_admin identified by tdbm_admin quota unlimited on USERS default tablespace USERS;
+GRANT CONNECT,RESOURCE TO tdbm_admin;
+GRANT dba TO tdbm_admin WITH ADMIN OPTION;
+grant create session, create procedure, create type, create table, create sequence, create view to tdbm_admin;
+grant select any dictionary to tdbm_admin;
 
 exit
 SQL
