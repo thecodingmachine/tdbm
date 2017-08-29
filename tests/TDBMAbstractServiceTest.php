@@ -105,6 +105,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                     'memory' => true,
                     'driver' => 'pdo_sqlite',
                 );
+                self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
             } elseif ($dbDriver === 'oci8') {
                 $evm = new EventManager();
                 $evm->addEventSubscriber(new OracleSessionInit(array(
@@ -122,8 +123,8 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                     'dbname' => $GLOBALS['db_name'],
                     'charset' => 'utf-8',
                 );
-                $connection = DriverManager::getConnection($connectionParams, $config, $evm);
-                $connection->setAutoCommit(true);
+                self::$dbConnection = DriverManager::getConnection($connectionParams, $config, $evm);
+                self::$dbConnection->setAutoCommit(true);
 
             } else {
                 $connectionParams = array(
@@ -134,9 +135,9 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                     'driver' => $GLOBALS['db_driver'],
                     'dbname' => $GLOBALS['db_name'],
                 );
+                self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
             }
 
-            self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
         }
         return self::$dbConnection;
     }
