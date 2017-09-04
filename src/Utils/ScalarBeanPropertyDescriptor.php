@@ -163,7 +163,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         } else {
             $default = $this->column->getDefault();
 
-            if (in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */], true)) {
+            if (in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */, 'SYSDATE' /* Oracle */ ], true)) {
                 $defaultCode = 'new \DateTimeImmutable()';
             } else {
                 $defaultCode = var_export($this->column->getDefault(), true);
