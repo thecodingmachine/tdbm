@@ -25,6 +25,7 @@ use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
@@ -629,6 +630,16 @@ class TDBMService
 
                 if (!$isPkSet && count($primaryKeyColumns) === 1) {
                     $id = $this->connection->lastInsertId();
+
+                    if ($id === false) {
+                        // In Oracle (if we are in 11g), the lastInsertId will fail. We try again with the column.
+                        $sequenceName = $this->connection->getDatabasePlatform()->getIdentitySequenceName(
+                            $tableName,
+                            $primaryKeyColumns[0]
+                        );
+                        $id = $this->connection->lastInsertId($sequenceName);
+                    }
+
                     $pkColumn = $primaryKeyColumns[0];
                     // lastInsertId returns a string but the column type is usually a int. Let's convert it back to the correct type.
                     $id = $tableDescriptor->getColumn($pkColumn)->getType()->convertToPHPValue($id, $this->getConnection()->getDatabasePlatform());

@@ -10,3 +10,4 @@ vendor/*
 /build/
 /.couscous/
 /template/
+/.travis/

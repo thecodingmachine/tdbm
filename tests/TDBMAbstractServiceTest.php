@@ -21,9 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
 use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
@@ -61,6 +64,23 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         if ($dbDriver === 'pdo_sqlite') {
             $dbConnection = self::getConnection();
             $dbConnection->exec('PRAGMA foreign_keys = ON;');
+        } elseif ($dbDriver === 'oci8') {
+            $connectionParams = array(
+                'servicename' => 'XE',
+                'user' => $GLOBALS['db_admin_username'],
+                // Because of issues in DBAL, admin and normal user password have to be the same.
+                'password' => $GLOBALS['db_password'],
+                'host' => $GLOBALS['db_host'],
+                'port' => $GLOBALS['db_port'],
+                'driver' => $GLOBALS['db_driver'],
+                'dbname' => $GLOBALS['db_admin_username'],
+                'charset' => 'AL32UTF8',
+            );
+
+            $adminConn = DriverManager::getConnection($connectionParams, $config);
+            $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
+
+            $dbConnection = self::getConnection();
         } else {
             $connectionParams = array(
                 'user' => $GLOBALS['db_username'],
@@ -84,6 +104,9 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
     private static function resetConnection(): void
     {
+        if (self::$dbConnection !== null) {
+            self::$dbConnection->close();
+        }
         self::$dbConnection = null;
     }
 
@@ -99,6 +122,28 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                     'memory' => true,
                     'driver' => 'pdo_sqlite',
                 );
+                self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
+            } elseif ($dbDriver === 'oci8') {
+                $evm = new EventManager();
+                $evm->addEventSubscriber(new OracleSessionInit(array(
+                    'NLS_TIME_FORMAT' => 'HH24:MI:SS',
+                    'NLS_DATE_FORMAT' => 'YYYY-MM-DD HH24:MI:SS',
+                    'NLS_TIMESTAMP_FORMAT' => 'YYYY-MM-DD HH24:MI:SS',
+                )));
+
+                $connectionParams = array(
+                    'servicename' => 'XE',
+                    'user' => $GLOBALS['db_username'],
+                    'password' => $GLOBALS['db_password'],
+                    'host' => $GLOBALS['db_host'],
+                    'port' => $GLOBALS['db_port'],
+                    'driver' => $GLOBALS['db_driver'],
+                    'dbname' => $GLOBALS['db_name'],
+                    'charset' => 'AL32UTF8',
+                );
+                self::$dbConnection = DriverManager::getConnection($connectionParams, $config, $evm);
+                self::$dbConnection->setAutoCommit(true);
+
             } else {
                 $connectionParams = array(
                     'user' => $GLOBALS['db_username'],
@@ -108,9 +153,9 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                     'driver' => $GLOBALS['db_driver'],
                     'dbname' => $GLOBALS['db_name'],
                 );
+                self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
             }
 
-            self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
         }
         return self::$dbConnection;
     }
@@ -175,12 +220,21 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
             ->column('name')->string(255);
 
-        $toSchema->getTable('person')
-            ->addColumn(
-                'created_at',
-                'datetime',
-                ['columnDefinition' => 'timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP']
-            );
+        if ($connection->getDatabasePlatform() instanceof OraclePlatform) {
+            $toSchema->getTable('person')
+                ->addColumn(
+                    'created_at',
+                    'datetime',
+                    ['columnDefinition' => 'TIMESTAMP(0) DEFAULT SYSDATE NOT NULL']
+                );
+        } else {
+            $toSchema->getTable('person')
+                ->addColumn(
+                    'created_at',
+                    'datetime',
+                    ['columnDefinition' => 'timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP']
+                );
+        }
 
         $db->table('person')
             ->column('modified_at')->datetime()->null()
@@ -261,8 +315,15 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
         $toSchema->getTable('users')
             ->addUniqueIndex(['login'], 'users_login_idx')
-            ->addUniqueIndex(['login'], 'users_login_idx_2') // We create the same index twice
             ->addIndex(['status', 'country_id'], 'users_status_country_idx');
+
+        // We create the same index twice
+        // except for Oracle that won't let us create twice the same index.
+        if (!$connection->getDatabasePlatform() instanceof OraclePlatform) {
+            $toSchema->getTable('users')
+                ->addUniqueIndex(['login'], 'users_login_idx_2');
+        }
+
 
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
