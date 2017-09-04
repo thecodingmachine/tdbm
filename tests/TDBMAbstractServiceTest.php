@@ -74,7 +74,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                 'port' => $GLOBALS['db_port'],
                 'driver' => $GLOBALS['db_driver'],
                 'dbname' => $GLOBALS['db_admin_username'],
-                'charset' => 'utf-8',
+                'charset' => 'AL32UTF8',
             );
 
             $adminConn = DriverManager::getConnection($connectionParams, $config);
@@ -139,7 +139,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                     'port' => $GLOBALS['db_port'],
                     'driver' => $GLOBALS['db_driver'],
                     'dbname' => $GLOBALS['db_name'],
-                    'charset' => 'utf-8',
+                    'charset' => 'AL32UTF8',
                 );
                 self::$dbConnection = DriverManager::getConnection($connectionParams, $config, $evm);
                 self::$dbConnection->setAutoCommit(true);
