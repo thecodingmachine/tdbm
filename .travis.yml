@@ -42,7 +42,7 @@ before_script:
 - composer update --prefer-dist $PREFER_LOWEST
 script:
 # Let's run the Oracle script only when the password is available (it is not available in forks unfortunately)
-- if [ "$DB" != "oracle" ] ; then ./vendor/bin/phpunit $PHPUNITFILE; else docker run -v $(pwd):/app --mount type=bind,source=$(pwd)/tests/Fixtures/oracle-startup.sql,destination=/docker-entrypoint-initdb.d/oracle-startup.sql,readonly  moufmouf/oracle-xe-php vendor/bin/phpunit; fi
+- if [ "$DB" != "oracle" ] ; then ./vendor/bin/phpunit $PHPUNITFILE; else docker run -v $(pwd):/app -v $(pwd)/tests/Fixtures/oracle-startup.sql:/docker-entrypoint-initdb.d/oracle-startup.sql moufmouf/oracle-xe-php vendor/bin/phpunit; fi
 after_script:
 - if [ -z "$PREFER_LOWEST" ] && [ "$DB" = "mysql" ] ; then ./vendor/bin/coveralls -v; fi
 - if [ -z "$PREFER_LOWEST" ] && [ "$DB" = "mysql" ] ; then vendor/bin/couscous travis-auto-deploy -vvv --php-version=7.1; fi
