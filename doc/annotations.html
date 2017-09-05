@@ -368,6 +368,30 @@ abstract class AbstractArticle extends AbstractTDBMObject implements \JsonSerial
   `content` varchar(255),
   PRIMARY KEY (`id`)
 );</code></pre>
+<h2 id="the-autoincrement-annotation">The @Autoincrement annotation</h2>
+<div class="alert alert-danger">The @Autoincrement annotation is mostly useful with Oracle databases</div>
+<p><strong>You won't need this annotation if you are using MySQL or PostgreSQL.</strong></p>
+<p>On some database platforms (namely <em>Oracle</em>), there is no native support for auto-incremented IDs. However, these can be &quot;emulated&quot; using a database trigger and a sequence.</p>
+<p>However, when TDBM will read the model, it will not be able to understand that your column is auto-incremented via a trigger. So you have to tell TDBM that your column is auto-incremented manually. You do this by adding the <code>@Autoincrement</code> comment in the column description.</p>
+<pre><code class="language-sql">CREATE TABLE departments (
+  ID           NUMBER(10)    NOT NULL COMMENT '@Autoincrement',
+  DESCRIPTION  VARCHAR2(50)  NOT NULL);
+
+ALTER TABLE departments ADD (
+  CONSTRAINT dept_pk PRIMARY KEY (ID));
+
+CREATE SEQUENCE dept_seq START WITH 1;
+
+CREATE OR REPLACE TRIGGER dept_bir 
+BEFORE INSERT ON departments 
+FOR EACH ROW
+
+BEGIN
+  SELECT dept_seq.NEXTVAL
+  INTO   :new.id
+  FROM   dual;
+END;
+/</code></pre>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
