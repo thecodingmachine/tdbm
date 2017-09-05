@@ -1271,10 +1271,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         self::insert(self::getConnection(), 'animal', [
             'id' => 99, 'name' => 'Snoofield',
         ]);
-        self::insert(self::getConnection(), 'animal', [
+        self::insert(self::getConnection(), 'dog', [
             'id' => 99, 'race' => 'dog',
         ]);
-        self::insert(self::getConnection(), 'animal', [
+        self::insert(self::getConnection(), 'cat', [
             'id' => 99, 'cuteness_level' => 0,
         ]);
 
