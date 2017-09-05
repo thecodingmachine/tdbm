@@ -180,7 +180,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function isPrimaryKey()
     {
-        return in_array($this->column->getName(), $this->table->getPrimaryKeyColumns());
+        return in_array($this->column->getName(), $this->table->getPrimaryKey()->getUnquotedColumns());
     }
 
     /**

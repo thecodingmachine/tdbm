@@ -171,7 +171,7 @@ class TDBMSchemaAnalyzer
                         continue;
                     }
                     foreach ($childrenRelationships as $childFk) {
-                        if ($fk->getLocalTableName() === $childFk->getLocalTableName() && $fk->getLocalColumns() === $childFk->getLocalColumns()) {
+                        if ($fk->getLocalTableName() === $childFk->getLocalTableName() && $fk->getUnquotedLocalColumns() === $childFk->getUnquotedLocalColumns()) {
                             continue 2;
                         }
                     }
@@ -193,7 +193,7 @@ class TDBMSchemaAnalyzer
     {
         $fks = [];
         foreach ($foreignKeys as $foreignKey) {
-            $key = implode('__`__', $foreignKey->getLocalColumns());
+            $key = implode('__`__', $foreignKey->getUnquotedLocalColumns());
             if (!isset($fks[$key])) {
                 $fks[$key] = $foreignKey;
             }

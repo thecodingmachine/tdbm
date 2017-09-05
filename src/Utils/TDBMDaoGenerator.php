@@ -207,7 +207,7 @@ class $className extends $baseClassName
         $daonamespace = $this->configuration->getDaoNamespace();
         $beannamespace = $this->configuration->getBeanNamespace();
         $tableName = $table->getName();
-        $primaryKeyColumns = $table->getPrimaryKeyColumns();
+        $primaryKeyColumns = $table->getPrimaryKey()->getUnquotedColumns();
 
         list($defaultSort, $defaultSortDirection) = $this->getDefaultSortColumnFromAnnotation($table);
 
@@ -554,6 +554,7 @@ class $daoFactoryClassName
     /**
      * Transforms a string to camelCase (except the first letter will be uppercase too).
      * Underscores and spaces are removed and the first letter after the underscore is uppercased.
+     * Quoting is removed if present.
      *
      * @param $str string
      *
@@ -561,6 +562,8 @@ class $daoFactoryClassName
      */
     public static function toCamelCase($str)
     {
+        $str = str_replace(array('`', '"', '[', ']'), '', $str);
+
         $str = strtoupper(substr($str, 0, 1)).substr($str, 1);
         while (true) {
             if (strpos($str, '_') === false && strpos($str, ' ') === false) {

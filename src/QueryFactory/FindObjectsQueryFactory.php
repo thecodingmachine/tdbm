@@ -29,7 +29,7 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
 
         $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$this->mainTable.')';
 
-        $pkColumnNames = $this->schema->getTable($this->mainTable)->getPrimaryKeyColumns();
+        $pkColumnNames = $this->tdbmService->getPrimaryKeyColumns($this->mainTable);
         $pkColumnNames = array_map(function ($pkColumn) {
             return $this->tdbmService->getConnection()->quoteIdentifier($this->mainTable).'.'.$this->tdbmService->getConnection()->quoteIdentifier($pkColumn);
         }, $pkColumnNames);

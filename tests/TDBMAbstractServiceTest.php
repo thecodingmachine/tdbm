@@ -78,6 +78,11 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             );
 
             $adminConn = DriverManager::getConnection($connectionParams, $config);
+
+            // When dropAndCreateDatabase is run several times, Oracle can have some issues releasing the TDBM user.
+            // Let's forcefully delete the connection!
+            $adminConn->exec("select 'alter system kill session ''' || sid || ',' || serial# || ''';' from v\$session where username = '".strtoupper($GLOBALS['db_name'])."'");
+
             $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
 
             $dbConnection = self::getConnection();
@@ -91,6 +96,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             );
 
             $adminConn = DriverManager::getConnection($connectionParams, $config);
+
             $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
 
             $connectionParams['dbname'] = $GLOBALS['db_name'];
@@ -210,7 +216,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         $fromSchema = $connection->getSchemaManager()->createSchema();
         $toSchema = clone $fromSchema;
 
-        $db = new FluidSchema($toSchema);
+        $db = new FluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
 
         $db->table('country')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
@@ -221,16 +227,16 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('name')->string(255);
 
         if ($connection->getDatabasePlatform() instanceof OraclePlatform) {
-            $toSchema->getTable('person')
+            $toSchema->getTable($connection->quoteIdentifier('person'))
                 ->addColumn(
-                    'created_at',
+                    $connection->quoteIdentifier('created_at'),
                     'datetime',
                     ['columnDefinition' => 'TIMESTAMP(0) DEFAULT SYSDATE NOT NULL']
                 );
         } else {
             $toSchema->getTable('person')
                 ->addColumn(
-                    'created_at',
+                    $connection->quoteIdentifier('created_at'),
                     'datetime',
                     ['columnDefinition' => 'timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP']
                 );
@@ -314,14 +320,14 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('content')->string(255);
 
         $toSchema->getTable('users')
-            ->addUniqueIndex(['login'], 'users_login_idx')
-            ->addIndex(['status', 'country_id'], 'users_status_country_idx');
+            ->addUniqueIndex([$connection->quoteIdentifier('login')], 'users_login_idx')
+            ->addIndex([$connection->quoteIdentifier('status'), $connection->quoteIdentifier('country_id')], 'users_status_country_idx');
 
         // We create the same index twice
         // except for Oracle that won't let us create twice the same index.
         if (!$connection->getDatabasePlatform() instanceof OraclePlatform) {
             $toSchema->getTable('users')
-                ->addUniqueIndex(['login'], 'users_login_idx_2');
+                ->addUniqueIndex([$connection->quoteIdentifier('login')], 'users_login_idx_2');
         }
 
 
@@ -331,113 +337,113 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             $connection->exec($sqlStmt);
         }
 
-        $connection->insert('country', [
+        self::insert($connection, 'country', [
             'label' => 'France',
         ]);
-        $connection->insert('country', [
+        self::insert($connection, 'country', [
             'label' => 'UK',
         ]);
-        $connection->insert('country', [
+        self::insert($connection, 'country', [
             'label' => 'Jamaica',
         ]);
 
-        $connection->insert('person', [
+        self::insert($connection, 'person', [
             'name' => 'John Smith',
             'created_at' => '2015-10-24 11:57:13',
         ]);
-        $connection->insert('person', [
+        self::insert($connection, 'person', [
             'name' => 'Jean Dupont',
             'created_at' => '2015-10-24 11:57:13',
         ]);
-        $connection->insert('person', [
+        self::insert($connection, 'person', [
             'name' => 'Robert Marley',
             'created_at' => '2015-10-24 11:57:13',
         ]);
-        $connection->insert('person', [
+        self::insert($connection, 'person', [
             'name' => 'Bill Shakespeare',
             'created_at' => '2015-10-24 11:57:13',
         ]);
 
-        $connection->insert('contact', [
+        self::insert($connection, 'contact', [
             'id' => 1,
             'email' => 'john@smith.com',
             'manager_id' => null,
         ]);
-        $connection->insert('contact', [
+        self::insert($connection, 'contact', [
             'id' => 2,
             'email' => 'jean@dupont.com',
             'manager_id' => null,
         ]);
-        $connection->insert('contact', [
+        self::insert($connection, 'contact', [
             'id' => 3,
             'email' => 'robert@marley.com',
             'manager_id' => null,
         ]);
-        $connection->insert('contact', [
+        self::insert($connection, 'contact', [
             'id' => 4,
             'email' => 'bill@shakespeare.com',
             'manager_id' => 1,
         ]);
 
-        $connection->insert('rights', [
+        self::insert($connection, 'rights', [
             'label' => 'CAN_SING',
         ]);
-        $connection->insert('rights', [
+        self::insert($connection, 'rights', [
             'label' => 'CAN_WRITE',
         ]);
 
-        $connection->insert('roles', [
+        self::insert($connection, 'roles', [
             'name' => 'Admins',
             'created_at' => '2015-10-24'
         ]);
-        $connection->insert('roles', [
+        self::insert($connection, 'roles', [
             'name' => 'Writers',
             'created_at' => '2015-10-24'
         ]);
-        $connection->insert('roles', [
+        self::insert($connection, 'roles', [
             'name' => 'Singers',
             'created_at' => '2015-10-24'
         ]);
 
-        $connection->insert('roles_rights', [
+        self::insert($connection, 'roles_rights', [
             'role_id' => 1,
             'right_label' => 'CAN_SING'
         ]);
-        $connection->insert('roles_rights', [
+        self::insert($connection, 'roles_rights', [
             'role_id' => 3,
             'right_label' => 'CAN_SING'
         ]);
-        $connection->insert('roles_rights', [
+        self::insert($connection, 'roles_rights', [
             'role_id' => 1,
             'right_label' => 'CAN_WRITE'
         ]);
-        $connection->insert('roles_rights', [
+        self::insert($connection, 'roles_rights', [
             'role_id' => 2,
             'right_label' => 'CAN_WRITE'
         ]);
 
-        $connection->insert('users', [
+        self::insert($connection, 'users', [
             'id' => 1,
             'login' => 'john.smith',
             'password' => null,
             'status' => 'on',
             'country_id' => 2
         ]);
-        $connection->insert('users', [
+        self::insert($connection, 'users', [
             'id' => 2,
             'login' => 'jean.dupont',
             'password' => null,
             'status' => 'on',
             'country_id' => 1
         ]);
-        $connection->insert('users', [
+        self::insert($connection, 'users', [
             'id' => 3,
             'login' => 'robert.marley',
             'password' => null,
             'status' => 'off',
             'country_id' => 3
         ]);
-        $connection->insert('users', [
+        self::insert($connection, 'users', [
             'id' => 4,
             'login' => 'bill.shakespeare',
             'password' => null,
@@ -445,25 +451,34 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             'country_id' => 2
         ]);
 
-        $connection->insert('users_roles', [
+        self::insert($connection, 'users_roles', [
             'user_id' => 1,
             'role_id' => 1,
         ]);
-        $connection->insert('users_roles', [
+        self::insert($connection, 'users_roles', [
             'user_id' => 2,
             'role_id' => 1,
         ]);
-        $connection->insert('users_roles', [
+        self::insert($connection, 'users_roles', [
             'user_id' => 3,
             'role_id' => 3,
         ]);
-        $connection->insert('users_roles', [
+        self::insert($connection, 'users_roles', [
             'user_id' => 4,
             'role_id' => 2,
         ]);
-        $connection->insert('users_roles', [
+        self::insert($connection, 'users_roles', [
             'user_id' => 3,
             'role_id' => 2,
         ]);
+    }
+
+    private static function insert(Connection $connection, string $tableName, array $data): void
+    {
+        $quotedData = [];
+        foreach ($data as $id => $value) {
+            $quotedData[$connection->quoteIdentifier($id)] = $value;
+        }
+        $connection->insert($connection->quoteIdentifier($tableName), $quotedData);
     }
 }

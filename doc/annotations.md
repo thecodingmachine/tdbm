@@ -57,3 +57,36 @@ CREATE TABLE `articles` (
   PRIMARY KEY (`id`)
 );
 ```
+
+The @Autoincrement annotation
+-----------------------------
+
+<div class="alert alert-danger">The @Autoincrement annotation is mostly useful with Oracle databases</div>
+
+**You won't need this annotation if you are using MySQL or PostgreSQL.**
+
+On some database platforms (namely *Oracle*), there is no native support for auto-incremented IDs. However, these can be "emulated" using a database trigger and a sequence.
+
+However, when TDBM will read the model, it will not be able to understand that your column is auto-incremented via a trigger. So you have to tell TDBM that your column is auto-incremented manually. You do this by adding the `@Autoincrement` comment in the column description.
+
+```sql
+CREATE TABLE departments (
+  ID           NUMBER(10)    NOT NULL COMMENT '@Autoincrement',
+  DESCRIPTION  VARCHAR2(50)  NOT NULL);
+
+ALTER TABLE departments ADD (
+  CONSTRAINT dept_pk PRIMARY KEY (ID));
+
+CREATE SEQUENCE dept_seq START WITH 1;
+
+CREATE OR REPLACE TRIGGER dept_bir 
+BEFORE INSERT ON departments 
+FOR EACH ROW
+
+BEGIN
+  SELECT dept_seq.NEXTVAL
+  INTO   :new.id
+  FROM   dual;
+END;
+/
+```

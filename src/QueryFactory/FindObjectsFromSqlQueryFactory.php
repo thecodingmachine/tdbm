@@ -47,7 +47,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM '.$this->from;
 
         // Let's compute the COUNT.
-        $pkColumnNames = $this->schema->getTable($this->mainTable)->getPrimaryKeyColumns();
+        $pkColumnNames = $this->tdbmService->getPrimaryKeyColumns($this->mainTable);
         $pkColumnNames = array_map(function ($pkColumn) use ($mySqlPlatform) {
             return $mySqlPlatform->quoteIdentifier($this->mainTable).'.'.$mySqlPlatform->quoteIdentifier($pkColumn);
         }, $pkColumnNames);
@@ -62,9 +62,9 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
                 $joinSql .= sprintf(' JOIN %s ON (%s.%s = %s.%s)',
                     $mySqlPlatform->quoteIdentifier($fk->getForeignTableName()),
                     $mySqlPlatform->quoteIdentifier($fk->getLocalTableName()),
-                    $mySqlPlatform->quoteIdentifier($fk->getLocalColumns()[0]),
+                    $mySqlPlatform->quoteIdentifier($fk->getUnquotedLocalColumns()[0]),
                     $mySqlPlatform->quoteIdentifier($fk->getForeignTableName()),
-                    $mySqlPlatform->quoteIdentifier($fk->getForeignColumns()[0])
+                    $mySqlPlatform->quoteIdentifier($fk->getUnquotedForeignColumns()[0])
                 );
             }
 
@@ -73,9 +73,9 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
                 $joinSql .= sprintf(' LEFT JOIN %s ON (%s.%s = %s.%s)',
                     $mySqlPlatform->quoteIdentifier($fk->getLocalTableName()),
                     $mySqlPlatform->quoteIdentifier($fk->getForeignTableName()),
-                    $mySqlPlatform->quoteIdentifier($fk->getForeignColumns()[0]),
+                    $mySqlPlatform->quoteIdentifier($fk->getUnquotedForeignColumns()[0]),
                     $mySqlPlatform->quoteIdentifier($fk->getLocalTableName()),
-                    $mySqlPlatform->quoteIdentifier($fk->getLocalColumns()[0])
+                    $mySqlPlatform->quoteIdentifier($fk->getUnquotedLocalColumns()[0])
                 );
             }
 

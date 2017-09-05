@@ -335,7 +335,7 @@ class TDBMService
                 $incomingFks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($tableName);
 
                 foreach ($incomingFks as $incomingFk) {
-                    $filter = array_combine($incomingFk->getLocalColumns(), $pks);
+                    $filter = array_combine($incomingFk->getUnquotedLocalColumns(), $pks);
 
                     $results = $this->findObjects($incomingFk->getLocalTableName(), $filter);
 
@@ -426,7 +426,7 @@ class TDBMService
     public function getPrimaryKeyColumns($table)
     {
         if (!isset($this->primaryKeysColumns[$table])) {
-            $this->primaryKeysColumns[$table] = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKeyColumns();
+            $this->primaryKeysColumns[$table] = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKey()->getUnquotedColumns();
 
             // TODO TDBM4: See if we need to improve error reporting if table name does not exist.
 
@@ -626,7 +626,8 @@ class TDBMService
                     $escapedDbRowData[$this->connection->quoteIdentifier($columnName)] = $value;
                 }
 
-                $this->connection->insert($tableName, $escapedDbRowData, $types);
+                $quotedTableName = $this->connection->quoteIdentifier($tableName);
+                $this->connection->insert($quotedTableName, $escapedDbRowData, $types);
 
                 if (!$isPkSet && count($primaryKeyColumns) === 1) {
                     $id = $this->connection->lastInsertId();
@@ -634,8 +635,8 @@ class TDBMService
                     if ($id === false) {
                         // In Oracle (if we are in 11g), the lastInsertId will fail. We try again with the column.
                         $sequenceName = $this->connection->getDatabasePlatform()->getIdentitySequenceName(
-                            $tableName,
-                            $primaryKeyColumns[0]
+                            $quotedTableName,
+                            $this->connection->quoteIdentifier($primaryKeyColumns[0])
                         );
                         $id = $this->connection->lastInsertId($sequenceName);
                     }
@@ -835,8 +836,8 @@ class TDBMService
     {
         $localBeanPk = $this->getPrimaryKeyValues($localBean);
         $remoteBeanPk = $this->getPrimaryKeyValues($remoteBean);
-        $localColumns = $localFk->getLocalColumns();
-        $remoteColumns = $remoteFk->getLocalColumns();
+        $localColumns = $localFk->getUnquotedLocalColumns();
+        $remoteColumns = $remoteFk->getUnquotedLocalColumns();
 
         $localFilters = array_combine($localColumns, $localBeanPk);
         $remoteFilters = array_combine($remoteColumns, $remoteBeanPk);
@@ -941,7 +942,7 @@ class TDBMService
      */
     public function _getPrimaryKeysFromIndexedPrimaryKeys($tableName, array $indexedPrimaryKeys)
     {
-        $primaryKeyColumns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getPrimaryKeyColumns();
+        $primaryKeyColumns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getPrimaryKey()->getUnquotedColumns();
 
         if (count($primaryKeyColumns) !== count($indexedPrimaryKeys)) {
             throw new TDBMException(sprintf('Wrong number of columns passed for primary key. Expected %s columns for table "%s",
@@ -1080,9 +1081,9 @@ class TDBMService
     /*private function foreignKeyToSql(ForeignKeyConstraint $fk, $leftTableIsLocal) {
         $onClauses = [];
         $foreignTableName = $this->connection->quoteIdentifier($fk->getForeignTableName());
-        $foreignColumns = $fk->getForeignColumns();
+        $foreignColumns = $fk->getUnquotedForeignColumns();
         $localTableName = $this->connection->quoteIdentifier($fk->getLocalTableName());
-        $localColumns = $fk->getLocalColumns();
+        $localColumns = $fk->getUnquotedLocalColumns();
         $columnCount = count($localTableName);
 
         for ($i = 0; $i < $columnCount; $i++) {
@@ -1453,7 +1454,7 @@ class TDBMService
         $primaryKeys = $this->getPrimaryKeyValues($bean);
         $columnNames = array_map(function ($name) use ($pivotTableName) {
             return $pivotTableName.'.'.$name;
-        }, $localFk->getLocalColumns());
+        }, $localFk->getUnquotedLocalColumns());
 
         $filter = array_combine($columnNames, $primaryKeys);
 

@@ -259,7 +259,7 @@ class DbRow
             $fk = $this->tdbmService->_getForeignKeyByName($this->dbTableName, $foreignKeyName);
 
             $values = [];
-            foreach ($fk->getLocalColumns() as $column) {
+            foreach ($fk->getUnquotedLocalColumns() as $column) {
                 if (!isset($this->dbRow[$column])) {
                     return;
                 }
@@ -334,7 +334,7 @@ class DbRow
         foreach ($this->references as $foreignKeyName => $reference) {
             // Let's match the name of the columns to the primary key values
             $fk = $this->tdbmService->_getForeignKeyByName($this->dbTableName, $foreignKeyName);
-            $localColumns = $fk->getLocalColumns();
+            $localColumns = $fk->getUnquotedLocalColumns();
 
             if ($reference !== null) {
                 $refDbRows = $reference->_getDbRows();

@@ -32,6 +32,11 @@ matrix:
         postgresql: "9.6"
       services:
         - postgresql
+  allow_failures:
+    - php: 7.1
+      env: PREFER_LOWEST="" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
+    - php: 7.1
+      env: PREFER_LOWEST="--prefer-lowest" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
 env:
   global:
   - GIT_NAME: "'Couscous auto deploy'"

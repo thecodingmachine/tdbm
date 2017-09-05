@@ -51,7 +51,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         } else {
             $methodName = 'get'.TDBMDaoGenerator::toCamelCase($this->fk->getLocalTableName()).'By';
 
-            $camelizedColumns = array_map([TDBMDaoGenerator::class, 'toCamelCase'], $this->fk->getLocalColumns());
+            $camelizedColumns = array_map([TDBMDaoGenerator::class, 'toCamelCase'], $this->fk->getUnquotedLocalColumns());
 
             $methodName .= implode('And', $camelizedColumns);
 
@@ -101,7 +101,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         $beanClass = $this->getBeanClassName();
         $code .= sprintf($getterCode,
             $beanClass,
-            implode(', ', $this->fk->getColumns()),
+            implode(', ', $this->fk->getUnquotedLocalColumns()),
             $beanClass,
             $this->getName(),
             var_export($this->fk->getLocalTableName(), true),
@@ -118,9 +118,9 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         $counter = 0;
         $parameters = [];
 
-        $pkColumns = $this->mainTable->getPrimaryKeyColumns();
+        $pkColumns = $this->mainTable->getPrimaryKey()->getUnquotedColumns();
 
-        foreach ($fk->getLocalColumns() as $columnName) {
+        foreach ($fk->getUnquotedLocalColumns() as $columnName) {
             $pkColumn = $pkColumns[$counter];
             $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($pkColumn, true), var_export($this->fk->getForeignTableName(), true));
             ++$counter;

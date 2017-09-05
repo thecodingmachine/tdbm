@@ -87,7 +87,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     public function isCompulsory()
     {
         // Are all columns nullable?
-        $localColumnNames = $this->foreignKey->getLocalColumns();
+        $localColumnNames = $this->foreignKey->getUnquotedLocalColumns();
 
         foreach ($localColumnNames as $name) {
             $column = $this->table->getColumn($name);
@@ -128,10 +128,10 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function isPrimaryKey()
     {
-        $fkColumns = $this->foreignKey->getLocalColumns();
+        $fkColumns = $this->foreignKey->getUnquotedLocalColumns();
         sort($fkColumns);
 
-        $pkColumns = $this->table->getPrimaryKeyColumns();
+        $pkColumns = $this->table->getPrimaryKey()->getUnquotedColumns();
         sort($pkColumns);
 
         return $fkColumns == $pkColumns;
@@ -152,7 +152,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $referencedBeanName = $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
 
         $str = '    /**
-     * Returns the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getLocalColumns()).' column.
+     * Returns the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getUnquotedLocalColumns()).' column.
      *
      * @return '.$referencedBeanName.($isNullable?'|null':'').'
      */
@@ -162,7 +162,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
-     * The setter for the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getLocalColumns()).' column.
+     * The setter for the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getUnquotedLocalColumns()).' column.
      *
      * @param '.$referencedBeanName.($isNullable?'|null':'').' $object
      */
