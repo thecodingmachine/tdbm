@@ -1268,13 +1268,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testExceptionOnMultipleInheritance()
     {
-        self::insert(self::getConnection(), 'animal', [
+        $connection = self::getConnection();
+        self::insert($connection, 'animal', [
             'id' => 99, 'name' => 'Snoofield',
         ]);
-        self::insert(self::getConnection(), 'dog', [
+        self::insert($connection, 'dog', [
             'id' => 99, 'race' => 'dog',
         ]);
-        self::insert(self::getConnection(), 'cat', [
+        self::insert($connection, 'cat', [
             'id' => 99, 'cuteness_level' => 0,
         ]);
 
@@ -1285,11 +1286,11 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         } catch (TDBMInheritanceException $e) {
             $catched = true;
         }
-        $this->assertTrue($catched, 'Exception TDBMInheritanceException was not catched');
+        $this->assertTrue($catched, 'Exception TDBMInheritanceException was not caught');
 
-        self::getConnection()->delete('cat', ['id' => 99]);
-        self::getConnection()->delete('dog', ['id' => 99]);
-        self::getConnection()->delete('animal', ['id' => 99]);
+        self::delete($connection, 'cat', ['id' => 99]);
+        self::delete($connection, 'dog', ['id' => 99]);
+        self::delete($connection, 'animal', ['id' => 99]);
     }
 
     /**

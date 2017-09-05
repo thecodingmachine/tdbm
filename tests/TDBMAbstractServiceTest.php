@@ -481,4 +481,13 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         }
         $connection->insert($connection->quoteIdentifier($tableName), $quotedData);
     }
+
+    protected static function delete(Connection $connection, string $tableName, array $data): void
+    {
+        $quotedData = [];
+        foreach ($data as $id => $value) {
+            $quotedData[$connection->quoteIdentifier($id)] = $value;
+        }
+        $connection->delete($connection->quoteIdentifier($tableName), $quotedData);
+    }
 }
