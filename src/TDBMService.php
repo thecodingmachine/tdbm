@@ -25,6 +25,7 @@ use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
@@ -270,9 +271,14 @@ class TDBMService
                 $this->deleteManyToManyRelationships($object);
                 // Let's delete db rows, in reverse order.
                 foreach (array_reverse($object->_getDbRows()) as $dbRow) {
+                    /* @var $dbRow DbRow */
                     $tableName = $dbRow->_getDbTableName();
                     $primaryKeys = $dbRow->_getPrimaryKeys();
-                    $this->connection->delete($tableName, $primaryKeys);
+                    $quotedPrimaryKeys = [];
+                    foreach ($primaryKeys as $column => $value) {
+                        $quotedPrimaryKeys[$this->connection->quoteIdentifier($column)] = $value;
+                    }
+                    $this->connection->delete($this->connection->quoteIdentifier($tableName), $quotedPrimaryKeys);
                     $this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
                 }
                 break;
@@ -334,7 +340,7 @@ class TDBMService
                 $incomingFks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($tableName);
 
                 foreach ($incomingFks as $incomingFk) {
-                    $filter = array_combine($incomingFk->getLocalColumns(), $pks);
+                    $filter = array_combine($incomingFk->getUnquotedLocalColumns(), $pks);
 
                     $results = $this->findObjects($incomingFk->getLocalTableName(), $filter);
 
@@ -425,7 +431,7 @@ class TDBMService
     public function getPrimaryKeyColumns($table)
     {
         if (!isset($this->primaryKeysColumns[$table])) {
-            $this->primaryKeysColumns[$table] = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKeyColumns();
+            $this->primaryKeysColumns[$table] = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKey()->getUnquotedColumns();
 
             // TODO TDBM4: See if we need to improve error reporting if table name does not exist.
 
@@ -625,10 +631,21 @@ class TDBMService
                     $escapedDbRowData[$this->connection->quoteIdentifier($columnName)] = $value;
                 }
 
-                $this->connection->insert($tableName, $escapedDbRowData, $types);
+                $quotedTableName = $this->connection->quoteIdentifier($tableName);
+                $this->connection->insert($quotedTableName, $escapedDbRowData, $types);
 
                 if (!$isPkSet && count($primaryKeyColumns) === 1) {
                     $id = $this->connection->lastInsertId();
+
+                    if ($id === false) {
+                        // In Oracle (if we are in 11g), the lastInsertId will fail. We try again with the column.
+                        $sequenceName = $this->connection->getDatabasePlatform()->getIdentitySequenceName(
+                            $quotedTableName,
+                            $this->connection->quoteIdentifier($primaryKeyColumns[0])
+                        );
+                        $id = $this->connection->lastInsertId($sequenceName);
+                    }
+
                     $pkColumn = $primaryKeyColumns[0];
                     // lastInsertId returns a string but the column type is usually a int. Let's convert it back to the correct type.
                     $id = $tableDescriptor->getColumn($pkColumn)->getType()->convertToPHPValue($id, $this->getConnection()->getDatabasePlatform());
@@ -719,7 +736,7 @@ class TDBMService
                     $escapedPrimaryKeys[$this->connection->quoteIdentifier($columnName)] = $value;
                 }
 
-                $this->connection->update($tableName, $escapedDbRowData, $escapedPrimaryKeys, $types);
+                $this->connection->update($this->connection->quoteIdentifier($tableName), $escapedDbRowData, $escapedPrimaryKeys, $types);
 
                 // Let's check if the primary key has been updated...
                 $needsUpdatePk = false;
@@ -773,18 +790,9 @@ class TDBMService
                         $this->save($remoteBean);
                     }
 
-                    $filters = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk);
+                    ['filters' => $filters, 'types' => $types] = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk, $tableDescriptor);
 
-                    $types = [];
-                    $escapedFilters = [];
-
-                    foreach ($filters as $columnName => $value) {
-                        $columnDescriptor = $tableDescriptor->getColumn($columnName);
-                        $types[] = $columnDescriptor->getType();
-                        $escapedFilters[$this->connection->quoteIdentifier($columnName)] = $value;
-                    }
-
-                    $this->connection->insert($pivotTableName, $escapedFilters, $types);
+                    $this->connection->insert($this->connection->quoteIdentifier($pivotTableName), $filters, $types);
 
                     // Finally, let's mark relationships as saved.
                     $statusArr['status'] = 'loaded';
@@ -794,16 +802,9 @@ class TDBMService
                     $remoteStatusArr['status'] = 'loaded';
                     $remoteStorage[$object] = $remoteStatusArr;
                 } elseif ($status === 'delete') {
-                    $filters = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk);
+                    ['filters' => $filters, 'types' => $types] = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk, $tableDescriptor);
 
-                    $types = [];
-
-                    foreach ($filters as $columnName => $value) {
-                        $columnDescriptor = $tableDescriptor->getColumn($columnName);
-                        $types[] = $columnDescriptor->getType();
-                    }
-
-                    $this->connection->delete($pivotTableName, $filters, $types);
+                    $this->connection->delete($this->connection->quoteIdentifier($pivotTableName), $filters, $types);
 
                     // Finally, let's remove relationships completely from bean.
                     $toRemoveFromStorage[] = $remoteBean;
@@ -820,17 +821,27 @@ class TDBMService
         }
     }
 
-    private function getPivotFilters(AbstractTDBMObject $localBean, AbstractTDBMObject $remoteBean, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk)
+    private function getPivotFilters(AbstractTDBMObject $localBean, AbstractTDBMObject $remoteBean, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, Table $tableDescriptor)
     {
         $localBeanPk = $this->getPrimaryKeyValues($localBean);
         $remoteBeanPk = $this->getPrimaryKeyValues($remoteBean);
-        $localColumns = $localFk->getLocalColumns();
-        $remoteColumns = $remoteFk->getLocalColumns();
+        $localColumns = $localFk->getUnquotedLocalColumns();
+        $remoteColumns = $remoteFk->getUnquotedLocalColumns();
 
         $localFilters = array_combine($localColumns, $localBeanPk);
         $remoteFilters = array_combine($remoteColumns, $remoteBeanPk);
 
-        return array_merge($localFilters, $remoteFilters);
+        $filters = array_merge($localFilters, $remoteFilters);
+
+        $types = [];
+        $escapedFilters = [];
+
+        foreach ($filters as $columnName => $value) {
+            $columnDescriptor = $tableDescriptor->getColumn($columnName);
+            $types[] = $columnDescriptor->getType();
+            $escapedFilters[$this->connection->quoteIdentifier($columnName)] = $value;
+        }
+        return ['filters' => $escapedFilters, 'types' => $types];
     }
 
     /**
@@ -930,7 +941,7 @@ class TDBMService
      */
     public function _getPrimaryKeysFromIndexedPrimaryKeys($tableName, array $indexedPrimaryKeys)
     {
-        $primaryKeyColumns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getPrimaryKeyColumns();
+        $primaryKeyColumns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getPrimaryKey()->getUnquotedColumns();
 
         if (count($primaryKeyColumns) !== count($indexedPrimaryKeys)) {
             throw new TDBMException(sprintf('Wrong number of columns passed for primary key. Expected %s columns for table "%s",
@@ -1069,9 +1080,9 @@ class TDBMService
     /*private function foreignKeyToSql(ForeignKeyConstraint $fk, $leftTableIsLocal) {
         $onClauses = [];
         $foreignTableName = $this->connection->quoteIdentifier($fk->getForeignTableName());
-        $foreignColumns = $fk->getForeignColumns();
+        $foreignColumns = $fk->getUnquotedForeignColumns();
         $localTableName = $this->connection->quoteIdentifier($fk->getLocalTableName());
-        $localColumns = $fk->getLocalColumns();
+        $localColumns = $fk->getUnquotedLocalColumns();
         $columnCount = count($localTableName);
 
         for ($i = 0; $i < $columnCount; $i++) {
@@ -1442,7 +1453,7 @@ class TDBMService
         $primaryKeys = $this->getPrimaryKeyValues($bean);
         $columnNames = array_map(function ($name) use ($pivotTableName) {
             return $pivotTableName.'.'.$name;
-        }, $localFk->getLocalColumns());
+        }, $localFk->getUnquotedLocalColumns());
 
         $filter = array_combine($columnNames, $primaryKeys);
 

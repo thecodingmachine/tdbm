@@ -21,9 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
 use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
@@ -61,6 +64,28 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         if ($dbDriver === 'pdo_sqlite') {
             $dbConnection = self::getConnection();
             $dbConnection->exec('PRAGMA foreign_keys = ON;');
+        } elseif ($dbDriver === 'oci8') {
+            $connectionParams = array(
+                'servicename' => 'XE',
+                'user' => $GLOBALS['db_admin_username'],
+                // Because of issues in DBAL, admin and normal user password have to be the same.
+                'password' => $GLOBALS['db_password'],
+                'host' => $GLOBALS['db_host'],
+                'port' => $GLOBALS['db_port'],
+                'driver' => $GLOBALS['db_driver'],
+                'dbname' => $GLOBALS['db_admin_username'],
+                'charset' => 'AL32UTF8',
+            );
+
+            $adminConn = DriverManager::getConnection($connectionParams, $config);
+
+            // When dropAndCreateDatabase is run several times, Oracle can have some issues releasing the TDBM user.
+            // Let's forcefully delete the connection!
+            $adminConn->exec("select 'alter system kill session ''' || sid || ',' || serial# || ''';' from v\$session where username = '".strtoupper($GLOBALS['db_name'])."'");
+
+            $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
+
+            $dbConnection = self::getConnection();
         } else {
             $connectionParams = array(
                 'user' => $GLOBALS['db_username'],
@@ -71,6 +96,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             );
 
             $adminConn = DriverManager::getConnection($connectionParams, $config);
+
             $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
 
             $connectionParams['dbname'] = $GLOBALS['db_name'];
@@ -84,6 +110,9 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
     private static function resetConnection(): void
     {
+        if (self::$dbConnection !== null) {
+            self::$dbConnection->close();
+        }
         self::$dbConnection = null;
     }
 
@@ -99,6 +128,28 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                     'memory' => true,
                     'driver' => 'pdo_sqlite',
                 );
+                self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
+            } elseif ($dbDriver === 'oci8') {
+                $evm = new EventManager();
+                $evm->addEventSubscriber(new OracleSessionInit(array(
+                    'NLS_TIME_FORMAT' => 'HH24:MI:SS',
+                    'NLS_DATE_FORMAT' => 'YYYY-MM-DD HH24:MI:SS',
+                    'NLS_TIMESTAMP_FORMAT' => 'YYYY-MM-DD HH24:MI:SS',
+                )));
+
+                $connectionParams = array(
+                    'servicename' => 'XE',
+                    'user' => $GLOBALS['db_username'],
+                    'password' => $GLOBALS['db_password'],
+                    'host' => $GLOBALS['db_host'],
+                    'port' => $GLOBALS['db_port'],
+                    'driver' => $GLOBALS['db_driver'],
+                    'dbname' => $GLOBALS['db_name'],
+                    'charset' => 'AL32UTF8',
+                );
+                self::$dbConnection = DriverManager::getConnection($connectionParams, $config, $evm);
+                self::$dbConnection->setAutoCommit(true);
+
             } else {
                 $connectionParams = array(
                     'user' => $GLOBALS['db_username'],
@@ -108,9 +159,9 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                     'driver' => $GLOBALS['db_driver'],
                     'dbname' => $GLOBALS['db_name'],
                 );
+                self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
             }
 
-            self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
         }
         return self::$dbConnection;
     }
@@ -165,7 +216,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         $fromSchema = $connection->getSchemaManager()->createSchema();
         $toSchema = clone $fromSchema;
 
-        $db = new FluidSchema($toSchema);
+        $db = new FluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
 
         $db->table('country')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
@@ -175,12 +226,21 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
             ->column('name')->string(255);
 
-        $toSchema->getTable('person')
-            ->addColumn(
-                'created_at',
-                'datetime',
-                ['columnDefinition' => 'timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP']
-            );
+        if ($connection->getDatabasePlatform() instanceof OraclePlatform) {
+            $toSchema->getTable($connection->quoteIdentifier('person'))
+                ->addColumn(
+                    $connection->quoteIdentifier('created_at'),
+                    'datetime',
+                    ['columnDefinition' => 'TIMESTAMP(0) DEFAULT SYSDATE NOT NULL']
+                );
+        } else {
+            $toSchema->getTable('person')
+                ->addColumn(
+                    $connection->quoteIdentifier('created_at'),
+                    'datetime',
+                    ['columnDefinition' => 'timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP']
+                );
+        }
 
         $db->table('person')
             ->column('modified_at')->datetime()->null()
@@ -260,9 +320,16 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('content')->string(255);
 
         $toSchema->getTable('users')
-            ->addUniqueIndex(['login'], 'users_login_idx')
-            ->addUniqueIndex(['login'], 'users_login_idx_2') // We create the same index twice
-            ->addIndex(['status', 'country_id'], 'users_status_country_idx');
+            ->addUniqueIndex([$connection->quoteIdentifier('login')], 'users_login_idx')
+            ->addIndex([$connection->quoteIdentifier('status'), $connection->quoteIdentifier('country_id')], 'users_status_country_idx');
+
+        // We create the same index twice
+        // except for Oracle that won't let us create twice the same index.
+        if (!$connection->getDatabasePlatform() instanceof OraclePlatform) {
+            $toSchema->getTable('users')
+                ->addUniqueIndex([$connection->quoteIdentifier('login')], 'users_login_idx_2');
+        }
+
 
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
@@ -270,113 +337,113 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             $connection->exec($sqlStmt);
         }
 
-        $connection->insert('country', [
+        self::insert($connection, 'country', [
             'label' => 'France',
         ]);
-        $connection->insert('country', [
+        self::insert($connection, 'country', [
             'label' => 'UK',
         ]);
-        $connection->insert('country', [
+        self::insert($connection, 'country', [
             'label' => 'Jamaica',
         ]);
 
-        $connection->insert('person', [
+        self::insert($connection, 'person', [
             'name' => 'John Smith',
             'created_at' => '2015-10-24 11:57:13',
         ]);
-        $connection->insert('person', [
+        self::insert($connection, 'person', [
             'name' => 'Jean Dupont',
             'created_at' => '2015-10-24 11:57:13',
         ]);
-        $connection->insert('person', [
+        self::insert($connection, 'person', [
             'name' => 'Robert Marley',
             'created_at' => '2015-10-24 11:57:13',
         ]);
-        $connection->insert('person', [
+        self::insert($connection, 'person', [
             'name' => 'Bill Shakespeare',
             'created_at' => '2015-10-24 11:57:13',
         ]);
 
-        $connection->insert('contact', [
+        self::insert($connection, 'contact', [
             'id' => 1,
             'email' => 'john@smith.com',
             'manager_id' => null,
         ]);
-        $connection->insert('contact', [
+        self::insert($connection, 'contact', [
             'id' => 2,
             'email' => 'jean@dupont.com',
             'manager_id' => null,
         ]);
-        $connection->insert('contact', [
+        self::insert($connection, 'contact', [
             'id' => 3,
             'email' => 'robert@marley.com',
             'manager_id' => null,
         ]);
-        $connection->insert('contact', [
+        self::insert($connection, 'contact', [
             'id' => 4,
             'email' => 'bill@shakespeare.com',
             'manager_id' => 1,
         ]);
 
-        $connection->insert('rights', [
+        self::insert($connection, 'rights', [
             'label' => 'CAN_SING',
         ]);
-        $connection->insert('rights', [
+        self::insert($connection, 'rights', [
             'label' => 'CAN_WRITE',
         ]);
 
-        $connection->insert('roles', [
+        self::insert($connection, 'roles', [
             'name' => 'Admins',
             'created_at' => '2015-10-24'
         ]);
-        $connection->insert('roles', [
+        self::insert($connection, 'roles', [
             'name' => 'Writers',
             'created_at' => '2015-10-24'
         ]);
-        $connection->insert('roles', [
+        self::insert($connection, 'roles', [
             'name' => 'Singers',
             'created_at' => '2015-10-24'
         ]);
 
-        $connection->insert('roles_rights', [
+        self::insert($connection, 'roles_rights', [
             'role_id' => 1,
             'right_label' => 'CAN_SING'
         ]);
-        $connection->insert('roles_rights', [
+        self::insert($connection, 'roles_rights', [
             'role_id' => 3,
             'right_label' => 'CAN_SING'
         ]);
-        $connection->insert('roles_rights', [
+        self::insert($connection, 'roles_rights', [
             'role_id' => 1,
             'right_label' => 'CAN_WRITE'
         ]);
-        $connection->insert('roles_rights', [
+        self::insert($connection, 'roles_rights', [
             'role_id' => 2,
             'right_label' => 'CAN_WRITE'
         ]);
 
-        $connection->insert('users', [
+        self::insert($connection, 'users', [
             'id' => 1,
             'login' => 'john.smith',
             'password' => null,
             'status' => 'on',
             'country_id' => 2
         ]);
-        $connection->insert('users', [
+        self::insert($connection, 'users', [
             'id' => 2,
             'login' => 'jean.dupont',
             'password' => null,
             'status' => 'on',
             'country_id' => 1
         ]);
-        $connection->insert('users', [
+        self::insert($connection, 'users', [
             'id' => 3,
             'login' => 'robert.marley',
             'password' => null,
             'status' => 'off',
             'country_id' => 3
         ]);
-        $connection->insert('users', [
+        self::insert($connection, 'users', [
             'id' => 4,
             'login' => 'bill.shakespeare',
             'password' => null,
@@ -384,25 +451,43 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             'country_id' => 2
         ]);
 
-        $connection->insert('users_roles', [
+        self::insert($connection, 'users_roles', [
             'user_id' => 1,
             'role_id' => 1,
         ]);
-        $connection->insert('users_roles', [
+        self::insert($connection, 'users_roles', [
             'user_id' => 2,
             'role_id' => 1,
         ]);
-        $connection->insert('users_roles', [
+        self::insert($connection, 'users_roles', [
             'user_id' => 3,
             'role_id' => 3,
         ]);
-        $connection->insert('users_roles', [
+        self::insert($connection, 'users_roles', [
             'user_id' => 4,
             'role_id' => 2,
         ]);
-        $connection->insert('users_roles', [
+        self::insert($connection, 'users_roles', [
             'user_id' => 3,
             'role_id' => 2,
         ]);
+    }
+
+    protected static function insert(Connection $connection, string $tableName, array $data): void
+    {
+        $quotedData = [];
+        foreach ($data as $id => $value) {
+            $quotedData[$connection->quoteIdentifier($id)] = $value;
+        }
+        $connection->insert($connection->quoteIdentifier($tableName), $quotedData);
+    }
+
+    protected static function delete(Connection $connection, string $tableName, array $data): void
+    {
+        $quotedData = [];
+        foreach ($data as $id => $value) {
+            $quotedData[$connection->quoteIdentifier($id)] = $value;
+        }
+        $connection->delete($connection->quoteIdentifier($tableName), $quotedData);
     }
 }

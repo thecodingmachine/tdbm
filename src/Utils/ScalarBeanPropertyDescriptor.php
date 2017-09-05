@@ -9,6 +9,7 @@ use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotation;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
 
 /**
  * This class represent a property in a bean (a property has a getter, a setter, etc...).
@@ -19,6 +20,11 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @var Column
      */
     private $column;
+
+    /**
+     * @var Annotations
+     */
+    private $annotations;
 
     /**
      * ScalarBeanPropertyDescriptor constructor.
@@ -85,7 +91,12 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function isCompulsory()
     {
-        return $this->column->getNotnull() && !$this->column->getAutoincrement() && $this->column->getDefault() === null && !$this->hasUuidAnnotation();
+        return $this->column->getNotnull() && !$this->isAutoincrement() && $this->column->getDefault() === null && !$this->hasUuidAnnotation();
+    }
+
+    private function isAutoincrement() : bool
+    {
+        return $this->column->getAutoincrement() || $this->getAutoincrementAnnotation() !== null;
     }
 
     private function hasUuidAnnotation(): bool
@@ -95,13 +106,25 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
     private function getUuidAnnotation(): ?Annotation
     {
-        $comment = $this->column->getComment();
-        if ($comment === null) {
-            return null;
+        return $this->getAnnotations()->findAnnotation('UUID');
+    }
+
+    private function getAutoincrementAnnotation(): ?Annotation
+    {
+        return $this->getAnnotations()->findAnnotation('Autoincrement');
+    }
+
+    private function getAnnotations(): Annotations
+    {
+        if ($this->annotations === null) {
+            $comment = $this->column->getComment();
+            if ($comment === null) {
+                return new Annotations([]);
+            }
+            $parser = new AnnotationParser();
+            $this->annotations = $parser->parse($comment);
         }
-        $parser = new AnnotationParser();
-        $annotations = $parser->parse($comment);
-        return $annotations->findAnnotation('UUID');
+        return $this->annotations;
     }
 
     /**
@@ -140,7 +163,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         } else {
             $default = $this->column->getDefault();
 
-            if (in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */], true)) {
+            if (in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */, 'SYSDATE' /* Oracle */ ], true)) {
                 $defaultCode = 'new \DateTimeImmutable()';
             } else {
                 $defaultCode = var_export($this->column->getDefault(), true);
@@ -157,7 +180,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function isPrimaryKey()
     {
-        return in_array($this->column->getName(), $this->table->getPrimaryKeyColumns());
+        return in_array($this->column->getName(), $this->table->getPrimaryKey()->getUnquotedColumns());
     }
 
     /**
@@ -173,7 +196,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $columnSetterName = $this->getSetterName();
 
         // A column type can be forced if it is not nullable and not auto-incrementable (for auto-increment columns, we can get "null" as long as the bean is not saved).
-        $isNullable = !$this->column->getNotnull() || $this->column->getAutoincrement();
+        $isNullable = !$this->column->getNotnull() || $this->isAutoincrement();
 
         $getterAndSetterCode = '    /**
      * The getter for the "%s" column.

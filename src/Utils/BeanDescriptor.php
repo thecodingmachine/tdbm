@@ -92,7 +92,7 @@ class BeanDescriptor implements BeanDescriptorInterface
     {
         $localColumnName = $column->getName();
         foreach ($table->getForeignKeys() as $foreignKey) {
-            foreach ($foreignKey->getColumns() as $columnName) {
+            foreach ($foreignKey->getUnquotedLocalColumns() as $columnName) {
                 if ($columnName === $localColumnName) {
                     return $foreignKey;
                 }
@@ -193,14 +193,14 @@ class BeanDescriptor implements BeanDescriptorInterface
     {
         $parentRelationship = $this->schemaAnalyzer->getParentRelationship($table->getName());
         if ($parentRelationship) {
-            $ignoreColumns = $parentRelationship->getLocalColumns();
+            $ignoreColumns = $parentRelationship->getUnquotedLocalColumns();
         } else {
             $ignoreColumns = [];
         }
 
         $beanPropertyDescriptors = [];
-
         foreach ($table->getColumns() as $column) {
+
             if (array_search($column->getName(), $ignoreColumns) !== false) {
                 continue;
             }
@@ -536,7 +536,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
     {
         $indexesByKey = [];
         foreach ($indexes as $index) {
-            $indexesByKey[implode('__`__', $index->getColumns())] = $index;
+            $indexesByKey[implode('__`__', $index->getUnquotedColumns())] = $index;
         }
 
         return array_values($indexesByKey);

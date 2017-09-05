@@ -11,6 +11,16 @@ matrix:
     - php: 7.1
       env: PREFER_LOWEST="--prefer-lowest" DB=mysql
     - php: 7.1
+      env: PREFER_LOWEST="--prefer-lowest" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
+      sudo: required
+      services:
+        - docker
+    - php: 7.1
+      env: PREFER_LOWEST="" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
+      sudo: required
+      services:
+        - docker
+    - php: 7.1
       env: PREFER_LOWEST="--prefer-lowest" DB=postgres PHPUNITFILE="-c phpunit.postgres.xml"
       addons:
         postgresql: "9.6"
@@ -22,16 +32,22 @@ matrix:
         postgresql: "9.6"
       services:
         - postgresql
+  allow_failures:
+    - php: 7.1
+      env: PREFER_LOWEST="" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
+    - php: 7.1
+      env: PREFER_LOWEST="--prefer-lowest" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
 env:
   global:
-      - GIT_NAME: "'Couscous auto deploy'"
-      - GIT_EMAIL: d.negrier@thecodingmachine.com
-      - GH_REF: github.com/thecodingmachine/tdbm
-      - secure: pAdXEBkhe0KJbbZEP61lcZzvKKMkVK2RDIZTf1RzjQRgk+PxIG5JLBiHKuvG3MgtFjZbdtl2Vf6nAZbeMyy3H0eCryQCjjqdb5mS3eDekJ4WwviN6hQDc7+Xw6R1saHvDvJs9GQENUzHPWfAfY7LuwUgHXdc+BCLZmV+j0H6liZMNlXIYqP1kdwl7u5a/Y3FvXFws6R7A0giUBCb4HOYkInaXV0yzuAEsB6XBDbTjw3EqI0GBs6746O4tn7NOGaFlFSZan6RZe6jEkw7A+U3xLCfFnIN2q1uk/tk511KkOcSFQyGKRMDSKRDesdMQaOt/ze14+t+ISTqOSn8bUrCBhpj4VsjvzZE0FOS3WWGXpayODqdxuDjacwCZwiOHG7FWbwyQ3APiIrfO82ABbI8HoJURbgOb/Qnl2iPg9tCcvDqhsHxppGq5oOyhBq+GGtucOTW6lO6QnlMaez4nJJ7a3cn8WJB6NxaCZLii3aOXSLMahzFCcQxtq9/WfKwbOtf4GWUSLk28kDMov5h7tzuuHXmzOivzRxztQ9WC2GT7eMCIL8mvWFRMNiLJTE03J0ZbQDZ9N4OU3tdcgjV+d6pU6bu4SrCFtjCJnLaeLfIjoHkx+kK+kyCOQpOcuHMM6zq8l+ztd7VGZ3Br8HJTs1CxiWXrs+JIx2i8V06IE8nLKA=
+  - GIT_NAME: "'Couscous auto deploy'"
+  - GIT_EMAIL: d.negrier@thecodingmachine.com
+  - GH_REF: github.com/thecodingmachine/tdbm
+  - secure: pAdXEBkhe0KJbbZEP61lcZzvKKMkVK2RDIZTf1RzjQRgk+PxIG5JLBiHKuvG3MgtFjZbdtl2Vf6nAZbeMyy3H0eCryQCjjqdb5mS3eDekJ4WwviN6hQDc7+Xw6R1saHvDvJs9GQENUzHPWfAfY7LuwUgHXdc+BCLZmV+j0H6liZMNlXIYqP1kdwl7u5a/Y3FvXFws6R7A0giUBCb4HOYkInaXV0yzuAEsB6XBDbTjw3EqI0GBs6746O4tn7NOGaFlFSZan6RZe6jEkw7A+U3xLCfFnIN2q1uk/tk511KkOcSFQyGKRMDSKRDesdMQaOt/ze14+t+ISTqOSn8bUrCBhpj4VsjvzZE0FOS3WWGXpayODqdxuDjacwCZwiOHG7FWbwyQ3APiIrfO82ABbI8HoJURbgOb/Qnl2iPg9tCcvDqhsHxppGq5oOyhBq+GGtucOTW6lO6QnlMaez4nJJ7a3cn8WJB6NxaCZLii3aOXSLMahzFCcQxtq9/WfKwbOtf4GWUSLk28kDMov5h7tzuuHXmzOivzRxztQ9WC2GT7eMCIL8mvWFRMNiLJTE03J0ZbQDZ9N4OU3tdcgjV+d6pU6bu4SrCFtjCJnLaeLfIjoHkx+kK+kyCOQpOcuHMM6zq8l+ztd7VGZ3Br8HJTs1CxiWXrs+JIx2i8V06IE8nLKA=
 before_script:
 - composer update --prefer-dist $PREFER_LOWEST
 script:
-- vendor/bin/phpunit $PHPUNITFILE
+# Let's run the Oracle script only when the password is available (it is not available in forks unfortunately)
+- if [ "$DB" != "oracle" ] ; then ./vendor/bin/phpunit $PHPUNITFILE; else docker run -v $(pwd):/app -v $(pwd)/tests/Fixtures/oracle-startup.sql:/docker-entrypoint-initdb.d/oracle-startup.sql moufmouf/oracle-xe-php vendor/bin/phpunit $PHPUNITFILE; fi
 after_script:
-- if [ -z "$PREFER_LOWEST" ]; then ./vendor/bin/coveralls -v; fi
-- if [ -z "$PREFER_LOWEST" ]; then vendor/bin/couscous travis-auto-deploy -vvv --php-version=7.1; fi
+- if [ -z "$PREFER_LOWEST" ] && [ "$DB" = "mysql" ] ; then ./vendor/bin/coveralls -v; fi
+- if [ -z "$PREFER_LOWEST" ] && [ "$DB" = "mysql" ] ; then vendor/bin/couscous travis-auto-deploy -vvv --php-version=7.1; fi

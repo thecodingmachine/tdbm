@@ -237,15 +237,15 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
     {
         // First, are there many column or only one?
         // If one column, we name the setter after it. Otherwise, we name the setter after the table name
-        if (count($foreignKey->getLocalColumns()) > 1) {
+        if (count($foreignKey->getUnquotedLocalColumns()) > 1) {
             $name = $this->toSingularCamelCase($foreignKey->getForeignTableName());
             if ($alternativeName) {
-                $camelizedColumns = array_map(['TheCodingMachine\\TDBM\\Utils\\TDBMDaoGenerator', 'toCamelCase'], $foreignKey->getLocalColumns());
+                $camelizedColumns = array_map(['TheCodingMachine\\TDBM\\Utils\\TDBMDaoGenerator', 'toCamelCase'], $foreignKey->getUnquotedLocalColumns());
 
                 $name .= 'By'.implode('And', $camelizedColumns);
             }
         } else {
-            $column = $foreignKey->getLocalColumns()[0];
+            $column = $foreignKey->getUnquotedLocalColumns()[0];
             // Let's remove any _id or id_.
             if (strpos(strtolower($column), 'id_') === 0) {
                 $column = substr($column, 3);
