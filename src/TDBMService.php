@@ -731,7 +731,7 @@ class TDBMService
                     $escapedPrimaryKeys[$this->connection->quoteIdentifier($columnName)] = $value;
                 }
 
-                $this->connection->update($tableName, $escapedDbRowData, $escapedPrimaryKeys, $types);
+                $this->connection->update($this->connection->quoteIdentifier($tableName), $escapedDbRowData, $escapedPrimaryKeys, $types);
 
                 // Let's check if the primary key has been updated...
                 $needsUpdatePk = false;
