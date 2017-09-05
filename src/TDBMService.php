@@ -271,9 +271,14 @@ class TDBMService
                 $this->deleteManyToManyRelationships($object);
                 // Let's delete db rows, in reverse order.
                 foreach (array_reverse($object->_getDbRows()) as $dbRow) {
+                    /* @var $dbRow DbRow */
                     $tableName = $dbRow->_getDbTableName();
                     $primaryKeys = $dbRow->_getPrimaryKeys();
-                    $this->connection->delete($this->connection->quoteIdentifier($tableName), $primaryKeys);
+                    $quotedPrimaryKeys = [];
+                    foreach ($primaryKeys as $column => $value) {
+                        $quotedPrimaryKeys[$this->connection->quoteIdentifier($column)] = $value;
+                    }
+                    $this->connection->delete($this->connection->quoteIdentifier($tableName), $quotedPrimaryKeys);
                     $this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
                 }
                 break;
@@ -787,7 +792,7 @@ class TDBMService
 
                     ['filters' => $filters, 'types' => $types] = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk, $tableDescriptor);
 
-                    $this->connection->insert($pivotTableName, $filters, $types);
+                    $this->connection->insert($this->connection->quoteIdentifier($pivotTableName), $filters, $types);
 
                     // Finally, let's mark relationships as saved.
                     $statusArr['status'] = 'loaded';
