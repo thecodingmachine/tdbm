@@ -1268,13 +1268,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testExceptionOnMultipleInheritance()
     {
-        self::getConnection()->insert('animal', [
+        self::insert(self::getConnection(), 'animal', [
             'id' => 99, 'name' => 'Snoofield',
         ]);
-        self::getConnection()->insert('dog', [
+        self::insert(self::getConnection(), 'animal', [
             'id' => 99, 'race' => 'dog',
         ]);
-        self::getConnection()->insert('cat', [
+        self::insert(self::getConnection(), 'animal', [
             'id' => 99, 'cuteness_level' => 0,
         ]);
 

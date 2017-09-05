@@ -473,7 +473,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         ]);
     }
 
-    private static function insert(Connection $connection, string $tableName, array $data): void
+    protected static function insert(Connection $connection, string $tableName, array $data): void
     {
         $quotedData = [];
         foreach ($data as $id => $value) {
