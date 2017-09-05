@@ -273,7 +273,7 @@ class TDBMService
                 foreach (array_reverse($object->_getDbRows()) as $dbRow) {
                     $tableName = $dbRow->_getDbTableName();
                     $primaryKeys = $dbRow->_getPrimaryKeys();
-                    $this->connection->delete($tableName, $primaryKeys);
+                    $this->connection->delete($this->connection->quoteIdentifier($tableName), $primaryKeys);
                     $this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
                 }
                 break;
@@ -785,18 +785,9 @@ class TDBMService
                         $this->save($remoteBean);
                     }
 
-                    $filters = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk);
+                    ['filters' => $filters, 'types' => $types] = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk, $tableDescriptor);
 
-                    $types = [];
-                    $escapedFilters = [];
-
-                    foreach ($filters as $columnName => $value) {
-                        $columnDescriptor = $tableDescriptor->getColumn($columnName);
-                        $types[] = $columnDescriptor->getType();
-                        $escapedFilters[$this->connection->quoteIdentifier($columnName)] = $value;
-                    }
-
-                    $this->connection->insert($pivotTableName, $escapedFilters, $types);
+                    $this->connection->insert($pivotTableName, $filters, $types);
 
                     // Finally, let's mark relationships as saved.
                     $statusArr['status'] = 'loaded';
@@ -806,16 +797,9 @@ class TDBMService
                     $remoteStatusArr['status'] = 'loaded';
                     $remoteStorage[$object] = $remoteStatusArr;
                 } elseif ($status === 'delete') {
-                    $filters = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk);
+                    ['filters' => $filters, 'types' => $types] = $this->getPivotFilters($object, $remoteBean, $localFk, $remoteFk, $tableDescriptor);
 
-                    $types = [];
-
-                    foreach ($filters as $columnName => $value) {
-                        $columnDescriptor = $tableDescriptor->getColumn($columnName);
-                        $types[] = $columnDescriptor->getType();
-                    }
-
-                    $this->connection->delete($pivotTableName, $filters, $types);
+                    $this->connection->delete($this->connection->quoteIdentifier($pivotTableName), $filters, $types);
 
                     // Finally, let's remove relationships completely from bean.
                     $toRemoveFromStorage[] = $remoteBean;
@@ -832,7 +816,7 @@ class TDBMService
         }
     }
 
-    private function getPivotFilters(AbstractTDBMObject $localBean, AbstractTDBMObject $remoteBean, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk)
+    private function getPivotFilters(AbstractTDBMObject $localBean, AbstractTDBMObject $remoteBean, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, Table $tableDescriptor)
     {
         $localBeanPk = $this->getPrimaryKeyValues($localBean);
         $remoteBeanPk = $this->getPrimaryKeyValues($remoteBean);
@@ -842,7 +826,17 @@ class TDBMService
         $localFilters = array_combine($localColumns, $localBeanPk);
         $remoteFilters = array_combine($remoteColumns, $remoteBeanPk);
 
-        return array_merge($localFilters, $remoteFilters);
+        $filters = array_merge($localFilters, $remoteFilters);
+
+        $types = [];
+        $escapedFilters = [];
+
+        foreach ($filters as $columnName => $value) {
+            $columnDescriptor = $tableDescriptor->getColumn($columnName);
+            $types[] = $columnDescriptor->getType();
+            $escapedFilters[$this->connection->quoteIdentifier($columnName)] = $value;
+        }
+        return ['filters' => $escapedFilters, 'types' => $types];
     }
 
     /**
