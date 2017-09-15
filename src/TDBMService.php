@@ -245,7 +245,7 @@ class TDBMService
      *
      * @param AbstractTDBMObject $object the object to delete
      *
-     * @throws TDBMException
+     * @throws DBALException
      * @throws TDBMInvalidOperationException
      */
     public function delete(AbstractTDBMObject $object)
@@ -291,7 +291,8 @@ class TDBMService
                 // @codeCoverageIgnoreEnd
             }
         } catch (DBALException $e){
-            throw new TDBMException($e->getMessage(), $e->getCode(), $e);
+	    $this->connection->rollBack();
+            throw $e;
         }
         $this->connection->commit();
 
