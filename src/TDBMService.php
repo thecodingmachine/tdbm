@@ -23,6 +23,7 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
@@ -244,49 +245,56 @@ class TDBMService
      *
      * @param AbstractTDBMObject $object the object to delete
      *
-     * @throws TDBMException
+     * @throws DBALException
      * @throws TDBMInvalidOperationException
      */
     public function delete(AbstractTDBMObject $object)
     {
-        switch ($object->_getStatus()) {
-            case TDBMObjectStateEnum::STATE_DELETED:
-                // Nothing to do, object already deleted.
-                return;
-            case TDBMObjectStateEnum::STATE_DETACHED:
-                throw new TDBMInvalidOperationException('Cannot delete a detached object');
-            case TDBMObjectStateEnum::STATE_NEW:
-                $this->deleteManyToManyRelationships($object);
-                foreach ($object->_getDbRows() as $dbRow) {
-                    $this->removeFromToSaveObjectList($dbRow);
-                }
-                break;
-            case TDBMObjectStateEnum::STATE_DIRTY:
-                foreach ($object->_getDbRows() as $dbRow) {
-                    $this->removeFromToSaveObjectList($dbRow);
-                }
-                // And continue deleting...
-            case TDBMObjectStateEnum::STATE_NOT_LOADED:
-            case TDBMObjectStateEnum::STATE_LOADED:
-                $this->deleteManyToManyRelationships($object);
-                // Let's delete db rows, in reverse order.
-                foreach (array_reverse($object->_getDbRows()) as $dbRow) {
-                    /* @var $dbRow DbRow */
-                    $tableName = $dbRow->_getDbTableName();
-                    $primaryKeys = $dbRow->_getPrimaryKeys();
-                    $quotedPrimaryKeys = [];
-                    foreach ($primaryKeys as $column => $value) {
-                        $quotedPrimaryKeys[$this->connection->quoteIdentifier($column)] = $value;
+    	$this->connection->beginTransaction();
+        try {
+            switch ($object->_getStatus()) {
+                case TDBMObjectStateEnum::STATE_DELETED:
+                    // Nothing to do, object already deleted.
+                    return;
+                case TDBMObjectStateEnum::STATE_DETACHED:
+                    throw new TDBMInvalidOperationException('Cannot delete a detached object');
+                case TDBMObjectStateEnum::STATE_NEW:
+                    $this->deleteManyToManyRelationships($object);
+                    foreach ($object->_getDbRows() as $dbRow) {
+                        $this->removeFromToSaveObjectList($dbRow);
                     }
-                    $this->connection->delete($this->connection->quoteIdentifier($tableName), $quotedPrimaryKeys);
-                    $this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
-                }
-                break;
-            // @codeCoverageIgnoreStart
-            default:
-                throw new TDBMInvalidOperationException('Unexpected status for bean');
-            // @codeCoverageIgnoreEnd
+                    break;
+                case TDBMObjectStateEnum::STATE_DIRTY:
+                    foreach ($object->_getDbRows() as $dbRow) {
+                        $this->removeFromToSaveObjectList($dbRow);
+                    }
+                // And continue deleting...
+                case TDBMObjectStateEnum::STATE_NOT_LOADED:
+                case TDBMObjectStateEnum::STATE_LOADED:
+                    $this->deleteManyToManyRelationships($object);
+                    // Let's delete db rows, in reverse order.
+                    foreach (array_reverse($object->_getDbRows()) as $dbRow) {
+                        /* @var $dbRow DbRow */
+                        $tableName = $dbRow->_getDbTableName();
+                        $primaryKeys = $dbRow->_getPrimaryKeys();
+                        $quotedPrimaryKeys = [];
+                        foreach ($primaryKeys as $column => $value) {
+                            $quotedPrimaryKeys[$this->connection->quoteIdentifier($column)] = $value;
+                        }
+                        $this->connection->delete($this->connection->quoteIdentifier($tableName), $quotedPrimaryKeys);
+                        $this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
+                    }
+                    break;
+                // @codeCoverageIgnoreStart
+                default:
+                    throw new TDBMInvalidOperationException('Unexpected status for bean');
+                // @codeCoverageIgnoreEnd
+            }
+        } catch (DBALException $e){
+	    $this->connection->rollBack();
+            throw $e;
         }
+        $this->connection->commit();
 
         $object->_setStatus(TDBMObjectStateEnum::STATE_DELETED);
     }
