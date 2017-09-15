@@ -250,27 +250,27 @@ class TDBMService
      */
     public function delete(AbstractTDBMObject $object)
     {
-        $this->connection->beginTransaction();
-        try {
-            switch ($object->_getStatus()) {
-                case TDBMObjectStateEnum::STATE_DELETED:
-                    // Nothing to do, object already deleted.
-                    return;
-                case TDBMObjectStateEnum::STATE_DETACHED:
-                    throw new TDBMInvalidOperationException('Cannot delete a detached object');
-                case TDBMObjectStateEnum::STATE_NEW:
-                    $this->deleteManyToManyRelationships($object);
-                    foreach ($object->_getDbRows() as $dbRow) {
-                        $this->removeFromToSaveObjectList($dbRow);
-                    }
-                    break;
-                case TDBMObjectStateEnum::STATE_DIRTY:
-                    foreach ($object->_getDbRows() as $dbRow) {
-                        $this->removeFromToSaveObjectList($dbRow);
-                    }
-                // And continue deleting...
-                case TDBMObjectStateEnum::STATE_NOT_LOADED:
-                case TDBMObjectStateEnum::STATE_LOADED:
+        switch ($object->_getStatus()) {
+            case TDBMObjectStateEnum::STATE_DELETED:
+                // Nothing to do, object already deleted.
+                return;
+            case TDBMObjectStateEnum::STATE_DETACHED:
+                throw new TDBMInvalidOperationException('Cannot delete a detached object');
+            case TDBMObjectStateEnum::STATE_NEW:
+                $this->deleteManyToManyRelationships($object);
+                foreach ($object->_getDbRows() as $dbRow) {
+                    $this->removeFromToSaveObjectList($dbRow);
+                }
+                break;
+            case TDBMObjectStateEnum::STATE_DIRTY:
+                foreach ($object->_getDbRows() as $dbRow) {
+                    $this->removeFromToSaveObjectList($dbRow);
+                }
+            // And continue deleting...
+            case TDBMObjectStateEnum::STATE_NOT_LOADED:
+            case TDBMObjectStateEnum::STATE_LOADED:
+                $this->connection->beginTransaction();
+                try {
                     $this->deleteManyToManyRelationships($object);
                     // Let's delete db rows, in reverse order.
                     foreach (array_reverse($object->_getDbRows()) as $dbRow) {
@@ -284,17 +284,17 @@ class TDBMService
                         $this->connection->delete($this->connection->quoteIdentifier($tableName), $quotedPrimaryKeys);
                         $this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
                     }
-                    break;
-                // @codeCoverageIgnoreStart
-                default:
-                    throw new TDBMInvalidOperationException('Unexpected status for bean');
-                // @codeCoverageIgnoreEnd
-            }
-        } catch (DBALException $e) {
-            $this->connection->rollBack();
-            throw $e;
+                    $this->connection->commit();
+                } catch (DBALException $e) {
+                    $this->connection->rollBack();
+                    throw $e;
+                }
+                break;
+            // @codeCoverageIgnoreStart
+            default:
+                throw new TDBMInvalidOperationException('Unexpected status for bean');
+            // @codeCoverageIgnoreEnd
         }
-        $this->connection->commit();
 
         $object->_setStatus(TDBMObjectStateEnum::STATE_DELETED);
     }
