@@ -200,7 +200,6 @@ class BeanDescriptor implements BeanDescriptorInterface
 
         $beanPropertyDescriptors = [];
         foreach ($table->getColumns() as $column) {
-
             if (array_search($column->getName(), $ignoreColumns) !== false) {
                 continue;
             }

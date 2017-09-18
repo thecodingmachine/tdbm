@@ -149,7 +149,6 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                 );
                 self::$dbConnection = DriverManager::getConnection($connectionParams, $config, $evm);
                 self::$dbConnection->setAutoCommit(true);
-
             } else {
                 $connectionParams = array(
                     'user' => $GLOBALS['db_username'],
@@ -161,7 +160,6 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                 );
                 self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
             }
-
         }
         return self::$dbConnection;
     }
@@ -189,7 +187,6 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
     protected function getConfiguration() : ConfigurationInterface
     {
         if ($this->configuration === null) {
-
             $this->configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), new ArrayCache(), null, null, [$this->getDummyGeneratorListener()]);
             $this->configuration->setPathFinder(new PathFinder(null, dirname(__DIR__, 4)));
         }
