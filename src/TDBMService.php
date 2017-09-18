@@ -667,43 +667,8 @@ class TDBMService
                     $dbRow->_setPrimaryKeys($primaryKeys);
                     $unindexedPrimaryKeys = array_values($primaryKeys);
 
-                    /*
-                     * When attached, on "save", we check if the column updated is part of a primary key
-                     * If this is part of a primary key, we call the _update_id method that updates the id in the list of known objects.
-                     * This method should first verify that the id is not already used (and is not auto-incremented)
-                     *
-                     * In the object, the key is stored in an array of  (column => value), that can be directly used to update the record.
-                     *
-                     *
-                     */
-
-                    /*try {
-                        $this->db_connection->exec($sql);
-                    } catch (TDBMException $e) {
-                        $this->db_onerror = true;
-
-                        // Strange..... if we do not have the line below, bad inserts are not catched.
-                        // It seems that destructors are called before the registered shutdown function (PHP >=5.0.5)
-                        //if ($this->tdbmService->isProgramExiting())
-                        //	trigger_error("program exiting");
-                        trigger_error($e->getMessage(), E_USER_ERROR);
-
-                        if (!$this->tdbmService->isProgramExiting())
-                            throw $e;
-                        else
-                        {
-                            trigger_error($e->getMessage(), E_USER_ERROR);
-                        }
-                    }*/
-
                     // Let's remove this object from the $new_objects static table.
                     $this->removeFromToSaveObjectList($dbRow);
-
-                    // TODO: change this behaviour to something more sensible performance-wise
-                    // Maybe a setting to trigger this globally?
-                    //$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
-                    //$this->db_modified_state = false;
-                    //$dbRow = array();
 
                     // Let's add this object to the list of objects in cache.
                     $this->_addToCache($dbRow);
