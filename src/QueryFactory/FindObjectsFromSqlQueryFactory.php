@@ -59,7 +59,8 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
             $joinSql = '';
             $parentFks = $this->getParentRelationshipForeignKeys($this->mainTable);
             foreach ($parentFks as $fk) {
-                $joinSql .= sprintf(' JOIN %s ON (%s.%s = %s.%s)',
+                $joinSql .= sprintf(
+                    ' JOIN %s ON (%s.%s = %s.%s)',
                     $mySqlPlatform->quoteIdentifier($fk->getForeignTableName()),
                     $mySqlPlatform->quoteIdentifier($fk->getLocalTableName()),
                     $mySqlPlatform->quoteIdentifier($fk->getUnquotedLocalColumns()[0]),
@@ -70,7 +71,8 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
             $childrenFks = $this->getChildrenRelationshipForeignKeys($this->mainTable);
             foreach ($childrenFks as $fk) {
-                $joinSql .= sprintf(' LEFT JOIN %s ON (%s.%s = %s.%s)',
+                $joinSql .= sprintf(
+                    ' LEFT JOIN %s ON (%s.%s = %s.%s)',
                     $mySqlPlatform->quoteIdentifier($fk->getLocalTableName()),
                     $mySqlPlatform->quoteIdentifier($fk->getForeignTableName()),
                     $mySqlPlatform->quoteIdentifier($fk->getUnquotedForeignColumns()[0]),

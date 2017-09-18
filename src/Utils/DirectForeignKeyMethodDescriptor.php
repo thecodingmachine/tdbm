@@ -99,7 +99,8 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
 ';
 
         $beanClass = $this->getBeanClassName();
-        $code .= sprintf($getterCode,
+        $code .= sprintf(
+            $getterCode,
             $beanClass,
             implode(', ', $this->fk->getUnquotedLocalColumns()),
             $beanClass,

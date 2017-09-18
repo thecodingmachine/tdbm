@@ -220,7 +220,8 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
 ';
 
-        return sprintf($getterAndSetterCode,
+        return sprintf(
+            $getterAndSetterCode,
             // Getter
             $this->column->getName(),
             $normalizedType.($isNullable ? '|null' : ''),

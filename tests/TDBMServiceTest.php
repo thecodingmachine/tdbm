@@ -655,8 +655,13 @@ SQL;
 
     public function testFindObjectsFromSql()
     {
-        $roles = $this->tdbmService->findObjectsFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
-            'rights.label = :right', array('right' => 'CAN_SING'), 'roles.name DESC');
+        $roles = $this->tdbmService->findObjectsFromSql(
+            'roles',
+            'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right',
+            array('right' => 'CAN_SING'),
+            'roles.name DESC'
+        );
         $this->assertCount(2, $roles);
         $this->assertInstanceOf(AbstractTDBMObject::class, $roles[0]);
     }
@@ -668,8 +673,13 @@ SQL;
      */
     public function testFindObjectsFromSqlBadTableName()
     {
-        $this->tdbmService->findObjectsFromSql('#{azerty', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
-            'rights.label = :right', array('right' => 'CAN_SING'), 'name DESC');
+        $this->tdbmService->findObjectsFromSql(
+            '#{azerty',
+            'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right',
+            array('right' => 'CAN_SING'),
+            'name DESC'
+        );
     }
 
     /**
@@ -679,15 +689,24 @@ SQL;
      */
     public function testFindObjectsFromSqlGroupBy()
     {
-        $roles = $this->tdbmService->findObjectsFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
-            'rights.label = :right GROUP BY roles.name', array('right' => 'CAN_SING'), 'name DESC');
+        $roles = $this->tdbmService->findObjectsFromSql(
+            'roles',
+            'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right GROUP BY roles.name',
+            array('right' => 'CAN_SING'),
+            'name DESC'
+        );
         $role = $roles[0];
     }
 
     public function testFindObjectFromSql()
     {
-        $role = $this->tdbmService->findObjectFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
-            'rights.label = :right AND name = :name', array('right' => 'CAN_SING', 'name' => 'Singers'));
+        $role = $this->tdbmService->findObjectFromSql(
+            'roles',
+            'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right AND name = :name',
+            array('right' => 'CAN_SING', 'name' => 'Singers')
+        );
         $this->assertInstanceOf(AbstractTDBMObject::class, $role);
     }
 
@@ -698,22 +717,40 @@ SQL;
      */
     public function testFindObjectFromSqlException()
     {
-        $this->tdbmService->findObjectFromSql('roles', 'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
-            'rights.label = :right', array('right' => 'CAN_SING'));
+        $this->tdbmService->findObjectFromSql(
+            'roles',
+            'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
+            'rights.label = :right',
+            array('right' => 'CAN_SING')
+        );
     }
 
     public function testFindObjectsFromSqlHierarchyDown()
     {
-        $users = $this->tdbmService->findObjectsFromSql('person', 'person', 'name LIKE :name OR name LIKE :name2',
-            array('name' => 'Robert Marley', 'name2' => 'Bill Shakespeare'), null, null, TDBMObject::class);
+        $users = $this->tdbmService->findObjectsFromSql(
+            'person',
+            'person',
+            'name LIKE :name OR name LIKE :name2',
+            array('name' => 'Robert Marley', 'name2' => 'Bill Shakespeare'),
+            null,
+            null,
+            TDBMObject::class
+        );
         $this->assertCount(2, $users);
         $this->assertSame('robert.marley', $users[0]->getProperty('login', 'users'));
     }
 
     public function testFindObjectsFromSqlHierarchyUp()
     {
-        $users = $this->tdbmService->findObjectsFromSql('users', 'users', 'login LIKE :login OR login LIKE :login2',
-            array('login' => 'robert.marley', 'login2' => 'bill.shakespeare'), null, null, TDBMObject::class);
+        $users = $this->tdbmService->findObjectsFromSql(
+            'users',
+            'users',
+            'login LIKE :login OR login LIKE :login2',
+            array('login' => 'robert.marley', 'login2' => 'bill.shakespeare'),
+            null,
+            null,
+            TDBMObject::class
+        );
         $this->assertCount(2, $users);
         $this->assertSame('Robert Marley', $users[0]->getProperty('name', 'person'));
     }
