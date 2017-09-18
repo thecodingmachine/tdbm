@@ -23,6 +23,7 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
@@ -244,7 +245,7 @@ class TDBMService
      *
      * @param AbstractTDBMObject $object the object to delete
      *
-     * @throws TDBMException
+     * @throws DBALException
      * @throws TDBMInvalidOperationException
      */
     public function delete(AbstractTDBMObject $object)
@@ -265,21 +266,28 @@ class TDBMService
                 foreach ($object->_getDbRows() as $dbRow) {
                     $this->removeFromToSaveObjectList($dbRow);
                 }
-                // And continue deleting...
+            // And continue deleting...
             case TDBMObjectStateEnum::STATE_NOT_LOADED:
             case TDBMObjectStateEnum::STATE_LOADED:
-                $this->deleteManyToManyRelationships($object);
-                // Let's delete db rows, in reverse order.
-                foreach (array_reverse($object->_getDbRows()) as $dbRow) {
-                    /* @var $dbRow DbRow */
-                    $tableName = $dbRow->_getDbTableName();
-                    $primaryKeys = $dbRow->_getPrimaryKeys();
-                    $quotedPrimaryKeys = [];
-                    foreach ($primaryKeys as $column => $value) {
-                        $quotedPrimaryKeys[$this->connection->quoteIdentifier($column)] = $value;
+                $this->connection->beginTransaction();
+                try {
+                    $this->deleteManyToManyRelationships($object);
+                    // Let's delete db rows, in reverse order.
+                    foreach (array_reverse($object->_getDbRows()) as $dbRow) {
+                        /* @var $dbRow DbRow */
+                        $tableName = $dbRow->_getDbTableName();
+                        $primaryKeys = $dbRow->_getPrimaryKeys();
+                        $quotedPrimaryKeys = [];
+                        foreach ($primaryKeys as $column => $value) {
+                            $quotedPrimaryKeys[$this->connection->quoteIdentifier($column)] = $value;
+                        }
+                        $this->connection->delete($this->connection->quoteIdentifier($tableName), $quotedPrimaryKeys);
+                        $this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
                     }
-                    $this->connection->delete($this->connection->quoteIdentifier($tableName), $quotedPrimaryKeys);
-                    $this->objectStorage->remove($dbRow->_getDbTableName(), $this->getObjectHash($primaryKeys));
+                    $this->connection->commit();
+                } catch (DBALException $e) {
+                    $this->connection->rollBack();
+                    throw $e;
                 }
                 break;
             // @codeCoverageIgnoreStart
