@@ -1444,7 +1444,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $boatDao = new BoatDao($this->tdbmService);
         $boatBean = $boatDao->getById(1);
-        $boatBean->setName('Titanic');
+        $boatBean->setName('Bismark');
 
         $boatBean->getCountry();
 
@@ -1470,6 +1470,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $boatBean = $boatDao->getById(1);
 
         // The name should not have been saved because the transaction of the previous test should have rollbacked.
-        $this->assertNotSame('Titanic', $boatBean->getName());
+        $this->assertNotSame('Bismark', $boatBean->getName());
     }
 }

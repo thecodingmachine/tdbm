@@ -267,6 +267,7 @@ class TDBMService
                     $this->removeFromToSaveObjectList($dbRow);
                 }
             // And continue deleting...
+            // no break
             case TDBMObjectStateEnum::STATE_NOT_LOADED:
             case TDBMObjectStateEnum::STATE_LOADED:
                 $this->connection->beginTransaction();
@@ -553,225 +554,232 @@ class TDBMService
      */
     public function save(AbstractTDBMObject $object)
     {
-        $status = $object->_getStatus();
-
-        if ($status === null) {
-            throw new TDBMException(sprintf('Your bean for class %s has no status. It is likely that you overloaded the __construct method and forgot to call parent::__construct.', get_class($object)));
-        }
-
-        // Let's attach this object if it is in detached state.
-        if ($status === TDBMObjectStateEnum::STATE_DETACHED) {
-            $object->_attach($this);
+        $this->connection->beginTransaction();
+        try {
             $status = $object->_getStatus();
-        }
 
-        if ($status === TDBMObjectStateEnum::STATE_NEW) {
-            $dbRows = $object->_getDbRows();
+            if ($status === null) {
+                throw new TDBMException(sprintf('Your bean for class %s has no status. It is likely that you overloaded the __construct method and forgot to call parent::__construct.', get_class($object)));
+            }
 
-            $unindexedPrimaryKeys = array();
+            // Let's attach this object if it is in detached state.
+            if ($status === TDBMObjectStateEnum::STATE_DETACHED) {
+                $object->_attach($this);
+                $status = $object->_getStatus();
+            }
 
-            foreach ($dbRows as $dbRow) {
-                if ($dbRow->_getStatus() == TDBMObjectStateEnum::STATE_SAVING) {
-                    throw TDBMCyclicReferenceException::createCyclicReference($dbRow->_getDbTableName(), $object);
-                }
-                $dbRow->_setStatus(TDBMObjectStateEnum::STATE_SAVING);
-                $tableName = $dbRow->_getDbTableName();
+            if ($status === TDBMObjectStateEnum::STATE_NEW) {
+                $dbRows = $object->_getDbRows();
 
-                $schema = $this->tdbmSchemaAnalyzer->getSchema();
-                $tableDescriptor = $schema->getTable($tableName);
+                $unindexedPrimaryKeys = array();
 
-                $primaryKeyColumns = $this->getPrimaryKeyColumns($tableName);
+                foreach ($dbRows as $dbRow) {
+                    if ($dbRow->_getStatus() == TDBMObjectStateEnum::STATE_SAVING) {
+                        throw TDBMCyclicReferenceException::createCyclicReference($dbRow->_getDbTableName(), $object);
+                    }
+                    $dbRow->_setStatus(TDBMObjectStateEnum::STATE_SAVING);
+                    $tableName = $dbRow->_getDbTableName();
 
-                $references = $dbRow->_getReferences();
+                    $schema = $this->tdbmSchemaAnalyzer->getSchema();
+                    $tableDescriptor = $schema->getTable($tableName);
 
-                // Let's save all references in NEW or DETACHED state (we need their primary key)
-                foreach ($references as $fkName => $reference) {
-                    if ($reference !== null) {
-                        $refStatus = $reference->_getStatus();
-                        if ($refStatus === TDBMObjectStateEnum::STATE_NEW || $refStatus === TDBMObjectStateEnum::STATE_DETACHED) {
-                            try {
-                                $this->save($reference);
-                            } catch (TDBMCyclicReferenceException $e) {
-                                throw TDBMCyclicReferenceException::extendCyclicReference($e, $dbRow->_getDbTableName(), $object, $fkName);
+                    $primaryKeyColumns = $this->getPrimaryKeyColumns($tableName);
+
+                    $references = $dbRow->_getReferences();
+
+                    // Let's save all references in NEW or DETACHED state (we need their primary key)
+                    foreach ($references as $fkName => $reference) {
+                        if ($reference !== null) {
+                            $refStatus = $reference->_getStatus();
+                            if ($refStatus === TDBMObjectStateEnum::STATE_NEW || $refStatus === TDBMObjectStateEnum::STATE_DETACHED) {
+                                try {
+                                    $this->save($reference);
+                                } catch (TDBMCyclicReferenceException $e) {
+                                    throw TDBMCyclicReferenceException::extendCyclicReference($e, $dbRow->_getDbTableName(), $object, $fkName);
+                                }
                             }
                         }
                     }
-                }
 
-                if (empty($unindexedPrimaryKeys)) {
-                    $primaryKeys = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
-                } else {
-                    // First insert, the children must have the same primary key as the parent.
-                    $primaryKeys = $this->_getPrimaryKeysFromIndexedPrimaryKeys($tableName, $unindexedPrimaryKeys);
+                    if (empty($unindexedPrimaryKeys)) {
+                        $primaryKeys = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
+                    } else {
+                        // First insert, the children must have the same primary key as the parent.
+                        $primaryKeys = $this->_getPrimaryKeysFromIndexedPrimaryKeys($tableName, $unindexedPrimaryKeys);
+                        $dbRow->_setPrimaryKeys($primaryKeys);
+                    }
+
+                    $dbRowData = $dbRow->_getDbRow();
+
+                    // Let's see if the columns for primary key have been set before inserting.
+                    // We assume that if one of the value of the PK has been set, the PK is set.
+                    $isPkSet = !empty($primaryKeys);
+
+                    /*if (!$isPkSet) {
+                        // if there is no autoincrement and no pk set, let's go in error.
+                        $isAutoIncrement = true;
+
+                        foreach ($primaryKeyColumns as $pkColumnName) {
+                            $pkColumn = $tableDescriptor->getColumn($pkColumnName);
+                            if (!$pkColumn->getAutoincrement()) {
+                                $isAutoIncrement = false;
+                            }
+                        }
+
+                        if (!$isAutoIncrement) {
+                            $msg = "Error! You did not set the primary key(s) for the new object of type '$tableName'. The primary key is not set to 'autoincrement' so you must either set the primary key in the object or modify the DB model to create an primary key with auto-increment.";
+                            throw new TDBMException($msg);
+                        }
+
+                    }*/
+
+                    $types = [];
+                    $escapedDbRowData = [];
+
+                    foreach ($dbRowData as $columnName => $value) {
+                        $columnDescriptor = $tableDescriptor->getColumn($columnName);
+                        $types[] = $columnDescriptor->getType();
+                        $escapedDbRowData[$this->connection->quoteIdentifier($columnName)] = $value;
+                    }
+
+                    $quotedTableName = $this->connection->quoteIdentifier($tableName);
+                    $this->connection->insert($quotedTableName, $escapedDbRowData, $types);
+
+                    if (!$isPkSet && count($primaryKeyColumns) === 1) {
+                        $id = $this->connection->lastInsertId();
+
+                        if ($id === false) {
+                            // In Oracle (if we are in 11g), the lastInsertId will fail. We try again with the column.
+                            $sequenceName = $this->connection->getDatabasePlatform()->getIdentitySequenceName(
+                                $quotedTableName,
+                                $this->connection->quoteIdentifier($primaryKeyColumns[0])
+                            );
+                            $id = $this->connection->lastInsertId($sequenceName);
+                        }
+
+                        $pkColumn = $primaryKeyColumns[0];
+                        // lastInsertId returns a string but the column type is usually a int. Let's convert it back to the correct type.
+                        $id = $tableDescriptor->getColumn($pkColumn)->getType()->convertToPHPValue($id, $this->getConnection()->getDatabasePlatform());
+                        $primaryKeys[$pkColumn] = $id;
+                    }
+
+                    // TODO: change this to some private magic accessor in future
                     $dbRow->_setPrimaryKeys($primaryKeys);
+                    $unindexedPrimaryKeys = array_values($primaryKeys);
+
+                    /*
+                     * When attached, on "save", we check if the column updated is part of a primary key
+                     * If this is part of a primary key, we call the _update_id method that updates the id in the list of known objects.
+                     * This method should first verify that the id is not already used (and is not auto-incremented)
+                     *
+                     * In the object, the key is stored in an array of  (column => value), that can be directly used to update the record.
+                     *
+                     *
+                     */
+
+                    /*try {
+                        $this->db_connection->exec($sql);
+                    } catch (TDBMException $e) {
+                        $this->db_onerror = true;
+
+                        // Strange..... if we do not have the line below, bad inserts are not catched.
+                        // It seems that destructors are called before the registered shutdown function (PHP >=5.0.5)
+                        //if ($this->tdbmService->isProgramExiting())
+                        //	trigger_error("program exiting");
+                        trigger_error($e->getMessage(), E_USER_ERROR);
+
+                        if (!$this->tdbmService->isProgramExiting())
+                            throw $e;
+                        else
+                        {
+                            trigger_error($e->getMessage(), E_USER_ERROR);
+                        }
+                    }*/
+
+                    // Let's remove this object from the $new_objects static table.
+                    $this->removeFromToSaveObjectList($dbRow);
+
+                    // TODO: change this behaviour to something more sensible performance-wise
+                    // Maybe a setting to trigger this globally?
+                    //$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
+                    //$this->db_modified_state = false;
+                    //$dbRow = array();
+
+                    // Let's add this object to the list of objects in cache.
+                    $this->_addToCache($dbRow);
                 }
 
-                $dbRowData = $dbRow->_getDbRow();
+                $object->_setStatus(TDBMObjectStateEnum::STATE_LOADED);
+            } elseif ($status === TDBMObjectStateEnum::STATE_DIRTY) {
+                $dbRows = $object->_getDbRows();
 
-                // Let's see if the columns for primary key have been set before inserting.
-                // We assume that if one of the value of the PK has been set, the PK is set.
-                $isPkSet = !empty($primaryKeys);
+                foreach ($dbRows as $dbRow) {
+                    $references = $dbRow->_getReferences();
 
-                /*if (!$isPkSet) {
-                    // if there is no autoincrement and no pk set, let's go in error.
-                    $isAutoIncrement = true;
-
-                    foreach ($primaryKeyColumns as $pkColumnName) {
-                        $pkColumn = $tableDescriptor->getColumn($pkColumnName);
-                        if (!$pkColumn->getAutoincrement()) {
-                            $isAutoIncrement = false;
+                    // Let's save all references in NEW state (we need their primary key)
+                    foreach ($references as $fkName => $reference) {
+                        if ($reference !== null && $reference->_getStatus() === TDBMObjectStateEnum::STATE_NEW) {
+                            $this->save($reference);
                         }
                     }
 
-                    if (!$isAutoIncrement) {
-                        $msg = "Error! You did not set the primary key(s) for the new object of type '$tableName'. The primary key is not set to 'autoincrement' so you must either set the primary key in the object or modify the DB model to create an primary key with auto-increment.";
-                        throw new TDBMException($msg);
+                    // Let's first get the primary keys
+                    $tableName = $dbRow->_getDbTableName();
+                    $dbRowData = $dbRow->_getDbRow();
+
+                    $schema = $this->tdbmSchemaAnalyzer->getSchema();
+                    $tableDescriptor = $schema->getTable($tableName);
+
+                    $primaryKeys = $dbRow->_getPrimaryKeys();
+
+                    $types = [];
+                    $escapedDbRowData = [];
+                    $escapedPrimaryKeys = [];
+
+                    foreach ($dbRowData as $columnName => $value) {
+                        $columnDescriptor = $tableDescriptor->getColumn($columnName);
+                        $types[] = $columnDescriptor->getType();
+                        $escapedDbRowData[$this->connection->quoteIdentifier($columnName)] = $value;
+                    }
+                    foreach ($primaryKeys as $columnName => $value) {
+                        $columnDescriptor = $tableDescriptor->getColumn($columnName);
+                        $types[] = $columnDescriptor->getType();
+                        $escapedPrimaryKeys[$this->connection->quoteIdentifier($columnName)] = $value;
                     }
 
-                }*/
+                    $this->connection->update($this->connection->quoteIdentifier($tableName), $escapedDbRowData, $escapedPrimaryKeys, $types);
 
-                $types = [];
-                $escapedDbRowData = [];
+                    // Let's check if the primary key has been updated...
+                    $needsUpdatePk = false;
+                    foreach ($primaryKeys as $column => $value) {
+                        if (!isset($dbRowData[$column]) || $dbRowData[$column] != $value) {
+                            $needsUpdatePk = true;
+                            break;
+                        }
+                    }
+                    if ($needsUpdatePk) {
+                        $this->objectStorage->remove($tableName, $this->getObjectHash($primaryKeys));
+                        $newPrimaryKeys = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
+                        $dbRow->_setPrimaryKeys($newPrimaryKeys);
+                        $this->objectStorage->set($tableName, $this->getObjectHash($primaryKeys), $dbRow);
+                    }
 
-                foreach ($dbRowData as $columnName => $value) {
-                    $columnDescriptor = $tableDescriptor->getColumn($columnName);
-                    $types[] = $columnDescriptor->getType();
-                    $escapedDbRowData[$this->connection->quoteIdentifier($columnName)] = $value;
+                    // Let's remove this object from the list of objects to save.
+                    $this->removeFromToSaveObjectList($dbRow);
                 }
 
-                $quotedTableName = $this->connection->quoteIdentifier($tableName);
-                $this->connection->insert($quotedTableName, $escapedDbRowData, $types);
-
-                if (!$isPkSet && count($primaryKeyColumns) === 1) {
-                    $id = $this->connection->lastInsertId();
-
-                    if ($id === false) {
-                        // In Oracle (if we are in 11g), the lastInsertId will fail. We try again with the column.
-                        $sequenceName = $this->connection->getDatabasePlatform()->getIdentitySequenceName(
-                            $quotedTableName,
-                            $this->connection->quoteIdentifier($primaryKeyColumns[0])
-                        );
-                        $id = $this->connection->lastInsertId($sequenceName);
-                    }
-
-                    $pkColumn = $primaryKeyColumns[0];
-                    // lastInsertId returns a string but the column type is usually a int. Let's convert it back to the correct type.
-                    $id = $tableDescriptor->getColumn($pkColumn)->getType()->convertToPHPValue($id, $this->getConnection()->getDatabasePlatform());
-                    $primaryKeys[$pkColumn] = $id;
-                }
-
-                // TODO: change this to some private magic accessor in future
-                $dbRow->_setPrimaryKeys($primaryKeys);
-                $unindexedPrimaryKeys = array_values($primaryKeys);
-
-                /*
-                 * When attached, on "save", we check if the column updated is part of a primary key
-                 * If this is part of a primary key, we call the _update_id method that updates the id in the list of known objects.
-                 * This method should first verify that the id is not already used (and is not auto-incremented)
-                 *
-                 * In the object, the key is stored in an array of  (column => value), that can be directly used to update the record.
-                 *
-                 *
-                 */
-
-                /*try {
-                    $this->db_connection->exec($sql);
-                } catch (TDBMException $e) {
-                    $this->db_onerror = true;
-
-                    // Strange..... if we do not have the line below, bad inserts are not catched.
-                    // It seems that destructors are called before the registered shutdown function (PHP >=5.0.5)
-                    //if ($this->tdbmService->isProgramExiting())
-                    //	trigger_error("program exiting");
-                    trigger_error($e->getMessage(), E_USER_ERROR);
-
-                    if (!$this->tdbmService->isProgramExiting())
-                        throw $e;
-                    else
-                    {
-                        trigger_error($e->getMessage(), E_USER_ERROR);
-                    }
-                }*/
-
-                // Let's remove this object from the $new_objects static table.
-                $this->removeFromToSaveObjectList($dbRow);
-
-                // TODO: change this behaviour to something more sensible performance-wise
-                // Maybe a setting to trigger this globally?
-                //$this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
-                //$this->db_modified_state = false;
-                //$dbRow = array();
-
-                // Let's add this object to the list of objects in cache.
-                $this->_addToCache($dbRow);
+                $object->_setStatus(TDBMObjectStateEnum::STATE_LOADED);
+            } elseif ($status === TDBMObjectStateEnum::STATE_DELETED) {
+                throw new TDBMInvalidOperationException('This object has been deleted. It cannot be saved.');
             }
 
-            $object->_setStatus(TDBMObjectStateEnum::STATE_LOADED);
-        } elseif ($status === TDBMObjectStateEnum::STATE_DIRTY) {
-            $dbRows = $object->_getDbRows();
-
-            foreach ($dbRows as $dbRow) {
-                $references = $dbRow->_getReferences();
-
-                // Let's save all references in NEW state (we need their primary key)
-                foreach ($references as $fkName => $reference) {
-                    if ($reference !== null && $reference->_getStatus() === TDBMObjectStateEnum::STATE_NEW) {
-                        $this->save($reference);
-                    }
-                }
-
-                // Let's first get the primary keys
-                $tableName = $dbRow->_getDbTableName();
-                $dbRowData = $dbRow->_getDbRow();
-
-                $schema = $this->tdbmSchemaAnalyzer->getSchema();
-                $tableDescriptor = $schema->getTable($tableName);
-
-                $primaryKeys = $dbRow->_getPrimaryKeys();
-
-                $types = [];
-                $escapedDbRowData = [];
-                $escapedPrimaryKeys = [];
-
-                foreach ($dbRowData as $columnName => $value) {
-                    $columnDescriptor = $tableDescriptor->getColumn($columnName);
-                    $types[] = $columnDescriptor->getType();
-                    $escapedDbRowData[$this->connection->quoteIdentifier($columnName)] = $value;
-                }
-                foreach ($primaryKeys as $columnName => $value) {
-                    $columnDescriptor = $tableDescriptor->getColumn($columnName);
-                    $types[] = $columnDescriptor->getType();
-                    $escapedPrimaryKeys[$this->connection->quoteIdentifier($columnName)] = $value;
-                }
-
-                $this->connection->update($this->connection->quoteIdentifier($tableName), $escapedDbRowData, $escapedPrimaryKeys, $types);
-
-                // Let's check if the primary key has been updated...
-                $needsUpdatePk = false;
-                foreach ($primaryKeys as $column => $value) {
-                    if (!isset($dbRowData[$column]) || $dbRowData[$column] != $value) {
-                        $needsUpdatePk = true;
-                        break;
-                    }
-                }
-                if ($needsUpdatePk) {
-                    $this->objectStorage->remove($tableName, $this->getObjectHash($primaryKeys));
-                    $newPrimaryKeys = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
-                    $dbRow->_setPrimaryKeys($newPrimaryKeys);
-                    $this->objectStorage->set($tableName, $this->getObjectHash($primaryKeys), $dbRow);
-                }
-
-                // Let's remove this object from the list of objects to save.
-                $this->removeFromToSaveObjectList($dbRow);
-            }
-
-            $object->_setStatus(TDBMObjectStateEnum::STATE_LOADED);
-        } elseif ($status === TDBMObjectStateEnum::STATE_DELETED) {
-            throw new TDBMInvalidOperationException('This object has been deleted. It cannot be saved.');
+            // Finally, let's save all the many to many relationships to this bean.
+            $this->persistManyToManyRelationships($object);
+            $this->connection->commit();
+        } catch (\Throwable $t) {
+            $this->connection->rollBack();
+            throw $t;
         }
-
-        // Finally, let's save all the many to many relationships to this bean.
-        $this->persistManyToManyRelationships($object);
     }
 
     private function persistManyToManyRelationships(AbstractTDBMObject $object)
@@ -974,10 +982,12 @@ class TDBMService
     {
         sort($tables);
 
-        return $this->fromCache($this->cachePrefix.'_linkbetweeninheritedtables_'.implode('__split__', $tables),
+        return $this->fromCache(
+            $this->cachePrefix.'_linkbetweeninheritedtables_'.implode('__split__', $tables),
             function () use ($tables) {
                 return $this->_getLinkBetweenInheritedTablesWithoutCache($tables);
-            });
+            }
+        );
     }
 
     /**
