@@ -22,6 +22,7 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
@@ -1423,11 +1424,52 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame(4, $uuid->getVersion());
     }
 
+    /**
+     * @depends testDaoGeneration
+     */
     public function testTypeHintedConstructors()
     {
         $userBaseBeanReflectionConstructor = new \ReflectionMethod(UserBaseBean::class, '__construct');
         $nameParam = $userBaseBeanReflectionConstructor->getParameters()[0];
 
         $this->assertSame('string', (string) $nameParam->getType());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testSaveTransaction()
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+
+        $boatDao = new BoatDao($this->tdbmService);
+        $boatBean = $boatDao->getById(1);
+        $boatBean->setName('Titanic');
+
+        $boatBean->getCountry();
+
+        // Let's insert a row without telling TDBM to trigger an error!
+        self::insert($this->getConnection(), 'sailed_countries', [
+            'boat_id' => 1,
+            'country_id' => 2
+        ]);
+
+        $boatBean->addCountry($countryDao->getById(2));
+
+        $this->expectException(UniqueConstraintViolationException::class);
+
+        $boatDao->save($boatBean);
+    }
+
+    /**
+     * @depends testSaveTransaction
+     */
+    public function testSaveTransaction2()
+    {
+        $boatDao = new BoatDao($this->tdbmService);
+        $boatBean = $boatDao->getById(1);
+
+        // The name should not have been saved because the transaction of the previous test should have rollbacked.
+        $this->assertNotSame('Titanic', $boatBean->getName());
     }
 }
