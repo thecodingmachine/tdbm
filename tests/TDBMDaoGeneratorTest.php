@@ -49,6 +49,7 @@ use TheCodingMachine\TDBM\Test\Dao\ContactDao;
 use TheCodingMachine\TDBM\Test\Dao\CountryDao;
 use TheCodingMachine\TDBM\Test\Dao\DogDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
+use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
 use TheCodingMachine\TDBM\Test\Dao\UserDao;
 use TheCodingMachine\TDBM\Utils\PathFinder\NoPathFoundException;
@@ -1471,5 +1472,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         // The name should not have been saved because the transaction of the previous test should have rollbacked.
         $this->assertNotSame('Bismark', $boatBean->getName());
+    }
+
+    public function testForeignKeyPointingToNonPrimaryKey()
+    {
+        $dao = new RefNoPrimKeyDao($this->tdbmService);
+        $bean = $dao->getById(1);
+
+        $this->assertSame('foo', $bean->getFrom()->getTo());
     }
 }

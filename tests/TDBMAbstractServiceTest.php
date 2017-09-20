@@ -327,6 +327,13 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
                 ->addUniqueIndex([$connection->quoteIdentifier('login')], 'users_login_idx_2');
         }
 
+        // A table with a foreign key that references a non primary key.
+        $db->table('ref_no_prim_key')
+            ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
+            ->column('from')->string(50)
+            ->column('to')->string(50)->unique();
+
+        $toSchema->getTable($connection->quoteIdentifier('ref_no_prim_key'))->addForeignKeyConstraint('ref_no_prim_key', [$connection->quoteIdentifier('from')], [$connection->quoteIdentifier('to')]);
 
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
@@ -467,6 +474,11 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         self::insert($connection, 'users_roles', [
             'user_id' => 3,
             'role_id' => 2,
+        ]);
+
+        self::insert($connection, 'ref_no_prim_key', [
+            'from' => 'foo',
+            'to' => 'foo',
         ]);
     }
 
