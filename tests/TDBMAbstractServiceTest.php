@@ -333,7 +333,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('from')->string(50)
             ->column('to')->string(50)->unique();
 
-        $toSchema->getTable('ref_no_prim_key')->addForeignKeyConstraint('ref_no_prim_key', ['from'], ['to']);
+        $toSchema->getTable($connection->quoteIdentifier('ref_no_prim_key'))->addForeignKeyConstraint('ref_no_prim_key', [$connection->quoteIdentifier('from')], [$connection->quoteIdentifier('to')]);
 
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
