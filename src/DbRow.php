@@ -266,9 +266,14 @@ class DbRow
                 $values[] = $this->dbRow[$column];
             }
 
-            $filter = array_combine($this->tdbmService->getPrimaryKeyColumns($fk->getForeignTableName()), $values);
+            $filter = array_combine($fk->getUnquotedForeignColumns(), $values);
 
-            return $this->tdbmService->findObjectByPk($fk->getForeignTableName(), $filter, [], true);
+            // If the foreign key points to the primary key, let's use findObjectByPk
+            if ($this->tdbmService->getPrimaryKeyColumns($fk->getForeignTableName()) === $fk->getUnquotedForeignColumns()) {
+                return $this->tdbmService->findObjectByPk($fk->getForeignTableName(), $filter, [], true);
+            } else {
+                return $this->tdbmService->findObject($fk->getForeignTableName(), $filter);
+            }
         }
     }
 
