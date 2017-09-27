@@ -395,7 +395,7 @@ class BeanDescriptor implements BeanDescriptorInterface
 ';
 
         $propertiesCode = '';
-        foreach ($this->beanPropertyDescriptors as $beanPropertyDescriptor) {
+        foreach ($this->getExposedProperties() as $beanPropertyDescriptor) {
             $propertiesCode .= $beanPropertyDescriptor->getJsonSerializeCode();
         }
 
