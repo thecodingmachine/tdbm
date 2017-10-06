@@ -614,7 +614,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
         $methodName = $this->namingStrategy->getFindByIndexMethodName($index, $elements);
 
         if ($index->isUnique()) {
-            $returnType = "{$beanClassName}";
+            $returnType = $beanClassName;
 
             $code = "
     /**
@@ -622,9 +622,9 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
      *
 $paramsString
      * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
-     * @return $returnType
+     * @return $returnType|null
      */
-    public function $methodName($functionParametersString, array \$additionalTablesFetch = array()) : $returnType
+    public function $methodName($functionParametersString, array \$additionalTablesFetch = array()) : ?$returnType
     {
         \$filter = [
 ".$filterArrayCode."        ];

@@ -1023,6 +1023,18 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testFindOneByRetunsNull()
+    {
+        // Let's assert that the findOneBy... methods can return null.
+        $userDao = new UserDao($this->tdbmService);
+        $userBean = $userDao->findOneByLogin('not_exist');
+
+        $this->assertNull($userBean);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testMultiColumnsIndexBasedSearch()
     {
         $countryDao = new CountryDao($this->tdbmService);
@@ -1474,6 +1486,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNotSame('Bismark', $boatBean->getName());
     }
 
+    /**
+     * @depends testDaoGeneration
+     */
     public function testForeignKeyPointingToNonPrimaryKey()
     {
         $dao = new RefNoPrimKeyDao($this->tdbmService);
