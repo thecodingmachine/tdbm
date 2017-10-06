@@ -11,11 +11,11 @@ matrix:
     - php: 7.1
       env: PREFER_LOWEST="--prefer-lowest" DB=mysql
     - php: 7.1
-      env: PREFER_LOWEST="" DB=mariadb PHPUNITFILE="-c phpunit.mariadb.xml"
+      env: PREFER_LOWEST="" DB=mariadb
       addons:
         mariadb: '10.0'
     - php: 7.1
-      env: PREFER_LOWEST="--prefer-lowest" DB=mariadb PHPUNITFILE="-c phpunit.mariadb.xml"
+      env: PREFER_LOWEST="--prefer-lowest" DB=mariadb
       addons:
         mariadb: '10.0'
     - php: 7.1
