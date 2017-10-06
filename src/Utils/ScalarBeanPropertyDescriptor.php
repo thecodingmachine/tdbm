@@ -5,6 +5,8 @@ namespace TheCodingMachine\TDBM\Utils;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Types\DateTimeImmutableType;
+use Doctrine\DBAL\Types\DateTimeType;
 use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotation;
@@ -134,7 +136,8 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function hasDefault()
     {
-        return $this->column->getDefault() !== null || $this->hasUuidAnnotation();
+        // MariaDB 10.3 issue: it returns "NULL" (the string) instead of *null*
+        return ($this->column->getDefault() !== null && $this->column->getDefault() !== 'NULL') || $this->hasUuidAnnotation();
     }
 
     /**
@@ -162,12 +165,27 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             }
         } else {
             $default = $this->column->getDefault();
+            $type = $this->column->getType();
 
-            if (in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */, 'SYSDATE' /* Oracle */ ], true)) {
-                $defaultCode = 'new \DateTimeImmutable()';
+            if (in_array($type->getName(), [
+                'datetime',
+                'datetime_immutable',
+                'datetimetz',
+                'datetimetz_immutable',
+                'date',
+                'date_immutable',
+                'time',
+                'time_immutable',
+            ], true)) {
+                if (in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */, 'SYSDATE' /* Oracle */ , 'CURRENT_TIMESTAMP()' /* MariaDB 10.3 */], true)) {
+                    $defaultCode = 'new \DateTimeImmutable()';
+                } else {
+                    throw new TDBMException('Unable to set default value for date. Database passed this default value: "'.$default.'"');
+                }
             } else {
                 $defaultCode = var_export($this->column->getDefault(), true);
             }
+
         }
 
         return sprintf($str, $this->getSetterName(), $defaultCode);
