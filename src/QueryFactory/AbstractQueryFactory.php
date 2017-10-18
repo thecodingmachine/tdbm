@@ -51,15 +51,14 @@ abstract class AbstractQueryFactory implements QueryFactory
      *
      * Note: MySQL dictates that ORDER BYed columns should appear in the SELECT clause.
      *
-     * @param string                       $mainTable
-     * @param array                        $additionalTablesFetch
+     * @param string $mainTable
+     * @param array $additionalTablesFetch
      * @param string|UncheckedOrderBy|null $orderBy
      *
+     * @param bool $canAddAdditionalTablesFetch Set to true if the function can add additional tables to fetch (so if the factory generates its own FROM clause)
      * @return array
-     *
-     * @throws \Doctrine\DBAL\Schema\SchemaException
      */
-    protected function getColumnsList(string $mainTable, array $additionalTablesFetch = array(), $orderBy = null)
+    protected function getColumnsList(string $mainTable, array $additionalTablesFetch = array(), $orderBy = null, bool $canAddAdditionalTablesFetch = false)
     {
         // From the table name and the additional tables we want to fetch, let's build a list of all tables
         // that must be part of the select columns.
@@ -102,7 +101,17 @@ abstract class AbstractQueryFactory implements QueryFactory
             foreach ($orderByColumns as $orderByColumn) {
                 if ($orderByColumn['type'] === 'colref') {
                     if ($orderByColumn['table'] !== null) {
-                        $additionalTablesFetch[] = $orderByColumn['table'];
+                        if ($canAddAdditionalTablesFetch) {
+                            $additionalTablesFetch[] = $orderByColumn['table'];
+                        } else {
+                            $sortColumnName = 'sort_column_'.$sortColumn;
+                            $mysqlPlatform = new MySqlPlatform();
+                            $columnsList[] = $mysqlPlatform->quoteIdentifier($orderByColumn['table']).'.'.$mysqlPlatform->quoteIdentifier($orderByColumn['column']).' as '.$sortColumnName;
+                            $columnDescList[$sortColumnName] = [
+                                'tableGroup' => null,
+                            ];
+                            ++$sortColumn;
+                        }
                     }
                     if ($securedOrderBy) {
                         // Let's protect via MySQL since we go through MagicJoin

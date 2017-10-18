@@ -310,7 +310,8 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
         $db->table('article')
             ->column('id')->string(36)->primaryKey()->comment('@UUID')
-            ->column('content')->string(255);
+            ->column('content')->string(255)
+            ->column('author_id')->references('users')->null();
 
         $db->table('article2')
             ->column('id')->string(36)->primaryKey()->comment('@UUID v4')
