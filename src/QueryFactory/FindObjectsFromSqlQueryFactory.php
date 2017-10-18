@@ -42,7 +42,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
         $allFetchedTables = $this->tdbmService->_getRelatedTablesByInheritance($this->mainTable);
 
-        list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy);
+        list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy, false);
 
         $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM '.$this->from;
 

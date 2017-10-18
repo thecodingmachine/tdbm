@@ -25,6 +25,7 @@ use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
+use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
@@ -640,6 +641,21 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             $countryName1 = $countryName2;
         }
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testFindFromSqlOrderByOnInheritedBean()
+    {
+        $articleDao = new TestArticleDao($this->tdbmService);
+        $articles = $articleDao->getArticlesByUserLogin();
+
+        foreach ($articles as $article) {
+            var_dump($article);
+        }
+        $this->assertCount(0, $articles);
+    }
+
 
     /**
      * @depends testDaoGeneration
