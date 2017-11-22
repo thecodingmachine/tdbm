@@ -26,4 +26,36 @@ SQL;
 
         return $this->findFromRawSql($sql);
     }
+
+    /**
+     * @return CountryBean[]|Result
+     */
+    public function getCountriesUsingUnion()
+    {
+        $sql = <<<SQL
+SELECT country.*
+FROM country
+WHERE country.id = 1
+UNION
+SELECT country.*
+FROM country
+WHERE country.id = 2
+SQL;
+
+        return $this->findFromRawSql($sql);
+    }
+
+    /**
+     * @return CountryBean[]|Result
+     */
+    public function getCountriesUsingSimpleQuery()
+    {
+        $sql = <<<SQL
+SELECT country.*
+FROM country
+WHERE country.id = 1
+SQL;
+
+        return $this->findFromRawSql($sql);
+    }
 }
