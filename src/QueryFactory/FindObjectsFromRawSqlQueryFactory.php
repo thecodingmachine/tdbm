@@ -2,11 +2,9 @@
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
-use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Schema;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMService;
-use TheCodingMachine\TDBM\UncheckedOrderBy;
 use PHPSQLParser\PHPSQLCreator;
 use PHPSQLParser\PHPSQLParser;
 
@@ -23,14 +21,6 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
      * @var Schema
      */
     private $schema;
-    /**
-     * @var string
-     */
-    private $sql;
-    /**
-     * @var string
-     */
-    private $sqlCount;
     /**
      * @var string
      */
@@ -58,13 +48,11 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
      */
     public function __construct(TDBMService $tdbmService, Schema $schema, string $mainTable, string $sql, string $sqlCount = null)
     {
-        $this->sql = $sql;
-        $this->sqlCount = $sqlCount;
         $this->tdbmService = $tdbmService;
         $this->schema = $schema;
         $this->mainTable = $mainTable;
 
-        $this->compute();
+        [$this->processedSql, $this->processedSqlCount, $this->columnDescriptors] = $this->compute($sql, $sqlCount);
     }
 
     public function sort($orderBy)
@@ -87,25 +75,75 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         return $this->columnDescriptors;
     }
 
-    protected function compute()
+    private function compute(string $sql, ?string $sqlCount)
     {
         $parser = new PHPSQLParser();
-        $generator = new PHPSQLCreator();
-        $parsedSql = $parser->parse($this->sql);
+        $parsedSql = $parser->parse($sql);
 
+        if (isset($parsedSql['SELECT'])) {
+            [$processedSql, $processedSqlCount, $columnDescriptors] = $this->processParsedSelectQuery($parsedSql, $sqlCount);
+        } elseif (isset($parsedSql['UNION'])) {
+            [$processedSql, $processedSqlCount, $columnDescriptors] = $this->processParsedUnionQuery($parsedSql, $sqlCount);
+        } else {
+            throw new TDBMException('Unable to analyze query "'.$sql.'"');
+        }
+
+        return [$processedSql, $processedSqlCount, $columnDescriptors];
+    }
+
+    private function processParsedUnionQuery(array $parsedSql, ?string $sqlCount): array
+    {
+        $selects = $parsedSql['UNION'];
+
+        $parsedSqlList = [];
+        $columnDescriptors = [];
+
+        foreach ($selects as $select) {
+            [$selectProcessedSql, $selectProcessedCountSql, $columnDescriptors] = $this->processParsedSelectQuery($select, '');
+
+            // Let's reparse the returned SQL (not the most efficient way of doing things)
+            $parser = new PHPSQLParser();
+            $parsedSql = $parser->parse($selectProcessedSql);
+
+            $parsedSqlList[] = $parsedSql;
+        }
+
+        // Let's rebuild the UNION query
+        $query = ['UNION' => $parsedSqlList];
+
+        // The count is the SUM of the count of the UNIONs
+        $countQuery = $this->generateWrappedSqlCount($query);
+
+        $generator = new PHPSQLCreator();
+
+        $processedSql = $generator->create($query);
+        $processedSqlCount = $generator->create($countQuery);
+
+        return [$processedSql, $sqlCount ?? $processedSqlCount, $columnDescriptors];
+    }
+
+    /**
+     * @param array $parsedSql
+     * @param null|string $sqlCount
+     * @return mixed[]
+     */
+    private function processParsedSelectQuery(array $parsedSql, ?string $sqlCount): array
+    {
         // 1: let's reformat the SELECT and construct our columns
         list($select, $columnDescriptors) = $this->formatSelect($parsedSql['SELECT']);
+        $generator = new PHPSQLCreator();
         $parsedSql['SELECT'] = $select;
-        $this->processedSql = $generator->create($parsedSql);
-        $this->columnDescriptors = $columnDescriptors;
+        $processedSql = $generator->create($parsedSql);
 
         // 2: let's compute the count query if needed
-        if ($this->sqlCount === null) {
+        if ($sqlCount === null) {
             $parsedSqlCount = $this->generateParsedSqlCount($parsedSql);
-            $this->processedSqlCount = $generator->create($parsedSqlCount);
+            $processedSqlCount = $generator->create($parsedSqlCount);
         } else {
-            $this->processedSqlCount = $this->sqlCount;
+            $processedSqlCount = $sqlCount;
         }
+
+        return [$processedSql, $processedSqlCount, $columnDescriptors];
     }
 
     private function formatSelect($baseSelect)
@@ -125,7 +163,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
             }
 
             $noQuotes = $entry['no_quotes'];
-            if ($noQuotes['delim'] != '.' || count($noQuotes['parts']) !== 2) {
+            if ($noQuotes['delim'] !== '.' || count($noQuotes['parts']) !== 2) {
                 $formattedSelect[] = $entry;
                 continue;
             }
@@ -204,13 +242,18 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
 
     private function generateSimpleSqlCount($parsedSql)
     {
-        return [[
+        $parsedSql['SELECT'] =                 [[
             'expr_type' => 'aggregate_function',
-            'alias' => false,
+            'alias' => [
+                'as' => true,
+                'name' => 'cnt',
+            ],
             'base_expr' => 'COUNT',
             'sub_tree' => $parsedSql['SELECT'],
             'delim' => false,
         ]];
+
+        return $parsedSql;
     }
 
     private function generateGroupedSqlCount($parsedSql)
@@ -219,7 +262,10 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         unset($parsedSql['GROUP']);
         $parsedSql['SELECT'] = [[
             'expr_type' => 'aggregate_function',
-            'alias' => false,
+            'alias' => [
+                'as' => true,
+                'name' => 'cnt',
+            ],
             'base_expr' => 'COUNT',
             'sub_tree' => array_merge([[
                 'expr_type' => 'reserved',
@@ -236,7 +282,10 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         return [
             'SELECT' => [[
                 'expr_type' => 'aggregate_function',
-                'alias' => false,
+                'alias' => [
+                    'as' => true,
+                    'name' => 'cnt',
+                ],
                 'base_expr' => 'COUNT',
                 'sub_tree' => [
                     [
