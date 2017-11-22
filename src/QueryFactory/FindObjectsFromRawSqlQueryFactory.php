@@ -249,7 +249,13 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 'name' => 'cnt',
             ],
             'base_expr' => 'COUNT',
-            'sub_tree' => $parsedSql['SELECT'],
+            'sub_tree' => [
+                [
+                    'expr_type' => 'colref',
+                    'base_expr' => '*',
+                    'sub_tree' => false
+                ]
+            ],
             'delim' => false,
         ]];
 
