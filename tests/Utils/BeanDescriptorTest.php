@@ -22,8 +22,10 @@ namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\Table;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\TDBMAbstractServiceTest;
+use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
 
 class BeanDescriptorTest extends TDBMAbstractServiceTest
@@ -84,6 +86,14 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
         $usersTable = $this->schema->getTable('users');
         $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy());
         $this->assertSame($usersTable, $beanDescriptor->getTable());
+    }
+
+    public function testTableWithNoPrimaryKey()
+    {
+        $table = new Table('no_primary_key');
+        $this->expectException(TDBMException::class);
+        $this->expectExceptionMessage('Table "no_primary_key" does not have any primary key');
+        new BeanDescriptor($table, 'Foo\\Bar', 'Foo\\Generated\\Bar', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, new DefaultNamingStrategy());
     }
 
     /*public function testGeneratePhpCode() {

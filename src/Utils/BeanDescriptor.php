@@ -162,6 +162,11 @@ class BeanDescriptor implements BeanDescriptorInterface
      */
     private function getProperties(Table $table)
     {
+        if ($table->getPrimaryKey() === null) {
+            // Security check: a table MUST have a primary key
+            throw new TDBMException(sprintf('Table "%s" does not have any primary key', $table->getName()));
+        }
+
         $parentRelationship = $this->schemaAnalyzer->getParentRelationship($table->getName());
         if ($parentRelationship) {
             $parentTable = $this->schema->getTable($parentRelationship->getForeignTableName());
