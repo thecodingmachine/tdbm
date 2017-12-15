@@ -55,7 +55,7 @@ menu:
         manual_install:
             text: Manual install
             relativeUrl: doc/manual_install.html
-        manual_install:
+        install_service-provider:
             text: Install with container-interop/service-provider
             relativeUrl: doc/install_service-provider.html
         getting_started_main:
