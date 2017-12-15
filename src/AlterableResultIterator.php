@@ -227,13 +227,13 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * Return an iterator over all results of the paginatable.
      *
-     * @return Iterator
+     * @return \Iterator
      */
     public function getIterator()
     {
         if ($this->alterations->count() === 0) {
             if ($this->resultIterator !== null) {
-                return $this->resultIterator;
+                return clone $this->resultIterator;
             } else {
                 return new \ArrayIterator([]);
             }
