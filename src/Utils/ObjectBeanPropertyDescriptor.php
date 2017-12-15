@@ -189,4 +189,13 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         }
 ';
     }
+
+    /**
+     * The code to past in the __clone method.
+     * @return null|string
+     */
+    public function getCloneRule(): ?string
+    {
+        return null;
+    }
 }

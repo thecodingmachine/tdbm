@@ -1555,4 +1555,16 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->assertSame('foo', $bean->getFrom()->getTo());
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCloningUuidBean()
+    {
+        $article = new ArticleBean('content');
+        $this->assertNotEmpty($article->getId());
+        $article2 = clone $article;
+        $this->assertNotEmpty($article2->getId());
+        $this->assertNotSame($article->getId(), $article2->getId());
+    }
 }

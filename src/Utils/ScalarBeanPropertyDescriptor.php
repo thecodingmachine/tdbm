@@ -151,18 +151,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
         $uuidAnnotation = $this->getUuidAnnotation();
         if ($uuidAnnotation !== null) {
-            $comment = trim($uuidAnnotation->getAnnotationComment(), '\'"');
-            switch ($comment) {
-                case '':
-                case 'v1':
-                    $defaultCode = '(string) Uuid::uuid1()';
-                    break;
-                case 'v4':
-                    $defaultCode = '(string) Uuid::uuid4()';
-                    break;
-                default:
-                    throw new TDBMException('@UUID annotation accepts either "v1" or "v4" parameter. Unexpected parameter: '.$comment);
-            }
+            $defaultCode = $this->getUuidCode($uuidAnnotation);
         } else {
             $default = $this->column->getDefault();
             $type = $this->column->getType();
@@ -185,10 +174,23 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             } else {
                 $defaultCode = var_export($this->column->getDefault(), true);
             }
-
         }
 
         return sprintf($str, $this->getSetterName(), $defaultCode);
+    }
+
+    private function getUuidCode(Annotation $uuidAnnotation): string
+    {
+        $comment = trim($uuidAnnotation->getAnnotationComment(), '\'"');
+        switch ($comment) {
+            case '':
+            case 'v1':
+                return '(string) Uuid::uuid1()';
+            case 'v4':
+                return '(string) Uuid::uuid4()';
+            default:
+                throw new TDBMException('@UUID annotation accepts either "v1" or "v4" parameter. Unexpected parameter: ' . $comment);
+        }
     }
 
     /**
@@ -287,5 +289,18 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     public function getColumnName()
     {
         return $this->column->getName();
+    }
+
+    /**
+     * The code to past in the __clone method.
+     * @return null|string
+     */
+    public function getCloneRule(): ?string
+    {
+        $uuidAnnotation = $this->getUuidAnnotation();
+        if ($uuidAnnotation !== null && $this->isPrimaryKey()) {
+            return sprintf("        \$this->%s(%s);\n", $this->getSetterName(), $this->getUuidCode($uuidAnnotation));
+        }
+        return null;
     }
 }

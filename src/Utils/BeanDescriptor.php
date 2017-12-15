@@ -503,6 +503,8 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
 
         $str .= $this->generateOnDeleteCode();
 
+        $str .= $this->generateCloneCode();
+
         $str .= '}
 ';
 
@@ -715,6 +717,26 @@ $paramsString
         }
 
         return '';
+    }
+
+    private function generateCloneCode(): string
+    {
+        $code = '';
+
+        foreach ($this->beanPropertyDescriptors as $beanPropertyDescriptor) {
+            $code .= $beanPropertyDescriptor->getCloneRule();
+        }
+
+        if (!empty($code)) {
+            $code = '
+    public function __clone()
+    {
+        parent::__clone();
+'.$code.'    }
+';
+        }
+
+        return $code;
     }
 
     /**

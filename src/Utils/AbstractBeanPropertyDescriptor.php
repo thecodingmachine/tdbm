@@ -150,4 +150,10 @@ abstract class AbstractBeanPropertyDescriptor
     {
         return $this->alternativeName;
     }
+
+    /**
+     * The code to past in the __clone method.
+     * @return null|string
+     */
+    abstract public function getCloneRule(): ?string;
 }
