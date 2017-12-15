@@ -360,7 +360,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
                 $count++;
             }
         }
-        $this->assertSame(6, $count);
+        // There are 3 users linked to country 2.
+        $this->assertSame(9, $count);
     }
 
     /**
