@@ -62,4 +62,4 @@ script:
 - if [ "$DB" != "oracle" ] ; then ./vendor/bin/phpunit $PHPUNITFILE; else docker run -v $(pwd):/app -v $(pwd)/tests/Fixtures/oracle-startup.sql:/docker-entrypoint-initdb.d/oracle-startup.sql moufmouf/oracle-xe-php vendor/bin/phpunit $PHPUNITFILE; fi
 after_script:
 - if [ "$COVERALLS" = "true" ] ; then ./vendor/bin/coveralls -v; fi
-- if [ "$COVERALLS" = "true" ] ; then vendor/bin/couscous travis-auto-deploy -vvv; fi
+- if [ "$COVERALLS" = "true" ] ; then vendor/bin/couscous travis-auto-deploy --php-version=7.1 -vvv; fi
