@@ -348,6 +348,24 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testNestedIterationOnAlterableResultIterator()
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $country = $countryDao->getById(2);
+
+        $count = 0;
+        // Let's perform 2 nested calls to check that iterators do not melt.
+        foreach ($country->getUsers() as $user) {
+            foreach ($country->getUsers() as $user2) {
+                $count++;
+            }
+        }
+        $this->assertSame(6, $count);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testNewBeanConstructor()
     {
         $role = new RoleBean('Newrole');
