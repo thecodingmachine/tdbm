@@ -27,6 +27,9 @@ TDBM offers a number of integration packages to help you get started with your f
 <br/>
 <div class="row">
     <div class="col-xs-12 col-sm-6">
+        <a href="manual_service-provider.html" class="btn btn-primary btn-large btn-block">Installation in any <em>container-interop/service-provider</em> compatible container</a>
+    </div>
+    <div class="col-xs-12 col-sm-6">
         <a href="manual_install.html" class="btn btn-primary btn-large btn-block">Manual installation (no framework)</a>
     </div>
 </div>
