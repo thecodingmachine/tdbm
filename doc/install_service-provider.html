@@ -5,7 +5,7 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-    <title>Installation | TDBM</title>
+    <title>Installing TDBM in container-interop/service-provider compatible container | TDBM</title>
 
     <meta name="HandheldFriendly" content="True">
     <meta name="MobileOptimized" content="320">
@@ -88,7 +88,7 @@
                                 Introduction
                             </a>
                         </li>
-                                                                                                                    <li class="active visible-xs-block">
+                                                                                                                    <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
                                 Installing TDBM
                             </a>
@@ -212,7 +212,7 @@
                                                                 <li>
                         <h4>Installation</h4>
                     </li>
-                                                                <li class="active">
+                                                                <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
                             Installing TDBM
                         </a>
@@ -335,37 +335,86 @@
         <div class="container pt100">
             <div class="row">
                 <div class="col-xs-12">
-                    <h1>Installation <small></small></h1>                    <p>TDBM offers a number of integration packages to help you get started with your favorite framework. Depending on which framework you are using (or maybe you use no framework?), the installation may vary.</p>
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_laravel.html" class="btn btn-primary btn-large btn-block">Install in Laravel</a>
-    </div>
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_laravel.html" class="btn btn-primary btn-large btn-block">Install in Lumen</a>
-    </div>
+                    <h1>Installing TDBM in container-interop/service-provider compatible container <small></small></h1>                    <h2 id="installation">Installation</h2>
+<p>You can install TDBM 5 in any framework that can load service-providers compatible with <a href="https://github.com/container-interop/service-provider/">the container-interop/service-provider interface</a>.</p>
+<p>In this document, we will describe integration of TDBM 5 with <a href="https://github.com/mnapoli/simplex">Simplex</a>. Your mileage may vary based on the container you are using.</p>
+<pre><code class="language-json">{
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "require": {
+    "php": "&gt;=7.1",
+    "mnapoli/simplex": "^0.4.1",
+    "thecodingmachine/tdbm-universal-provider": "^5",
+    "thecodingmachine/discovery": "^1.2"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}</code></pre>
+<div class="alert alert-info">
+We are also importing <a href="https://thecodingmachine.github.io/discovery/">thecodingmachine/discovery</a> that let's us import all container-interop/service-providers automatically.
 </div>
-<p><br/></p>
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_silex.html" class="btn btn-primary btn-large btn-block">Install in Silex</a>
-    </div>
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_mouf.html" class="btn btn-primary btn-large btn-block">Install in Mouf</a>
-    </div>
+<p>The <em>thecodingmachine/tdbm-universal-provider</em> package has dependencies on a number of other service providers that will be loaded automatically:</p>
+<ul>
+<li>&quot;thecodingmachine/dbal-universal-module&quot;: provides a DBAL connection to the database</li>
+<li>&quot;thecodingmachine/stash-universal-module&quot;: provides a Stash cache</li>
+<li>&quot;thecodingmachine/psr-6-doctrine-bridge-universal-module&quot;: provides a bridge between Doctrine cache and Stash</li>
+<li>&quot;thecodingmachine/symfony-console-universal-module&quot;: provides a Symfony console for your application (at <code>vendor/bin/app_console</code>)</li>
+</ul>
+<h3 id="creating-a-container-with-everything-we-need">Creating a container with everything we need</h3>
+<p>Then let's create a <code>container.php</code> file at the root of your project and let's fill it with all service-providers:</p>
+<p><strong>container.php</strong></p>
+<pre><code class="language-php">&lt;?php
+use Simplex\Container;
+use TheCodingMachine\Discovery\Discovery;
+use Interop\Container\ServiceProviderInterface;
+
+$serviceProviders = [];
+
+foreach (Discovery::getInstance()-&gt;get(ServiceProviderInterface::class) as $serviceProviderName)
+{
+    $serviceProviders[] = new $serviceProviderName();
+}
+
+$container = new Container($serviceProviders);
+
+// The settings for the database must be stored in the container.
+// See https://github.com/thecodingmachine/dbal-universal-module for more information
+$container-&gt;set('dbal.dbname', 'my_database');
+$container-&gt;set('dbal.host', 'localhost');
+$container-&gt;set('dbal.user', 'root');
+$container-&gt;set('dbal.password', '');
+$container-&gt;set('dbal.port', 3306);
+
+return $container;</code></pre>
+<div class="alert alert-info">
+Important: the file name MUST be `container.php`, it MUST be at the root of your project or in the "config" directory.
+It MUST return the container.
+Otherwise, the Symfony console service provider will not find it.
 </div>
-<p><br/></p>
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
-        <a href="manual_service-provider.html" class="btn btn-primary btn-large btn-block">Installation in any <em>container-interop/service-provider</em> compatible container</a>
-    </div>
-    <div class="col-xs-12 col-sm-6">
-        <a href="manual_install.html" class="btn btn-primary btn-large btn-block">Manual installation (no framework)</a>
-    </div>
-</div>
+<h2 id="generating-beans-and-daos">Generating beans and DAOs</h2>
+<p>When installation is done, you need to generate DAOs and beans from your data model.</p>
+<p>Run the following command:</p>
+<pre><code class="language-bash">vendor/bin/app_console tdbm:generate</code></pre>
+<div class="alert alert-danger">You must run this command after the installation of the package, and <strong>each time you run a migration</strong> (i.e. each time the database model changes).</div>
+<h2 id="accessing-daos">Accessing DAOs</h2>
+<p>The TDBM service provider will create one service per DAO.</p>
+<p>The service name is the fully qualified class name of the DAO.</p>
+<p>For instance:</p>
+<ul>
+<li><code>App\Daos\UserDao</code> =&gt; <code>$container-&gt;get('App\\Daos\\UserDao')</code></li>
+</ul>
+<h2 id="advice">Advice</h2>
+<p>We strongly recommend using TDBM along a migration tool. For instance, Doctrine migrations.
+Since you use container-interop/service-providers, you can benefit from the <a href="https://github.com/thecodingmachine/doctrine-migrations-universal-module">Doctrine Migrations universal module</a>.</p>
+<h2 id="next-step">Next step</h2>
+<p>Let's now learn how to <a href="quickstart.html">access the database</a>.</p>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
-                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/install.md">fork and edit it</a>!
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/install_service-provider.md">fork and edit it</a>!
                     </p>
                 </div>
             </div>
