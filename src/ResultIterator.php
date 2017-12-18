@@ -79,11 +79,11 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         $this->logger = $logger;
     }
 
-    protected function executeCountQuery()
+    protected function executeCountQuery(): void
     {
         $sql = $this->magicQuery->build($this->queryFactory->getMagicSqlCount(), $this->parameters);
         $this->logger->debug('Running count query: '.$sql);
-        $this->totalCount = $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters);
+        $this->totalCount = (int) $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters);
     }
 
     /**
@@ -91,7 +91,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         if ($this->totalCount === null) {
             $this->executeCountQuery();
