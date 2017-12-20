@@ -41,6 +41,7 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\DogBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\RefNoPrimKeyBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RoleBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\UserBean;
 use TheCodingMachine\TDBM\Test\Dao\BoatDao;
@@ -1554,6 +1555,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $bean = $dao->getById(1);
 
         $this->assertSame('foo', $bean->getFrom()->getTo());
+
+        $newBean = new RefNoPrimKeyBean($bean, 'baz');
+        $dao->save($newBean);
+        $this->assertSame('foo', $newBean->getFrom()->getTo());
     }
 
     /**
