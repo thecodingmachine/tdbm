@@ -347,9 +347,10 @@ class DbRow
                 if ($firstRefDbRow->_getStatus() == TDBMObjectStateEnum::STATE_DELETED) {
                     throw TDBMMissingReferenceException::referenceDeleted($this->dbTableName, $reference);
                 }
-                $pkValues = array_values($firstRefDbRow->_getPrimaryKeys());
+                $foreignColumns = $fk->getUnquotedForeignColumns();
+                $refBeanValues = $firstRefDbRow->_getDbRow();
                 for ($i = 0, $count = count($localColumns); $i < $count; ++$i) {
-                    $dbRow[$localColumns[$i]] = $pkValues[$i];
+                    $dbRow[$localColumns[$i]] = $refBeanValues[$foreignColumns[$i]];
                 }
             } else {
                 for ($i = 0, $count = count($localColumns); $i < $count; ++$i) {
