@@ -211,9 +211,6 @@ class $className extends $baseClassName
 
         list($defaultSort, $defaultSortDirection) = $this->getDefaultSortColumnFromAnnotation($table);
 
-        // FIXME: lowercase tables with _ in the name should work!
-        $tableCamel = self::toSingular(self::toCamelCase($tableName));
-
         $beanClassWithoutNameSpace = $beanClassName;
         $beanClassName = $beannamespace.'\\'.$beanClassName;
 
@@ -286,7 +283,7 @@ class $baseClassName
     }
 
     /**
-     * Get all $tableCamel records.
+     * Get all $beanClassWithoutNameSpace records.
      *
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
