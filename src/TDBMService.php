@@ -1401,7 +1401,11 @@ class TDBMService
         $item = $this->cache->fetch($key);
         if ($item === false) {
             $item = $closure();
-            $this->cache->save($key, $item);
+            $result = $this->cache->save($key, $item);
+
+            if ($result === false) {
+                throw new TDBMException('An error occured while storing an object in cache. Please check that: 1. your cache is not full, 2. if you are using APC in CLI mode, that you have the "apc.enable_cli=On" setting added to your php.ini file.');
+            }
         }
 
         return $item;
