@@ -2,6 +2,7 @@
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMService;
@@ -251,6 +252,12 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         // but we need to remove the "alias" bit.
 
         if ($this->isDistinctQuery($parsedSql)) {
+            // Only MySQL can do DISTINCT counts.
+            // Other databases should wrap the query
+            if (!$this->tdbmService->getConnection()->getSchemaManager()->getDatabasePlatform() instanceof MySqlPlatform) {
+                return $this->generateWrappedSqlCount($parsedSql);
+            }
+
             $countSubExpr = array_map(function(array $item) {
                 unset($item['alias']);
                 return $item;
