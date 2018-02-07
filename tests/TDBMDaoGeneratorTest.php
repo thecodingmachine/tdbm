@@ -731,6 +731,18 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testFindFromRawSqlWithDistinctQuery()
+    {
+        $countryDao = new TestCountryDao($this->tdbmService);
+        $countries = $countryDao->getCountriesUsingDistinctQuery();
+
+        $this->assertCount(1, $countries);
+        $this->assertEquals(1, $countries[0]->getId());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testFindFilters()
     {
         $userDao = new TestUserDao($this->tdbmService);
