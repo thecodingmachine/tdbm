@@ -737,7 +737,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $countries = $countryDao->getCountriesUsingDistinctQuery();
 
         $this->assertCount(1, $countries);
-        $this->assertEquals(1, $countries[0]->getId());
+        $this->assertEquals(2, $countries[0]->getId());
     }
 
     /**

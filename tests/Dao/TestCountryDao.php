@@ -64,10 +64,13 @@ SQL;
      */
     public function getCountriesUsingDistinctQuery()
     {
+        // Note: there are many users whose country is ID 2 (UK).
+        // But the distinct should return only one country (including the count() call)
         $sql = <<<SQL
 SELECT DISTINCT country.*
 FROM country
-WHERE country.id = 1
+LEFT JOIN users ON users.country_id = country.id 
+WHERE country_id=2
 SQL;
 
         return $this->findFromRawSql($sql);
