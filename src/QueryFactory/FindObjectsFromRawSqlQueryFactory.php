@@ -258,7 +258,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 return $this->generateWrappedSqlCount($parsedSql);
             }
 
-            $countSubExpr = array_map(function(array $item) {
+            $countSubExpr = array_map(function (array $item) {
                 unset($item['alias']);
                 return $item;
             }, $parsedSql['SELECT']);
@@ -272,7 +272,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
             ];
         }
 
-        $parsedSql['SELECT'] =                 [[
+        $parsedSql['SELECT'] = [[
             'expr_type' => 'aggregate_function',
             'alias' => [
                 'as' => true,
