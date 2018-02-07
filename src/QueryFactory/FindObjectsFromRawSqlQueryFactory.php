@@ -244,6 +244,27 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
 
     private function generateSimpleSqlCount($parsedSql)
     {
+        // If the query is a DISTINCT, we need to deal with the count.
+
+
+        // We need to count on the same columns: COUNT(DISTINCT country.id, country.label) ....
+        // but we need to remove the "alias" bit.
+
+        if ($this->isDistinctQuery($parsedSql)) {
+            $countSubExpr = array_map(function(array $item) {
+                unset($item['alias']);
+                return $item;
+            }, $parsedSql['SELECT']);
+        } else {
+            $countSubExpr = [
+                [
+                'expr_type' => 'colref',
+                'base_expr' => '*',
+                'sub_tree' => false
+                ]
+            ];
+        }
+
         $parsedSql['SELECT'] =                 [[
             'expr_type' => 'aggregate_function',
             'alias' => [
@@ -251,17 +272,21 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 'name' => 'cnt',
             ],
             'base_expr' => 'COUNT',
-            'sub_tree' => [
-                [
-                    'expr_type' => 'colref',
-                    'base_expr' => '*',
-                    'sub_tree' => false
-                ]
-            ],
+            'sub_tree' => $countSubExpr,
             'delim' => false,
         ]];
 
         return $parsedSql;
+    }
+
+    private function isDistinctQuery(array $parsedSql): bool
+    {
+        foreach ($parsedSql['SELECT'] as $item) {
+            if ($item['expr_type'] === 'reserved' && $item['base_expr'] === 'DISTINCT') {
+                return true;
+            }
+        }
+        return false;
     }
 
     private function generateGroupedSqlCount($parsedSql)
