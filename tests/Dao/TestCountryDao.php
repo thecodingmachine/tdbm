@@ -58,4 +58,18 @@ SQL;
 
         return $this->findFromRawSql($sql);
     }
+
+    /**
+     * @return CountryBean[]|Result
+     */
+    public function getCountriesUsingDistinctQuery()
+    {
+        $sql = <<<SQL
+SELECT DISTINCT country.*
+FROM country
+WHERE country.id = 1
+SQL;
+
+        return $this->findFromRawSql($sql);
+    }
 }
