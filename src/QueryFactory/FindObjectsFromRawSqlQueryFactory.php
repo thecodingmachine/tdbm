@@ -217,7 +217,9 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         }
 
         for ($i = 0; $i < count($formattedSelect) - 1; $i++) {
-            $formattedSelect[$i]['delim'] = ',';
+            if (!isset($formattedSelect[$i]['delim'])) {
+                $formattedSelect[$i]['delim'] = ',';
+            }
         }
         return [$formattedSelect, $columnDescritors];
     }
