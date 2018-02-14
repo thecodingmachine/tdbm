@@ -348,7 +348,7 @@ class DbRow
                     throw TDBMMissingReferenceException::referenceDeleted($this->dbTableName, $reference);
                 }
                 $foreignColumns = $fk->getUnquotedForeignColumns();
-                $refBeanValues = $firstRefDbRow->_getDbRow();
+                $refBeanValues = $firstRefDbRow->dbRow;
                 for ($i = 0, $count = count($localColumns); $i < $count; ++$i) {
                     $dbRow[$localColumns[$i]] = $refBeanValues[$foreignColumns[$i]];
                 }

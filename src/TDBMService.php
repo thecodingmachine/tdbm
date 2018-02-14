@@ -873,9 +873,19 @@ class TDBMService
     public function getPrimaryKeysForObjectFromDbRow(DbRow $dbRow)
     {
         $table = $dbRow->_getDbTableName();
-        $dbRowData = $dbRow->_getDbRow();
+        //$dbRowData = $dbRow->_getDbRow();
 
-        return $this->_getPrimaryKeysFromObjectData($table, $dbRowData);
+        //return $this->_getPrimaryKeysFromObjectData($table, $dbRowData);
+        $primaryKeyColumns = $this->getPrimaryKeyColumns($table);
+        $values = array();
+        foreach ($primaryKeyColumns as $column) {
+            $value = $dbRow->get($column);
+            if ($value !== null) {
+                $values[$column] = $value;
+            }
+        }
+
+        return $values;
     }
 
     /**
