@@ -1584,4 +1584,27 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNotEmpty($article2->getId());
         $this->assertNotSame($article->getId(), $article2->getId());
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testRecursiveSave()
+    {
+        $categoryDao = new CategoryDao($this->tdbmService);
+
+        $root1 = new CategoryBean('Root1');
+        $categoryDao->save($root1);
+        // Root 2 is not saved yet.
+        $root2 = new CategoryBean('Root2');
+        $intermediate = new CategoryBean('Intermediate');
+        $categoryDao->save($intermediate);
+
+        // Let's switch the parent to a bean in detached state.
+        $intermediate->setParent($root2);
+
+        // Now, let's save a new category that references the leaf category.
+        $leaf = new CategoryBean('Leaf');
+        $leaf->setParent($intermediate);
+        $categoryDao->save($leaf);
+    }
 }
