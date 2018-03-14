@@ -257,7 +257,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             $this->column->getName(),
             $columnSetterName,
             $this->column->getNotnull() ? '' : '?',
-            $normalizedType,
+            (!$this->forceSetAsString() ? $normalizedType : "string"),
                 //$castTo,
             $this->column->getName(),
             var_export($this->column->getName(), true),
@@ -328,5 +328,10 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     {
         $type = $this->getPhpType();
         return TDBMDaoGenerator::isValidScalarType($type);
+    }
+
+    public function forceSetAsString(){
+        $type = $this->getPhpType();
+        return $type === "resource";
     }
 }
