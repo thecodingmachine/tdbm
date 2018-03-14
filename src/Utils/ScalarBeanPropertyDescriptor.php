@@ -87,6 +87,17 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
+     * Returns the PHP type for the property (it can be a scalar like int, bool, or class names, like \DateTimeInterface, App\Bean\User....)
+     *
+     * @return string
+     */
+    public function canBeSerialized(): string
+    {
+        $type = $this->column->getType();
+        return TDBMDaoGenerator::isSerializableType($type);
+    }
+
+    /**
      * Returns true if the property is compulsory (and therefore should be fetched in the constructor).
      *
      * @return bool
@@ -273,6 +284,10 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     public function getJsonSerializeCode()
     {
         $normalizedType = $this->getPhpType();
+
+//        if (!$this->canBeSerialized()){
+//            return '';
+//        }
 
         if ($normalizedType == '\\DateTimeImmutable') {
             return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
