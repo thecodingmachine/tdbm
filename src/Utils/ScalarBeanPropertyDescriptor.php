@@ -87,17 +87,6 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
-     * Returns the PHP type for the property (it can be a scalar like int, bool, or class names, like \DateTimeInterface, App\Bean\User....)
-     *
-     * @return string
-     */
-    public function canBeSerialized(): string
-    {
-        $type = $this->column->getType();
-        return TDBMDaoGenerator::isSerializableType($type);
-    }
-
-    /**
      * Returns true if the property is compulsory (and therefore should be fetched in the constructor).
      *
      * @return bool
@@ -234,7 +223,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return %s
      */
-    public function %s() : %s%s
+    public function %s() %s %s%s
     {
         return $this->get(%s, %s);
     }
@@ -257,8 +246,9 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             $this->column->getName(),
             $normalizedType.($isNullable ? '|null' : ''),
             $columnGetterName,
-            ($isNullable ? '?' : ''),
-            $normalizedType,
+            ($this->isValidScalarType() ? ':' : ''),
+            ($isNullable && $this->isValidScalarType() ? '?' : ''),
+            ($this->isValidScalarType() ? $normalizedType: ''),
             var_export($this->column->getName(), true),
             var_export($this->table->getName(), true),
             // Setter
@@ -317,5 +307,26 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             return sprintf("        \$this->%s(%s);\n", $this->getSetterName(), $this->getUuidCode($uuidAnnotation));
         }
         return null;
+    }
+
+    /**
+     * tells is this type is suitable for Json Serialization
+     *
+     * @return string
+     */
+    public function canBeSerialized() : string
+    {
+        $type = $this->column->getType();
+        return TDBMDaoGenerator::isSerializableType($type);
+    }
+
+    /**
+     * Tells is this type is a valid scalar type (resource isn't for example)
+     * @return bool
+     */
+    public function isValidScalarType() : bool
+    {
+        $type = $this->getPhpType();
+        return TDBMDaoGenerator::isValidScalarType($type);
     }
 }
