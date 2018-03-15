@@ -682,18 +682,4 @@ class $daoFactoryClassName
 
         return \in_array($type->getName(), $unserialisableTypes, true) === false;
     }
-
-    /**
-     * Tells if a given php type is a valid scalar type (resource is not)
-     * @param string $type
-     * @return bool
-     */
-    public static function isValidScalarType(string $type) : bool
-    {
-        $invalidScalarTypes = [
-            'resource'
-        ];
-
-        return \in_array($type, $invalidScalarTypes, true) === false;
-    }
 }

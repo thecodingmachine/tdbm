@@ -198,4 +198,14 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     {
         return null;
     }
+
+    /**
+     * Tells if this property is a type-hintable in PHP (resource isn't for example)
+     *
+     * @return bool
+     */
+    public function isTypeHintable() : bool
+    {
+        return true;
+    }
 }

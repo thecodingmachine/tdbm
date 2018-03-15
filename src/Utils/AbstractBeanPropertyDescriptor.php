@@ -156,4 +156,11 @@ abstract class AbstractBeanPropertyDescriptor
      * @return null|string
      */
     abstract public function getCloneRule(): ?string;
+
+    /**
+     * Tells if this property is a type-hintable in PHP (resource isn't for example)
+     *
+     * @return bool
+     */
+    abstract public function isTypeHintable() : bool;
 }

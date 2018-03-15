@@ -218,12 +218,23 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         // A column type can be forced if it is not nullable and not auto-incrementable (for auto-increment columns, we can get "null" as long as the bean is not saved).
         $isNullable = !$this->column->getNotnull() || $this->isAutoincrement();
 
+        $resourceTypeCheck = '';
+        if ($normalizedType === 'resource') {
+            $resourceTypeCheck .= <<<EOF
+
+        if (!\is_resource($%s)) {
+            throw \TheCodingMachine\TDBM\TDBMInvalidArgumentException::badType('resource', $%s, __METHOD__);
+        }
+EOF;
+            $resourceTypeCheck = sprintf($resourceTypeCheck, $this->column->getName(), $this->column->getName());
+        }
+
         $getterAndSetterCode = '    /**
      * The getter for the "%s" column.
      *
      * @return %s
      */
-    public function %s() %s %s%s
+    public function %s()%s%s%s
     {
         return $this->get(%s, %s);
     }
@@ -233,8 +244,8 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @param %s $%s
      */
-    public function %s(%s%s $%s) : void
-    {
+    public function %s(%s%s$%s) : void
+    {%s
         $this->set(%s, $%s, %s);
     }
 
@@ -246,9 +257,9 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             $this->column->getName(),
             $normalizedType.($isNullable ? '|null' : ''),
             $columnGetterName,
-            ($this->isValidScalarType() ? ':' : ''),
-            ($isNullable && $this->isValidScalarType() ? '?' : ''),
-            ($this->isValidScalarType() ? $normalizedType: ''),
+            ($this->isTypeHintable() ? ' : ' : ''),
+            ($isNullable && $this->isTypeHintable() ? '?' : ''),
+            ($this->isTypeHintable() ? $normalizedType: ''),
             var_export($this->column->getName(), true),
             var_export($this->table->getName(), true),
             // Setter
@@ -256,10 +267,11 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             $normalizedType.($isNullable ? '|null' : ''),
             $this->column->getName(),
             $columnSetterName,
-            $this->column->getNotnull() ? '' : '?',
-            (!$this->forceSetAsString() ? $normalizedType : "string"),
+            ($this->column->getNotnull() || !$this->isTypeHintable()) ? '' : '?',
+            $this->isTypeHintable() ? $normalizedType . ' ' : '',
                 //$castTo,
             $this->column->getName(),
+            $resourceTypeCheck,
             var_export($this->column->getName(), true),
             $this->column->getName(),
             var_export($this->table->getName(), true)
@@ -321,17 +333,17 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
-     * Tells is this type is a valid scalar type (resource isn't for example)
+     * Tells if this property is a type-hintable in PHP (resource isn't for example)
+     *
      * @return bool
      */
-    public function isValidScalarType() : bool
+    public function isTypeHintable() : bool
     {
         $type = $this->getPhpType();
-        return TDBMDaoGenerator::isValidScalarType($type);
-    }
+        $invalidScalarTypes = [
+            'resource'
+        ];
 
-    public function forceSetAsString(){
-        $type = $this->getPhpType();
-        return $type === "resource";
+        return \in_array($type, $invalidScalarTypes, true) === false;
     }
 }

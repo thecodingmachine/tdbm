@@ -39,6 +39,7 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\CatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CategoryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\DogBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\FileBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RefNoPrimKeyBean;
@@ -50,6 +51,7 @@ use TheCodingMachine\TDBM\Test\Dao\CategoryDao;
 use TheCodingMachine\TDBM\Test\Dao\ContactDao;
 use TheCodingMachine\TDBM\Test\Dao\CountryDao;
 use TheCodingMachine\TDBM\Test\Dao\DogDao;
+use TheCodingMachine\TDBM\Test\Dao\FileDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
@@ -72,20 +74,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
         $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->getConfiguration(), $tdbmSchemaAnalyzer);
-        $this->rootPath = __DIR__.'/../';
+        $this->rootPath = __DIR__ . '/../';
         //$this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
     }
 
     public function testDaoGeneration()
     {
         // Remove all previously generated files.
-        $this->recursiveDelete($this->rootPath.'src/Test/Dao/');
+        $this->recursiveDelete($this->rootPath . 'src/Test/Dao/');
 
         $this->tdbmDaoGenerator->generateAllDaosAndBeans();
 
         // Let's require all files to check they are valid PHP!
         // Test the daoFactory
-        require_once $this->rootPath.'src/Test/Dao/Generated/DaoFactory.php';
+        require_once $this->rootPath . 'src/Test/Dao/Generated/DaoFactory.php';
         // Test the others
 
         $beanDescriptors = $this->getDummyGeneratorListener()->getBeanDescriptors();
@@ -95,10 +97,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             $daoBaseName = $beanDescriptor->getBaseDaoClassName();
             $beanName = $beanDescriptor->getBeanClassName();
             $baseBeanName = $beanDescriptor->getBaseBeanClassName();
-            require_once $this->rootPath.'src/Test/Dao/Bean/Generated/'.$baseBeanName.'.php';
-            require_once $this->rootPath.'src/Test/Dao/Bean/'.$beanName.'.php';
-            require_once $this->rootPath.'src/Test/Dao/Generated/'.$daoBaseName.'.php';
-            require_once $this->rootPath.'src/Test/Dao/'.$daoName.'.php';
+            require_once $this->rootPath . 'src/Test/Dao/Bean/Generated/' . $baseBeanName . '.php';
+            require_once $this->rootPath . 'src/Test/Dao/Bean/' . $beanName . '.php';
+            require_once $this->rootPath . 'src/Test/Dao/Generated/' . $daoBaseName . '.php';
+            require_once $this->rootPath . 'src/Test/Dao/' . $daoName . '.php';
         }
 
         // Check that pivot tables do not generate DAOs or beans.
@@ -113,7 +115,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
         $tdbmDaoGenerator = new TDBMDaoGenerator($configuration, $tdbmSchemaAnalyzer);
-        $this->rootPath = __DIR__.'/../../../../';
+        $this->rootPath = __DIR__ . '/../../../../';
         //$tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
 
         $this->expectException(NoPathFoundException::class);
@@ -126,7 +128,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      * @param string $str Path to file or directory
      * @return bool
      */
-    private function recursiveDelete(string $str) : bool
+    private function recursiveDelete(string $str): bool
     {
         if (is_file($str)) {
             return @unlink($str);
@@ -1468,7 +1470,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // executes after the command finishes
         if (!$process->isSuccessful()) {
             echo $process->getOutput();
-            $this->fail('Generated code is not PRS2 compliant');
+            $this->fail('Generated code is not PSR-2 compliant');
         }
     }
 
@@ -1517,7 +1519,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userBaseBeanReflectionConstructor = new \ReflectionMethod(UserBaseBean::class, '__construct');
         $nameParam = $userBaseBeanReflectionConstructor->getParameters()[0];
 
-        $this->assertSame('string', (string) $nameParam->getType());
+        $this->assertSame('string', (string)$nameParam->getType());
     }
 
     /**
@@ -1606,5 +1608,51 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $leaf = new CategoryBean('Leaf');
         $leaf->setParent($intermediate);
         $categoryDao->save($leaf);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testBlob()
+    {
+        $fp = fopen(__FILE__, 'r');
+        $file = new FileBean($fp);
+
+        $fileDao = new FileDao($this->tdbmService);
+
+        $fileDao->save($file);
+
+        $loadedFile = $fileDao->getById($file->getId());
+
+        $resource = $loadedFile->getFile();
+        $result = fseek($resource, 0);
+        $this->assertSame(0, $result);
+        $this->assertInternalType('resource', $resource);
+        $firstLine = fgets($resource);
+        $this->assertSame("<?php\n", $firstLine);
+    }
+
+    /**
+     * @depends testBlob
+     */
+    public function testReadBlob()
+    {
+        $fileDao = new FileDao($this->tdbmService);
+        $loadedFile = $fileDao->getById(1);
+
+        $resource = $loadedFile->getFile();
+        $this->assertInternalType('resource', $resource);
+        $firstLine = fgets($resource);
+        $this->assertSame("<?php\n", $firstLine);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testBlobResourceException()
+    {
+        $this->expectException(TDBMInvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid argument passed to \'TheCodingMachine\\TDBM\\Test\\Dao\\Bean\\Generated\\FileBaseBean::setFile\'. Expecting a resource. Got a string.');
+        new FileBean('foobar');
     }
 }
