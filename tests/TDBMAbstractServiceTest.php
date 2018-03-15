@@ -317,6 +317,10 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('id')->string(36)->primaryKey()->comment('@UUID v4')
             ->column('content')->string(255);
 
+        $db->table('files')
+            ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
+            ->column('file')->blob();
+
         $toSchema->getTable('users')
             ->addUniqueIndex([$connection->quoteIdentifier('login')], 'users_login_idx')
             ->addIndex([$connection->quoteIdentifier('status'), $connection->quoteIdentifier('country_id')], 'users_status_country_idx');

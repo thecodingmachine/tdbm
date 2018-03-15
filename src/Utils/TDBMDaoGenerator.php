@@ -640,7 +640,7 @@ class $daoFactoryClassName
      *
      * @return string The PHP type
      */
-    public static function dbalTypeToPhpType(Type $type)
+    public static function dbalTypeToPhpType(Type $type) : string
     {
         $map = [
             Type::TARRAY => 'array',
@@ -659,12 +659,27 @@ class $daoFactoryClassName
             Type::SMALLINT => 'int',
             Type::STRING => 'string',
             Type::TEXT => 'string',
-            Type::BINARY => 'string',
-            Type::BLOB => 'string',
+            Type::BINARY => 'resource',
+            Type::BLOB => 'resource',
             Type::FLOAT => 'float',
             Type::GUID => 'string',
         ];
 
         return isset($map[$type->getName()]) ? $map[$type->getName()] : $type->getName();
+    }
+
+    /**
+     * Tells if a given column type can be Json Serialized (Blob and Binary are not for instance)
+     * @param Type $type
+     * @return bool
+     */
+    public static function isSerializableType(Type $type) : bool
+    {
+        $unserialisableTypes = [
+            Type::BLOB,
+            Type::BINARY
+        ];
+
+        return \in_array($type->getName(), $unserialisableTypes, true) === false;
     }
 }
