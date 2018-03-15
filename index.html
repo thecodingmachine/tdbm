@@ -382,7 +382,7 @@ $login = $user-&gt;getLogin();</code></pre>
 <p>TDBM analyzes your foreign key and turns them into getters and setters.</p>
 <p><img src="doc/images/users_countries.png" alt="One to many" /></p>
 <pre><code class="language-php">// Let's get the name of the country of the current user
-$user-&gt;getCountry()-&gt;getName();
+$user-&gt;getCountry()-&gt;getLabel();
 
 // Let's get all users in a given country
 $users = $country-&gt;getUsers();</code></pre>
