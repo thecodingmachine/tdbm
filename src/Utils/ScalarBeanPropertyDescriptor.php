@@ -287,7 +287,7 @@ EOF;
     {
         $normalizedType = $this->getPhpType();
 
-        if (!$this->canBeSerialized()){
+        if (!$this->canBeSerialized()) {
             return '';
         }
 
