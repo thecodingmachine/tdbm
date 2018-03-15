@@ -67,7 +67,7 @@ TDBM analyzes your foreign key and turns them into getters and setters.
 
 ```php
 // Let's get the name of the country of the current user
-$user->getCountry()->getName();
+$user->getCountry()->getLabel();
 
 // Let's get all users in a given country
 $users = $country->getUsers();
