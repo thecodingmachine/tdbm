@@ -1,0 +1,5 @@
+parameters:
+    ignoreErrors:
+     - "#Instantiated class WeakRef not found.#"
+#includes:
+#    - vendor/thecodingmachine/phpstan-strict-rules/phpstan-strict-rules.neon

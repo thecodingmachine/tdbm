@@ -6,6 +6,7 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\TDBMException;
 
 /**
  * This class represent a property in a bean that points to another table.
@@ -118,7 +119,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function assignToDefaultCode()
     {
-        throw new \TDBMException('Foreign key based properties cannot be assigned a default value.');
+        throw new TDBMException('Foreign key based properties cannot be assigned a default value.');
     }
 
     /**

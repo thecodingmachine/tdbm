@@ -86,13 +86,12 @@ abstract class AbstractQueryFactory implements QueryFactory
 
         // Now, let's deal with "order by columns"
         if ($orderBy !== null) {
+            $securedOrderBy = true;
+            $reconstructedOrderBys = [];
             if ($orderBy instanceof UncheckedOrderBy) {
                 $securedOrderBy = false;
                 $orderBy = $orderBy->getOrderBy();
                 $reconstructedOrderBy = $orderBy;
-            } else {
-                $securedOrderBy = true;
-                $reconstructedOrderBys = [];
             }
             $orderByColumns = $this->orderByAnalyzer->analyzeOrderBy($orderBy);
 
