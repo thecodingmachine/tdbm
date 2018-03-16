@@ -230,7 +230,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         }
 
         // Now, let's get the name of all properties and let's check there is no duplicate.
-        /** @var $names AbstractBeanPropertyDescriptor[] */
+        /* @var $names AbstractBeanPropertyDescriptor[] */
         $names = [];
         foreach ($beanPropertyDescriptors as $beanDescriptor) {
             $name = $beanDescriptor->getGetterName();
@@ -610,8 +610,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
             $params[] = $element->getParamAnnotation();
             if ($element instanceof ScalarBeanPropertyDescriptor) {
                 $filterArrayCode .= '            '.var_export($element->getColumnName(), true).' => '.$element->getVariableName().",\n";
-            } else {
-                /* @var $element ObjectBeanPropertyDescriptor */
+            } elseif ($element instanceof ObjectBeanPropertyDescriptor) {
                 $foreignKey = $element->getForeignKey();
                 $columns = array_combine($foreignKey->getLocalColumns(), $foreignKey->getForeignColumns());
                 ++$count;

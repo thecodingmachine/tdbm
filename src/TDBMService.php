@@ -891,12 +891,12 @@ class TDBMService
      * Returns an array of primary keys for the given row.
      * The primary keys are extracted from the object columns.
      *
-     * @param $table
+     * @param string $table
      * @param array $columns
      *
      * @return array
      */
-    public function _getPrimaryKeysFromObjectData($table, array $columns)
+    public function _getPrimaryKeysFromObjectData(string $table, array $columns)
     {
         $primaryKeyColumns = $this->getPrimaryKeyColumns($table);
         $values = array();

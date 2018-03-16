@@ -343,10 +343,10 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * Sets many to many relationships for this bean.
      * Adds new relationships and removes unused ones.
      *
-     * @param $pivotTableName
+     * @param string $pivotTableName
      * @param array $remoteBeans
      */
-    protected function setRelationships($pivotTableName, array $remoteBeans)
+    protected function setRelationships(string $pivotTableName, array $remoteBeans)
     {
         $storage = $this->retrieveRelationshipsStorage($pivotTableName);
 
@@ -368,11 +368,11 @@ abstract class AbstractTDBMObject implements JsonSerializable
     /**
      * Returns the list of objects linked to this bean via $pivotTableName.
      *
-     * @param $pivotTableName
+     * @param string $pivotTableName
      *
      * @return \SplObjectStorage
      */
-    private function retrieveRelationshipsStorage($pivotTableName)
+    private function retrieveRelationshipsStorage(string $pivotTableName)
     {
         $storage = $this->getRelationshipStorage($pivotTableName);
         if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || (isset($this->loadedRelationships[$pivotTableName]) && $this->loadedRelationships[$pivotTableName])) {
@@ -399,11 +399,11 @@ abstract class AbstractTDBMObject implements JsonSerializable
     /**
      * Internal TDBM method. Returns the list of objects linked to this bean via $pivotTableName.
      *
-     * @param $pivotTableName
+     * @param string $pivotTableName
      *
      * @return AbstractTDBMObject[]
      */
-    public function _getRelationships($pivotTableName)
+    public function _getRelationships(string $pivotTableName)
     {
         return $this->relationshipStorageToArray($this->retrieveRelationshipsStorage($pivotTableName));
     }

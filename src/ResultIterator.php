@@ -298,9 +298,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * For instance:
      *
-     *  $resultSet = $resultSet->withParameters('label ASC, status DESC');
+     *  $resultSet = $resultSet->withParameters([ 'status' => 'on' ]);
      *
-     * @param string|UncheckedOrderBy|null $orderBy
+     * @param array $parameters
      *
      * @return ResultIterator
      */
