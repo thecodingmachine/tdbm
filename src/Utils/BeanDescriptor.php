@@ -560,7 +560,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
         $columns = $index->getColumns();
         $usedBeans = [];
 
-        /*
+        /**
          * The list of elements building this index (expressed as columns or foreign keys)
          * @var AbstractBeanPropertyDescriptor[]
          */
@@ -611,8 +611,16 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
             if ($element instanceof ScalarBeanPropertyDescriptor) {
                 $filterArrayCode .= '            '.var_export($element->getColumnName(), true).' => '.$element->getVariableName().",\n";
             } else {
+                /* @var $element ObjectBeanPropertyDescriptor */
+                $foreignKey = $element->getForeignKey();
+                $columns = array_combine($foreignKey->getLocalColumns(), $foreignKey->getForeignColumns());
                 ++$count;
-                $filterArrayCode .= '            '.$count.' => '.$element->getVariableName().",\n";
+                $foreignTable = $this->schema->getTable($foreignKey->getForeignTableName());
+                foreach ($columns as $localColumn => $foreignColumn) {
+                    // TODO: a foreign key could point to another foreign key. In this case, there is no getter for the pointed column. We don't support this case.
+                    $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy);
+                    $filterArrayCode .= '            '.var_export($localColumn, true).' => '.$element->getVariableName().'->'.$targetedElement->getGetterName()."(),\n";
+                }
             }
             $commentArguments[] = substr($element->getVariableName(), 1);
         }

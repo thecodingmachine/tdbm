@@ -378,23 +378,23 @@ class TDBMService
      * @param mixed $filter_bag
      * @param AbstractPlatform $platform The platform used to quote identifiers
      * @param int $counter
-     * @return array First item: filter string, second item: parameters
+     * @return array First item: filter string, second item: parameters, third item: the count
      *
      * @throws TDBMException
      */
     public function buildFilterFromFilterBag($filter_bag, AbstractPlatform $platform, $counter = 1)
     {
         if ($filter_bag === null) {
-            return ['', []];
+            return ['', [], $counter];
         } elseif (is_string($filter_bag)) {
-            return [$filter_bag, []];
+            return [$filter_bag, [], $counter];
         } elseif (is_array($filter_bag)) {
             $sqlParts = [];
             $parameters = [];
 
             foreach ($filter_bag as $column => $value) {
                 if (is_int($column)) {
-                    list($subSqlPart, $subParameters) = $this->buildFilterFromFilterBag($value, $platform, $counter);
+                    list($subSqlPart, $subParameters, $counter) = $this->buildFilterFromFilterBag($value, $platform, $counter);
                     $sqlParts[] = $subSqlPart;
                     $parameters += $subParameters;
                 } else {
@@ -409,7 +409,7 @@ class TDBMService
                 }
             }
 
-            return [implode(' AND ', $sqlParts), $parameters];
+            return [implode(' AND ', $sqlParts), $parameters, $counter];
         } elseif ($filter_bag instanceof AbstractTDBMObject) {
             $sqlParts = [];
             $parameters = [];
@@ -424,7 +424,7 @@ class TDBMService
                 ++$counter;
             }
 
-            return [implode(' AND ', $sqlParts), $parameters];
+            return [implode(' AND ', $sqlParts), $parameters, $counter];
         } elseif ($filter_bag instanceof \Iterator) {
             return $this->buildFilterFromFilterBag(iterator_to_array($filter_bag), $platform, $counter);
         } else {

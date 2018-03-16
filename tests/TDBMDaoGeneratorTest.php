@@ -1395,6 +1395,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     }
 
     /**
+     * @depends testReferenceNotSaved
+     */
+    public function testUniqueIndexOnForeignKeyThenScalar()
+    {
+        $boatDao = new BoatDao($this->tdbmService);
+        $countryDao = new CountryDao($this->tdbmService);
+
+        $countryBean = $countryDao->findOneByLabel('Atlantis');
+        $boatBean = $boatDao->findOneByAnchorageCountryAndName($countryBean, 'Titanic');
+
+        $this->assertNotNull($boatBean);
+    }
+
+    /**
      * @depends testDaoGeneration
      */
     public function testReferenceDeleted()
@@ -1402,10 +1416,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $countryDao = new CountryDao($this->tdbmService);
         $boatDao = new BoatDao($this->tdbmService);
 
-        $country = new CountryBean('Atlantis');
+        $country = new CountryBean('Bikini Bottom');
         $countryDao->save($country);
 
-        $boat = new BoatBean($country, 'Titanic');
+        $boat = new BoatBean($country, 'Squirrel boat');
         $countryDao->delete($country);
 
         $this->expectException(TDBMMissingReferenceException::class);

@@ -217,7 +217,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
         $db->table('country')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
-            ->column('label')->string(255);
+            ->column('label')->string(255)->unique();
 
         $db->table('person')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
@@ -296,7 +296,9 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         $db->table('boats')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
             ->column('name')->string(255)
-            ->column('anchorage_country')->references('country')->notNull();
+            ->column('anchorage_country')->references('country')->notNull()->then()
+            ->column('current_country')->references('country')->null()->then()
+            ->unique(['anchorage_country', 'name']);
 
         $db->table('sailed_countries')
             ->column('boat_id')->references('boats')
