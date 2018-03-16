@@ -2,6 +2,8 @@
 
 namespace TheCodingMachine\TDBM\Dao;
 
+use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\UserBean;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\UncheckedOrderBy;
 
@@ -58,7 +60,7 @@ class TestUserDao extends UserBaseDao
      * @param string $login
      * @param string $mode
      *
-     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]
+     * @return \TheCodingMachine\TDBM\ResultIterator|UserBean[]
      */
     public function getUsersByLoginStartingWith($login = null, $mode = null)
     {
@@ -70,7 +72,7 @@ class TestUserDao extends UserBaseDao
      *
      * @param string $login
      *
-     * @return \TheCodingMachine\TDBM\Test\Dao\Bean\UserBean
+     * @return UserBean
      */
     public function getUserByLogin($login)
     {
@@ -85,7 +87,7 @@ class TestUserDao extends UserBaseDao
     /**
      * Triggers an error because table "contacts" does not exist.
      *
-     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]
+     * @return \TheCodingMachine\TDBM\ResultIterator|UserBean[]
      */
     public function getUsersWrongTableName()
     {
@@ -95,7 +97,7 @@ class TestUserDao extends UserBaseDao
     /**
      * Returns a list of users, sorted by a table on an external column.
      *
-     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]
+     * @return \TheCodingMachine\TDBM\ResultIterator|UserBean[]
      */
     public function getUsersByCountryName()
     {
@@ -105,7 +107,7 @@ class TestUserDao extends UserBaseDao
     /**
      * A test to sort by function.
      *
-     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]
+     * @return \TheCodingMachine\TDBM\ResultIterator|UserBean[]
      */
     public function getUsersByReversedCountryName()
     {
@@ -115,10 +117,24 @@ class TestUserDao extends UserBaseDao
     /**
      * A test to check exceptions when providing expressions in ORDER BY clause.
      *
-     * @return \TheCodingMachine\TDBM\ResultIterator|\TheCodingMachine\TDBM\Test\Dao\Bean\UserBean[]
+     * @return \TheCodingMachine\TDBM\ResultIterator|UserBean[]
      */
     public function getUsersByInvalidOrderBy()
     {
         return $this->find(null, [], 'REVERSE(country.label) ASC');
+    }
+
+    /**
+     * @param CountryBean $country
+     * @param string[] $names
+     * @return \TheCodingMachine\TDBM\ResultIterator|UserBean[]
+     */
+    public function getUsersByComplexFilterBag(CountryBean $country, array $names)
+    {
+        $filterBag = [
+            'person.name' => $names
+        ];
+        $filterBag[] = $country;
+        return $this->find($filterBag);
     }
 }
