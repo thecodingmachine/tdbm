@@ -1669,4 +1669,21 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->expectExceptionMessage('Invalid argument passed to \'TheCodingMachine\\TDBM\\Test\\Dao\\Bean\\Generated\\FileBaseBean::setFile\'. Expecting a resource. Got a string.');
         new FileBean('foobar');
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testFilterBag()
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $countryDao = new CountryDao($this->tdbmService);
+
+        $country = $countryDao->getById(2);
+
+        // Let's test filter bags by bean and filter bag with many values.
+        $users = $userDao->getUsersByComplexFilterBag($country, ['John Doe', 'Jane Doe']);
+
+        $this->assertCount(1, $users);
+        $this->assertSame('John Doe', $users[0]->getName());
+    }
 }
