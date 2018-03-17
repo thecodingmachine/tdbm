@@ -34,7 +34,7 @@ class StandardObjectStorage
      * An array of fetched object, accessible via table name and primary key.
      * If the primary key is split on several columns, access is done by an array of columns, serialized.
      *
-     * @var array<string, array<string, TDBMObject>>
+     * @var array<string, array<string, DbRow>>
      */
     private $objects = array();
 
@@ -45,7 +45,7 @@ class StandardObjectStorage
      * @param string     $id
      * @param DbRow      $dbRow
      */
-    public function set($tableName, $id, DbRow $dbRow)
+    public function set(string $tableName, $id, DbRow $dbRow)
     {
         $this->objects[$tableName][$id] = $dbRow;
     }
@@ -69,14 +69,14 @@ class StandardObjectStorage
      * @param string $tableName
      * @param string $id
      *
-     * @return DbRow
+     * @return DbRow|null
      */
-    public function get($tableName, $id)
+    public function get(string $tableName, $id) : ?DbRow
     {
         if (isset($this->objects[$tableName][$id])) {
             return $this->objects[$tableName][$id];
         } else {
-            return;
+            return null;
         }
     }
 

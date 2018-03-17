@@ -42,16 +42,6 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
-     * Returns the foreign-key the column is part of, if any. null otherwise.
-     *
-     * @return ForeignKeyConstraint|null
-     */
-    public function getForeignKey()
-    {
-        return false;
-    }
-
-    /**
      * Returns the param annotation for this property (useful for constructor).
      *
      * @return string
@@ -324,9 +314,9 @@ EOF;
     /**
      * tells is this type is suitable for Json Serialization
      *
-     * @return string
+     * @return bool
      */
-    public function canBeSerialized() : string
+    public function canBeSerialized() : bool
     {
         $type = $this->column->getType();
         return TDBMDaoGenerator::isSerializableType($type);

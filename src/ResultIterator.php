@@ -50,7 +50,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     private $queryFactory;
 
     /**
-     * @var InnerResultIterator
+     * @var InnerResultIterator|null
      */
     private $innerResultIterator;
 

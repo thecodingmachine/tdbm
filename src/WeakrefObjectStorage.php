@@ -92,16 +92,16 @@ class WeakrefObjectStorage
      * @param string $tableName
      * @param string $id
      *
-     * @return DbRow
+     * @return DbRow|null
      */
-    public function get($tableName, $id)
+    public function get(string $tableName, $id) : ?DbRow
     {
         if (isset($this->objects[$tableName][$id])) {
             if ($this->objects[$tableName][$id]->valid()) {
                 return $this->objects[$tableName][$id]->get();
             }
         } else {
-            return;
+            return null;
         }
     }
 
