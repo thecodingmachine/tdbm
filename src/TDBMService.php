@@ -1123,14 +1123,14 @@ class TDBMService
      * @param array                        $parameters
      * @param string|UncheckedOrderBy|null $orderString           The ORDER BY part of the query. Columns from tables different from $mainTable must be prefixed by the table name (in the form: table.column)
      * @param array                        $additionalTablesFetch
-     * @param int                          $mode
+     * @param int|null                     $mode
      * @param string                       $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
      * @return ResultIterator An object representing an array of results
      *
      * @throws TDBMException
      */
-    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), $mode = null, string $className = null)
+    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), ?int $mode = null, string $className = null)
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1304,7 +1304,7 @@ class TDBMService
      * @param string $mainTable
      * @param string $sql
      * @param array $parameters
-     * @param int $mode
+     * @param int|null $mode
      * @param string|null $className
      * @param string $sqlCount
      *
@@ -1312,7 +1312,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), int $mode = 0, string $className = null, string $sqlCount = null)
+    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), ?int $mode = null, string $className = null, string $sqlCount = null)
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
