@@ -22,8 +22,8 @@ class MapIterator implements Iterator, \JsonSerializable
     protected $callable;
 
     /**
-     * @param $iterator Iterator|array
-     * @param $callable callable This can have two parameters
+     * @param Iterator|array $iterator
+     * @param callable $callable This can have two parameters
      *
      * @throws TDBMException
      */

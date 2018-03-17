@@ -149,7 +149,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      * Tries to put string to the singular form (if it is plural) and camel case form.
      * We assume the table names are in english.
      *
-     * @param $str string
+     * @param string $str
      *
      * @return string
      */
@@ -178,7 +178,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
     /**
      * Put string to camel case form.
      *
-     * @param $str string
+     * @param string $str
      *
      * @return string
      */

@@ -1,0 +1,6 @@
+parameters:
+    ignoreErrors:
+     - "#Instantiated class WeakRef not found.#"
+     - "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
+#includes:
+#    - vendor/thecodingmachine/phpstan-strict-rules/phpstan-strict-rules.neon

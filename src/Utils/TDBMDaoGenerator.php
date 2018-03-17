@@ -306,7 +306,7 @@ class $baseClassName
      * Get $beanClassWithoutNameSpace specified by its ID (its primary key)
      * If the primary key does not exist, an exception is thrown.
      *
-     * @param string|int \$id
+     * @param $primaryKeyPhpType \$id
      * @param bool \$lazyLoading If set to true, the object will not be loaded right away. Instead, it will be loaded when you first try to access a method of the object.
      * @return $beanClassWithoutNameSpace
      * @throws TDBMException
@@ -553,11 +553,11 @@ class $daoFactoryClassName
      * Underscores and spaces are removed and the first letter after the underscore is uppercased.
      * Quoting is removed if present.
      *
-     * @param $str string
+     * @param string $str
      *
      * @return string
      */
-    public static function toCamelCase($str)
+    public static function toCamelCase($str) : string
     {
         $str = str_replace(array('`', '"', '[', ']'), '', $str);
 
@@ -583,7 +583,7 @@ class $daoFactoryClassName
      * Tries to put string to the singular form (if it is plural).
      * We assume the table names are in english.
      *
-     * @param $str string
+     * @param string $str
      *
      * @return string
      */
@@ -596,7 +596,7 @@ class $daoFactoryClassName
      * Put the first letter of the string in lower case.
      * Very useful to transform a class name into a variable name.
      *
-     * @param $str string
+     * @param string $str
      *
      * @return string
      */

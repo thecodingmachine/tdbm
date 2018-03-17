@@ -54,15 +54,13 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     private $innerResultIterator;
 
-    private $databasePlatform;
-
     private $totalCount;
 
     private $mode;
 
     private $logger;
 
-    public function __construct(QueryFactory $queryFactory, array $parameters, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode, LoggerInterface $logger)
+    public function __construct(QueryFactory $queryFactory, array $parameters, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger)
     {
         if ($mode !== null && $mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
             throw new TDBMException("Unknown fetch mode: '".$mode."'");
@@ -74,7 +72,6 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         $this->tdbmService = $tdbmService;
         $this->parameters = $parameters;
         $this->magicQuery = $magicQuery;
-        $this->databasePlatform = $this->tdbmService->getConnection()->getDatabasePlatform();
         $this->mode = $mode;
         $this->logger = $logger;
     }
@@ -298,9 +295,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * For instance:
      *
-     *  $resultSet = $resultSet->withParameters('label ASC, status DESC');
+     *  $resultSet = $resultSet->withParameters([ 'status' => 'on' ]);
      *
-     * @param string|UncheckedOrderBy|null $orderBy
+     * @param array $parameters
      *
      * @return ResultIterator
      */

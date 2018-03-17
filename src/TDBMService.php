@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\Cache\ClearableCache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
@@ -437,7 +438,7 @@ class TDBMService
      *
      * @return string[]
      */
-    public function getPrimaryKeyColumns($table)
+    public function getPrimaryKeyColumns(string $table): array
     {
         if (!isset($this->primaryKeysColumns[$table])) {
             $this->primaryKeysColumns[$table] = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKey()->getUnquotedColumns();
@@ -509,13 +510,13 @@ class TDBMService
 
     /**
      * Generates all the daos and beans.
-     *
-     * @return \string[] the list of tables (key) and bean name (value)
      */
-    public function generateAllDaosAndBeans()
+    public function generateAllDaosAndBeans() : void
     {
         // Purge cache before generating anything.
-        $this->cache->deleteAll();
+        if ($this->cache instanceof ClearableCache) {
+            $this->cache->deleteAll();
+        }
 
         $tdbmDaoGenerator = new TDBMDaoGenerator($this->configuration, $this->tdbmSchemaAnalyzer);
         $tdbmDaoGenerator->generateAllDaosAndBeans();
@@ -890,12 +891,12 @@ class TDBMService
      * Returns an array of primary keys for the given row.
      * The primary keys are extracted from the object columns.
      *
-     * @param $table
+     * @param string $table
      * @param array $columns
      *
      * @return array
      */
-    public function _getPrimaryKeysFromObjectData($table, array $columns)
+    public function _getPrimaryKeysFromObjectData(string $table, array $columns)
     {
         $primaryKeyColumns = $this->getPrimaryKeyColumns($table);
         $values = array();
@@ -1122,14 +1123,14 @@ class TDBMService
      * @param array                        $parameters
      * @param string|UncheckedOrderBy|null $orderString           The ORDER BY part of the query. Columns from tables different from $mainTable must be prefixed by the table name (in the form: table.column)
      * @param array                        $additionalTablesFetch
-     * @param int                          $mode
+     * @param int|null                     $mode
      * @param string                       $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
      * @return ResultIterator An object representing an array of results
      *
      * @throws TDBMException
      */
-    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), $mode = null, string $className = null)
+    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), ?int $mode = null, string $className = null)
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1183,7 +1184,7 @@ class TDBMService
     }
 
     /**
-     * @param $table
+     * @param string $table
      * @param array  $primaryKeys
      * @param array  $additionalTablesFetch
      * @param bool   $lazy                  Whether to perform lazy loading on this object or not
@@ -1303,7 +1304,7 @@ class TDBMService
      * @param string $mainTable
      * @param string $sql
      * @param array $parameters
-     * @param $mode
+     * @param int|null $mode
      * @param string|null $className
      * @param string $sqlCount
      *
@@ -1311,7 +1312,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), $mode, string $className = null, string $sqlCount = null)
+    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), ?int $mode = null, string $className = null, string $sqlCount = null)
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1433,7 +1434,7 @@ class TDBMService
     }
 
     /**
-     * @param $pivotTableName
+     * @param string $pivotTableName
      * @param AbstractTDBMObject $bean
      *
      * @return AbstractTDBMObject[]
@@ -1456,7 +1457,7 @@ class TDBMService
     }
 
     /**
-     * @param $pivotTableName
+     * @param string $pivotTableName
      * @param AbstractTDBMObject $bean The LOCAL bean
      *
      * @return ForeignKeyConstraint[] First item: the LOCAL bean, second item: the REMOTE bean

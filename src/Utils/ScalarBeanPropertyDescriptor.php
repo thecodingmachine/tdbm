@@ -264,7 +264,7 @@ EOF;
             var_export($this->table->getName(), true),
             // Setter
             $this->column->getName(),
-            $normalizedType.($isNullable ? '|null' : ''),
+            $normalizedType.(($this->column->getNotnull() || !$this->isTypeHintable()) ? '' : '|null'),
             $this->column->getName(),
             $columnSetterName,
             ($this->column->getNotnull() || !$this->isTypeHintable()) ? '' : '?',

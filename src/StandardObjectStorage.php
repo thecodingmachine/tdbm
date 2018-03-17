@@ -43,7 +43,7 @@ class StandardObjectStorage
      *
      * @param string     $tableName
      * @param string     $id
-     * @param TDBMObject $dbRow
+     * @param DbRow      $dbRow
      */
     public function set($tableName, $id, DbRow $dbRow)
     {

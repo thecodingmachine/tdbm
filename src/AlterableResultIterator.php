@@ -68,7 +68,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * Adds an additional object to the result set (if not already available).
      *
-     * @param $object
+     * @param object $object
      */
     public function add($object)
     {
@@ -85,7 +85,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * Removes an object from the result set.
      *
-     * @param $object
+     * @param object $object
      */
     public function remove($object)
     {

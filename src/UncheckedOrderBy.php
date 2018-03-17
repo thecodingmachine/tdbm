@@ -25,17 +25,11 @@ class UncheckedOrderBy
      */
     private $orderBy;
 
-    /**
-     * @param $orderBy
-     */
     public function __construct(string $orderBy)
     {
         $this->orderBy = $orderBy;
     }
 
-    /**
-     * @return string
-     */
     public function getOrderBy() : string
     {
         return $this->orderBy;

@@ -581,7 +581,7 @@ SQL;
      */
     public function testCursorModeException()
     {
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], 'foobaz');
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], 99);
     }
 
     /**

@@ -21,6 +21,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
     private $filterString;
     private $cache;
     private $cachePrefix;
+    private $schemaAnalyzer;
 
     public function __construct(string $mainTable, string $from, $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, SchemaAnalyzer $schemaAnalyzer, Cache $cache, string $cachePrefix)
     {
