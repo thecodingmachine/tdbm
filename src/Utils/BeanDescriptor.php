@@ -88,7 +88,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      *
      * @return ForeignKeyConstraint|null
      */
-    private function isPartOfForeignKey(Table $table, Column $column)
+    private function isPartOfForeignKey(Table $table, Column $column) : ?ForeignKeyConstraint
     {
         $localColumnName = $column->getName();
         foreach ($table->getForeignKeys() as $foreignKey) {
@@ -99,7 +99,7 @@ class BeanDescriptor implements BeanDescriptorInterface
             }
         }
 
-        return;
+        return null;
     }
 
     /**

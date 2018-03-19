@@ -245,13 +245,13 @@ class DbRow
      *
      * @return AbstractTDBMObject|null
      */
-    public function getRef($foreignKeyName)
+    public function getRef($foreignKeyName) : ?AbstractTDBMObject
     {
         if (array_key_exists($foreignKeyName, $this->references)) {
             return $this->references[$foreignKeyName];
         } elseif ($this->status === TDBMObjectStateEnum::STATE_NEW || $this->tdbmService === null) {
             // If the object is new and has no property, then it has to be empty.
-            return;
+            return null;
         } else {
             $this->_dbLoadIfNotLoaded();
 
@@ -261,7 +261,7 @@ class DbRow
             $values = [];
             foreach ($fk->getUnquotedLocalColumns() as $column) {
                 if (!isset($this->dbRow[$column])) {
-                    return;
+                    return null;
                 }
                 $values[] = $this->dbRow[$column];
             }

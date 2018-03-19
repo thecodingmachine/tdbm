@@ -7,6 +7,7 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Types\DateTimeImmutableType;
 use Doctrine\DBAL\Types\DateTimeType;
+use Doctrine\DBAL\Types\Type;
 use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotation;
@@ -319,7 +320,13 @@ EOF;
     public function canBeSerialized() : bool
     {
         $type = $this->column->getType();
-        return TDBMDaoGenerator::isSerializableType($type);
+
+        $unserialisableTypes = [
+            Type::BLOB,
+            Type::BINARY
+        ];
+
+        return \in_array($type->getName(), $unserialisableTypes, true) === false;
     }
 
     /**

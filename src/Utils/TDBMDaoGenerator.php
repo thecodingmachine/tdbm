@@ -667,19 +667,4 @@ class $daoFactoryClassName
 
         return isset($map[$type->getName()]) ? $map[$type->getName()] : $type->getName();
     }
-
-    /**
-     * Tells if a given column type can be Json Serialized (Blob and Binary are not for instance)
-     * @param Type $type
-     * @return bool
-     */
-    public static function isSerializableType(Type $type) : bool
-    {
-        $unserialisableTypes = [
-            Type::BLOB,
-            Type::BINARY
-        ];
-
-        return \in_array($type->getName(), $unserialisableTypes, true) === false;
-    }
 }

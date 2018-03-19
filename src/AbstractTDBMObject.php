@@ -280,12 +280,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return AbstractTDBMObject|null
      */
-    protected function getRef($foreignKeyName, $tableName = null)
+    protected function getRef(string $foreignKeyName, ?string $tableName = null) : ?AbstractTDBMObject
     {
         $tableName = $this->checkTableName($tableName);
 
         if (!isset($this->dbRows[$tableName])) {
-            return;
+            return null;
         }
 
         return $this->dbRows[$tableName]->getRef($foreignKeyName);

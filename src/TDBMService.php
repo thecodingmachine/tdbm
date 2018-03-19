@@ -89,7 +89,7 @@ class TDBMService
      * Primary keys are stored by tables, as an array of column.
      * For instance $primary_key['my_table'][0] will return the first column of the primary key of table 'my_table'.
      *
-     * @var string[]
+     * @var string[][]
      */
     private $primaryKeysColumns;
 
@@ -1253,7 +1253,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObject(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null)
+    public function findObject(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null) : ?AbstractTDBMObject
     {
         $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
         $page = $objects->take(0, 2);
@@ -1267,7 +1267,7 @@ class TDBMService
         if ($count > 1) {
             throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
         } elseif ($count === 0) {
-            return;
+            return null;
         }
 
         return $pageArr[0];
@@ -1286,7 +1286,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectFromSql($mainTable, $from, $filter = null, array $parameters = array(), $className = null)
+    public function findObjectFromSql($mainTable, $from, $filter = null, array $parameters = array(), $className = null) : ?AbstractTDBMObject
     {
         $objects = $this->findObjectsFromSql($mainTable, $from, $filter, $parameters, null, self::MODE_ARRAY, $className);
         $page = $objects->take(0, 2);
@@ -1294,7 +1294,7 @@ class TDBMService
         if ($count > 1) {
             throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
         } elseif ($count === 0) {
-            return;
+            return null;
         }
 
         return $page[0];
