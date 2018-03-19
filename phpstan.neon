@@ -4,5 +4,7 @@ parameters:
      - "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
      - "#Method .*::.* should return .* but returns .*TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject#"
      - "#Method .*::.* should return .* but returns TheCodingMachine\\\\TDBM\\\\ResultIterator#"
+     - "#Strict comparison using .== between TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject and null will always evaluate to .*#"
+     - "#Strict comparison using === between string and false will always evaluate to false.#"
 #includes:
 #    - vendor/thecodingmachine/phpstan-strict-rules/phpstan-strict-rules.neon

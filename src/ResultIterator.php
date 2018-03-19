@@ -62,7 +62,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     public function __construct(QueryFactory $queryFactory, array $parameters, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger)
     {
-        if ($mode !== null && $mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
+        if ($mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
             throw new TDBMException("Unknown fetch mode: '".$mode."'");
         }
 

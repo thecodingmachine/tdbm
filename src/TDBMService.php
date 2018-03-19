@@ -559,10 +559,6 @@ class TDBMService
         try {
             $status = $object->_getStatus();
 
-            if ($status === null) {
-                throw new TDBMException(sprintf('Your bean for class %s has no status. It is likely that you overloaded the __construct method and forgot to call parent::__construct.', get_class($object)));
-            }
-
             // Let's attach this object if it is in detached state.
             if ($status === TDBMObjectStateEnum::STATE_DETACHED) {
                 $object->_attach($this);

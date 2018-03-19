@@ -642,13 +642,9 @@ SQL;
      */
     public function testBeanWithoutStatus()
     {
-        $object = new TDBMObject('users');
-        $object->setProperty('login', 'john.doe');
-        $object->setProperty('country_id', 3);
-        $object->setProperty('name', 'John Doe', 'person');
-        $object->setProperty('email', 'john@doe.com', 'contact');
-        $object->_setStatus(null);
-        $this->tdbmService->save($object);
+        $reflectionClass = new \ReflectionClass(TDBMObject::class);
+        $object = $reflectionClass->newInstanceWithoutConstructor();
+        $object->_getStatus();
     }
 
     public function testFindObjectsFromSql()
