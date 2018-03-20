@@ -2,6 +2,7 @@
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
@@ -163,7 +164,8 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
                     throw new TDBMException('Unable to set default value for date. Database passed this default value: "'.$default.'"');
                 }
             } else {
-                $defaultCode = var_export($this->column->getDefault(), true);
+                $defaultValue = $type->convertToPHPValue($this->column->getDefault(), new MySQL57Platform());
+                $defaultCode = var_export($defaultValue, true);
             }
         }
 
