@@ -617,6 +617,10 @@ abstract class AbstractTDBMObject implements JsonSerializable
             $dbRow->_setPrimaryKeys($primaryKeys);
         }
 
+        if ($this->status === null) {
+            throw new TDBMException(sprintf('Your bean for class %s has no status. It is likely that you overloaded the __construct method and forgot to call parent::__construct.', get_class($this)));
+        }
+
         $dbRow->_setStatus($this->status);
 
         $this->dbRows[$tableName] = $dbRow;

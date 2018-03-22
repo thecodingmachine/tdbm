@@ -20,7 +20,7 @@ class OrderByAnalyzer
     private $cache;
 
     /**
-     * @var string
+     * @var string|null
      */
     private $cachePrefix;
 
@@ -30,7 +30,7 @@ class OrderByAnalyzer
      * @param Cache       $cache
      * @param string|null $cachePrefix
      */
-    public function __construct(Cache $cache, $cachePrefix = null)
+    public function __construct(Cache $cache, ?string $cachePrefix = null)
     {
         $this->cache = $cache;
         $this->cachePrefix = $cachePrefix;

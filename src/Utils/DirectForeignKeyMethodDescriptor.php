@@ -6,6 +6,7 @@ namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
+use TheCodingMachine\TDBM\TDBMException;
 
 /**
  * Represents a method to get a list of beans from a direct foreign key pointing to our bean.
@@ -119,7 +120,12 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         $counter = 0;
         $parameters = [];
 
-        $pkColumns = $this->mainTable->getPrimaryKey()->getUnquotedColumns();
+        $primaryKey = $this->mainTable->getPrimaryKey();
+        if ($primaryKey === null) {
+            // Security check: a table MUST have a primary key
+            throw new TDBMException(sprintf('Table "%s" does not have any primary key', $this->mainTable->getName()));
+        }
+        $pkColumns = $primaryKey->getUnquotedColumns();
 
         foreach ($fk->getUnquotedLocalColumns() as $columnName) {
             $pkColumn = $pkColumns[$counter];

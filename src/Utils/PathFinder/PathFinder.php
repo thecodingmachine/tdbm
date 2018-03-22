@@ -6,7 +6,7 @@ use Mouf\Composer\ClassNameMapper;
 class PathFinder implements PathFinderInterface
 {
     /**
-     * @var string
+     * @var string|null
      */
     private $composerFile;
 

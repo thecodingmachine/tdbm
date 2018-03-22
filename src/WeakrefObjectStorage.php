@@ -100,9 +100,8 @@ class WeakrefObjectStorage
             if ($this->objects[$tableName][$id]->valid()) {
                 return $this->objects[$tableName][$id]->get();
             }
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**

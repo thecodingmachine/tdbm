@@ -126,7 +126,7 @@ class TDBMService
     /**
      * A cache service to be used.
      *
-     * @var Cache|null
+     * @var Cache
      */
     private $cache;
 
@@ -441,7 +441,13 @@ class TDBMService
     public function getPrimaryKeyColumns(string $table): array
     {
         if (!isset($this->primaryKeysColumns[$table])) {
-            $this->primaryKeysColumns[$table] = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKey()->getUnquotedColumns();
+            $primaryKey = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKey();
+            if ($primaryKey === null) {
+                // Security check: a table MUST have a primary key
+                throw new TDBMException(sprintf('Table "%s" does not have any primary key', $table));
+            }
+
+            $this->primaryKeysColumns[$table] = $primaryKey->getUnquotedColumns();
 
             // TODO TDBM4: See if we need to improve error reporting if table name does not exist.
 
@@ -927,7 +933,7 @@ class TDBMService
      */
     public function _getPrimaryKeysFromIndexedPrimaryKeys($tableName, array $indexedPrimaryKeys)
     {
-        $primaryKeyColumns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getPrimaryKey()->getUnquotedColumns();
+        $primaryKeyColumns = $this->getPrimaryKeyColumns($tableName);
 
         if (count($primaryKeyColumns) !== count($indexedPrimaryKeys)) {
             throw new TDBMException(sprintf('Wrong number of columns passed for primary key. Expected %s columns for table "%s",
@@ -1126,7 +1132,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), ?int $mode = null, string $className = null)
+    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), ?int $mode = null, string $className = null) : ResultIterator
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1195,8 +1201,8 @@ class TDBMService
         $primaryKeys = $this->_getPrimaryKeysFromObjectData($table, $primaryKeys);
         $hash = $this->getObjectHash($primaryKeys);
 
-        if ($this->objectStorage->has($table, $hash)) {
-            $dbRow = $this->objectStorage->get($table, $hash);
+        $dbRow = $this->objectStorage->get($table, $hash);
+        if ($dbRow !== null) {
             $bean = $dbRow->getTDBMObject();
             if ($className !== null && !is_a($bean, $className)) {
                 throw new TDBMException("TDBM cannot create a bean of class '".$className."'. The requested object was already loaded and its class is '".get_class($bean)."'");

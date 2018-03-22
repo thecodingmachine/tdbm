@@ -40,7 +40,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     /**
      * Returns the foreignkey the column is part of, if any. null otherwise.
      *
-     * @return ForeignKeyConstraint|null
+     * @return ForeignKeyConstraint
      */
     public function getForeignKey()
     {
@@ -50,9 +50,9 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     /**
      * Returns the name of the class linked to this property or null if this is not a foreign key.
      *
-     * @return null|string
+     * @return string
      */
-    public function getClassName(): ?string
+    public function getClassName(): string
     {
         return $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
     }
@@ -132,7 +132,13 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $fkColumns = $this->foreignKey->getUnquotedLocalColumns();
         sort($fkColumns);
 
-        $pkColumns = $this->table->getPrimaryKey()->getUnquotedColumns();
+        $primaryKey = $this->table->getPrimaryKey();
+        if ($primaryKey === null) {
+            // Security check: a table MUST have a primary key
+            throw new TDBMException(sprintf('Table "%s" does not have any primary key', $this->table->getName()));
+        }
+
+        $pkColumns = $primaryKey->getUnquotedColumns();
         sort($pkColumns);
 
         return $fkColumns == $pkColumns;

@@ -148,7 +148,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
     /**
      * Fetches record at current cursor.
      *
-     * @return AbstractTDBMObject|null
+     * @return AbstractTDBMObject
      */
     public function current()
     {

@@ -1121,6 +1121,17 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testPartialMultiColumnsIndexBasedSearch()
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $users = $userDao->findByStatusAndCountry('on');
+
+        $this->assertEquals('jean.dupont', $users[0]->getLogin());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testCreationInNullableDate()
     {
         $roleDao = new RoleDao($this->tdbmService);

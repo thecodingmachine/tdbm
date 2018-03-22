@@ -191,9 +191,13 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return bool
      */
-    public function isPrimaryKey()
+    public function isPrimaryKey(): bool
     {
-        return in_array($this->column->getName(), $this->table->getPrimaryKey()->getUnquotedColumns());
+        $primaryKey = $this->table->getPrimaryKey();
+        if ($primaryKey === null) {
+            return false;
+        }
+        return in_array($this->column->getName(), $primaryKey->getUnquotedColumns());
     }
 
     /**

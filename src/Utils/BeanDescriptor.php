@@ -606,6 +606,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
         $params = [];
         $filterArrayCode = '';
         $commentArguments = [];
+        $first = true;
         foreach ($elements as $element) {
             $params[] = $element->getParamAnnotation();
             if ($element instanceof ScalarBeanPropertyDescriptor) {
@@ -618,10 +619,19 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
                 foreach ($columns as $localColumn => $foreignColumn) {
                     // TODO: a foreign key could point to another foreign key. In this case, there is no getter for the pointed column. We don't support this case.
                     $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy);
-                    $filterArrayCode .= '            '.var_export($localColumn, true).' => '.$element->getVariableName().'->'.$targetedElement->getGetterName()."(),\n";
+                    if ($first) {
+                        // First parameter for index is not nullable
+                        $filterArrayCode .= '            '.var_export($localColumn, true).' => '.$element->getVariableName().'->'.$targetedElement->getGetterName()."(),\n";
+                    } else {
+                        // Other parameters for index is not nullable
+                        $filterArrayCode .= '            '.var_export($localColumn, true).' => ('.$element->getVariableName().' !== null) ? '.$element->getVariableName().'->'.$targetedElement->getGetterName()."() : null,\n";
+                    }
                 }
             }
             $commentArguments[] = substr($element->getVariableName(), 1);
+            if ($first) {
+                $first = false;
+            }
         }
         $paramsString = implode("\n", $params);
 

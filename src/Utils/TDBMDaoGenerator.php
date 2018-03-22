@@ -207,6 +207,10 @@ class $className extends $baseClassName
         $daonamespace = $this->configuration->getDaoNamespace();
         $beannamespace = $this->configuration->getBeanNamespace();
         $tableName = $table->getName();
+        if ($table->getPrimaryKey() === null) {
+            // Security check: a table MUST have a primary key
+            throw new TDBMException(sprintf('Table "%s" does not have any primary key', $tableName));
+        }
         $primaryKeyColumns = $table->getPrimaryKey()->getUnquotedColumns();
 
         list($defaultSort, $defaultSortDirection) = $this->getDefaultSortColumnFromAnnotation($table);

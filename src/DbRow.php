@@ -142,7 +142,7 @@ class DbRow
      *
      * @param string $state
      */
-    public function _setStatus($state)
+    public function _setStatus(string $state) : void
     {
         $this->status = $state;
     }
