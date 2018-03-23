@@ -1126,7 +1126,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userDao = new UserDao($this->tdbmService);
         $users = $userDao->findByStatusAndCountry('on');
 
-        $this->assertEquals('jean.dupont', $users[0]->getLogin());
+        $this->assertCount(2, $users);
     }
 
     /**
