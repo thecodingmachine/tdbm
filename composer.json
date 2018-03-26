@@ -59,7 +59,7 @@
         }
     },
     "scripts": {
-        "phpstan": "phpstan analyse src -c phpstan.neon --level=2 --no-progress -vvv"
+        "phpstan": "phpstan analyse src -c phpstan.neon --level=7 --no-progress -vvv"
     },
     "extra": {
         "branch-alias": {

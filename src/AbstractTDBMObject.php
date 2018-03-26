@@ -51,7 +51,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * $status = TDBMObjectStateEnum::STATE_NOT_LOADED when the object has been retrieved with getObject but when no data has been accessed in it yet.
      * $status = TDBMObjectStateEnum::STATE_LOADED when the object is cached in memory.
      *
-     * @var string
+     * @var string|null
      */
     private $status;
 
@@ -172,7 +172,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @param string $state
      */
-    public function _setStatus($state)
+    public function _setStatus(string $state)
     {
         $this->status = $state;
 
@@ -280,12 +280,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return AbstractTDBMObject|null
      */
-    protected function getRef($foreignKeyName, $tableName = null)
+    protected function getRef(string $foreignKeyName, ?string $tableName = null) : ?AbstractTDBMObject
     {
         $tableName = $this->checkTableName($tableName);
 
         if (!isset($this->dbRows[$tableName])) {
-            return;
+            return null;
         }
 
         return $this->dbRows[$tableName]->getRef($foreignKeyName);
@@ -549,8 +549,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return string
      */
-    public function _getStatus()
+    public function _getStatus() : string
     {
+        if ($this->status === null) {
+            throw new TDBMException(sprintf('Your bean for class %s has no status. It is likely that you overloaded the __construct method and forgot to call parent::__construct.', get_class($this)));
+        }
+
         return $this->status;
     }
 
@@ -611,6 +615,10 @@ abstract class AbstractTDBMObject implements JsonSerializable
             $indexedPrimaryKeys = array_values($anotherDbRow->_getPrimaryKeys());
             $primaryKeys = $this->tdbmService->_getPrimaryKeysFromIndexedPrimaryKeys($tableName, $indexedPrimaryKeys);
             $dbRow->_setPrimaryKeys($primaryKeys);
+        }
+
+        if ($this->status === null) {
+            throw new TDBMException(sprintf('Your bean for class %s has no status. It is likely that you overloaded the __construct method and forgot to call parent::__construct.', get_class($this)));
         }
 
         $dbRow->_setStatus($this->status);

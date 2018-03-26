@@ -207,7 +207,7 @@ class $className extends $baseClassName
         $daonamespace = $this->configuration->getDaoNamespace();
         $beannamespace = $this->configuration->getBeanNamespace();
         $tableName = $table->getName();
-        $primaryKeyColumns = $table->getPrimaryKey()->getUnquotedColumns();
+        $primaryKeyColumns = self::getPrimaryKeyColumnsOrFail($table);
 
         list($defaultSort, $defaultSortDirection) = $this->getDefaultSortColumnFromAnnotation($table);
 
@@ -669,17 +669,15 @@ class $daoFactoryClassName
     }
 
     /**
-     * Tells if a given column type can be Json Serialized (Blob and Binary are not for instance)
-     * @param Type $type
-     * @return bool
+     * @param Table $table
+     * @return string[]
+     * @throws TDBMException
      */
-    public static function isSerializableType(Type $type) : bool
-    {
-        $unserialisableTypes = [
-            Type::BLOB,
-            Type::BINARY
-        ];
-
-        return \in_array($type->getName(), $unserialisableTypes, true) === false;
+    public static function getPrimaryKeyColumnsOrFail(Table $table): array {
+        if ($table->getPrimaryKey() === null) {
+            // Security check: a table MUST have a primary key
+            throw new TDBMException(sprintf('Table "%s" does not have any primary key', $table->getName()));
+        }
+        return $table->getPrimaryKey()->getUnquotedColumns();
     }
 }

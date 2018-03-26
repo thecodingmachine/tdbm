@@ -26,7 +26,7 @@ class AlteredConfiguration implements ConfigurationInterface
     private $configuration;
 
     /**
-     * @var LoggerInterface
+     * @var LoggerInterface|null
      */
     private $logger;
 
@@ -86,7 +86,7 @@ class AlteredConfiguration implements ConfigurationInterface
     }
 
     /**
-     * @return LoggerInterface
+     * @return LoggerInterface|null
      */
     public function getLogger(): ?LoggerInterface
     {
@@ -104,7 +104,7 @@ class AlteredConfiguration implements ConfigurationInterface
     /**
      * @param LoggerInterface $logger
      */
-    public function setLogger(LoggerInterface $logger)
+    public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
     }

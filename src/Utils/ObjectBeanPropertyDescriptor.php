@@ -40,7 +40,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     /**
      * Returns the foreignkey the column is part of, if any. null otherwise.
      *
-     * @return ForeignKeyConstraint|null
+     * @return ForeignKeyConstraint
      */
     public function getForeignKey()
     {
@@ -50,9 +50,9 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     /**
      * Returns the name of the class linked to this property or null if this is not a foreign key.
      *
-     * @return null|string
+     * @return string
      */
-    public function getClassName(): ?string
+    public function getClassName(): string
     {
         return $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
     }
@@ -115,7 +115,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return string
      *
-     * @throws \TDBMException
+     * @throws TDBMException
      */
     public function assignToDefaultCode()
     {
@@ -132,7 +132,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $fkColumns = $this->foreignKey->getUnquotedLocalColumns();
         sort($fkColumns);
 
-        $pkColumns = $this->table->getPrimaryKey()->getUnquotedColumns();
+        $pkColumns = TDBMDaoGenerator::getPrimaryKeyColumnsOrFail($this->table);
         sort($pkColumns);
 
         return $fkColumns == $pkColumns;

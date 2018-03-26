@@ -89,7 +89,7 @@ class TDBMService
      * Primary keys are stored by tables, as an array of column.
      * For instance $primary_key['my_table'][0] will return the first column of the primary key of table 'my_table'.
      *
-     * @var string[]
+     * @var string[][]
      */
     private $primaryKeysColumns;
 
@@ -126,7 +126,7 @@ class TDBMService
     /**
      * A cache service to be used.
      *
-     * @var Cache|null
+     * @var Cache
      */
     private $cache;
 
@@ -441,7 +441,13 @@ class TDBMService
     public function getPrimaryKeyColumns(string $table): array
     {
         if (!isset($this->primaryKeysColumns[$table])) {
-            $this->primaryKeysColumns[$table] = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKey()->getUnquotedColumns();
+            $primaryKey = $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getPrimaryKey();
+            if ($primaryKey === null) {
+                // Security check: a table MUST have a primary key
+                throw new TDBMException(sprintf('Table "%s" does not have any primary key', $table));
+            }
+
+            $this->primaryKeysColumns[$table] = $primaryKey->getUnquotedColumns();
 
             // TODO TDBM4: See if we need to improve error reporting if table name does not exist.
 
@@ -558,10 +564,6 @@ class TDBMService
         $this->connection->beginTransaction();
         try {
             $status = $object->_getStatus();
-
-            if ($status === null) {
-                throw new TDBMException(sprintf('Your bean for class %s has no status. It is likely that you overloaded the __construct method and forgot to call parent::__construct.', get_class($object)));
-            }
 
             // Let's attach this object if it is in detached state.
             if ($status === TDBMObjectStateEnum::STATE_DETACHED) {
@@ -931,7 +933,7 @@ class TDBMService
      */
     public function _getPrimaryKeysFromIndexedPrimaryKeys($tableName, array $indexedPrimaryKeys)
     {
-        $primaryKeyColumns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getPrimaryKey()->getUnquotedColumns();
+        $primaryKeyColumns = $this->getPrimaryKeyColumns($tableName);
 
         if (count($primaryKeyColumns) !== count($indexedPrimaryKeys)) {
             throw new TDBMException(sprintf('Wrong number of columns passed for primary key. Expected %s columns for table "%s",
@@ -1130,7 +1132,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), ?int $mode = null, string $className = null)
+    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), ?int $mode = null, string $className = null) : ResultIterator
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1199,8 +1201,8 @@ class TDBMService
         $primaryKeys = $this->_getPrimaryKeysFromObjectData($table, $primaryKeys);
         $hash = $this->getObjectHash($primaryKeys);
 
-        if ($this->objectStorage->has($table, $hash)) {
-            $dbRow = $this->objectStorage->get($table, $hash);
+        $dbRow = $this->objectStorage->get($table, $hash);
+        if ($dbRow !== null) {
             $bean = $dbRow->getTDBMObject();
             if ($className !== null && !is_a($bean, $className)) {
                 throw new TDBMException("TDBM cannot create a bean of class '".$className."'. The requested object was already loaded and its class is '".get_class($bean)."'");
@@ -1253,7 +1255,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObject(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null)
+    public function findObject(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null) : ?AbstractTDBMObject
     {
         $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
         $page = $objects->take(0, 2);
@@ -1267,7 +1269,7 @@ class TDBMService
         if ($count > 1) {
             throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
         } elseif ($count === 0) {
-            return;
+            return null;
         }
 
         return $pageArr[0];
@@ -1286,7 +1288,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectFromSql($mainTable, $from, $filter = null, array $parameters = array(), $className = null)
+    public function findObjectFromSql($mainTable, $from, $filter = null, array $parameters = array(), $className = null) : ?AbstractTDBMObject
     {
         $objects = $this->findObjectsFromSql($mainTable, $from, $filter, $parameters, null, self::MODE_ARRAY, $className);
         $page = $objects->take(0, 2);
@@ -1294,7 +1296,7 @@ class TDBMService
         if ($count > 1) {
             throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
         } elseif ($count === 0) {
-            return;
+            return null;
         }
 
         return $page[0];

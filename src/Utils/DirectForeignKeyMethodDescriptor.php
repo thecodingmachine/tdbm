@@ -6,6 +6,7 @@ namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
+use TheCodingMachine\TDBM\TDBMException;
 
 /**
  * Represents a method to get a list of beans from a direct foreign key pointing to our bean.
@@ -119,7 +120,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         $counter = 0;
         $parameters = [];
 
-        $pkColumns = $this->mainTable->getPrimaryKey()->getUnquotedColumns();
+        $pkColumns = TDBMDaoGenerator::getPrimaryKeyColumnsOrFail($this->mainTable);
 
         foreach ($fk->getUnquotedLocalColumns() as $columnName) {
             $pkColumn = $pkColumns[$counter];

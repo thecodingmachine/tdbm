@@ -38,7 +38,7 @@ class Configuration implements ConfigurationInterface
      */
     private $schemaAnalyzer;
     /**
-     * @var LoggerInterface
+     * @var LoggerInterface|null
      */
     private $logger;
     /**

@@ -2,11 +2,13 @@
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Types\DateTimeImmutableType;
 use Doctrine\DBAL\Types\DateTimeType;
+use Doctrine\DBAL\Types\Type;
 use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotation;
@@ -39,16 +41,6 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         parent::__construct($table, $namingStrategy);
         $this->table = $table;
         $this->column = $column;
-    }
-
-    /**
-     * Returns the foreign-key the column is part of, if any. null otherwise.
-     *
-     * @return ForeignKeyConstraint|null
-     */
-    public function getForeignKey()
-    {
-        return false;
     }
 
     /**
@@ -172,7 +164,8 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
                     throw new TDBMException('Unable to set default value for date. Database passed this default value: "'.$default.'"');
                 }
             } else {
-                $defaultCode = var_export($this->column->getDefault(), true);
+                $defaultValue = $type->convertToPHPValue($this->column->getDefault(), new MySQL57Platform());
+                $defaultCode = var_export($defaultValue, true);
             }
         }
 
@@ -198,9 +191,13 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return bool
      */
-    public function isPrimaryKey()
+    public function isPrimaryKey(): bool
     {
-        return in_array($this->column->getName(), $this->table->getPrimaryKey()->getUnquotedColumns());
+        $primaryKey = $this->table->getPrimaryKey();
+        if ($primaryKey === null) {
+            return false;
+        }
+        return in_array($this->column->getName(), $primaryKey->getUnquotedColumns());
     }
 
     /**
@@ -292,7 +289,11 @@ EOF;
         }
 
         if ($normalizedType == '\\DateTimeImmutable') {
-            return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
+            if ($this->column->getNotnull()) {
+                return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."()->format('c');\n";
+            } else {
+                return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
+            }
         } else {
             return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."();\n";
         }
@@ -324,12 +325,18 @@ EOF;
     /**
      * tells is this type is suitable for Json Serialization
      *
-     * @return string
+     * @return bool
      */
-    public function canBeSerialized() : string
+    public function canBeSerialized() : bool
     {
         $type = $this->column->getType();
-        return TDBMDaoGenerator::isSerializableType($type);
+
+        $unserialisableTypes = [
+            Type::BLOB,
+            Type::BINARY
+        ];
+
+        return \in_array($type->getName(), $unserialisableTypes, true) === false;
     }
 
     /**
