@@ -115,7 +115,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return string
      *
-     * @throws \TDBMException
+     * @throws TDBMException
      */
     public function assignToDefaultCode()
     {
@@ -132,13 +132,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $fkColumns = $this->foreignKey->getUnquotedLocalColumns();
         sort($fkColumns);
 
-        $primaryKey = $this->table->getPrimaryKey();
-        if ($primaryKey === null) {
-            // Security check: a table MUST have a primary key
-            throw new TDBMException(sprintf('Table "%s" does not have any primary key', $this->table->getName()));
-        }
-
-        $pkColumns = $primaryKey->getUnquotedColumns();
+        $pkColumns = TDBMDaoGenerator::getPrimaryKeyColumnsOrFail($this->table);
         sort($pkColumns);
 
         return $fkColumns == $pkColumns;

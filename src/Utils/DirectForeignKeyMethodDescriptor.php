@@ -120,12 +120,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         $counter = 0;
         $parameters = [];
 
-        $primaryKey = $this->mainTable->getPrimaryKey();
-        if ($primaryKey === null) {
-            // Security check: a table MUST have a primary key
-            throw new TDBMException(sprintf('Table "%s" does not have any primary key', $this->mainTable->getName()));
-        }
-        $pkColumns = $primaryKey->getUnquotedColumns();
+        $pkColumns = TDBMDaoGenerator::getPrimaryKeyColumnsOrFail($this->mainTable);
 
         foreach ($fk->getUnquotedLocalColumns() as $columnName) {
             $pkColumn = $pkColumns[$counter];
