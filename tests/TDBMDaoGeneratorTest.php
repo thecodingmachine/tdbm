@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /*
  Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE

@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Commands;
 
 use TheCodingMachine\TDBM\ConfigurationInterface;
