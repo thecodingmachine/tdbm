@@ -29,7 +29,7 @@ namespace TheCodingMachine\TDBM;
  *
  * @author David Negrier
  */
-class WeakrefObjectStorage
+class WeakrefObjectStorage implements ObjectStorageInterface
 {
     /**
      * An array of fetched object, accessible via table name and primary key.
@@ -55,7 +55,7 @@ class WeakrefObjectStorage
      * @param string $id
      * @param DbRow  $dbRow
      */
-    public function set($tableName, $id, DbRow $dbRow)
+    public function set(string $tableName, $id, DbRow $dbRow): void
     {
         $this->objects[$tableName][$id] = new \WeakRef($dbRow);
         ++$this->garbageCollectorCount;
@@ -73,7 +73,7 @@ class WeakrefObjectStorage
      *
      * @return bool
      */
-    public function has($tableName, $id)
+    public function has(string $tableName, $id): bool
     {
         if (isset($this->objects[$tableName][$id])) {
             if ($this->objects[$tableName][$id]->valid()) {
@@ -110,7 +110,7 @@ class WeakrefObjectStorage
      * @param string $tableName
      * @param string $id
      */
-    public function remove($tableName, $id)
+    public function remove(string $tableName, $id): void
     {
         unset($this->objects[$tableName][$id]);
     }
@@ -120,7 +120,7 @@ class WeakrefObjectStorage
      *
      * @param callable $callback
      */
-    public function apply(callable $callback)
+    public function apply(callable $callback): void
     {
         foreach ($this->objects as $tableName => $table) {
             foreach ($table as $id => $obj) {
@@ -133,7 +133,7 @@ class WeakrefObjectStorage
         }
     }
 
-    private function cleanupDanglingWeakRefs()
+    private function cleanupDanglingWeakRefs(): void
     {
         foreach ($this->objects as $tableName => $table) {
             foreach ($table as $id => $obj) {

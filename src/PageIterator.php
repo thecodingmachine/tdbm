@@ -55,9 +55,7 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      */
     protected $key = -1;
 
-    protected $current = null;
-
-    private $databasePlatform;
+    protected $current;
 
     private $innerResultIterator;
 
@@ -68,7 +66,7 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      */
     private $logger;
 
-    public function __construct(ResultIterator $parentResult, $magicSql, array $parameters, $limit, $offset, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode, LoggerInterface $logger)
+    public function __construct(ResultIterator $parentResult, $magicSql, array $parameters, $limit, $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode, LoggerInterface $logger)
     {
         $this->parentResult = $parentResult;
         $this->magicSql = $magicSql;
@@ -80,7 +78,6 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
         $this->offset = $offset;
         $this->columnDescriptors = $columnDescriptors;
         $this->magicQuery = $magicQuery;
-        $this->databasePlatform = $this->tdbmService->getConnection()->getDatabasePlatform();
         $this->mode = $mode;
         $this->logger = $logger;
     }
