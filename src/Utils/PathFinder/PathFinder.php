@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils\PathFinder;
 
 use Mouf\Composer\ClassNameMapper;

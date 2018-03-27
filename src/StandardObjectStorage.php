@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /*
  Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE
@@ -28,7 +29,7 @@ namespace TheCodingMachine\TDBM;
  *
  * @author David Negrier
  */
-class StandardObjectStorage
+class StandardObjectStorage implements ObjectStorageInterface
 {
     /**
      * An array of fetched object, accessible via table name and primary key.
@@ -45,7 +46,7 @@ class StandardObjectStorage
      * @param string     $id
      * @param DbRow      $dbRow
      */
-    public function set(string $tableName, $id, DbRow $dbRow)
+    public function set(string $tableName, $id, DbRow $dbRow): void
     {
         $this->objects[$tableName][$id] = $dbRow;
     }
@@ -58,7 +59,7 @@ class StandardObjectStorage
      *
      * @return bool
      */
-    public function has($tableName, $id)
+    public function has(string $tableName, $id): bool
     {
         return isset($this->objects[$tableName][$id]);
     }
@@ -86,7 +87,7 @@ class StandardObjectStorage
      * @param string $tableName
      * @param string $id
      */
-    public function remove($tableName, $id)
+    public function remove(string $tableName, $id): void
     {
         unset($this->objects[$tableName][$id]);
     }
@@ -96,7 +97,7 @@ class StandardObjectStorage
      *
      * @param callable $callback
      */
-    public function apply(callable $callback)
+    public function apply(callable $callback): void
     {
         foreach ($this->objects as $tableName => $table) {
             foreach ($table as $id => $obj) {

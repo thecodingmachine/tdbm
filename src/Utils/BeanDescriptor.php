@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
@@ -467,6 +468,8 @@ class BeanDescriptor implements BeanDescriptorInterface
         }
 
         $str = "<?php
+declare(strict_types=1);
+
 namespace {$this->generatedBeanNamespace};
 
 use TheCodingMachine\\TDBM\\ResultIterator;
