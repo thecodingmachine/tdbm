@@ -64,7 +64,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * @param mixed[] $parameters
      */
-    public function __construct(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger)
+    public function __construct(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger)
     {
         if ($mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
             throw new TDBMException("Unknown fetch mode: '".$mode."'");
@@ -104,9 +104,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * Casts the result set to a PHP array.
      *
-     * @return array
+     * @return AbstractTDBMObject[]
      */
-    public function toArray()
+    public function toArray(): array
     {
         return iterator_to_array($this->getIterator());
     }
@@ -118,7 +118,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * @return MapIterator
      */
-    public function map(callable $callable)
+    public function map(callable $callable): MapIterator
     {
         return new MapIterator($this->getIterator(), $callable);
     }
@@ -301,7 +301,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      *  $resultSet = $resultSet->withParameters([ 'status' => 'on' ]);
      *
-     * @param array $parameters
+     * @param mixed[] $parameters
      *
      * @return ResultIterator
      */

@@ -55,7 +55,7 @@ class StandardObjectStorage implements ObjectStorageInterface
      * Checks if an object is in the storage.
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      *
      * @return bool
      */
@@ -68,7 +68,7 @@ class StandardObjectStorage implements ObjectStorageInterface
      * Returns an object from the storage (or null if no object is set).
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      *
      * @return DbRow|null
      */
@@ -85,7 +85,7 @@ class StandardObjectStorage implements ObjectStorageInterface
      * Removes an object from the storage.
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      */
     public function remove(string $tableName, $id): void
     {

@@ -53,7 +53,7 @@ class WeakrefObjectStorage implements ObjectStorageInterface
      * Sets an object in the storage.
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      * @param DbRow  $dbRow
      */
     public function set(string $tableName, $id, DbRow $dbRow): void
@@ -70,7 +70,7 @@ class WeakrefObjectStorage implements ObjectStorageInterface
      * Checks if an object is in the storage.
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      *
      * @return bool
      */
@@ -91,7 +91,7 @@ class WeakrefObjectStorage implements ObjectStorageInterface
      * Returns an object from the storage (or null if no object is set).
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      *
      * @return DbRow|null
      */
@@ -109,7 +109,7 @@ class WeakrefObjectStorage implements ObjectStorageInterface
      * Removes an object from the storage.
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      */
     public function remove(string $tableName, $id): void
     {

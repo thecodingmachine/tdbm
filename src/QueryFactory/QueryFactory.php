@@ -24,7 +24,7 @@ interface QueryFactory
      *
      * @param string|UncheckedOrderBy|null $orderBy
      */
-    public function sort($orderBy);
+    public function sort($orderBy): void;
 
     public function getMagicSql() : string;
 

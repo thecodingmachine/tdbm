@@ -586,12 +586,17 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
         $functionParameters = [];
         $first = true;
         foreach ($elements as $element) {
-            $functionParameter = $element->getClassName();
-            if ($functionParameter) {
-                $usedBeans[] = $beanNamespace.'\\'.$functionParameter;
-                $functionParameter .= ' ';
+            if (!$first) {
+                $functionParameter = '?';
+            } else {
+                $functionParameter = '';
             }
-            $functionParameter .= $element->getVariableName();
+            $functionParameter .= $element->getPhpType();
+            $elementClassName = $element->getClassName();
+            if ($elementClassName) {
+                $usedBeans[] = $beanNamespace.'\\'.$elementClassName;
+            }
+            $functionParameter .= ' '.$element->getVariableName();
             if ($first) {
                 $first = false;
             } else {
@@ -646,7 +651,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
      * Get a $beanClassName filtered by ".implode(', ', $commentArguments).".
      *
 $paramsString
-     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @param string[] \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
      * @return $returnType|null
      */
     public function $methodName($functionParametersString, array \$additionalTablesFetch = array()) : ?$returnType
@@ -665,7 +670,7 @@ $paramsString
      *
 $paramsString
      * @param mixed \$orderBy The order string
-     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @param string[] \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
      * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return $returnType
      */

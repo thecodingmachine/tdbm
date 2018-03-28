@@ -57,7 +57,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         [$this->processedSql, $this->processedSqlCount, $this->columnDescriptors] = $this->compute($sql, $sqlCount);
     }
 
-    public function sort($orderBy)
+    public function sort($orderBy): void
     {
         throw new TDBMException('sort not supported for raw sql queries');
     }

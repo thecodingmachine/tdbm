@@ -281,7 +281,7 @@ class $baseClassName
      *
      * @param $beanClassWithoutNameSpace \$obj The bean to save.
      */
-    public function save($beanClassWithoutNameSpace \$obj)
+    public function save($beanClassWithoutNameSpace \$obj): void
     {
         \$this->tdbmService->save(\$obj);
     }
@@ -315,7 +315,7 @@ class $baseClassName
      * @return $beanClassWithoutNameSpace
      * @throws TDBMException
      */
-    public function getById($primaryKeyPhpType \$id, \$lazyLoading = false) : $beanClassWithoutNameSpace
+    public function getById($primaryKeyPhpType \$id, bool \$lazyLoading = false) : $beanClassWithoutNameSpace
     {
         return \$this->tdbmService->findObjectByPk('$tableName', ['$primaryKeyColumn' => \$id], [], \$lazyLoading);
     }
@@ -328,7 +328,7 @@ class $baseClassName
      * @param $beanClassWithoutNameSpace \$obj object to delete
      * @param bool \$cascade if true, it will delete all object linked to \$obj
      */
-    public function delete($beanClassWithoutNameSpace \$obj, \$cascade = false) : void
+    public function delete($beanClassWithoutNameSpace \$obj, bool \$cascade = false) : void
     {
         if (\$cascade === true) {
             \$this->tdbmService->deleteCascade(\$obj);
@@ -342,13 +342,13 @@ class $baseClassName
      * Get a list of $beanClassWithoutNameSpace specified by its filters.
      *
      * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
-     * @param array \$parameters The parameters associated with the filter
+     * @param mixed[] \$parameters The parameters associated with the filter
      * @param mixed \$orderBy The order string
-     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
-     * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
+     * @param string[] \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @param int|null \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
-    protected function find(\$filter = null, array \$parameters = [], \$orderBy=null, array \$additionalTablesFetch = [], \$mode = null) : iterable
+    protected function find(\$filter = null, array \$parameters = [], \$orderBy=null, array \$additionalTablesFetch = [], ?int \$mode = null) : iterable
     {
         if (\$this->defaultSort && \$orderBy == null) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
@@ -366,12 +366,12 @@ class $baseClassName
      *
      * @param string \$from The sql from statement
      * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
-     * @param array \$parameters The parameters associated with the filter
+     * @param mixed[] \$parameters The parameters associated with the filter
      * @param mixed \$orderBy The order string
-     * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
+     * @param int|null \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
-    protected function findFromSql(\$from, \$filter = null, array \$parameters = [], \$orderBy = null, \$mode = null) : iterable
+    protected function findFromSql(string \$from, \$filter = null, array \$parameters = [], \$orderBy = null, ?int \$mode = null) : iterable
     {
         if (\$this->defaultSort && \$orderBy == null) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
@@ -388,12 +388,12 @@ class $baseClassName
      *   \"SELECT $tableName.* FROM ...\"
      *
      * @param string \$sql The sql query
-     * @param array \$parameters The parameters associated with the filter
-     * @param string \$countSql The count sql query (automatically computed if not provided)
-     * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
+     * @param mixed[] \$parameters The parameters associated with the filter
+     * @param string|null \$countSql The count sql query (automatically computed if not provided)
+     * @param int|null \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
-    protected function findFromRawSql(\$sql, array \$parameters = [], \$countSql = null, \$mode = null) : iterable
+    protected function findFromRawSql(string \$sql, array \$parameters = [], ?string \$countSql = null, ?int \$mode = null) : iterable
     {
         return \$this->tdbmService->findObjectsFromRawSql('$tableName', \$sql, \$parameters, \$mode, null, \$countSql);
     }
@@ -402,8 +402,8 @@ class $baseClassName
      * Get a single $beanClassWithoutNameSpace specified by its filters.
      *
      * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
-     * @param array \$parameters The parameters associated with the filter
-     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @param mixed[] \$parameters The parameters associated with the filter
+     * @param string[] \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
      * @return $beanClassWithoutNameSpace|null
      */
     protected function findOne(\$filter = null, array \$parameters = [], array \$additionalTablesFetch = []) : ?$beanClassWithoutNameSpace
@@ -421,10 +421,10 @@ class $baseClassName
      *
      * @param string \$from The sql from statement
      * @param mixed \$filter The filter bag (see TDBMService::findObjects for complete description)
-     * @param array \$parameters The parameters associated with the filter
+     * @param mixed[] \$parameters The parameters associated with the filter
      * @return $beanClassWithoutNameSpace|null
      */
-    protected function findOneFromSql(\$from, \$filter = null, array \$parameters = []) : ?$beanClassWithoutNameSpace
+    protected function findOneFromSql(string \$from, \$filter = null, array \$parameters = []) : ?$beanClassWithoutNameSpace
     {
         return \$this->tdbmService->findObjectFromSql('$tableName', \$from, \$filter, \$parameters);
     }

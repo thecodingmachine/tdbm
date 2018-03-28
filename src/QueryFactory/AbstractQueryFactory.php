@@ -53,7 +53,7 @@ abstract class AbstractQueryFactory implements QueryFactory
      * Note: MySQL dictates that ORDER BYed columns should appear in the SELECT clause.
      *
      * @param string $mainTable
-     * @param array $additionalTablesFetch
+     * @param string[] $additionalTablesFetch
      * @param string|UncheckedOrderBy|null $orderBy
      *
      * @param bool $canAddAdditionalTablesFetch Set to true if the function can add additional tables to fetch (so if the factory generates its own FROM clause)
@@ -228,7 +228,7 @@ abstract class AbstractQueryFactory implements QueryFactory
      *
      * @param string|UncheckedOrderBy|null $orderBy
      */
-    public function sort($orderBy)
+    public function sort($orderBy): void
     {
         $this->orderBy = $orderBy;
         $this->magicSql = null;
