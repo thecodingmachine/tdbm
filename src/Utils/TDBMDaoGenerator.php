@@ -130,7 +130,7 @@ class TDBMDaoGenerator
      *
      * @throws TDBMException
      */
-    public function generateBean(BeanDescriptor $beanDescriptor, $className, $baseClassName, Table $table)
+    public function generateBean(BeanDescriptor $beanDescriptor, string $className, string $baseClassName, Table $table): void
     {
         $beannamespace = $this->configuration->getBeanNamespace();
         $str = $beanDescriptor->generatePhpCode();
@@ -172,9 +172,9 @@ class $className extends $baseClassName
      *
      * @param Table $table
      *
-     * @return array First item: column name, Second item: column order (asc/desc)
+     * @return mixed[] First item: column name, Second item: column order (asc/desc)
      */
-    private function getDefaultSortColumnFromAnnotation(Table $table)
+    private function getDefaultSortColumnFromAnnotation(Table $table): array
     {
         $defaultSort = null;
         $defaultSortDirection = null;
@@ -205,7 +205,7 @@ class $className extends $baseClassName
      *
      * @throws TDBMException
      */
-    private function generateDao(BeanDescriptor $beanDescriptor, string $className, string $baseClassName, string $beanClassName, Table $table)
+    private function generateDao(BeanDescriptor $beanDescriptor, string $className, string $baseClassName, string $beanClassName, Table $table): void
     {
         $daonamespace = $this->configuration->getDaoNamespace();
         $beannamespace = $this->configuration->getBeanNamespace();
@@ -563,7 +563,7 @@ class $daoFactoryClassName
      *
      * @return string
      */
-    public static function toCamelCase($str) : string
+    public static function toCamelCase(string $str) : string
     {
         $str = str_replace(array('`', '"', '[', ']'), '', $str);
 
@@ -593,7 +593,7 @@ class $daoFactoryClassName
      *
      * @return string
      */
-    public static function toSingular($str)
+    public static function toSingular(string $str): string
     {
         return Inflector::singularize($str);
     }
@@ -606,7 +606,7 @@ class $daoFactoryClassName
      *
      * @return string
      */
-    public static function toVariableName($str)
+    public static function toVariableName(string $str): string
     {
         return strtolower(substr($str, 0, 1)).substr($str, 1);
     }
@@ -618,7 +618,7 @@ class $daoFactoryClassName
      *
      * @throws TDBMException
      */
-    private function ensureDirectoryExist(string $fileName)
+    private function ensureDirectoryExist(string $fileName): void
     {
         $dirName = dirname($fileName);
         if (!file_exists($dirName)) {

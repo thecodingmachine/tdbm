@@ -30,5 +30,8 @@ interface QueryFactory
 
     public function getMagicSqlCount() : string;
 
+    /**
+     * @return mixed[][] An array of column descriptors. The key is in the form "$tableName____$columnName". Value is an array with those keys: as, table, colum, type, tableGroup
+     */
     public function getColumnDescriptors() : array;
 }

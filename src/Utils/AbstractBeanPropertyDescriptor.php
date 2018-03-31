@@ -39,7 +39,7 @@ abstract class AbstractBeanPropertyDescriptor
     /**
      * Use the more complex name in case of conflict.
      */
-    public function useAlternativeName()
+    public function useAlternativeName(): void
     {
         $this->alternativeName = true;
     }
@@ -63,19 +63,19 @@ abstract class AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    abstract public function getParamAnnotation();
+    abstract public function getParamAnnotation(): string;
 
-    public function getVariableName()
+    public function getVariableName(): string
     {
         return $this->namingStrategy->getVariableName($this);
     }
 
-    public function getSetterName()
+    public function getSetterName(): string
     {
         return $this->namingStrategy->getSetterName($this);
     }
 
-    public function getGetterName()
+    public function getGetterName(): string
     {
         return $this->namingStrategy->getGetterName($this);
     }
@@ -85,7 +85,7 @@ abstract class AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    public function getConstructorAssignCode()
+    public function getConstructorAssignCode(): string
     {
         $str = '        $this->%s(%s);';
 
@@ -97,14 +97,14 @@ abstract class AbstractBeanPropertyDescriptor
      *
      * @return bool
      */
-    abstract public function isCompulsory();
+    abstract public function isCompulsory(): bool;
 
     /**
      * Returns true if the property has a default value.
      *
      * @return bool
      */
-    abstract public function hasDefault();
+    abstract public function hasDefault(): bool;
 
     /**
      * Returns the code that assigns a value to its default value.
@@ -113,19 +113,19 @@ abstract class AbstractBeanPropertyDescriptor
      *
      * @throws \TDBMException
      */
-    abstract public function assignToDefaultCode();
+    abstract public function assignToDefaultCode(): string;
 
     /**
      * Returns true if the property is the primary key.
      *
      * @return bool
      */
-    abstract public function isPrimaryKey();
+    abstract public function isPrimaryKey(): bool;
 
     /**
      * @return Table
      */
-    public function getTable()
+    public function getTable(): Table
     {
         return $this->table;
     }
@@ -135,14 +135,14 @@ abstract class AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    abstract public function getGetterSetterCode();
+    abstract public function getGetterSetterCode(): string;
 
     /**
      * Returns the part of code useful when doing json serialization.
      *
      * @return string
      */
-    abstract public function getJsonSerializeCode();
+    abstract public function getJsonSerializeCode(): string;
 
     /**
      * @return bool
