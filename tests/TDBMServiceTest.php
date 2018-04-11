@@ -617,6 +617,16 @@ SQL;
     }
 
     /**
+     * @throws NoBeanFoundException
+     */
+    public function testFindObjectByPkException()
+    {
+        $this->expectException(NoBeanFoundException::class);
+        $this->expectExceptionMessage("No result found for query on table 'contact' for 'id' = -42");
+        $bean = $this->tdbmService->findObjectByPk('contact', ['id' => -42], [], false, TDBMObject::class);
+    }
+
+    /**
      * @expectedException \TheCodingMachine\TDBM\DuplicateRowException
      *
      * @throws DuplicateRowException
