@@ -11,3 +11,4 @@ vendor/*
 /.couscous/
 /template/
 /.travis/
+/vendor-bin/require-checker/vendor/
