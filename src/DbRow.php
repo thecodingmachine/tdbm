@@ -52,14 +52,14 @@ class DbRow
     /**
      * The array of columns returned from database.
      *
-     * @var array
+     * @var mixed[]
      */
-    private $dbRow = array();
+    private $dbRow = [];
 
     /**
      * @var AbstractTDBMObject[]
      */
-    private $references = array();
+    private $references = [];
 
     /**
      * One of TDBMObjectStateEnum::STATE_NEW, TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DELETED.
@@ -86,18 +86,17 @@ class DbRow
      * Used with id!=false when we want to retrieve an existing object
      * and id==false if we want a new object
      *
-     * @param AbstractTDBMObject $object      The object containing this db row
-     * @param string             $table_name
-     * @param array              $primaryKeys
-     * @param TDBMService        $tdbmService
-     *
+     * @param AbstractTDBMObject $object The object containing this db row
+     * @param string $tableName
+     * @param mixed[] $primaryKeys
+     * @param TDBMService $tdbmService
+     * @param mixed[] $dbRow
      * @throws TDBMException
-     * @throws TDBMInvalidOperationException
      */
-    public function __construct(AbstractTDBMObject $object, $table_name, array $primaryKeys = array(), TDBMService $tdbmService = null, array $dbRow = array())
+    public function __construct(AbstractTDBMObject $object, string $tableName, array $primaryKeys = array(), TDBMService $tdbmService = null, array $dbRow = [])
     {
         $this->object = $object;
-        $this->dbTableName = $table_name;
+        $this->dbTableName = $tableName;
 
         $this->status = TDBMObjectStateEnum::STATE_DETACHED;
 
@@ -124,7 +123,7 @@ class DbRow
         }
     }
 
-    public function _attach(TDBMService $tdbmService)
+    public function _attach(TDBMService $tdbmService): void
     {
         if ($this->status !== TDBMObjectStateEnum::STATE_DETACHED) {
             throw new TDBMInvalidOperationException('Cannot attach an object that is already attached to TDBM.');
@@ -155,7 +154,7 @@ class DbRow
      * A TDBMException is thrown is no object can be retrieved (for instance, if the primary key specified
      * cannot be found).
      */
-    public function _dbLoadIfNotLoaded()
+    public function _dbLoadIfNotLoaded(): void
     {
         if ($this->status == TDBMObjectStateEnum::STATE_NOT_LOADED) {
             $connection = $this->tdbmService->getConnection();
@@ -184,7 +183,10 @@ class DbRow
         }
     }
 
-    public function get($var)
+    /**
+     * @return mixed|null
+     */
+    public function get(string $var)
     {
         $this->_dbLoadIfNotLoaded();
 
@@ -192,19 +194,11 @@ class DbRow
     }
 
     /**
-     * Returns true if a column is set, false otherwise.
-     *
      * @param string $var
-     *
-     * @return bool
+     * @param mixed $value
+     * @throws TDBMException
      */
-    /*public function has($var) {
-        $this->_dbLoadIfNotLoaded();
-
-        return isset($this->dbRow[$var]);
-    }*/
-
-    public function set($var, $value)
+    public function set(string $var, $value): void
     {
         $this->_dbLoadIfNotLoaded();
 
@@ -231,7 +225,7 @@ class DbRow
      * @param string             $foreignKeyName
      * @param AbstractTDBMObject $bean
      */
-    public function setRef($foreignKeyName, AbstractTDBMObject $bean = null)
+    public function setRef(string $foreignKeyName, AbstractTDBMObject $bean = null): void
     {
         $this->references[$foreignKeyName] = $bean;
 
@@ -246,7 +240,7 @@ class DbRow
      *
      * @return AbstractTDBMObject|null
      */
-    public function getRef($foreignKeyName) : ?AbstractTDBMObject
+    public function getRef(string $foreignKeyName) : ?AbstractTDBMObject
     {
         if (array_key_exists($foreignKeyName, $this->references)) {
             return $this->references[$foreignKeyName];
@@ -283,7 +277,7 @@ class DbRow
      *
      * @return string
      */
-    public function _getDbTableName()
+    public function _getDbTableName(): string
     {
         return $this->dbTableName;
     }
@@ -298,7 +292,7 @@ class DbRow
      *
      * @return string
      */
-    public function _getStatus()
+    public function _getStatus(): string
     {
         return $this->status;
     }
@@ -332,7 +326,7 @@ class DbRow
      *
      * @throws TDBMMissingReferenceException
      */
-    public function _getDbRow()
+    public function _getDbRow(): array
     {
         // Let's merge $dbRow and $references
         $dbRow = $this->dbRow;
@@ -345,7 +339,7 @@ class DbRow
             if ($reference !== null) {
                 $refDbRows = $reference->_getDbRows();
                 $firstRefDbRow = reset($refDbRows);
-                if ($firstRefDbRow->_getStatus() == TDBMObjectStateEnum::STATE_DELETED) {
+                if ($firstRefDbRow->_getStatus() === TDBMObjectStateEnum::STATE_DELETED) {
                     throw TDBMMissingReferenceException::referenceDeleted($this->dbTableName, $reference);
                 }
                 $foreignColumns = $fk->getUnquotedForeignColumns();
@@ -368,7 +362,7 @@ class DbRow
      *
      * @return AbstractTDBMObject[]
      */
-    public function _getReferences()
+    public function _getReferences(): array
     {
         return $this->references;
     }
@@ -377,9 +371,9 @@ class DbRow
      * Returns the values of the primary key.
      * This is set when the object is in "loaded" state.
      *
-     * @return array
+     * @return mixed[]
      */
-    public function _getPrimaryKeys()
+    public function _getPrimaryKeys(): array
     {
         return $this->primaryKeys;
     }
@@ -388,9 +382,9 @@ class DbRow
      * Sets the values of the primary key.
      * This is set when the object is in "loaded" state.
      *
-     * @param array $primaryKeys
+     * @param mixed[] $primaryKeys
      */
-    public function _setPrimaryKeys(array $primaryKeys)
+    public function _setPrimaryKeys(array $primaryKeys): void
     {
         $this->primaryKeys = $primaryKeys;
         foreach ($this->primaryKeys as $column => $value) {
@@ -403,7 +397,7 @@ class DbRow
      *
      * @return AbstractTDBMObject
      */
-    public function getTDBMObject()
+    public function getTDBMObject(): AbstractTDBMObject
     {
         return $this->object;
     }
@@ -414,7 +408,7 @@ class DbRow
      *
      * @param AbstractTDBMObject $object
      */
-    public function setTDBMObject(AbstractTDBMObject $object)
+    public function setTDBMObject(AbstractTDBMObject $object): void
     {
         $this->object = $object;
     }

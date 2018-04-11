@@ -56,7 +56,7 @@ class OrderByAnalyzer
      *
      * @param string $orderBy
      *
-     * @return array
+     * @return array[]
      */
     public function analyzeOrderBy(string $orderBy) : array
     {
@@ -71,6 +71,10 @@ class OrderByAnalyzer
         return $results;
     }
 
+    /**
+     * @param string $orderBy
+     * @return array[]
+     */
     private function analyzeOrderByNoCache(string $orderBy) : array
     {
         $sqlParser = new PHPSQLParser();
