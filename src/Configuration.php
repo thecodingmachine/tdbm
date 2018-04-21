@@ -175,7 +175,7 @@ class Configuration implements ConfigurationInterface
     /**
      * @param PathFinderInterface $pathFinder
      */
-    public function setPathFinder(PathFinderInterface $pathFinder)
+    public function setPathFinder(PathFinderInterface $pathFinder): void
     {
         $this->pathFinder = $pathFinder;
     }

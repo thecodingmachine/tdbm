@@ -322,7 +322,7 @@ class DbRow
     /**
      * Returns raw database row.
      *
-     * @return array
+     * @return mixed[]
      *
      * @throws TDBMMissingReferenceException
      */

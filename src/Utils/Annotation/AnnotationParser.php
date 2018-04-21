@@ -32,16 +32,14 @@ class AnnotationParser
     }
 
     /**
-     * Parses an annotation line and stores the result in the MoufPhpDocComment.
-     *
-     * @param string $line
+     * Parses an annotation line and returns a Annotation object.
      */
-    private function parseAnnotation($line)
+    private function parseAnnotation(string $line): Annotation
     {
         // Let's get the annotation text
         preg_match("/^[@]([a-zA-Z][a-zA-Z0-9]*)(.*)/", $line, $values);
 
-        $annotationClass = isset($values[1])?$values[1]:null;
+        $annotationClass = $values[1];
         $annotationParams = trim(isset($values[2])?$values[2]:null);
 
         return new Annotation($annotationClass, $annotationParams);

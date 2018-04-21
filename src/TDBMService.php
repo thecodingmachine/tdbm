@@ -226,11 +226,11 @@ class TDBMService
      *
      * @param int $mode
      *
-     * @return $this
+     * @return self
      *
      * @throws TDBMException
      */
-    public function setFetchMode($mode)
+    public function setFetchMode(int $mode): self
     {
         if ($mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
             throw new TDBMException("Unknown fetch mode: '".$this->mode."'");
@@ -250,7 +250,7 @@ class TDBMService
      * @throws DBALException
      * @throws TDBMInvalidOperationException
      */
-    public function delete(AbstractTDBMObject $object)
+    public function delete(AbstractTDBMObject $object): void
     {
         switch ($object->_getStatus()) {
             case TDBMObjectStateEnum::STATE_DELETED:
@@ -307,7 +307,7 @@ class TDBMService
      *
      * @param AbstractTDBMObject $object
      */
-    private function deleteManyToManyRelationships(AbstractTDBMObject $object)
+    private function deleteManyToManyRelationships(AbstractTDBMObject $object): void
     {
         foreach ($object->_getDbRows() as $tableName => $dbRow) {
             $pivotTables = $this->tdbmSchemaAnalyzer->getPivotTableLinkedToTable($tableName);
@@ -329,7 +329,7 @@ class TDBMService
      *
      * @param AbstractTDBMObject $objToDelete
      */
-    public function deleteCascade(AbstractTDBMObject $objToDelete)
+    public function deleteCascade(AbstractTDBMObject $objToDelete): void
     {
         $this->deleteAllConstraintWithThisObject($objToDelete);
         $this->delete($objToDelete);
@@ -341,7 +341,7 @@ class TDBMService
      *
      * @param AbstractTDBMObject $obj
      */
-    private function deleteAllConstraintWithThisObject(AbstractTDBMObject $obj)
+    private function deleteAllConstraintWithThisObject(AbstractTDBMObject $obj): void
     {
         $dbRows = $obj->_getDbRows();
         foreach ($dbRows as $dbRow) {
@@ -366,7 +366,7 @@ class TDBMService
     /**
      * This function performs a save() of all the objects that have been modified.
      */
-    public function completeSave()
+    public function completeSave(): void
     {
         foreach ($this->toSaveObjects as $dbRow) {
             $this->save($dbRow->getTDBMObject());
@@ -380,11 +380,11 @@ class TDBMService
      * @param mixed $filter_bag
      * @param AbstractPlatform $platform The platform used to quote identifiers
      * @param int $counter
-     * @return array First item: filter string, second item: parameters, third item: the count
+     * @return mixed[] First item: filter string, second item: parameters, third item: the count
      *
      * @throws TDBMException
      */
-    public function buildFilterFromFilterBag($filter_bag, AbstractPlatform $platform, $counter = 1)
+    public function buildFilterFromFilterBag($filter_bag, AbstractPlatform $platform, int $counter = 1): array
     {
         if ($filter_bag === null) {
             return ['', [], $counter];
@@ -484,7 +484,7 @@ class TDBMService
      *
      * @param DbRow $dbRow
      */
-    public function _addToCache(DbRow $dbRow)
+    public function _addToCache(DbRow $dbRow): void
     {
         $primaryKey = $this->getPrimaryKeysForObjectFromDbRow($dbRow);
         $hash = $this->getObjectHash($primaryKey);
@@ -498,7 +498,7 @@ class TDBMService
      *
      * @param DbRow $myObject
      */
-    private function removeFromToSaveObjectList(DbRow $myObject)
+    private function removeFromToSaveObjectList(DbRow $myObject): void
     {
         unset($this->toSaveObjects[$myObject]);
     }
@@ -510,7 +510,7 @@ class TDBMService
      *
      * @param DbRow $myObject
      */
-    public function _addToToSaveObjectList(DbRow $myObject)
+    public function _addToToSaveObjectList(DbRow $myObject): void
     {
         $this->toSaveObjects[$myObject] = true;
     }
@@ -560,7 +560,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function save(AbstractTDBMObject $object)
+    public function save(AbstractTDBMObject $object): void
     {
         $this->connection->beginTransaction();
         try {
@@ -751,7 +751,7 @@ class TDBMService
         }
     }
 
-    private function persistManyToManyRelationships(AbstractTDBMObject $object)
+    private function persistManyToManyRelationships(AbstractTDBMObject $object): void
     {
         foreach ($object->_getCachedRelationships() as $pivotTableName => $storage) {
             $tableDescriptor = $this->tdbmSchemaAnalyzer->getSchema()->getTable($pivotTableName);
@@ -806,7 +806,10 @@ class TDBMService
         }
     }
 
-    private function getPivotFilters(AbstractTDBMObject $localBean, AbstractTDBMObject $remoteBean, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, Table $tableDescriptor)
+    /**
+     * @return mixed[] An array with 2 keys: "filters" and "types"
+     */
+    private function getPivotFilters(AbstractTDBMObject $localBean, AbstractTDBMObject $remoteBean, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, Table $tableDescriptor): array
     {
         $localBeanPk = $this->getPrimaryKeyValues($localBean);
         $remoteBeanPk = $this->getPrimaryKeyValues($remoteBean);
@@ -835,9 +838,9 @@ class TDBMService
      *
      * @param AbstractTDBMObject $bean
      *
-     * @return array numerically indexed array of values
+     * @return mixed[] numerically indexed array of values
      */
-    private function getPrimaryKeyValues(AbstractTDBMObject $bean)
+    private function getPrimaryKeyValues(AbstractTDBMObject $bean): array
     {
         $dbRows = $bean->_getDbRows();
         $dbRow = reset($dbRows);
@@ -852,7 +855,7 @@ class TDBMService
      *
      * @param array $primaryKeys An array of columns => values forming the primary key
      *
-     * @return string
+     * @return string|int
      */
     public function getObjectHash(array $primaryKeys)
     {
@@ -872,9 +875,9 @@ class TDBMService
      *
      * @param DbRow $dbRow
      *
-     * @return array Returns an array of column => value
+     * @return mixed[] Returns an array of column => value
      */
-    public function getPrimaryKeysForObjectFromDbRow(DbRow $dbRow)
+    public function getPrimaryKeysForObjectFromDbRow(DbRow $dbRow): array
     {
         $table = $dbRow->_getDbTableName();
 
@@ -897,12 +900,12 @@ class TDBMService
      * @param string $table
      * @param array $columns
      *
-     * @return array
+     * @return mixed[] Returns an array of column => value
      */
-    public function _getPrimaryKeysFromObjectData(string $table, array $columns)
+    public function _getPrimaryKeysFromObjectData(string $table, array $columns): array
     {
         $primaryKeyColumns = $this->getPrimaryKeyColumns($table);
-        $values = array();
+        $values = [];
         foreach ($primaryKeyColumns as $column) {
             if (isset($columns[$column])) {
                 $values[$column] = $columns[$column];
@@ -920,7 +923,7 @@ class TDBMService
      *
      * @throws TDBMInvalidOperationException
      */
-    public function attach(AbstractTDBMObject $object)
+    public function attach(AbstractTDBMObject $object): void
     {
         $object->_attach($this);
     }
@@ -930,9 +933,10 @@ class TDBMService
      * indexed array of primary key values.
      *
      * @param string $tableName
-     * @param array  $indexedPrimaryKeys
+     * @param mixed[] $indexedPrimaryKeys
+     * @return mixed[]
      */
-    public function _getPrimaryKeysFromIndexedPrimaryKeys($tableName, array $indexedPrimaryKeys)
+    public function _getPrimaryKeysFromIndexedPrimaryKeys(string $tableName, array $indexedPrimaryKeys): array
     {
         $primaryKeyColumns = $this->getPrimaryKeyColumns($tableName);
 
@@ -955,7 +959,7 @@ class TDBMService
      *
      * @return string[]
      */
-    public function _getLinkBetweenInheritedTables(array $tables)
+    public function _getLinkBetweenInheritedTables(array $tables): array
     {
         sort($tables);
 

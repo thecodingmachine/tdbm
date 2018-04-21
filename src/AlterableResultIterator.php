@@ -50,7 +50,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * @param \Iterator $resultIterator
      */
-    public function setResultIterator(\Iterator $resultIterator)
+    public function setResultIterator(\Iterator $resultIterator): void
     {
         $this->resultIterator = $resultIterator;
         $this->resultArray = null;
@@ -61,7 +61,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * @return \Iterator|null
      */
-    public function getUnderlyingResultIterator()
+    public function getUnderlyingResultIterator(): ?\Iterator
     {
         return $this->resultIterator;
     }
@@ -71,7 +71,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * @param object $object
      */
-    public function add($object)
+    public function add($object): void
     {
         $this->alterations->attach($object, 'add');
 
@@ -88,7 +88,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * @param object $object
      */
-    public function remove($object)
+    public function remove($object): void
     {
         $this->alterations->attach($object, 'delete');
 
@@ -103,9 +103,9 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * Casts the result set to a PHP array.
      *
-     * @return array
+     * @return mixed[]
      */
-    public function toArray()
+    public function toArray(): array
     {
         if ($this->resultArray === null) {
             if ($this->resultIterator !== null) {
@@ -281,7 +281,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * @return MapIterator
      */
-    public function map(callable $callable)
+    public function map(callable $callable): MapIterator
     {
         return new MapIterator($this->getIterator(), $callable);
     }

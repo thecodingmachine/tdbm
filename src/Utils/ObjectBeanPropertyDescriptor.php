@@ -43,7 +43,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return ForeignKeyConstraint
      */
-    public function getForeignKey()
+    public function getForeignKey(): ForeignKeyConstraint
     {
         return $this->foreignKey;
     }

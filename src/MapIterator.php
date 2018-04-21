@@ -87,9 +87,9 @@ class MapIterator implements Iterator, \JsonSerializable
     /**
      * Casts the iterator to a PHP array.
      *
-     * @return array
+     * @return mixed[]
      */
-    public function toArray()
+    public function toArray(): array
     {
         return iterator_to_array($this);
     }

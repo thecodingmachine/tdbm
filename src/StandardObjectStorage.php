@@ -43,7 +43,7 @@ class StandardObjectStorage implements ObjectStorageInterface
      * Sets an object in the storage.
      *
      * @param string     $tableName
-     * @param string     $id
+     * @param string|int $id
      * @param DbRow      $dbRow
      */
     public function set(string $tableName, $id, DbRow $dbRow): void
