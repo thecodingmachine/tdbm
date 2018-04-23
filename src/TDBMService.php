@@ -853,7 +853,7 @@ class TDBMService
      * If the array contains only one value, then the value is returned.
      * Otherwise, a hash representing the array is returned.
      *
-     * @param array $primaryKeys An array of columns => values forming the primary key
+     * @param mixed[] $primaryKeys An array of columns => values forming the primary key
      *
      * @return string|int
      */
@@ -982,7 +982,7 @@ class TDBMService
      *
      * @return string[]
      */
-    private function _getLinkBetweenInheritedTablesWithoutCache(array $tables)
+    private function _getLinkBetweenInheritedTablesWithoutCache(array $tables): array
     {
         $schemaAnalyzer = $this->schemaAnalyzer;
 
@@ -1011,7 +1011,7 @@ class TDBMService
      *
      * @return string[]
      */
-    public function _getRelatedTablesByInheritance($table)
+    public function _getRelatedTablesByInheritance(string $table): array
     {
         return $this->fromCache($this->cachePrefix.'_relatedtables_'.$table, function () use ($table) {
             return $this->_getRelatedTablesByInheritanceWithoutCache($table);
@@ -1025,7 +1025,7 @@ class TDBMService
      *
      * @return string[]
      */
-    private function _getRelatedTablesByInheritanceWithoutCache($table)
+    private function _getRelatedTablesByInheritanceWithoutCache(string $table): array
     {
         $schemaAnalyzer = $this->schemaAnalyzer;
 
@@ -1049,11 +1049,9 @@ class TDBMService
     /**
      * Explore all the children and descendant of $table and returns ForeignKeyConstraints on those.
      *
-     * @param string $table
-     *
      * @return string[]
      */
-    private function exploreChildrenTablesRelationships(SchemaAnalyzer $schemaAnalyzer, $table)
+    private function exploreChildrenTablesRelationships(SchemaAnalyzer $schemaAnalyzer, string $table): array
     {
         $tables = [$table];
         $keys = $schemaAnalyzer->getChildrenRelationships($table);
@@ -1064,43 +1062,6 @@ class TDBMService
 
         return $tables;
     }
-
-    /**
-     * Casts a foreign key into SQL, assuming table name is used with no alias.
-     * The returned value does contain only one table. For instance:.
-     *
-     * " LEFT JOIN table2 ON table1.id = table2.table1_id"
-     *
-     * @param ForeignKeyConstraint $fk
-     * @param bool                 $leftTableIsLocal
-     *
-     * @return string
-     */
-    /*private function foreignKeyToSql(ForeignKeyConstraint $fk, $leftTableIsLocal) {
-        $onClauses = [];
-        $foreignTableName = $this->connection->quoteIdentifier($fk->getForeignTableName());
-        $foreignColumns = $fk->getUnquotedForeignColumns();
-        $localTableName = $this->connection->quoteIdentifier($fk->getLocalTableName());
-        $localColumns = $fk->getUnquotedLocalColumns();
-        $columnCount = count($localTableName);
-
-        for ($i = 0; $i < $columnCount; $i++) {
-            $onClauses[] = sprintf("%s.%s = %s.%s",
-                $localTableName,
-                $this->connection->quoteIdentifier($localColumns[$i]),
-                $foreignColumns,
-                $this->connection->quoteIdentifier($foreignColumns[$i])
-                );
-        }
-
-        $onClause = implode(' AND ', $onClauses);
-
-        if ($leftTableIsLocal) {
-            return sprintf(" LEFT JOIN %s ON (%s)", $foreignTableName, $onClause);
-        } else {
-            return sprintf(" LEFT JOIN %s ON (%s)", $localTableName, $onClause);
-        }
-    }*/
 
     /**
      * Returns a `ResultIterator` object representing filtered records of "$mainTable" .
@@ -1127,9 +1088,9 @@ class TDBMService
      *
      * @param string                       $mainTable             The name of the table queried
      * @param string|array|null            $filter                The SQL filters to apply to the query (the WHERE part). Columns from tables different from $mainTable must be prefixed by the table name (in the form: table.column)
-     * @param array                        $parameters
+     * @param mixed[]                      $parameters
      * @param string|UncheckedOrderBy|null $orderString           The ORDER BY part of the query. Columns from tables different from $mainTable must be prefixed by the table name (in the form: table.column)
-     * @param array                        $additionalTablesFetch
+     * @param string[]                     $additionalTablesFetch
      * @param int|null                     $mode
      * @param string                       $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
@@ -1161,7 +1122,7 @@ class TDBMService
      * @param string                       $mainTable   The name of the table queried
      * @param string                       $from        The from sql statement
      * @param string|array|null            $filter      The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-     * @param array                        $parameters
+     * @param mixed[]                      $parameters
      * @param string|UncheckedOrderBy|null $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
      * @param int                          $mode
      * @param string                       $className   Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
@@ -1170,7 +1131,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectsFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), $orderString = null, $mode = null, string $className = null)
+    public function findObjectsFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), $orderString = null, ?int $mode = null, string $className = null): ResultIterator
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1192,16 +1153,16 @@ class TDBMService
 
     /**
      * @param string $table
-     * @param array  $primaryKeys
-     * @param array  $additionalTablesFetch
-     * @param bool   $lazy                  Whether to perform lazy loading on this object or not
+     * @param mixed[] $primaryKeys
+     * @param string[] $additionalTablesFetch
+     * @param bool $lazy Whether to perform lazy loading on this object or not
      * @param string $className
      *
      * @return AbstractTDBMObject
      *
      * @throws TDBMException
      */
-    public function findObjectByPk(string $table, array $primaryKeys, array $additionalTablesFetch = array(), bool $lazy = false, string $className = null)
+    public function findObjectByPk(string $table, array $primaryKeys, array $additionalTablesFetch = array(), bool $lazy = false, string $className = null): AbstractTDBMObject
     {
         $primaryKeys = $this->_getPrimaryKeysFromObjectData($table, $primaryKeys);
         $hash = $this->getObjectHash($primaryKeys);
@@ -1259,8 +1220,8 @@ class TDBMService
      *
      * @param string            $mainTable             The name of the table queried
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-     * @param array             $parameters
-     * @param array             $additionalTablesFetch
+     * @param mixde[]           $parameters
+     * @param string[]          $additionalTablesFetch
      * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
      * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters
@@ -1293,14 +1254,14 @@ class TDBMService
      * @param string            $mainTable  The name of the table queried
      * @param string            $from       The from sql statement
      * @param string|array|null $filter     The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-     * @param array             $parameters
+     * @param mixed[]           $parameters
      * @param string            $className  Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
      * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters
      *
      * @throws TDBMException
      */
-    public function findObjectFromSql($mainTable, $from, $filter = null, array $parameters = array(), $className = null) : ?AbstractTDBMObject
+    public function findObjectFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), ?string $className = null) : ?AbstractTDBMObject
     {
         $objects = $this->findObjectsFromSql($mainTable, $from, $filter, $parameters, null, self::MODE_ARRAY, $className);
         $page = $objects->take(0, 2);
@@ -1317,7 +1278,7 @@ class TDBMService
     /**
      * @param string $mainTable
      * @param string $sql
-     * @param array $parameters
+     * @param mixed[] $parameters
      * @param int|null $mode
      * @param string|null $className
      * @param string $sqlCount
@@ -1326,7 +1287,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), ?int $mode = null, string $className = null, string $sqlCount = null)
+    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), ?int $mode = null, string $className = null, string $sqlCount = null): ResultIterator
     {
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1346,15 +1307,15 @@ class TDBMService
      *
      * @param string            $mainTable             The name of the table queried
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-     * @param array             $parameters
-     * @param array             $additionalTablesFetch
+     * @param mixed[]           $parameters
+     * @param string[]          $additionalTablesFetch
      * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
      * @return AbstractTDBMObject The object we want
      *
      * @throws TDBMException
      */
-    public function findObjectOrFail(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null)
+    public function findObjectOrFail(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null): AbstractTDBMObject
     {
         $bean = $this->findObject($mainTable, $filter, $parameters, $additionalTablesFetch, $className);
         if ($bean === null) {
@@ -1367,11 +1328,11 @@ class TDBMService
     /**
      * @param array $beanData An array of data: array<table, array<column, value>>
      *
-     * @return array an array with first item = class name, second item = table name and third item = list of tables needed
+     * @return mixed[] an array with first item = class name, second item = table name and third item = list of tables needed
      *
      * @throws TDBMInheritanceException
      */
-    public function _getClassNameFromBeanData(array $beanData)
+    public function _getClassNameFromBeanData(array $beanData): array
     {
         if (count($beanData) === 1) {
             $tableName = array_keys($beanData)[0];
@@ -1442,7 +1403,7 @@ class TDBMService
      *
      * @return ForeignKeyConstraint
      */
-    public function _getForeignKeyByName(string $table, string $fkName)
+    public function _getForeignKeyByName(string $table, string $fkName): ForeignKeyConstraint
     {
         return $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getForeignKey($fkName);
     }
@@ -1451,9 +1412,9 @@ class TDBMService
      * @param string $pivotTableName
      * @param AbstractTDBMObject $bean
      *
-     * @return AbstractTDBMObject[]
+     * @return AbstractTDBMObject[]&ResultIterator
      */
-    public function _getRelatedBeans(string $pivotTableName, AbstractTDBMObject $bean)
+    public function _getRelatedBeans(string $pivotTableName, AbstractTDBMObject $bean): ResultIterator
     {
         list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $bean);
         /* @var $localFk ForeignKeyConstraint */
