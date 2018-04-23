@@ -1220,7 +1220,7 @@ class TDBMService
      *
      * @param string            $mainTable             The name of the table queried
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
-     * @param mixde[]           $parameters
+     * @param mixed[]           $parameters
      * @param string[]          $additionalTablesFetch
      * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
@@ -1412,7 +1412,7 @@ class TDBMService
      * @param string $pivotTableName
      * @param AbstractTDBMObject $bean
      *
-     * @return AbstractTDBMObject[]&ResultIterator
+     * @return AbstractTDBMObject[]|ResultIterator
      */
     public function _getRelatedBeans(string $pivotTableName, AbstractTDBMObject $bean): ResultIterator
     {
@@ -1439,7 +1439,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    private function getPivotTableForeignKeys(string $pivotTableName, AbstractTDBMObject $bean)
+    private function getPivotTableForeignKeys(string $pivotTableName, AbstractTDBMObject $bean): array
     {
         $fks = array_values($this->tdbmSchemaAnalyzer->getSchema()->getTable($pivotTableName)->getForeignKeys());
         $table1 = $fks[0]->getForeignTableName();
@@ -1465,7 +1465,7 @@ class TDBMService
      *
      * @return string[]
      */
-    public function _getPivotTablesLinkedToBean(AbstractTDBMObject $bean)
+    public function _getPivotTablesLinkedToBean(AbstractTDBMObject $bean): array
     {
         $junctionTables = [];
         $allJunctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
@@ -1499,7 +1499,7 @@ class TDBMService
      *
      * @return Type[]
      */
-    public function _getColumnTypesForTable(string $tableName)
+    public function _getColumnTypesForTable(string $tableName): array
     {
         if (!isset($this->typesForTable[$tableName])) {
             $columns = $this->tdbmSchemaAnalyzer->getSchema()->getTable($tableName)->getColumns();
@@ -1519,7 +1519,7 @@ class TDBMService
      *
      * @param string $level
      */
-    public function setLogLevel(string $level)
+    public function setLogLevel(string $level): void
     {
         $this->logger = new LevelFilter($this->rootLogger, $level);
     }

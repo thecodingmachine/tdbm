@@ -26,7 +26,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      *
      * @param string $beanPrefix
      */
-    public function setBeanPrefix(string $beanPrefix)
+    public function setBeanPrefix(string $beanPrefix): void
     {
         $this->beanPrefix = $beanPrefix;
     }
@@ -36,7 +36,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      *
      * @param string $beanSuffix
      */
-    public function setBeanSuffix(string $beanSuffix)
+    public function setBeanSuffix(string $beanSuffix): void
     {
         $this->beanSuffix = $beanSuffix;
     }
@@ -46,7 +46,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      *
      * @param string $baseBeanPrefix
      */
-    public function setBaseBeanPrefix(string $baseBeanPrefix)
+    public function setBaseBeanPrefix(string $baseBeanPrefix): void
     {
         $this->baseBeanPrefix = $baseBeanPrefix;
     }
@@ -56,7 +56,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      *
      * @param string $baseBeanSuffix
      */
-    public function setBaseBeanSuffix(string $baseBeanSuffix)
+    public function setBaseBeanSuffix(string $baseBeanSuffix): void
     {
         $this->baseBeanSuffix = $baseBeanSuffix;
     }
@@ -66,7 +66,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      *
      * @param string $daoPrefix
      */
-    public function setDaoPrefix(string $daoPrefix)
+    public function setDaoPrefix(string $daoPrefix): void
     {
         $this->daoPrefix = $daoPrefix;
     }
@@ -76,7 +76,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      *
      * @param string $daoSuffix
      */
-    public function setDaoSuffix(string $daoSuffix)
+    public function setDaoSuffix(string $daoSuffix): void
     {
         $this->daoSuffix = $daoSuffix;
     }
@@ -86,7 +86,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      *
      * @param string $baseDaoPrefix
      */
-    public function setBaseDaoPrefix(string $baseDaoPrefix)
+    public function setBaseDaoPrefix(string $baseDaoPrefix): void
     {
         $this->baseDaoPrefix = $baseDaoPrefix;
     }
@@ -96,7 +96,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      *
      * @param string $baseDaoSuffix
      */
-    public function setBaseDaoSuffix(string $baseDaoSuffix)
+    public function setBaseDaoSuffix(string $baseDaoSuffix): void
     {
         $this->baseDaoSuffix = $baseDaoSuffix;
     }

@@ -60,7 +60,7 @@ class WeakrefObjectStorage implements ObjectStorageInterface
     {
         $this->objects[$tableName][$id] = new \WeakRef($dbRow);
         ++$this->garbageCollectorCount;
-        if ($this->garbageCollectorCount == 10000) {
+        if ($this->garbageCollectorCount === 10000) {
             $this->garbageCollectorCount = 0;
             $this->cleanupDanglingWeakRefs();
         }

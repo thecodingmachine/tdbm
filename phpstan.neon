@@ -5,6 +5,8 @@ parameters:
      - "#Method .*::.* should return .* but returns .*TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject#"
      - "#Method .*::.* should return .* but returns TheCodingMachine\\\\TDBM\\\\ResultIterator#"
      - "#Strict comparison using .== between TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject and null will always evaluate to .*#"
+     - '#Strict comparison using === between string and false will always evaluate to false.#'
      - "#Array \\(array\\<TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject\\>\\) does not accept TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject\\|null.#"
+     - "#array<string,string>#"
 includes:
     - vendor/thecodingmachine/phpstan-strict-rules/phpstan-strict-rules.neon
