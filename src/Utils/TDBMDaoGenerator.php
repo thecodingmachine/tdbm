@@ -679,7 +679,8 @@ class $daoFactoryClassName
      * @return string[]
      * @throws TDBMException
      */
-    public static function getPrimaryKeyColumnsOrFail(Table $table): array {
+    public static function getPrimaryKeyColumnsOrFail(Table $table): array
+    {
         if ($table->getPrimaryKey() === null) {
             // Security check: a table MUST have a primary key
             throw new TDBMException(sprintf('Table "%s" does not have any primary key', $table->getName()));

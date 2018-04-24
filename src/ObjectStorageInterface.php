@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-
 /**
  * Object in charge of referencing all beans that have been fetched from the database.
  * If a bean is requested twice from TDBM, the ObjectStorage is used to "cache" the bean.
