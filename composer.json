@@ -65,7 +65,7 @@
         }
     },
     "scripts": {
-        "phpstan": "phpstan analyse src -c phpstan.neon --level=7 --no-progress -vvv",
+        "phpstan": "php -d memory_limit=3G vendor/bin/phpstan analyse src -c phpstan.neon --level=7 --no-progress -vvv",
         "post-install-cmd": ["@composer bin all install --ansi"],
         "post-update-cmd": ["@composer bin all update --ansi"]
     },
