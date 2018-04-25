@@ -227,7 +227,11 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
                 if ($this->objectStorage->has($mainBeanTableName, $hash)) {
                     $dbRow = $this->objectStorage->get($mainBeanTableName, $hash);
-                    $bean = $dbRow->getTDBMObject();
+                    $bean = null;
+                    //Check if we found a row from the object storage
+                    if($dbRow){
+                        $bean = $dbRow->getTDBMObject();
+                    }
                 } else {
                     // Let's construct the bean
                     if (!isset($reflectionClassCache[$actualClassName])) {
