@@ -394,7 +394,7 @@ edit it as TDBM will never overwrite it.</li>
 <ul>
 <li><code>public function save(User $obj)</code> : saves a <code>User</code> object in database</li>
 <li><code>public function findAll()</code> : returns all users records as an array of <code>User</code> objects.</li>
-<li><code>public function getById($id, $lazyLoading = false)</code> : Get a <code>User</code> specified by its ID (its primary key)</li>
+<li><code>public function getById($id, bool $lazyLoading = false)</code> : Get a <code>User</code> specified by its ID (its primary key)</li>
 <li><code>public function delete($obj, $cascade=false)</code> : Deletes the User passed in parameter. If <code>$cascade</code> is set to true, it will delete all objects linked to <code>$obj</code>.</li>
 </ul>
 <p>The last 2 functions are <em>protected</em>. It means they are designed to be used in the UserDao class.</p>
