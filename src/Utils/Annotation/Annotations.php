@@ -25,7 +25,7 @@ class Annotations
     }
 
     /**
-     * @return array|Annotation[]
+     * @return Annotation[]
      */
     public function getAnnotations(): array
     {

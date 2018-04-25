@@ -43,7 +43,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return ForeignKeyConstraint
      */
-    public function getForeignKey()
+    public function getForeignKey(): ForeignKeyConstraint
     {
         return $this->foreignKey;
     }
@@ -74,7 +74,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    public function getParamAnnotation()
+    public function getParamAnnotation(): string
     {
         $str = '     * @param %s %s';
 
@@ -86,7 +86,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return bool
      */
-    public function isCompulsory()
+    public function isCompulsory(): bool
     {
         // Are all columns nullable?
         $localColumnNames = $this->foreignKey->getUnquotedLocalColumns();
@@ -106,7 +106,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return bool
      */
-    public function hasDefault()
+    public function hasDefault(): bool
     {
         return false;
     }
@@ -118,7 +118,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @throws TDBMException
      */
-    public function assignToDefaultCode()
+    public function assignToDefaultCode(): string
     {
         throw new TDBMException('Foreign key based properties cannot be assigned a default value.');
     }
@@ -128,7 +128,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return bool
      */
-    public function isPrimaryKey()
+    public function isPrimaryKey(): bool
     {
         $fkColumns = $this->foreignKey->getUnquotedLocalColumns();
         sort($fkColumns);
@@ -144,7 +144,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    public function getGetterSetterCode()
+    public function getGetterSetterCode(): string
     {
         $tableName = $this->table->getName();
         $getterName = $this->getGetterName();
@@ -183,7 +183,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    public function getJsonSerializeCode()
+    public function getJsonSerializeCode(): string
     {
         return '        if (!$stopRecursion) {
             $object = $this->'.$this->getGetterName().'();

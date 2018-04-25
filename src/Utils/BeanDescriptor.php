@@ -76,7 +76,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         $this->initBeanPropertyDescriptors();
     }
 
-    private function initBeanPropertyDescriptors()
+    private function initBeanPropertyDescriptors(): void
     {
         $this->beanPropertyDescriptors = $this->getProperties($this->table);
     }
@@ -106,7 +106,7 @@ class BeanDescriptor implements BeanDescriptorInterface
     /**
      * @return AbstractBeanPropertyDescriptor[]
      */
-    public function getBeanPropertyDescriptors()
+    public function getBeanPropertyDescriptors(): array
     {
         return $this->beanPropertyDescriptors;
     }
@@ -116,7 +116,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      *
      * @return AbstractBeanPropertyDescriptor[]
      */
-    public function getConstructorProperties()
+    public function getConstructorProperties(): array
     {
         $constructorProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
             return $property->isCompulsory();
@@ -130,7 +130,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      *
      * @return AbstractBeanPropertyDescriptor[]
      */
-    public function getPropertiesWithDefault()
+    public function getPropertiesWithDefault(): array
     {
         $properties = $this->getPropertiesForTable($this->table);
         $defaultProperties = array_filter($properties, function (AbstractBeanPropertyDescriptor $property) {
@@ -161,7 +161,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      *
      * @return AbstractBeanPropertyDescriptor[]
      */
-    private function getProperties(Table $table)
+    private function getProperties(Table $table): array
     {
         // Security check: a table MUST have a primary key
         TDBMDaoGenerator::getPrimaryKeyColumnsOrFail($table);
@@ -193,7 +193,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      *
      * @return AbstractBeanPropertyDescriptor[]
      */
-    private function getPropertiesForTable(Table $table)
+    private function getPropertiesForTable(Table $table): array
     {
         $parentRelationship = $this->schemaAnalyzer->getParentRelationship($table->getName());
         if ($parentRelationship) {
@@ -416,7 +416,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      * Returns as an array the class we need to extend from and the list of use statements.
      *
      * @param ForeignKeyConstraint|null $parentFk
-     * @return array
+     * @return string[]
      */
     private function generateExtendsAndUseStatements(ForeignKeyConstraint $parentFk = null): array
     {
@@ -516,9 +516,9 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
      * @param string $beanNamespace
      * @param string $beanClassName
      *
-     * @return array first element: list of used beans, second item: PHP code as a string
+     * @return mixed[] first element: list of used beans, second item: PHP code as a string
      */
-    public function generateFindByDaoCode($beanNamespace, $beanClassName)
+    public function generateFindByDaoCode(string $beanNamespace, string $beanClassName): array
     {
         $code = '';
         $usedBeans = [];
@@ -554,9 +554,9 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
      * @param string $beanNamespace
      * @param string $beanClassName
      *
-     * @return array first element: list of used beans, second item: PHP code as a string
+     * @return mixed[] first element: list of used beans, second item: PHP code as a string
      */
-    private function generateFindByDaoCodeForIndex(Index $index, $beanNamespace, $beanClassName)
+    private function generateFindByDaoCodeForIndex(Index $index, string $beanNamespace, string $beanClassName): array
     {
         $columns = $index->getColumns();
         $usedBeans = [];
@@ -586,12 +586,17 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
         $functionParameters = [];
         $first = true;
         foreach ($elements as $element) {
-            $functionParameter = $element->getClassName();
-            if ($functionParameter) {
-                $usedBeans[] = $beanNamespace.'\\'.$functionParameter;
-                $functionParameter .= ' ';
+            if (!$first) {
+                $functionParameter = '?';
+            } else {
+                $functionParameter = '';
             }
-            $functionParameter .= $element->getVariableName();
+            $functionParameter .= $element->getPhpType();
+            $elementClassName = $element->getClassName();
+            if ($elementClassName) {
+                $usedBeans[] = $beanNamespace.'\\'.$elementClassName;
+            }
+            $functionParameter .= ' '.$element->getVariableName();
             if ($first) {
                 $first = false;
             } else {
@@ -646,7 +651,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
      * Get a $beanClassName filtered by ".implode(', ', $commentArguments).".
      *
 $paramsString
-     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @param string[] \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
      * @return $returnType|null
      */
     public function $methodName($functionParametersString, array \$additionalTablesFetch = array()) : ?$returnType
@@ -665,7 +670,7 @@ $paramsString
      *
 $paramsString
      * @param mixed \$orderBy The order string
-     * @param array \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
+     * @param string[] \$additionalTablesFetch A list of additional tables to fetch (for performance improvement)
      * @param int \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return $returnType
      */
@@ -686,7 +691,7 @@ $paramsString
      *
      * @return string
      */
-    private function generateGetUsedTablesCode()
+    private function generateGetUsedTablesCode(): string
     {
         $hasParentRelationship = $this->schemaAnalyzer->getParentRelationship($this->table->getName()) !== null;
         if ($hasParentRelationship) {
@@ -711,7 +716,7 @@ $paramsString
 ', $code);
     }
 
-    private function generateOnDeleteCode()
+    private function generateOnDeleteCode(): string
     {
         $code = '';
         $relationships = $this->getPropertiesForTable($this->table);

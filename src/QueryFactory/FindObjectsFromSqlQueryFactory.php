@@ -35,7 +35,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         $this->cachePrefix = $cachePrefix;
     }
 
-    protected function compute()
+    protected function compute(): void
     {
         // We quote in MySQL because of MagicQuery that will be applied.
         $mySqlPlatform = new MySqlPlatform();
@@ -109,7 +109,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
      *
      * @return ForeignKeyConstraint[]
      */
-    private function getParentRelationshipForeignKeys($tableName)
+    private function getParentRelationshipForeignKeys(string $tableName): array
     {
         return $this->fromCache($this->cachePrefix.'_parentrelationshipfks_'.$tableName, function () use ($tableName) {
             return $this->getParentRelationshipForeignKeysWithoutCache($tableName);
@@ -121,7 +121,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
      *
      * @return ForeignKeyConstraint[]
      */
-    private function getParentRelationshipForeignKeysWithoutCache($tableName)
+    private function getParentRelationshipForeignKeysWithoutCache(string $tableName): array
     {
         $parentFks = [];
         $currentTable = $tableName;

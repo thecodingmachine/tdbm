@@ -64,7 +64,11 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     private $logger;
 
-    public function __construct($magicSql, array $parameters, $limit, $offset, array $columnDescriptors, $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger)
+    /**
+     * @param mixed[] $parameters
+     * @param array[] $columnDescriptors
+     */
+    public function __construct(string $magicSql, array $parameters, ?int $limit, ?int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger)
     {
         $this->magicSql = $magicSql;
         $this->objectStorage = $objectStorage;
@@ -86,7 +90,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
         return $sql;
     }
 
-    protected function executeQuery()
+    protected function executeQuery(): void
     {
         $sql = $this->getQuery();
 

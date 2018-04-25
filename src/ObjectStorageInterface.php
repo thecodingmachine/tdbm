@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-
 /**
  * Object in charge of referencing all beans that have been fetched from the database.
  * If a bean is requested twice from TDBM, the ObjectStorage is used to "cache" the bean.
@@ -17,7 +16,7 @@ interface ObjectStorageInterface
      * Sets an object in the storage.
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      * @param DbRow $dbRow
      */
     public function set(string $tableName, $id, DbRow $dbRow): void;
@@ -26,7 +25,7 @@ interface ObjectStorageInterface
      * Checks if an object is in the storage.
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      *
      * @return bool
      */
@@ -36,7 +35,7 @@ interface ObjectStorageInterface
      * Returns an object from the storage (or null if no object is set).
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      *
      * @return DbRow|null
      */
@@ -46,7 +45,7 @@ interface ObjectStorageInterface
      * Removes an object from the storage.
      *
      * @param string $tableName
-     * @param string $id
+     * @param string|int $id
      */
     public function remove(string $tableName, $id): void;
 

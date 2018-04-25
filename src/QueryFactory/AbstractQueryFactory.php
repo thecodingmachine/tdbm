@@ -38,6 +38,9 @@ abstract class AbstractQueryFactory implements QueryFactory
 
     /**
      * @param TDBMService $tdbmService
+     * @param Schema $schema
+     * @param OrderByAnalyzer $orderByAnalyzer
+     * @param string|UncheckedOrderBy|null $orderBy
      */
     public function __construct(TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, $orderBy)
     {
@@ -53,13 +56,13 @@ abstract class AbstractQueryFactory implements QueryFactory
      * Note: MySQL dictates that ORDER BYed columns should appear in the SELECT clause.
      *
      * @param string $mainTable
-     * @param array $additionalTablesFetch
+     * @param string[] $additionalTablesFetch
      * @param string|UncheckedOrderBy|null $orderBy
      *
      * @param bool $canAddAdditionalTablesFetch Set to true if the function can add additional tables to fetch (so if the factory generates its own FROM clause)
-     * @return array
+     * @return mixed[] A 3 elements array: [$columnDescList, $columnsList, $reconstructedOrderBy]
      */
-    protected function getColumnsList(string $mainTable, array $additionalTablesFetch = array(), $orderBy = null, bool $canAddAdditionalTablesFetch = false)
+    protected function getColumnsList(string $mainTable, array $additionalTablesFetch = array(), $orderBy = null, bool $canAddAdditionalTablesFetch = false): array
     {
         // From the table name and the additional tables we want to fetch, let's build a list of all tables
         // that must be part of the select columns.
@@ -171,7 +174,7 @@ abstract class AbstractQueryFactory implements QueryFactory
         return [$columnDescList, $columnsList, $reconstructedOrderBy];
     }
 
-    abstract protected function compute();
+    abstract protected function compute(): void;
 
     /**
      * Returns an identifier for the group of tables passed in parameter.
@@ -180,7 +183,7 @@ abstract class AbstractQueryFactory implements QueryFactory
      *
      * @return string
      */
-    protected function getTableGroupName(array $relatedTables)
+    protected function getTableGroupName(array $relatedTables): string
     {
         sort($relatedTables);
 
@@ -228,7 +231,7 @@ abstract class AbstractQueryFactory implements QueryFactory
      *
      * @param string|UncheckedOrderBy|null $orderBy
      */
-    public function sort($orderBy)
+    public function sort($orderBy): void
     {
         $this->orderBy = $orderBy;
         $this->magicSql = null;

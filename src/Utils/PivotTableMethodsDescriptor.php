@@ -46,7 +46,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
     /**
      * Requests the use of an alternative name for this method.
      */
-    public function useAlternativeName()
+    public function useAlternativeName(): void
     {
         $this->useAlternateName = true;
     }

@@ -58,7 +58,7 @@ class TDBMSchemaAnalyzer
      *
      * @return string
      */
-    public function getCachePrefix()
+    public function getCachePrefix(): string
     {
         if ($this->cachePrefix === null) {
             $this->cachePrefix = hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
@@ -72,7 +72,7 @@ class TDBMSchemaAnalyzer
      *
      * @return Schema
      */
-    public function getSchema()
+    public function getSchema(): Schema
     {
         if ($this->schema === null) {
             $cacheKey = $this->getCachePrefix().'_schema';
@@ -121,9 +121,9 @@ class TDBMSchemaAnalyzer
      *
      * @param string $tableName
      *
-     * @return array|string[]
+     * @return string[]
      */
-    public function getPivotTableLinkedToTable($tableName)
+    public function getPivotTableLinkedToTable(string $tableName): array
     {
         $cacheKey = $this->getCachePrefix().'_pivottables_link_'.$tableName;
         if ($this->cache->contains($cacheKey)) {
@@ -155,7 +155,7 @@ class TDBMSchemaAnalyzer
      *
      * @return ForeignKeyConstraint[]
      */
-    public function getIncomingForeignKeys($tableName): array
+    public function getIncomingForeignKeys(string $tableName): array
     {
         $junctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
         $junctionTableNames = array_map(function (Table $table) {

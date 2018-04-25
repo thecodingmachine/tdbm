@@ -34,12 +34,21 @@ namespace TheCodingMachine\TDBM;
  */
 class TDBMObject extends AbstractTDBMObject
 {
-    public function getProperty($var, $tableName = null)
+    /**
+     * @return mixed|null
+     */
+    public function getProperty(string $var, string $tableName = null)
     {
         return $this->get($var, $tableName);
     }
 
-    public function setProperty($var, $value, $tableName = null)
+    /**
+     * @param string $var
+     * @param mixed $value
+     * @param string|null $tableName
+     * @throws TDBMException
+     */
+    public function setProperty(string $var, $value, string $tableName = null): void
     {
         $this->set($var, $value, $tableName);
     }

@@ -49,7 +49,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    public function getParamAnnotation()
+    public function getParamAnnotation(): string
     {
         $paramType = $this->getPhpType();
 
@@ -84,7 +84,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return bool
      */
-    public function isCompulsory()
+    public function isCompulsory(): bool
     {
         return $this->column->getNotnull() && !$this->isAutoincrement() && $this->column->getDefault() === null && !$this->hasUuidAnnotation();
     }
@@ -127,7 +127,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return bool
      */
-    public function hasDefault()
+    public function hasDefault(): bool
     {
         // MariaDB 10.3 issue: it returns "NULL" (the string) instead of *null*
         return ($this->column->getDefault() !== null && $this->column->getDefault() !== 'NULL') || $this->hasUuidAnnotation();
@@ -138,7 +138,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    public function assignToDefaultCode()
+    public function assignToDefaultCode(): string
     {
         $str = '        $this->%s(%s);';
 
@@ -206,7 +206,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return string
      */
-    public function getGetterSetterCode()
+    public function getGetterSetterCode(): string
     {
         $normalizedType = $this->getPhpType();
 
@@ -281,7 +281,7 @@ EOF;
      *
      * @return string
      */
-    public function getJsonSerializeCode()
+    public function getJsonSerializeCode(): string
     {
         $normalizedType = $this->getPhpType();
 
@@ -305,7 +305,7 @@ EOF;
      *
      * @return string
      */
-    public function getColumnName()
+    public function getColumnName(): string
     {
         return $this->column->getName();
     }

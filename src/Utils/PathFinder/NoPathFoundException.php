@@ -11,7 +11,7 @@ use TheCodingMachine\TDBM\TDBMException;
  */
 class NoPathFoundException extends TDBMException
 {
-    public static function create(string $className)
+    public static function create(string $className): self
     {
         return new self(sprintf('Could not find a path where class %s would be autoloadable. Maybe consider editing your composer.json autoload section accordingly.', $className));
     }

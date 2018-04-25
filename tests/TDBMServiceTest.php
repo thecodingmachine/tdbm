@@ -572,7 +572,7 @@ SQL;
      */
     public function testInvalidSetFetchMode()
     {
-        $this->tdbmService->setFetchMode('foo');
+        $this->tdbmService->setFetchMode(99);
     }
 
     /**

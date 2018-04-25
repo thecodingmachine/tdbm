@@ -82,7 +82,11 @@ class InnerResultArray extends InnerResultIterator
         return $this->results[$offset];
     }
 
-    private function toIndex($offset)
+    /**
+     * @param mixed $offset
+     * @throws TDBMInvalidOffsetException
+     */
+    private function toIndex($offset): void
     {
         if ($offset < 0 || filter_var($offset, FILTER_VALIDATE_INT) === false) {
             throw new TDBMInvalidOffsetException('Trying to access result set using offset "'.$offset.'". An offset must be a positive integer.');

@@ -22,7 +22,7 @@ interface MethodDescriptorInterface
     /**
      * Requests the use of an alternative name for this method.
      */
-    public function useAlternativeName();
+    public function useAlternativeName(): void;
 
     /**
      * Returns the code of the method.

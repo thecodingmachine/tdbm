@@ -67,7 +67,7 @@ Let's now have a closer look at the methods that are available in the "UserDao" 
 
 - `public function save(User $obj)` : saves a `User` object in database
 - `public function findAll()` : returns all users records as an array of `User` objects.
-- `public function getById($id, $lazyLoading = false)` : Get a `User` specified by its ID (its primary key)
+- `public function getById($id, bool $lazyLoading = false)` : Get a `User` specified by its ID (its primary key)
 - `public function delete($obj, $cascade=false)` : Deletes the User passed in parameter. If `$cascade` is set to true, it will delete all objects linked to `$obj`.
 
 The last 2 functions are _protected_. It means they are designed to be used in the UserDao class.

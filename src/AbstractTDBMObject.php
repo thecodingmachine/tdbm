@@ -80,13 +80,13 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * and $primaryKeys=[] if we want a new object.
      *
      * @param string      $tableName
-     * @param array       $primaryKeys
+     * @param mixed[]     $primaryKeys
      * @param TDBMService $tdbmService
      *
      * @throws TDBMException
      * @throws TDBMInvalidOperationException
      */
-    public function __construct($tableName = null, array $primaryKeys = [], TDBMService $tdbmService = null)
+    public function __construct(?string $tableName = null, array $primaryKeys = [], TDBMService $tdbmService = null)
     {
         // FIXME: lazy loading should be forbidden on tables with inheritance and dynamic type assignation...
         if (!empty($tableName)) {
@@ -108,10 +108,10 @@ abstract class AbstractTDBMObject implements JsonSerializable
     /**
      * Alternative constructor called when data is fetched from database via a SELECT.
      *
-     * @param array       $beanData    array<table, array<column, value>>
+     * @param array[]     $beanData    array<table, array<column, value>>
      * @param TDBMService $tdbmService
      */
-    public function _constructFromData(array $beanData, TDBMService $tdbmService)
+    public function _constructFromData(array $beanData, TDBMService $tdbmService): void
     {
         $this->tdbmService = $tdbmService;
 
@@ -126,10 +126,10 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * Alternative constructor called when bean is lazily loaded.
      *
      * @param string      $tableName
-     * @param array       $primaryKeys
+     * @param mixed[]     $primaryKeys
      * @param TDBMService $tdbmService
      */
-    public function _constructLazy($tableName, array $primaryKeys, TDBMService $tdbmService)
+    public function _constructLazy(string $tableName, array $primaryKeys, TDBMService $tdbmService): void
     {
         $this->tdbmService = $tdbmService;
 
@@ -138,7 +138,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
         $this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
     }
 
-    public function _attach(TDBMService $tdbmService)
+    public function _attach(TDBMService $tdbmService): void
     {
         if ($this->status !== TDBMObjectStateEnum::STATE_DETACHED) {
             throw new TDBMInvalidOperationException('Cannot attach an object that is already attached to TDBM.');
@@ -173,7 +173,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @param string $state
      */
-    public function _setStatus(string $state)
+    public function _setStatus(string $state): void
     {
         $this->status = $state;
 
@@ -191,11 +191,11 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * Checks that $tableName is ok, or returns the only possible table name if "$tableName = null"
      * or throws an error.
      *
-     * @param string $tableName
+     * @param string|null $tableName
      *
      * @return string
      */
-    private function checkTableName($tableName = null)
+    private function checkTableName(?string $tableName = null): string
     {
         if ($tableName === null) {
             if (count($this->dbRows) > 1) {
@@ -208,18 +208,24 @@ abstract class AbstractTDBMObject implements JsonSerializable
         return $tableName;
     }
 
-    protected function get($var, $tableName = null)
+    /**
+     * @return mixed
+     */
+    protected function get(string $var, string $tableName = null)
     {
         $tableName = $this->checkTableName($tableName);
 
         if (!isset($this->dbRows[$tableName])) {
-            return;
+            return null;
         }
 
         return $this->dbRows[$tableName]->get($var);
     }
 
-    protected function set($var, $value, $tableName = null)
+    /**
+     * @param mixed $value
+     */
+    protected function set(string $var, $value, ?string $tableName = null): void
     {
         if ($tableName === null) {
             if (count($this->dbRows) > 1) {
@@ -245,7 +251,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param string             $foreignKeyName
      * @param AbstractTDBMObject $bean
      */
-    protected function setRef($foreignKeyName, AbstractTDBMObject $bean = null, $tableName = null)
+    protected function setRef(string $foreignKeyName, AbstractTDBMObject $bean = null, string $tableName = null): void
     {
         if ($tableName === null) {
             if (count($this->dbRows) > 1) {
@@ -298,7 +304,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param string             $pivotTableName
      * @param AbstractTDBMObject $remoteBean
      */
-    protected function addRelationship($pivotTableName, AbstractTDBMObject $remoteBean)
+    protected function addRelationship(string $pivotTableName, AbstractTDBMObject $remoteBean): void
     {
         $this->setRelationship($pivotTableName, $remoteBean, 'new');
     }
@@ -311,7 +317,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return bool
      */
-    protected function hasRelationship($pivotTableName, AbstractTDBMObject $remoteBean)
+    protected function hasRelationship(string $pivotTableName, AbstractTDBMObject $remoteBean): bool
     {
         $storage = $this->retrieveRelationshipsStorage($pivotTableName);
 
@@ -330,7 +336,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param string             $pivotTableName
      * @param AbstractTDBMObject $remoteBean
      */
-    public function _removeRelationship($pivotTableName, AbstractTDBMObject $remoteBean)
+    public function _removeRelationship(string $pivotTableName, AbstractTDBMObject $remoteBean): void
     {
         if (isset($this->relationships[$pivotTableName][$remoteBean]) && $this->relationships[$pivotTableName][$remoteBean]['status'] === 'new') {
             unset($this->relationships[$pivotTableName][$remoteBean]);
@@ -345,9 +351,9 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * Adds new relationships and removes unused ones.
      *
      * @param string $pivotTableName
-     * @param array $remoteBeans
+     * @param AbstractTDBMObject[] $remoteBeans
      */
-    protected function setRelationships(string $pivotTableName, array $remoteBeans)
+    protected function setRelationships(string $pivotTableName, array $remoteBeans): void
     {
         $storage = $this->retrieveRelationshipsStorage($pivotTableName);
 
@@ -373,7 +379,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return \SplObjectStorage
      */
-    private function retrieveRelationshipsStorage(string $pivotTableName)
+    private function retrieveRelationshipsStorage(string $pivotTableName): \SplObjectStorage
     {
         $storage = $this->getRelationshipStorage($pivotTableName);
         if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || (isset($this->loadedRelationships[$pivotTableName]) && $this->loadedRelationships[$pivotTableName])) {
@@ -404,12 +410,16 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return AbstractTDBMObject[]
      */
-    public function _getRelationships(string $pivotTableName)
+    public function _getRelationships(string $pivotTableName): array
     {
         return $this->relationshipStorageToArray($this->retrieveRelationshipsStorage($pivotTableName));
     }
 
-    private function relationshipStorageToArray(\SplObjectStorage $storage)
+    /**
+     * @param \SplObjectStorage $storage
+     * @return AbstractTDBMObject[]
+     */
+    private function relationshipStorageToArray(\SplObjectStorage $storage): array
     {
         $beans = [];
         foreach ($storage as $bean) {
@@ -429,7 +439,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param AbstractTDBMObject $remoteBean
      * @param string             $status
      */
-    private function setRelationship($pivotTableName, AbstractTDBMObject $remoteBean, $status)
+    private function setRelationship(string $pivotTableName, AbstractTDBMObject $remoteBean, string $status): void
     {
         $storage = $this->getRelationshipStorage($pivotTableName);
         $storage->attach($remoteBean, ['status' => $status, 'reverse' => false]);
@@ -475,7 +485,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param string             $foreignKeyName
      * @param AbstractTDBMObject $remoteBean
      */
-    private function setManyToOneRelationship(string $tableName, string $foreignKeyName, AbstractTDBMObject $remoteBean)
+    private function setManyToOneRelationship(string $tableName, string $foreignKeyName, AbstractTDBMObject $remoteBean): void
     {
         $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
         $alterableResultIterator->add($remoteBean);
@@ -488,7 +498,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param string             $foreignKeyName
      * @param AbstractTDBMObject $remoteBean
      */
-    private function removeManyToOneRelationship(string $tableName, string $foreignKeyName, AbstractTDBMObject $remoteBean)
+    private function removeManyToOneRelationship(string $tableName, string $foreignKeyName, AbstractTDBMObject $remoteBean): void
     {
         $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
         $alterableResultIterator->remove($remoteBean);
@@ -500,12 +510,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param string $tableName
      * @param string $foreignKeyName
      * @param string $searchTableName
-     * @param array  $searchFilter
+     * @param mixed[] $searchFilter
      * @param string $orderString     The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column). WARNING : This parameter is not kept when there is an additionnal or removal object !
      *
      * @return AlterableResultIterator
      */
-    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, string $searchTableName, array $searchFilter, $orderString = null) : AlterableResultIterator
+    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, string $searchTableName, array $searchFilter, string $orderString = null) : AlterableResultIterator
     {
         $key = $tableName.'___'.$foreignKeyName;
         $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
@@ -527,7 +537,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @throws TDBMException
      */
-    public function discardChanges()
+    public function discardChanges(): void
     {
         if ($this->status === TDBMObjectStateEnum::STATE_NEW || $this->status === TDBMObjectStateEnum::STATE_DETACHED) {
             throw new TDBMException("You cannot call discardChanges() on an object that has been created with the 'new' keyword and that has not yet been saved.");
@@ -600,12 +610,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return DbRow[] Key: table name, Value: DbRow object
      */
-    public function _getDbRows()
+    public function _getDbRows(): array
     {
         return $this->dbRows;
     }
 
-    private function registerTable($tableName)
+    private function registerTable(string $tableName): void
     {
         $dbRow = new DbRow($this, $tableName);
 
@@ -633,7 +643,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return \SplObjectStorage[]
      */
-    public function _getCachedRelationships()
+    public function _getCachedRelationships(): array
     {
         return $this->relationships;
     }

@@ -57,7 +57,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         [$this->processedSql, $this->processedSqlCount, $this->columnDescriptors] = $this->compute($sql, $sqlCount);
     }
 
-    public function sort($orderBy)
+    public function sort($orderBy): void
     {
         throw new TDBMException('sort not supported for raw sql queries');
     }
@@ -77,7 +77,13 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         return $this->columnDescriptors;
     }
 
-    private function compute(string $sql, ?string $sqlCount)
+    /**
+     * @param string $sql
+     * @param null|string $sqlCount
+     * @return mixed[] An array of 3 elements: [$processedSql, $processedSqlCount, $columnDescriptors]
+     * @throws TDBMException
+     */
+    private function compute(string $sql, ?string $sqlCount): array
     {
         $parser = new PHPSQLParser();
         $parsedSql = $parser->parse($sql);
@@ -93,6 +99,12 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         return [$processedSql, $processedSqlCount, $columnDescriptors];
     }
 
+    /**
+     * @param mixed[] $parsedSql
+     * @param null|string $sqlCount
+     * @return mixed[] An array of 3 elements: [$processedSql, $processedSqlCount, $columnDescriptors]
+     * @throws \PHPSQLParser\exceptions\UnsupportedFeatureException
+     */
     private function processParsedUnionQuery(array $parsedSql, ?string $sqlCount): array
     {
         $selects = $parsedSql['UNION'];
@@ -127,7 +139,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
     /**
      * @param array $parsedSql
      * @param null|string $sqlCount
-     * @return mixed[]
+     * @return mixed[] An array of 3 elements: [$processedSql, $processedSqlCount, $columnDescriptors]
      */
     private function processParsedSelectQuery(array $parsedSql, ?string $sqlCount): array
     {
@@ -148,14 +160,20 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         return [$processedSql, $processedSqlCount, $columnDescriptors];
     }
 
-    private function formatSelect($baseSelect)
+    /**
+     * @param mixed[] $baseSelect
+     * @return mixed[] An array of 2 elements: [$formattedSelect, $columnDescriptors]
+     * @throws TDBMException
+     * @throws \Doctrine\DBAL\Schema\SchemaException
+     */
+    private function formatSelect(array $baseSelect): array
     {
         $relatedTables = $this->tdbmService->_getRelatedTablesByInheritance($this->mainTable);
         $tableGroup = $this->getTableGroupName($relatedTables);
 
         $connection = $this->tdbmService->getConnection();
         $formattedSelect = [];
-        $columnDescritors = [];
+        $columnDescriptors = [];
         $fetchedTables = [];
 
         foreach ($baseSelect as $entry) {
@@ -202,7 +220,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                     ]
                 ];
 
-                $columnDescritors[$alias] = [
+                $columnDescriptors[$alias] = [
                     'as' => $alias,
                     'table' => $tableName,
                     'column' => $columnName,
@@ -223,10 +241,14 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 $formattedSelect[$i]['delim'] = ',';
             }
         }
-        return [$formattedSelect, $columnDescritors];
+        return [$formattedSelect, $columnDescriptors];
     }
 
-    private function generateParsedSqlCount($parsedSql)
+    /**
+     * @param mixed[] $parsedSql
+     * @return mixed[]
+     */
+    private function generateParsedSqlCount(array $parsedSql): array
     {
         if (isset($parsedSql['ORDER'])) {
             unset($parsedSql['ORDER']);
@@ -244,7 +266,11 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         }
     }
 
-    private function generateSimpleSqlCount($parsedSql)
+    /**
+     * @param mixed[] $parsedSql The AST of the SQL query
+     * @return mixed[] An AST representing the matching COUNT query
+     */
+    private function generateSimpleSqlCount(array $parsedSql): array
     {
         // If the query is a DISTINCT, we need to deal with the count.
 
@@ -287,6 +313,10 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         return $parsedSql;
     }
 
+    /**
+     * @param mixed[] $parsedSql AST to analyze
+     * @return bool
+     */
     private function isDistinctQuery(array $parsedSql): bool
     {
         foreach ($parsedSql['SELECT'] as $item) {
@@ -297,7 +327,11 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         return false;
     }
 
-    private function generateGroupedSqlCount($parsedSql)
+    /**
+     * @param mixed[] $parsedSql The AST of the SQL query
+     * @return mixed[] An AST representing the matching COUNT query
+     */
+    private function generateGroupedSqlCount(array $parsedSql): array
     {
         $group = $parsedSql['GROUP'];
         unset($parsedSql['GROUP']);
@@ -318,7 +352,11 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         return $parsedSql;
     }
 
-    private function generateWrappedSqlCount($parsedSql)
+    /**
+     * @param mixed[] $parsedSql The AST of the SQL query
+     * @return mixed[] An AST representing the matching COUNT query
+     */
+    private function generateWrappedSqlCount(array $parsedSql): array
     {
         return [
             'SELECT' => [[
@@ -348,7 +386,11 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         ];
     }
 
-    protected function getTableGroupName(array $relatedTables)
+    /**
+     * @param string[] $relatedTables
+     * @return string
+     */
+    protected function getTableGroupName(array $relatedTables): string
     {
         sort($relatedTables);
         return implode('_``_', $relatedTables);

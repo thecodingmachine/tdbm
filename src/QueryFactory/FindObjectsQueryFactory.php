@@ -24,7 +24,7 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
         $this->filterString = $filterString;
     }
 
-    protected function compute()
+    protected function compute(): void
     {
         list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, $this->additionalTablesFetch, $this->orderBy, true);
 

@@ -67,7 +67,11 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      */
     private $logger;
 
-    public function __construct(ResultIterator $parentResult, $magicSql, array $parameters, $limit, $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, $className, TDBMService $tdbmService, MagicQuery $magicQuery, $mode, LoggerInterface $logger)
+    /**
+     * @param mixed[] $parameters
+     * @param array[] $columnDescriptors
+     */
+    public function __construct(ResultIterator $parentResult, string $magicSql, array $parameters, int $limit, int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger)
     {
         $this->parentResult = $parentResult;
         $this->magicSql = $magicSql;
@@ -153,9 +157,9 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
     /**
      * Casts the result set to a PHP array.
      *
-     * @return array
+     * @return AbstractTDBMObject[]
      */
-    public function toArray()
+    public function toArray(): array
     {
         return iterator_to_array($this->getIterator());
     }
@@ -167,7 +171,7 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      *
      * @return MapIterator
      */
-    public function map(callable $callable)
+    public function map(callable $callable): MapIterator
     {
         return new MapIterator($this->getIterator(), $callable);
     }
