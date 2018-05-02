@@ -57,6 +57,7 @@ before_script:
 - composer update --prefer-dist
 # For some reason, $PREFER_LOWEST will fail unless a composer update has been run before...
 - if [ "$PREFER_LOWEST" = "--prefer-lowest" ] ; then composer update --prefer-dist --prefer-lowest; fi
+- pecl install weakref-beta
 script:
 # Let's run the Oracle script only when the password is available (it is not available in forks unfortunately)
 - if [ "$DB" != "oracle" ] ; then ./vendor/bin/phpunit $PHPUNITFILE; else docker run -v $(pwd):/app -v $(pwd)/tests/Fixtures/oracle-startup.sql:/docker-entrypoint-initdb.d/oracle-startup.sql moufmouf/oracle-xe-php vendor/bin/phpunit $PHPUNITFILE; fi

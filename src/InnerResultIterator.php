@@ -225,8 +225,8 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
                 $primaryKeys = $this->tdbmService->_getPrimaryKeysFromObjectData($mainBeanTableName, $beanData[$mainBeanTableName]);
                 $hash = $this->tdbmService->getObjectHash($primaryKeys);
 
-                if ($this->objectStorage->has($mainBeanTableName, $hash)) {
-                    $dbRow = $this->objectStorage->get($mainBeanTableName, $hash);
+                $dbRow = $this->objectStorage->get($mainBeanTableName, $hash);
+                if ($dbRow !== null) {
                     $bean = $dbRow->getTDBMObject();
                 } else {
                     // Let's construct the bean

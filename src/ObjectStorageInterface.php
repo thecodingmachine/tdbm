@@ -21,15 +21,8 @@ interface ObjectStorageInterface
      */
     public function set(string $tableName, $id, DbRow $dbRow): void;
 
-    /**
-     * Checks if an object is in the storage.
-     *
-     * @param string $tableName
-     * @param string|int $id
-     *
-     * @return bool
-     */
-    public function has(string $tableName, $id): bool;
+    // Notice: the interface has no "has" method because it is meaningless in the case of the Weakref implementation.
+    // See https://github.com/thecodingmachine/tdbm/pull/80#issuecomment-385902994
 
     /**
      * Returns an object from the storage (or null if no object is set).
@@ -48,11 +41,4 @@ interface ObjectStorageInterface
      * @param string|int $id
      */
     public function remove(string $tableName, $id): void;
-
-    /**
-     * Applies the callback to all objects.
-     *
-     * @param callable $callback
-     */
-    public function apply(callable $callback): void;
 }

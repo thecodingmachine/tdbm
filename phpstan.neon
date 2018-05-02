@@ -1,6 +1,5 @@
 parameters:
     ignoreErrors:
-     - "#Instantiated class WeakRef not found.#"
      - "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
      - "#Method .*::.* should return .* but returns .*TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject#"
      - "#Method .*::.* should return .* but returns TheCodingMachine\\\\TDBM\\\\ResultIterator#"

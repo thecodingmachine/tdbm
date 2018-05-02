@@ -52,19 +52,6 @@ class StandardObjectStorage implements ObjectStorageInterface
     }
 
     /**
-     * Checks if an object is in the storage.
-     *
-     * @param string $tableName
-     * @param string|int $id
-     *
-     * @return bool
-     */
-    public function has(string $tableName, $id): bool
-    {
-        return isset($this->objects[$tableName][$id]);
-    }
-
-    /**
      * Returns an object from the storage (or null if no object is set).
      *
      * @param string $tableName
@@ -90,19 +77,5 @@ class StandardObjectStorage implements ObjectStorageInterface
     public function remove(string $tableName, $id): void
     {
         unset($this->objects[$tableName][$id]);
-    }
-
-    /**
-     * Applies the callback to all objects.
-     *
-     * @param callable $callback
-     */
-    public function apply(callable $callback): void
-    {
-        foreach ($this->objects as $tableName => $table) {
-            foreach ($table as $id => $obj) {
-                $callback($obj, $tableName, $id);
-            }
-        }
     }
 }
