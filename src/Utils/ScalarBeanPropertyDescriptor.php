@@ -80,6 +80,18 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
+     * Need to force casting getter values, for instance DBAL returns a string for decimal types, not a float
+     * @return bool
+     */
+    public function isForceCast()
+    {
+        $castTypes = [
+            Type::DECIMAL
+        ];
+        return \in_array($this->column->getType()->getName(), $castTypes, true);
+    }
+
+    /**
      * Returns true if the property is compulsory (and therefore should be fetched in the constructor).
      *
      * @return bool
@@ -216,6 +228,8 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         // A column type can be forced if it is not nullable and not auto-incrementable (for auto-increment columns, we can get "null" as long as the bean is not saved).
         $isNullable = !$this->column->getNotnull() || $this->isAutoincrement();
 
+        $forceCast = $this->isForceCast();
+
         $resourceTypeCheck = '';
         if ($normalizedType === 'resource') {
             $resourceTypeCheck .= <<<EOF
@@ -234,7 +248,7 @@ EOF;
      */
     public function %s()%s%s%s
     {
-        return $this->get(%s, %s);
+        return %s $this->get(%s, %s);
     }
 
     /**
@@ -258,6 +272,7 @@ EOF;
             ($this->isTypeHintable() ? ' : ' : ''),
             ($isNullable && $this->isTypeHintable() ? '?' : ''),
             ($this->isTypeHintable() ? $normalizedType: ''),
+            ($forceCast ? "($normalizedType)" : ''),
             var_export($this->column->getName(), true),
             var_export($this->table->getName(), true),
             // Setter
