@@ -299,6 +299,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('name')->string(255)
             ->column('anchorage_country')->references('country')->notNull()->then()
             ->column('current_country')->references('country')->null()->then()
+            ->column('length')->decimal(10, 2)->null()->then()
             ->unique(['anchorage_country', 'name']);
 
         $db->table('sailed_countries')

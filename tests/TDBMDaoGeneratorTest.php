@@ -41,6 +41,7 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\CategoryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\DogBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\FileBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\BoatBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RefNoPrimKeyBean;
@@ -1697,5 +1698,11 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->assertCount(1, $users);
         $this->assertSame('John Doe', $users[0]->getName());
+    }
+
+    public function testDecimalIsMappedToString()
+    {
+        $reflectionClass = new \ReflectionClass(BoatBaseBean::class);
+        $this->assertSame('string', (string) $reflectionClass->getMethod('getLength')->getReturnType());
     }
 }
