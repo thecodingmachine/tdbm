@@ -93,25 +93,6 @@ class WeakrefObjectStorage implements ObjectStorageInterface
         unset($this->objects[$tableName][$id]);
     }
 
-    /**
-     * Applies the callback to all objects.
-     *
-     * @param callable $callback
-     */
-    public function apply(callable $callback): void
-    {
-        foreach ($this->objects as $tableName => $table) {
-            foreach ($table as $id => $ref) {
-                $obj = $ref->get();
-                if ($obj !== null) {
-                    $callback($obj, $tableName, $id);
-                } else {
-                    unset($this->objects[$tableName][$id]);
-                }
-            }
-        }
-    }
-
     private function cleanupDanglingWeakRefs(): void
     {
         foreach ($this->objects as $tableName => $table) {

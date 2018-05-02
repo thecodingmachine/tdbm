@@ -41,11 +41,4 @@ interface ObjectStorageInterface
      * @param string|int $id
      */
     public function remove(string $tableName, $id): void;
-
-    /**
-     * Applies the callback to all objects.
-     *
-     * @param callable $callback
-     */
-    public function apply(callable $callback): void;
 }
