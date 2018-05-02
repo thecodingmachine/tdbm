@@ -7,6 +7,10 @@ class WeakrefObjectStorageTest extends \PHPUnit_Framework_TestCase
 {
     public function testObjectStorage()
     {
+        if (!\class_exists(\WeakRef::class)) {
+            $this->markTestSkipped('No weakref extension detected');
+            return;
+        }
         $objectStorage = new WeakrefObjectStorage();
         $this->assertNull($objectStorage->get('foo', 42));
         $dbRow = $this->createMock(DbRow::class);
@@ -18,6 +22,10 @@ class WeakrefObjectStorageTest extends \PHPUnit_Framework_TestCase
 
     public function testDanglingPointers()
     {
+        if (!\class_exists(\WeakRef::class)) {
+            $this->markTestSkipped('No weakref extension detected');
+            return;
+        }
         $objectStorage = new WeakrefObjectStorage();
         $dbRow = $this->createMock(DbRow::class);
 
