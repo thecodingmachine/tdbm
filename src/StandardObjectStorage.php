@@ -52,19 +52,6 @@ class StandardObjectStorage implements ObjectStorageInterface
     }
 
     /**
-     * Checks if an object is in the storage.
-     *
-     * @param string $tableName
-     * @param string|int $id
-     *
-     * @return bool
-     */
-    public function has(string $tableName, $id): bool
-    {
-        return isset($this->objects[$tableName][$id]);
-    }
-
-    /**
      * Returns an object from the storage (or null if no object is set).
      *
      * @param string $tableName

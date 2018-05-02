@@ -36,7 +36,7 @@ class WeakrefObjectStorage implements ObjectStorageInterface
      * An array of fetched object, accessible via table name and primary key.
      * If the primary key is split on several columns, access is done by an array of columns, serialized.
      *
-     * @var array<string, WeakMap<string, TDBMObject>>
+     * @var \WeakRef[][]
      */
     private $objects = array();
 
@@ -67,27 +67,6 @@ class WeakrefObjectStorage implements ObjectStorageInterface
     }
 
     /**
-     * Checks if an object is in the storage.
-     *
-     * @param string $tableName
-     * @param string|int $id
-     *
-     * @return bool
-     */
-    public function has(string $tableName, $id): bool
-    {
-        if (isset($this->objects[$tableName][$id])) {
-            if ($this->objects[$tableName][$id]->valid()) {
-                return true;
-            } else {
-                unset($this->objects[$tableName][$id]);
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Returns an object from the storage (or null if no object is set).
      *
      * @param string $tableName
@@ -98,9 +77,7 @@ class WeakrefObjectStorage implements ObjectStorageInterface
     public function get(string $tableName, $id) : ?DbRow
     {
         if (isset($this->objects[$tableName][$id])) {
-            if ($this->objects[$tableName][$id]->valid()) {
-                return $this->objects[$tableName][$id]->get();
-            }
+            return $this->objects[$tableName][$id]->get();
         }
         return null;
     }
@@ -124,9 +101,10 @@ class WeakrefObjectStorage implements ObjectStorageInterface
     public function apply(callable $callback): void
     {
         foreach ($this->objects as $tableName => $table) {
-            foreach ($table as $id => $obj) {
-                if ($obj->valid()) {
-                    $callback($obj->get(), $tableName, $id);
+            foreach ($table as $id => $ref) {
+                $obj = $ref->get();
+                if ($obj !== null) {
+                    $callback($obj, $tableName, $id);
                 } else {
                     unset($this->objects[$tableName][$id]);
                 }
@@ -138,7 +116,7 @@ class WeakrefObjectStorage implements ObjectStorageInterface
     {
         foreach ($this->objects as $tableName => $table) {
             foreach ($table as $id => $obj) {
-                if (!$obj->valid()) {
+                if ($obj->valid() === false) {
                     unset($this->objects[$tableName][$id]);
                 }
             }
