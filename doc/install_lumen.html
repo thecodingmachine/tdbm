@@ -352,10 +352,8 @@
 <p>To install TDBM in Lumen 5.x:</p>
 <pre><code class="language-bash">composer require thecodingmachine/tdbm-laravel ^5.0</code></pre>
 <div class="alert alert-info">There is no typo here. The <i>thecodingmachine/tdbm-laravel</i> can be used both for Laravel and Lumen integration.</div>
-<p>Then edit your <code>bootstrap/app.php</code> file and register these 2 service providers:</p>
-<pre><code class="language-php">$app-&gt;register(Nayjest\LaravelDoctrineDBAL\ServiceProvider::class);
-$app-&gt;register(TheCodingMachine\TDBM\Laravel\Providers\TdbmServiceProvider::class);</code></pre>
-<div class="alert alert-info">The <code>Nayjest\LaravelDoctrineDBAL\ServiceProvider</code> provides a "Doctrine DBAL connection" needed by TDBM. This connection reuses the default database connection used by Lumen.</div>
+<p>Then edit your <code>bootstrap/app.php</code> file and register the  service provider:</p>
+<pre><code class="language-php">$app-&gt;register(TheCodingMachine\TDBM\Laravel\Providers\TdbmServiceProvider::class);</code></pre>
 <h2 id="generating-beans-and-daos">Generating beans and DAOs</h2>
 <p>When installation is done, you need to generate DAOs and beans from your data model.</p>
 <p>Run the following command:</p>
