@@ -17,12 +17,7 @@ To install TDBM in Laravel 5.x:
 composer require thecodingmachine/tdbm-laravel ^5.0
 ```
 
-Then:
-
-* Register `Nayjest\LaravelDoctrineDBAL\ServiceProvider` in your application configuration file (`config/app.php`)
-* Register `TheCodingMachine\TDBM\Laravel\Providers\TdbmServiceProvider` in your application configuration file (`config/app.php`)
-
-<div class="alert alert-info">The <code>Nayjest\LaravelDoctrineDBAL\ServiceProvider</code> provides a "Doctrine DBAL connection" needed by TDBM. This connection reuses the default database connection used by Laravel.</div>
+Then, register `TheCodingMachine\TDBM\Laravel\Providers\TdbmServiceProvider` in your application configuration file (`config/app.php`)
 
 ## Generating beans and DAOs
 
