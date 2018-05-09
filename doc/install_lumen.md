@@ -66,14 +66,11 @@ composer require thecodingmachine/tdbm-laravel ^5.0
 <div class="alert alert-info">There is no typo here. The <i>thecodingmachine/tdbm-laravel</i> can be used both for Laravel and Lumen integration.</div>
 
 
-Then edit your `bootstrap/app.php` file and register these 2 service providers:
+Then edit your `bootstrap/app.php` file and register the  service provider:
 
 ```php
-$app->register(Nayjest\LaravelDoctrineDBAL\ServiceProvider::class);
 $app->register(TheCodingMachine\TDBM\Laravel\Providers\TdbmServiceProvider::class);
 ```
-
-<div class="alert alert-info">The <code>Nayjest\LaravelDoctrineDBAL\ServiceProvider</code> provides a "Doctrine DBAL connection" needed by TDBM. This connection reuses the default database connection used by Lumen.</div>
 
 ## Generating beans and DAOs
 
