@@ -507,8 +507,11 @@ while your application will be very slow. You have been warned!</div>
 <p>The interesting part is that TDBM will automatically <strong>discard</strong> any parameter that is set to null.
 So let's imagine that your <code>$store</code> parameter is <code>null</code>. Suddenly, your filter will transform into: <code>category = :category</code>.
 The <code>AND store = :store</code> will be automatically dropped by TDBM.</p>
+<p>And if you want to disable parameter dropping from the SQL query (in case you want to explicitly compare the parameter to <code>null</code>),
+you can simply append an exclamation mark to the parameter name. <code>status = :status!</code> will turn into <code>status IS NULL</code> if the status
+variable is null.</p>
 <p>How is this possible? TDBM is built upon <a href="http://mouf-php.com/packages/mouf/magic-query/">MagicQuery</a> that has
-such a feature. You can read more about this feature <a href="http://mouf-php.com/packages/mouf/magic-query/doc/discard_unused_parameters.html">here</a> and <a href="http://www.thecodingmachine.com/simplifier-des-requetes-sql-complexes-avec-magic-query-cest-magique/">here</a> (french link).</p>
+such a feature. You can read more about this feature <a href="http://mouf-php.com/packages/mouf/magic-query/">here</a> and <a href="http://www.thecodingmachine.com/simplifier-des-requetes-sql-complexes-avec-magic-query-cest-magique/">here</a> (french link).</p>
 <h3 id="getting-only-one-record">Getting only one record</h3>
 <p>If you are confident that your query will only ever return one record (for instance, you are performing a lookup by <code>login</code> on the <code>Users</code> table, then, you can use the <code>findOne</code> method instead of <code>find</code>.</p>
 <pre><code class="language-php">class UserDao extends AbstractUserDao {
