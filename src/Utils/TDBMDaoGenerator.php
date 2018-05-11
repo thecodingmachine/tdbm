@@ -659,7 +659,7 @@ class $daoFactoryClassName
             Type::DATETIMETZ_IMMUTABLE => '\DateTimeImmutable',
             Type::DATE_IMMUTABLE => '\DateTimeImmutable',
             Type::TIME_IMMUTABLE => '\DateTimeImmutable',
-            Type::DECIMAL => 'float',
+            Type::DECIMAL => 'string',
             Type::INTEGER => 'int',
             Type::OBJECT => 'string',
             Type::SMALLINT => 'int',
