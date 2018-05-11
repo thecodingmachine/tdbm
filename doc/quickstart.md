@@ -261,8 +261,12 @@ The interesting part is that TDBM will automatically **discard** any parameter t
 So let's imagine that your `$store` parameter is `null`. Suddenly, your filter will transform into: `category = :category`.
 The `AND store = :store` will be automatically dropped by TDBM.
 
+And if you want to disable parameter dropping from the SQL query (in case you want to explicitly compare the parameter to `null`),
+you can simply append an exclamation mark to the parameter name. `status = :status!` will turn into `status IS NULL` if the status 
+variable is null.
+
 How is this possible? TDBM is built upon [MagicQuery](http://mouf-php.com/packages/mouf/magic-query/) that has
-such a feature. You can read more about this feature [here](http://mouf-php.com/packages/mouf/magic-query/doc/discard_unused_parameters.md) and [here](http://www.thecodingmachine.com/simplifier-des-requetes-sql-complexes-avec-magic-query-cest-magique/) (french link).
+such a feature. You can read more about this feature [here](http://mouf-php.com/packages/mouf/magic-query/) and [here](http://www.thecodingmachine.com/simplifier-des-requetes-sql-complexes-avec-magic-query-cest-magique/) (french link).
 
 ### Getting only one record
 
