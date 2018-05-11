@@ -91,8 +91,8 @@ If you want to customize this, you can edit the `bootstrap/app.php` file:
 
 ```php
 config([
-    'database.tdbm.daoNamespace' => 'App\\Daos',
-    'database.tdbm.beanNamespace' => 'App\\Beans'    
+    'tdbm.daoNamespace' => 'App\\Daos',
+    'tdbm.beanNamespace' => 'App\\Beans'    
 ]);
 ```
 

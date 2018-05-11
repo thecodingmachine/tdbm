@@ -11,13 +11,16 @@ currentMenu: install_laravel
 
 ## Installation
 
-To install TDBM in Laravel 5.x:
+To install TDBM in Laravel 5.x.
+
+First, make sure your database is correctly configured in Laravel. Then run:
 
 ```bash
 composer require thecodingmachine/tdbm-laravel ^5.0
 ```
 
-Then, register `TheCodingMachine\TDBM\Laravel\Providers\TdbmServiceProvider` in your application configuration file (`config/app.php`)
+For Laravel version 5.0 to 5.4, you will have to register the `TheCodingMachine\TDBM\Laravel\Providers\TdbmServiceProvider` manually in your application configuration file (`config/app.php`).
+For Laravel 5.5+, this is automatic, you don't need to do anything.
 
 ## Generating beans and DAOs
 
@@ -34,15 +37,20 @@ php artisan tdbm:generate
 ## Advanced configuration
 
 By default, TDBM will write DAOs in the `App\Daos` namespace and beans in the `App\Beans` namespace.
-If you want to customize this, you can edit the `config/database.php` file:
+If you want to customize this, you can:
+ 
+Create the `config/tdbm.php` file:
+
+```bash
+php artisan vendor:publish
+```
+ 
+Now you can edit the `config/tdbm.php` file:
 
 ```php
 <?php
 
 return [
-
-    // ...
-
     /*
     |--------------------------------------------------------------------------
     | TDBM Configuration
@@ -54,11 +62,8 @@ return [
     |
     */
 
-
-    'tdbm' => [
-        'daoNamespace' => 'App\\Daos',
-        'beanNamespace' => 'App\\Beans',
-    ]
+    'daoNamespace' => 'App\\Daos',
+    'beanNamespace' => 'App\\Beans',
 ];
 ```
 
