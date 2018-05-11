@@ -41,7 +41,7 @@ use TheCodingMachine\TDBM\QueryFactory\FindObjectsQueryFactory;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsFromRawSqlQueryFactory;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
-use Phlib\Logger\LevelFilter;
+use Phlib\Logger\Decorator\LevelFilter;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
