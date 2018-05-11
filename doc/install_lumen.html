@@ -363,8 +363,8 @@
 <p>By default, TDBM will write DAOs in the <code>App\Daos</code> namespace and beans in the <code>App\Beans</code> namespace.
 If you want to customize this, you can edit the <code>bootstrap/app.php</code> file:</p>
 <pre><code class="language-php">config([
-    'database.tdbm.daoNamespace' =&gt; 'App\\Daos',
-    'database.tdbm.beanNamespace' =&gt; 'App\\Beans'    
+    'tdbm.daoNamespace' =&gt; 'App\\Daos',
+    'tdbm.beanNamespace' =&gt; 'App\\Beans'    
 ]);</code></pre>
 <h2 id="accessing-daos-through-a-route-closure">Accessing DAOs through a route closure</h2>
 <p>In Lumen, you would typically inject the DAOs in your route closure.</p>
