@@ -31,7 +31,7 @@ Below is a short list of the biggest changes:
 - There are no more getters and setters for foreign key ids. Instead, you can use the getters and setters of beans
   directly.
 - All TDBM xxxFilters have been removed. They are replaced by pure SQL and the "magic parameters" mechanism.
-- Many to many relationships are automatically detected. Pivot tables no more generate beans and DAOs.
+- Many to many relationships are automatically detected. Association tables don't generate beans and DAOs anymore.
 - Returned results are now objects that can be iterated. They implement the `porpaginas` interface: pagination is 
   done on the result set rather than when calling the `getObjects/findObjects` method. As a result, the real query
   is performed when the result is first iterated and not when the `getObjects/findObjects` method is called.

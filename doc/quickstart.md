@@ -344,8 +344,8 @@ $users = $country->getUsers();
 
 ![Users and roles](images/users_roles.png)
 
-TDBM can automatically detect pivot tables in your data model.
-Pivot tables will have no DAOs and no Beans associated. Instead, TDBM will generate a complete list of methods in the linked beans
+TDBM can automatically detect association tables in your data model.
+Association tables will have no DAOs and no Beans associated. Instead, TDBM will generate a complete list of methods in the linked beans
 to edit them.
 
 ```php
@@ -484,7 +484,7 @@ class RightDao extends AbstractRightDao {
 }
 ```
 
-Powerful, isn't it? TDBM automatically detected the two pivot tables and performed 4 joins to retrieve the roles our user has.<br/>
+Powerful, isn't it? TDBM automatically detected the two association tables and performed 4 joins to retrieve the roles our user has.<br/>
 
 ###Specifying the joins
 

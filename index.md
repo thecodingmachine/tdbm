@@ -73,9 +73,9 @@ $user->getCountry()->getLabel();
 $users = $country->getUsers();
 ```
 
-### TDBM can detect pivot table
+### TDBM can detect association tables
 
-TDBM can automatically detect pivot tables to generate **many to many relationships**.
+TDBM can automatically detect association tables to generate **many to many relationships**.
 
 ![Many to many](doc/images/many_to_many.png)
 
