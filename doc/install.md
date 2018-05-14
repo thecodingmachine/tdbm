@@ -12,23 +12,29 @@ TDBM offers a number of integration packages to help you get started with your f
         <a href="install_laravel.html" class="btn btn-primary btn-large btn-block">Install in Laravel</a>
     </div>
     <div class="col-xs-12 col-sm-6">
-        <a href="install_laravel.html" class="btn btn-primary btn-large btn-block">Install in Lumen</a>
+        <a href="install_lumen.html" class="btn btn-primary btn-large btn-block">Install in Lumen</a>
     </div>
 </div>
 <br/>
 <div class="row">
+    <div class="col-xs-12 col-sm-6">
+        <a href="install_symfony.html" class="btn btn-primary btn-large btn-block">Install in Symfony</a>
+    </div>
     <div class="col-xs-12 col-sm-6">
         <a href="install_silex.html" class="btn btn-primary btn-large btn-block">Install in Silex</a>
     </div>
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_mouf.html" class="btn btn-primary btn-large btn-block">Install in Mouf</a>
-    </div>
 </div>
 <br/>
 <div class="row">
     <div class="col-xs-12 col-sm-6">
+        <a href="install_mouf.html" class="btn btn-primary btn-large btn-block">Install in Mouf</a>
+    </div>
+    <div class="col-xs-12 col-sm-6">
         <a href="install_service-provider.html" class="btn btn-primary btn-large btn-block">Installation in any <em>container-interop/service-provider</em> compatible container</a>
     </div>
+</div>
+<br/>
+<div class="row">
     <div class="col-xs-12 col-sm-6">
         <a href="manual_install.html" class="btn btn-primary btn-large btn-block">Manual installation (no framework)</a>
     </div>

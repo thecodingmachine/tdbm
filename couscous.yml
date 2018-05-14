@@ -46,6 +46,9 @@ menu:
         install_lumen:
             text: Install in Lumen
             relativeUrl: doc/install_lumen.html
+        install_symfony:
+            text: Install in Symfony
+            relativeUrl: doc/install_symfony.html
         install_silex:
             text: Install in Silex
             relativeUrl: doc/install_silex.html
