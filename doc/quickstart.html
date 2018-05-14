@@ -559,8 +559,8 @@ $country = $countryDao-&gt;getById(1);
 $users = $country-&gt;getUsers();</code></pre>
 <h3 id="many-to-many-relationships">Many to many relationships</h3>
 <p><img src="images/users_roles.png" alt="Users and roles" /></p>
-<p>TDBM can automatically detect pivot tables in your data model.
-Pivot tables will have no DAOs and no Beans associated. Instead, TDBM will generate a complete list of methods in the linked beans
+<p>TDBM can automatically detect association tables in your data model.
+Association tables will have no DAOs and no Beans associated. Instead, TDBM will generate a complete list of methods in the linked beans
 to edit them.</p>
 <pre><code class="language-php">// Getter
 $roles = $user-&gt;getRoles();
@@ -662,7 +662,7 @@ your code can look like this:</p>
         return $this-&gt;find($user);
     }
 }</code></pre>
-<p>Powerful, isn't it? TDBM automatically detected the two pivot tables and performed 4 joins to retrieve the roles our user has.<br/></p>
+<p>Powerful, isn't it? TDBM automatically detected the two association tables and performed 4 joins to retrieve the roles our user has.<br/></p>
 <h3 id="specifying-the-joins">Specifying the joins</h3>
 <p>TDBM will do its best to automatically detect joins for you. This will save you the hassle of writing tedious JOIN statements.
 To find the joins, TDBM will look for the shortest path between tables. However, sometimes, the JOIN you want to perform is not on the shortest path. In this case, you will need to provide TDBM with the JOINs you want to do.</p>
