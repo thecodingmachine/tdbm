@@ -18,9 +18,20 @@ Therefore, installing the TDBM bundle will install Doctrine ORM bundle a depende
 about, this is unfortunately an expected behaviour ([more details](https://github.com/symfony/recipes/issues/218))
 </div>
 
-### Configuring the database connection
+### Configuration
 
 The database connection is configured like any other Symfony application, using the `DATABASE_URL` environment variable.
+
+The rest of the parameters are stored in the `config/packages/tdbm.yaml` file.
+
+By default, beans will go into `App\Beans` and DAOs will go into `App\Daos`.
+
+<div class="alert alert-warning">
+If your default namespace for your application is not <code>App</code>, you should open this <code>tdbm.yaml</code> file and customize the 
+<code>tdbm.bean_namespace</code> and <code>tdbm.dao_namespace</code> to match your application namespace.
+</div>
+
+You can also use the `config/packages/tdbm.yaml` file to customize the naming of beans and DAOs.
 
 ## Generating beans and DAOs
 
