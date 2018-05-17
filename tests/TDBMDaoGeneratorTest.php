@@ -1671,6 +1671,26 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertInternalType('resource', $resource);
         $firstLine = fgets($resource);
         $this->assertSame("<?php\n", $firstLine);
+
+        stream_get_contents($resource);
+
+        $loadedFile->setId($loadedFile->getId());
+
+        $fileDao->save($loadedFile);
+    }
+
+    /**
+     * @depends testReadBlob
+     */
+    public function testReadAndSaveBlob()
+    {
+        $fileDao = new FileDao($this->tdbmService);
+        $loadedFile = $fileDao->getById(1);
+
+        $resource = $loadedFile->getFile();
+
+        $firstLine = fgets($resource);
+        $this->assertSame("<?php\n", $firstLine);
     }
 
     /**
