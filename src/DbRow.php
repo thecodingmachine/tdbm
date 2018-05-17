@@ -57,6 +57,8 @@ class DbRow
     private $dbRow = [];
 
     /**
+     * The array of beans this bean points to, indexed by foreign key name.
+     *
      * @var AbstractTDBMObject[]
      */
     private $references = [];
@@ -78,6 +80,20 @@ class DbRow
      * @var array An array of column => value
      */
     private $primaryKeys;
+
+    /**
+     * A list of modified columns, indexed by column name. Value is always true.
+     *
+     * @var array
+     */
+    private $modifiedColumns = [];
+
+    /**
+     * A list of modified references, indexed by foreign key name. Value is always true.
+     *
+     * @var array
+     */
+    private $modifiedReferences = [];
 
     /**
      * You should never call the constructor directly. Instead, you should use the
@@ -145,6 +161,11 @@ class DbRow
     public function _setStatus(string $state) : void
     {
         $this->status = $state;
+        if ($state === TDBMObjectStateEnum::STATE_LOADED) {
+            // after saving we are back to a loaded state, hence unmodified.
+            $this->modifiedColumns = [];
+            $this->modifiedReferences = [];
+        }
     }
 
     /**
@@ -156,7 +177,7 @@ class DbRow
      */
     public function _dbLoadIfNotLoaded(): void
     {
-        if ($this->status == TDBMObjectStateEnum::STATE_NOT_LOADED) {
+        if ($this->status === TDBMObjectStateEnum::STATE_NOT_LOADED) {
             $connection = $this->tdbmService->getConnection();
 
             list($sql_where, $parameters) = $this->tdbmService->buildFilterFromFilterBag($this->primaryKeys, $connection->getDatabasePlatform());
@@ -215,6 +236,7 @@ class DbRow
         /*if ($var == $this->getPrimaryKey() && isset($this->dbRow[$var]))
             throw new TDBMException("Error! Changing primary key value is forbidden.");*/
         $this->dbRow[$var] = $value;
+        $this->modifiedColumns[$var] = true;
         if ($this->tdbmService !== null && $this->status === TDBMObjectStateEnum::STATE_LOADED) {
             $this->status = TDBMObjectStateEnum::STATE_DIRTY;
             $this->tdbmService->_addToToSaveObjectList($this);
@@ -228,6 +250,7 @@ class DbRow
     public function setRef(string $foreignKeyName, AbstractTDBMObject $bean = null): void
     {
         $this->references[$foreignKeyName] = $bean;
+        $this->modifiedReferences[$foreignKeyName] = true;
 
         if ($this->tdbmService !== null && $this->status === TDBMObjectStateEnum::STATE_LOADED) {
             $this->status = TDBMObjectStateEnum::STATE_DIRTY;
@@ -328,10 +351,35 @@ class DbRow
      */
     public function _getDbRow(): array
     {
-        // Let's merge $dbRow and $references
-        $dbRow = $this->dbRow;
+        return $this->buildDbRow($this->dbRow, $this->references);
+    }
 
-        foreach ($this->references as $foreignKeyName => $reference) {
+    /**
+     * Returns raw database row that needs to be updated.
+     *
+     * @return mixed[]
+     *
+     * @throws TDBMMissingReferenceException
+     */
+    public function _getUpdatedDbRow(): array
+    {
+        $dbRow = \array_intersect_key($this->dbRow, $this->modifiedColumns);
+        $references = \array_intersect_key($this->references, $this->modifiedReferences);
+        return $this->buildDbRow($dbRow, $references);
+    }
+
+    /**
+     * Builds a raw db row from dbRow and references passed in parameters.
+     *
+     * @param mixed[] $dbRow
+     * @param AbstractTDBMObject[] $references
+     * @return mixed[]
+     * @throws TDBMMissingReferenceException
+     */
+    private function buildDbRow(array $dbRow, array $references): array
+    {
+        // Let's merge $dbRow and $references
+        foreach ($references as $foreignKeyName => $reference) {
             // Let's match the name of the columns to the primary key values
             $fk = $this->tdbmService->_getForeignKeyByName($this->dbTableName, $foreignKeyName);
             $localColumns = $fk->getUnquotedLocalColumns();
@@ -344,11 +392,11 @@ class DbRow
                 }
                 $foreignColumns = $fk->getUnquotedForeignColumns();
                 $refBeanValues = $firstRefDbRow->dbRow;
-                for ($i = 0, $count = count($localColumns); $i < $count; ++$i) {
+                for ($i = 0, $count = \count($localColumns); $i < $count; ++$i) {
                     $dbRow[$localColumns[$i]] = $refBeanValues[$foreignColumns[$i]];
                 }
             } else {
-                for ($i = 0, $count = count($localColumns); $i < $count; ++$i) {
+                for ($i = 0, $count = \count($localColumns); $i < $count; ++$i) {
                     $dbRow[$localColumns[$i]] = null;
                 }
             }

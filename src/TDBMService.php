@@ -683,6 +683,10 @@ class TDBMService
                 $dbRows = $object->_getDbRows();
 
                 foreach ($dbRows as $dbRow) {
+                    if ($dbRow->_getStatus() !== TDBMObjectStateEnum::STATE_DIRTY) {
+                        // Not all db_rows in a bean need to be dirty when the bean itself is dirty.
+                        continue;
+                    }
                     $references = $dbRow->_getReferences();
 
                     // Let's save all references in NEW state (we need their primary key)
@@ -692,9 +696,8 @@ class TDBMService
                         }
                     }
 
-                    // Let's first get the primary keys
                     $tableName = $dbRow->_getDbTableName();
-                    $dbRowData = $dbRow->_getDbRow();
+                    $dbRowData = $dbRow->_getUpdatedDbRow();
 
                     $schema = $this->tdbmSchemaAnalyzer->getSchema();
                     $tableDescriptor = $schema->getTable($tableName);
@@ -721,7 +724,7 @@ class TDBMService
                     // Let's check if the primary key has been updated...
                     $needsUpdatePk = false;
                     foreach ($primaryKeys as $column => $value) {
-                        if (!isset($dbRowData[$column]) || $dbRowData[$column] != $value) {
+                        if (isset($dbRowData[$column]) && $dbRowData[$column] != $value) {
                             $needsUpdatePk = true;
                             break;
                         }
