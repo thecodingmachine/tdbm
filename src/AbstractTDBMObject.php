@@ -177,9 +177,11 @@ abstract class AbstractTDBMObject implements JsonSerializable
     {
         $this->status = $state;
 
-        // TODO: we might ignore the loaded => dirty state here! dirty status comes from the db_row itself.
-        foreach ($this->dbRows as $dbRow) {
-            $dbRow->_setStatus($state);
+        // The dirty state comes form the db_row itself so there is no need to set it from the called.
+        if ($state !== TDBMObjectStateEnum::STATE_DIRTY) {
+            foreach ($this->dbRows as $dbRow) {
+                $dbRow->_setStatus($state);
+            }
         }
 
         if ($state === TDBMObjectStateEnum::STATE_DELETED) {
