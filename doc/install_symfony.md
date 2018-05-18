@@ -33,6 +33,30 @@ If your default namespace for your application is not <code>App</code>, you shou
 
 You can also use the `config/packages/tdbm.yaml` file to customize the naming of beans and DAOs.
 
+Here is a configuration file with all available options:
+
+**config/packages/tdbm.yaml**
+```yaml
+tdbm:
+    bean_namespace: App\Beans
+    dao_namespace: App\Daos
+    # The naming section is completely optional
+    naming:
+        bean_prefix: ""
+        bean_suffix: ""
+        base_bean_prefix: Abstract
+        base_bean_suffix: ""
+        dao_prefix: ""
+        dao_suffix: Dao
+        base_dao_prefix: Abstract
+        base_dao_suffix: Dao
+        # Exceptions are used to transform a table name (the key) into a bean name (the value)
+        # Very useful if your database table names are not in english 
+        # (as TDBM will try to turn plural table names into singular bean names)
+        exceptions:
+            chevaux: Cheval
+```
+
 ## Generating beans and DAOs
 
 When installation is done, you need to generate DAOs and beans from your data model.
