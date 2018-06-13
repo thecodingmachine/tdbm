@@ -75,7 +75,7 @@ class TDBMSchemaAnalyzer
     public function getSchema(): Schema
     {
         if ($this->schema === null) {
-            $cacheKey = $this->getCachePrefix().'_schema';
+            $cacheKey = $this->getCachePrefix().'_immutable_schema';
             if ($this->cache->contains($cacheKey)) {
                 $this->schema = $this->cache->fetch($cacheKey);
             } else {
