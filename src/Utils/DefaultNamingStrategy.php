@@ -167,6 +167,9 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
         }
 
         $tokens = preg_split("/[_ ]+/", $str);
+        if ($tokens === false) {
+            throw new \RuntimeException('Unexpected preg_split error'); // @codeCoverageIgnore
+        }
 
         $str = '';
         foreach ($tokens as $token) {
@@ -196,6 +199,9 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
         }
 
         $tokens = preg_split("/[_ ]+/", $str);
+        if ($tokens === false) {
+            throw new \RuntimeException('Unexpected preg_split error'); // @codeCoverageIgnore
+        }
 
         $str = '';
         foreach ($tokens as $token) {

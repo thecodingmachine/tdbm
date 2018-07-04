@@ -31,7 +31,7 @@ class DbRow
     /**
      * The service this object is bound to.
      *
-     * @var TDBMService
+     * @var TDBMService|null
      */
     protected $tdbmService;
 
@@ -178,6 +178,9 @@ class DbRow
     public function _dbLoadIfNotLoaded(): void
     {
         if ($this->status === TDBMObjectStateEnum::STATE_NOT_LOADED) {
+            if ($this->tdbmService === null) {
+                throw new TDBMException('DbRow initialization failed. tdbmService is null but status is STATE_NOT_LOADED'); // @codeCoverageIgnore
+            }
             $connection = $this->tdbmService->getConnection();
 
             list($sql_where, $parameters) = $this->tdbmService->buildFilterFromFilterBag($this->primaryKeys, $connection->getDatabasePlatform());
@@ -378,6 +381,10 @@ class DbRow
      */
     private function buildDbRow(array $dbRow, array $references): array
     {
+        if ($this->tdbmService === null) {
+            throw new TDBMException('DbRow initialization failed. tdbmService is null.'); // @codeCoverageIgnore
+        }
+
         // Let's merge $dbRow and $references
         foreach ($references as $foreignKeyName => $reference) {
             // Let's match the name of the columns to the primary key values
@@ -387,6 +394,9 @@ class DbRow
             if ($reference !== null) {
                 $refDbRows = $reference->_getDbRows();
                 $firstRefDbRow = reset($refDbRows);
+                if ($firstRefDbRow === false) {
+                    throw new \RuntimeException('Unexpected error: empty refDbRows'); // @codeCoverageIgnore
+                }
                 if ($firstRefDbRow->_getStatus() === TDBMObjectStateEnum::STATE_DELETED) {
                     throw TDBMMissingReferenceException::referenceDeleted($this->dbTableName, $reference);
                 }

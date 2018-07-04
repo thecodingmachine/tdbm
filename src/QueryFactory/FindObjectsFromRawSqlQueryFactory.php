@@ -137,7 +137,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
     }
 
     /**
-     * @param array $parsedSql
+     * @param mixed[] $parsedSql
      * @param null|string $sqlCount
      * @return mixed[] An array of 3 elements: [$processedSql, $processedSqlCount, $columnDescriptors]
      */

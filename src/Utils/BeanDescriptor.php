@@ -429,7 +429,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         foreach ($this->getBeanPropertyDescriptors() as $beanPropertyDescriptor) {
             $className = $beanPropertyDescriptor->getClassName();
             if (null !== $className) {
-                $classes[] = $beanPropertyDescriptor->getClassName();
+                $classes[] = $className;
             }
         }
 

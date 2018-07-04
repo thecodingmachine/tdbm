@@ -239,6 +239,7 @@ namespace {$daonamespace}\\Generated;
 
 use TheCodingMachine\\TDBM\\TDBMService;
 use TheCodingMachine\\TDBM\\ResultIterator;
+use TheCodingMachine\\TDBM\\TDBMException;
 ".implode('', $useStatements)."
 /**
  * The $baseClassName class will maintain the persistence of $beanClassWithoutNameSpace class into the $tableName table.
@@ -569,14 +570,14 @@ class $daoFactoryClassName
 
         $str = strtoupper(substr($str, 0, 1)).substr($str, 1);
         while (true) {
-            if (strpos($str, '_') === false && strpos($str, ' ') === false) {
-                break;
-            }
-
             $pos = strpos($str, '_');
             if ($pos === false) {
                 $pos = strpos($str, ' ');
+                if ($pos === false) {
+                    break;
+                }
             }
+
             $before = substr($str, 0, $pos);
             $after = substr($str, $pos + 1);
             $str = $before.strtoupper(substr($after, 0, 1)).substr($after, 1);
