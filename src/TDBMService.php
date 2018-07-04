@@ -911,7 +911,7 @@ class TDBMService
      * The primary keys are extracted from the object columns.
      *
      * @param string $table
-     * @param array $columns
+     * @param mixed[] $columns
      *
      * @return mixed[] Returns an array of column => value
      */
