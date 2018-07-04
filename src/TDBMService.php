@@ -417,6 +417,9 @@ class TDBMService
             $parameters = [];
             $dbRows = $filter_bag->_getDbRows();
             $dbRow = reset($dbRows);
+            if ($dbRow === false) {
+                throw new \RuntimeException('Unexpected error: empty dbRow'); // @codeCoverageIgnore
+            }
             $primaryKeys = $dbRow->_getPrimaryKeys();
 
             foreach ($primaryKeys as $column => $value) {
@@ -847,6 +850,9 @@ class TDBMService
     {
         $dbRows = $bean->_getDbRows();
         $dbRow = reset($dbRows);
+        if ($dbRow === false) {
+            throw new \RuntimeException('Unexpected error: empty dbRow'); // @codeCoverageIgnore
+        }
 
         return array_values($dbRow->_getPrimaryKeys());
     }
@@ -867,7 +873,11 @@ class TDBMService
         } else {
             ksort($primaryKeys);
 
-            return md5(json_encode($primaryKeys));
+            $pkJson = json_encode($primaryKeys);
+            if ($pkJson === false) {
+                throw new TDBMException('Unexepected error: unable to encode primary keys'); // @codeCoverageIgnore
+            }
+            return md5($pkJson);
         }
     }
 
@@ -1199,8 +1209,8 @@ class TDBMService
                     $this->reflectionClassCache[$className] = new \ReflectionClass($className);
                 }
                 // Let's bypass the constructor when creating the bean!
+                /** @var AbstractTDBMObject */
                 $bean = $this->reflectionClassCache[$className]->newInstanceWithoutConstructor();
-                /* @var $bean AbstractTDBMObject */
                 $bean->_constructLazy($table, $primaryKeys, $this);
 
                 return $bean;
@@ -1329,7 +1339,7 @@ class TDBMService
     }
 
     /**
-     * @param array $beanData An array of data: array<table, array<column, value>>
+     * @param array[] $beanData An array of data: array<table, array<column, value>>
      *
      * @return mixed[] an array with first item = class name, second item = table name and third item = list of tables needed
      *

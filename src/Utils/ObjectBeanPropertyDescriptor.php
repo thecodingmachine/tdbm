@@ -185,11 +185,18 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getJsonSerializeCode(): string
     {
-        return '        if (!$stopRecursion) {
+        if (!$this->isCompulsory()) {
+            return '        if (!$stopRecursion) {
             $object = $this->'.$this->getGetterName().'();
             $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $object ? $object->jsonSerialize(true) : null;
         }
 ';
+        } else {
+            return '        if (!$stopRecursion) {
+            $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName().'()->jsonSerialize(true);
+        }
+';
+        }
     }
 
     /**

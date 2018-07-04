@@ -159,7 +159,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
                 'time',
                 'time_immutable',
             ], true)) {
-                if (in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */, 'SYSDATE' /* Oracle */ , 'CURRENT_TIMESTAMP()' /* MariaDB 10.3 */], true)) {
+                if ($default !== null && in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */, 'SYSDATE' /* Oracle */ , 'CURRENT_TIMESTAMP()' /* MariaDB 10.3 */], true)) {
                     $defaultCode = 'new \DateTimeImmutable()';
                 } else {
                     throw new TDBMException('Unable to set default value for date. Database passed this default value: "'.$default.'"');
@@ -179,9 +179,9 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         switch ($comment) {
             case '':
             case 'v1':
-                return '(string) Uuid::uuid1()';
+                return 'Uuid::uuid1()->toString()';
             case 'v4':
-                return '(string) Uuid::uuid4()';
+                return 'Uuid::uuid4()->toString()';
             default:
                 throw new TDBMException('@UUID annotation accepts either "v1" or "v4" parameter. Unexpected parameter: ' . $comment);
         }

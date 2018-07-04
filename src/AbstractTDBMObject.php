@@ -360,6 +360,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
         $storage = $this->retrieveRelationshipsStorage($pivotTableName);
 
         foreach ($storage as $oldRemoteBean) {
+            /* @var $oldRemoteBean AbstractTDBMObject */
             if (!in_array($oldRemoteBean, $remoteBeans, true)) {
                 // $oldRemoteBean must be removed
                 $this->_removeRelationship($pivotTableName, $oldRemoteBean);
