@@ -34,6 +34,7 @@ class AlteredConfigurationTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($configuration->getGeneratorEventDispatcher(), $alteredConfiguration->getGeneratorEventDispatcher());
         $this->assertSame($schemaAnalyzer, $alteredConfiguration->getSchemaAnalyzer());
         $this->assertSame($configuration->getPathFinder(), $alteredConfiguration->getPathFinder());
+        $this->assertSame($configuration->getAnnotationParser(), $alteredConfiguration->getAnnotationParser());
 
         $logger2 = new NullLogger();
         $alteredConfiguration->setLogger($logger2);
