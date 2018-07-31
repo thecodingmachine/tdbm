@@ -6,6 +6,7 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\GeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
@@ -60,5 +61,10 @@ interface ConfigurationInterface
      *
      * @return PathFinderInterface
      */
-    public function getPathFinder() : PathFinderInterface;
+    public function getPathFinder(): PathFinderInterface;
+
+    /**
+     * @return AnnotationParser
+     */
+    public function getAnnotationParser(): AnnotationParser;
 }

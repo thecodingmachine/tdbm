@@ -11,6 +11,7 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 
 /**
  * This class represents a bean.
@@ -54,6 +55,10 @@ class BeanDescriptor implements BeanDescriptorInterface
      * @var string
      */
     private $generatedBeanNamespace;
+    /**
+     * @var AnnotationParser
+     */
+    private $annotationParser;
 
     /**
      * @param Table $table
@@ -63,8 +68,9 @@ class BeanDescriptor implements BeanDescriptorInterface
      * @param Schema $schema
      * @param TDBMSchemaAnalyzer $tdbmSchemaAnalyzer
      * @param NamingStrategyInterface $namingStrategy
+     * @param AnnotationParser $annotationParser
      */
-    public function __construct(Table $table, string $beanNamespace, string $generatedBeanNamespace, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy)
+    public function __construct(Table $table, string $beanNamespace, string $generatedBeanNamespace, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy, AnnotationParser $annotationParser)
     {
         $this->table = $table;
         $this->beanNamespace = $beanNamespace;
@@ -73,6 +79,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
         $this->namingStrategy = $namingStrategy;
+        $this->annotationParser = $annotationParser;
         $this->initBeanPropertyDescriptors();
     }
 
@@ -224,7 +231,7 @@ class BeanDescriptor implements BeanDescriptorInterface
 
                 $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->schemaAnalyzer, $this->namingStrategy);
             } else {
-                $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column, $this->namingStrategy);
+                $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column, $this->namingStrategy, $this->annotationParser);
             }
         }
 
@@ -574,7 +581,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
                     $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->schemaAnalyzer, $this->namingStrategy);
                 }
             } else {
-                $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column), $this->namingStrategy);
+                $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column), $this->namingStrategy, $this->annotationParser);
             }
         }
 
@@ -624,7 +631,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
                 $foreignTable = $this->schema->getTable($foreignKey->getForeignTableName());
                 foreach ($columns as $localColumn => $foreignColumn) {
                     // TODO: a foreign key could point to another foreign key. In this case, there is no getter for the pointed column. We don't support this case.
-                    $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy);
+                    $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy, $this->annotationParser);
                     if ($first) {
                         // First parameter for index is not nullable
                         $filterArrayCode .= '            '.var_export($localColumn, true).' => '.$element->getVariableName().'->'.$targetedElement->getGetterName()."(),\n";

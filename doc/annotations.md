@@ -48,11 +48,11 @@ By default, **UUID v1** is used. UUID v1 is timestamp-based. Therefore, your dat
 
 However, this also means that your ID contains the creation timestamp of the field. If this is a sensitive information that you want to hide, you can instead use UUID v4.
 
-To do so, simply use the `@UUID v4` annotation like this:
+To do so, simply use the `@UUID("v4")` annotation like this:
 
 ```sql
 CREATE TABLE `articles` (
-  `id` varchar(36) NOT NULL COMMENT '@UUID v4',
+  `id` varchar(36) NOT NULL COMMENT '@UUID("v4")',
   `content` varchar(255),
   PRIMARY KEY (`id`)
 );
