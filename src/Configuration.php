@@ -58,10 +58,6 @@ class Configuration implements ConfigurationInterface
      */
     private $pathFinder;
     /**
-     * @var array<string, string>
-     */
-    private $annotations;
-    /**
      * @var AnnotationParser
      */
     private $annotationParser;

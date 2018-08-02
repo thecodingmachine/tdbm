@@ -19,7 +19,6 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
         ]);
         $column = new Column('foo', Type::getType(Type::STRING), ['comment'=>'@UUID']);
         $table = new Table('bar');
-        //$annotations = $parser->parse('@UUID', '');
         $annotations = $parser->getColumnAnnotations($column, $table);
 
         $annotation = $annotations->findAnnotation(UUID::class);
