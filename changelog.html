@@ -355,7 +355,31 @@
         <div class="container pt100">
             <div class="row">
                 <div class="col-xs-12">
-                                        <h1 id="43">4.3</h1>
+                                        <h1 id="51">5.1</h1>
+<p>New features:</p>
+<ul>
+<li>#96: New @Bean annotation in table comments to alter the name of a bean</li>
+<li>#95: Table and column annotations are now parsed using doctrine/annotations lexer/parser</li>
+</ul>
+<h1 id="50">5.0</h1>
+<p>Breaking changes:</p>
+<ul>
+<li>TDBM is migrated to a new package name: thecodingmachine/tdbm</li>
+<li>TDBM is migrated to a new namespace: TheCodingMachine\TDBM</li>
+<li>Old package mouf/database.tdbm is still available for Mouf integration</li>
+</ul>
+<p>Major changes:</p>
+<ul>
+<li>New website: <a href="https://thecodingmachine.github.io/tdbm/">https://thecodingmachine.github.io/tdbm/</a></li>
+<li>Adding support for MariaDB, PostgreSQL and Oracle</li>
+<li>Code coverage dramatically increased</li>
+<li>Code 100% type-hinted thanks to PHPStan and thecodingmachine/phpstan-strict-rules</li>
+</ul>
+<p>Bugfixes:</p>
+<ul>
+<li><a href="https://github.com/thecodingmachine/tdbm/milestone/1?closed=1">a lot!</a></li>
+</ul>
+<h1 id="43">4.3</h1>
 <p>Potentially breaking changes:</p>
 <ul>
 <li>TDBM now uses PHP 7.1 nullable return types and void types for base beans. <strong>If your code overrides getter or setters</strong> from base bean, and if you are not yet running PHP 7.2 (not released at the time of writing this), your extended method will have to strictly match the method of the base bean. You might have to add those nullable type hint and void type hint into your own getters and setters.</li>
@@ -374,9 +398,7 @@
 </ul>
 <p>Bugfix:</p>
 <ul>
-<li>
-<h1 id="138-fixing">138: fixing <code>findOneByXXX</code> parameters in generated DAOs</h1>
-</li>
+<li>#138: fixing <code>findOneByXXX</code> parameters in generated DAOs</li>
 </ul>
 <h1 id="42">4.2</h1>
 <p>Major changes:</p>

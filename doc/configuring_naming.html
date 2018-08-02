@@ -401,6 +401,13 @@ Let's assume you have a table named <code>chevaux</code> ('horses' in French). T
 <pre><code class="language-php">$strategy-&gt;setExceptions([
     'chevaux' =&gt; 'Cheval'
 ]);</code></pre>
+<h2 id="using-the-bean-annotation">Using the @Bean annotation</h2>
+<p>You can also use the @Bean annotation to directly alter the name of the beans/daos.</p>
+<pre><code class="language-sql">CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@Bean(name=\"User\")");</code></pre>
 <h2 id="implementing-your-own-naming-strategy">Implementing your own naming strategy</h2>
 <p>If you need a more fine-grained control over the naming strategy, you can simply implement your own <code>NamingStrategyInterface</code> class. Or you can extend the <code>AbstractNamingStrategy</code> class that implements most of the boilerplate code you will need and still offers a large degree of freedom.</p>
 <p>The naming strategy is passed as a parameter of the <code>Configuration</code> class used to configure the <code>TDBMService</code>.</p>

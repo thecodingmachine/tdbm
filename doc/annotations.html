@@ -358,7 +358,6 @@
                     <h1>Annotations <small></small></h1>                    <p>TDBM can read annotations to alter the generation of beans and DAOs.</p>
 <p>If you have used annotations in the past, you are probably used to put annotations in your PHP documentation blocks.
 But TDBM being a database-driven ORM, everything starts from the database. So TDBM will actually read annotations... from your database comments!</p>
-<p>Right now, TDBM supports only one annotation.</p>
 <h2 id="the-uuid-annotation">The @UUID annotation</h2>
 <p>By adding a <code>@UUID</code> annotation in your column comment, you inform TDBM that the column contains a generated random <a href="https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_.28date-time_and_MAC_address.29">UUID</a> value.</p>
 <p>On object instantiation, TDBM will automatically fill the column with a random UUID. You would typically use this annotation in a primary key column.</p>
@@ -382,9 +381,9 @@ abstract class AbstractArticle extends AbstractTDBMObject implements \JsonSerial
 <h3 id="choosing-the-uuid-version">Choosing the UUID version</h3>
 <p>By default, <strong>UUID v1</strong> is used. UUID v1 is timestamp-based. Therefore, your database rows will be sorted according to the creation order (just like with an autoincremented ID).</p>
 <p>However, this also means that your ID contains the creation timestamp of the field. If this is a sensitive information that you want to hide, you can instead use UUID v4.</p>
-<p>To do so, simply use the <code>@UUID v4</code> annotation like this:</p>
+<p>To do so, simply use the <code>@UUID("v4")</code> annotation like this:</p>
 <pre><code class="language-sql">CREATE TABLE `articles` (
-  `id` varchar(36) NOT NULL COMMENT '@UUID v4',
+  `id` varchar(36) NOT NULL COMMENT '@UUID("v4")',
   `content` varchar(255),
   PRIMARY KEY (`id`)
 );</code></pre>
@@ -412,6 +411,18 @@ BEGIN
   FROM   dual;
 END;
 /</code></pre>
+<h2 id="the-bean-annotation">The @Bean annotation</h2>
+<p>This annotation can be put on a table comment to alter the name of the generated bean.</p>
+<pre><code class="language-sql">CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@Bean(name=\"User\")");</code></pre>
+<p>In the example above, the bean class name will not be <code>Member</code> but <code>User</code>.
+The name of the DAO will also be changed from <code>MemberDao</code> to <code>UserDao</code>.</p>
+<div class="alert alert-info">Note: the @Bean annotation is read by the <a href="configuring_naming.md">default naming strategy</a> provided by TDBM.
+If you use your own naming strategy, the @Bean annotation will be ignored unless you explicitly code it back in your
+naming strategy.</div>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
