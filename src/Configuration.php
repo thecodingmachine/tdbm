@@ -75,10 +75,10 @@ class Configuration implements ConfigurationInterface
      * @param SchemaAnalyzer|null $schemaAnalyzer The schema analyzer that will be used to find shortest paths... Will be automatically created if not passed
      * @param LoggerInterface|null $logger The logger
      * @param GeneratorListenerInterface[] $generatorListeners A list of listeners that will be triggered when beans/daos are generated
-     * @param array<string,string> $annotations An array associating the name of the annotation in DB comments to the name of a fully qualified Doctrine annotation class
+     * @param AnnotationParser|null $annotationParser
      * @throws \Mouf\Database\SchemaAnalyzer\SchemaAnalyzerException
      */
-    public function __construct(string $beanNamespace, string $daoNamespace, Connection $connection, NamingStrategyInterface $namingStrategy, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null, array $generatorListeners = [], array $annotations = [])
+    public function __construct(string $beanNamespace, string $daoNamespace, Connection $connection, NamingStrategyInterface $namingStrategy, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null, array $generatorListeners = [], AnnotationParser $annotationParser = null)
     {
         $this->beanNamespace = rtrim($beanNamespace, '\\');
         $this->daoNamespace = rtrim($daoNamespace, '\\');
@@ -97,7 +97,7 @@ class Configuration implements ConfigurationInterface
         $this->logger = $logger;
         $this->generatorEventDispatcher = new GeneratorEventDispatcher($generatorListeners);
         $this->pathFinder = new PathFinder();
-        $this->annotations = $annotations;
+        $this->annotationParser = $annotationParser ?: AnnotationParser::buildWithDefaultAnnotations([]);
     }
 
     /**
@@ -200,9 +200,6 @@ class Configuration implements ConfigurationInterface
      */
     public function getAnnotationParser(): AnnotationParser
     {
-        if ($this->annotationParser === null) {
-            $this->annotationParser = AnnotationParser::buildWithDefaultAnnotations($this->annotations);
-        }
         return $this->annotationParser;
     }
 }

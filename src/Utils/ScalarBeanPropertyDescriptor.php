@@ -118,11 +118,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     private function getAnnotations(): Annotations
     {
         if ($this->annotations === null) {
-            $comment = $this->column->getComment();
-            if ($comment === null) {
-                return new Annotations([]);
-            }
-            $this->annotations = $this->annotationParser->parse($comment, sprintf('comment of column %s in table %s', $this->column->getName(), $this->table->getName()));
+            $this->annotations = $this->annotationParser->getColumnAnnotations($this->column, $this->table);
         }
         return $this->annotations;
     }

@@ -4,6 +4,9 @@ declare(strict_types=1);
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
 use Doctrine\Common\Annotations\AnnotationException;
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\Type;
 use TheCodingMachine\TDBM\TDBMException;
 
 class AnnotationParserTest extends \PHPUnit_Framework_TestCase
@@ -14,7 +17,10 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class
         ]);
-        $annotations = $parser->parse('@UUID', '');
+        $column = new Column('foo', Type::getType(Type::STRING), ['comment'=>'@UUID']);
+        $table = new Table('bar');
+        //$annotations = $parser->parse('@UUID', '');
+        $annotations = $parser->getColumnAnnotations($column, $table);
 
         $annotation = $annotations->findAnnotation(UUID::class);
         $this->assertInstanceOf(UUID::class, $annotation);
@@ -33,7 +39,8 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class
         ]);
-        $annotations = $parser->parse("@UUID\n@UUID", '');
+        $table = new Table('bar', [], [], [], 0, ['comment'=>"@UUID\n@UUID"]);
+        $annotations = $parser->getTableAnnotations($table);
 
         $this->expectException(TDBMException::class);
         $annotations->findAnnotation(UUID::class);
@@ -45,7 +52,8 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class
         ]);
-        $annotations = $parser->parse('@UUID("v4")', '');
+        $table = new Table('bar', [], [], [], 0, ['comment'=>'@UUID("v4")']);
+        $annotations = $parser->getTableAnnotations($table);
 
         $annotation = $annotations->findAnnotation(UUID::class);
         $this->assertSame('v4', $annotation->value);
@@ -57,7 +65,8 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
             'UUID' => UUID::class,
         ]);
         // First generation UUID did not use the Doctrine syntax.
-        $annotations = $parser->parse('@UUID v4', '');
+        $table = new Table('bar', [], [], [], 0, ['comment'=>'@UUID v4']);
+        $annotations = $parser->getTableAnnotations($table);
 
         $annotation = $annotations->findAnnotation(UUID::class);
         $this->assertSame('v4', $annotation->value);
