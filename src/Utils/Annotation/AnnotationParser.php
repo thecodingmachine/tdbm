@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
+use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\DocParser;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
@@ -46,6 +47,8 @@ class AnnotationParser
      */
     private function parse(string $comment, string $context): Annotations
     {
+        AnnotationRegistry::registerUniqueLoader('class_exists');
+
         // compatibility with UUID annotation from TDBM 5.0
         $comment = \str_replace(['@UUID v1', '@UUID v4'], ['@UUID("v1")', '@UUID("v4")'], $comment);
 
