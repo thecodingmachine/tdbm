@@ -67,6 +67,7 @@ $strategy->setExceptions([
 
 Using the @Bean annotation
 --------------------------
+<small>(Available in TDBM 5.1+)</small>
 
 You can also use the @Bean annotation to directly alter the name of the beans/daos.
 

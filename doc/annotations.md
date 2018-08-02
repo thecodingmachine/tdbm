@@ -91,6 +91,7 @@ END;
 
 The @Bean annotation
 --------------------
+<small>(Available in TDBM 5.1+)</small>
 
 This annotation can be put on a table comment to alter the name of the generated bean.
 
