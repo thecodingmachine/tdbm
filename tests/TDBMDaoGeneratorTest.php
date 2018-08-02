@@ -84,7 +84,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         // Remove all previously generated files.
         $this->recursiveDelete($this->rootPath . 'src/Test/Dao/');
-        mkdir($this->rootPath . 'src/Test/Dao/Generated',  0755, true);
+        mkdir($this->rootPath . 'src/Test/Dao/Generated', 0755, true);
         // Let's generate a dummy file to see it is indeed removed.
         $dummyFile = $this->rootPath . 'src/Test/Dao/Generated/foobar.php';
         touch($dummyFile);
