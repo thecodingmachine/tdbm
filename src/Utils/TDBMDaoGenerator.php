@@ -85,6 +85,8 @@ class TDBMDaoGenerator
             return !in_array($table->getName(), $junctionTableNames);
         });
 
+        $this->cleanUpGenerated();
+
         $beanDescriptors = [];
 
         foreach ($tableList as $table) {
@@ -96,6 +98,28 @@ class TDBMDaoGenerator
 
         // Let's call the list of listeners
         $this->eventDispatcher->onGenerate($this->configuration, $beanDescriptors);
+    }
+
+    /**
+     * Removes all files from the Generated folders.
+     * This is a way to ensure that when a table is deleted, the matching bean/dao are deleted.
+     * Note: only abstract generated classes are deleted. We do not delete the code that might have been customized
+     * by the user. The user will need to delete this code him/herself
+     */
+    private function cleanUpGenerated(): void
+    {
+        $generatedBeanDir = $this->configuration->getPathFinder()->getPath($this->configuration->getBeanNamespace().'\\Generated\\Xxx')->getPath();
+        $this->deleteAllPhpFiles($generatedBeanDir);
+
+        $generatedDaoDir = $this->configuration->getPathFinder()->getPath($this->configuration->getDaoNamespace().'\\Generated\\Xxx')->getPath();
+        $this->deleteAllPhpFiles($generatedDaoDir);
+    }
+
+    private function deleteAllPhpFiles(string $directory): void
+    {
+        $files = glob($directory.'/*.php');
+        $fileSystem = new Filesystem();
+        $fileSystem->remove($files);
     }
 
     /**
