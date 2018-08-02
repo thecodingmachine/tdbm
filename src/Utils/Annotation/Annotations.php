@@ -12,12 +12,12 @@ use TheCodingMachine\TDBM\TDBMException;
 class Annotations
 {
     /**
-     * @var array|Annotation[]
+     * @var object[]
      */
     private $annotations;
 
     /**
-     * @param Annotation[] $annotations
+     * @param object[] $annotations
      */
     public function __construct(array $annotations)
     {
@@ -25,7 +25,7 @@ class Annotations
     }
 
     /**
-     * @return Annotation[]
+     * @return object[]
      */
     public function getAnnotations(): array
     {
@@ -34,16 +34,21 @@ class Annotations
 
     /**
      * @param string $annotationType
-     * @return Annotation[]
+     * @return object[]
      */
     public function findAnnotations(string $annotationType): array
     {
-        return array_filter($this->annotations, function (Annotation $annotation) use ($annotationType) {
-            return $annotation->getAnnotationType() === $annotationType;
+        return array_filter($this->annotations, function ($annotation) use ($annotationType) {
+            return is_a($annotation, $annotationType);
         });
     }
 
-    public function findAnnotation(string $annotationType): ?Annotation
+    /**
+     * @param string $annotationType
+     * @return null|object
+     * @throws TDBMException
+     */
+    public function findAnnotation(string $annotationType)
     {
         $annotations = $this->findAnnotations($annotationType);
 

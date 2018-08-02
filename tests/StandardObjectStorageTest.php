@@ -2,7 +2,6 @@
 
 namespace TheCodingMachine\TDBM;
 
-
 class StandardObjectStorageTest extends \PHPUnit_Framework_TestCase
 {
     public function testObjectStorage()

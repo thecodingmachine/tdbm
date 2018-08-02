@@ -6,15 +6,11 @@ namespace TheCodingMachine\TDBM\Utils;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Types\DateTimeImmutableType;
-use Doctrine\DBAL\Types\DateTimeType;
 use Doctrine\DBAL\Types\Type;
-use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\TDBMException;
-use TheCodingMachine\TDBM\Utils\Annotation\Annotation;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
+use \TheCodingMachine\TDBM\Utils\Annotation;
 
 /**
  * This class represent a property in a bean (a property has a getter, a setter, etc...).
@@ -32,16 +28,22 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     private $annotations;
 
     /**
+     * @var AnnotationParser
+     */
+    private $annotationParser;
+
+    /**
      * ScalarBeanPropertyDescriptor constructor.
      * @param Table $table
      * @param Column $column
      * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $table, Column $column, NamingStrategyInterface $namingStrategy)
+    public function __construct(Table $table, Column $column, NamingStrategyInterface $namingStrategy, AnnotationParser $annotationParser)
     {
         parent::__construct($table, $namingStrategy);
         $this->table = $table;
         $this->column = $column;
+        $this->annotationParser = $annotationParser;
     }
 
     /**
@@ -99,25 +101,24 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         return $this->getUuidAnnotation() !== null;
     }
 
-    private function getUuidAnnotation(): ?Annotation
+    private function getUuidAnnotation(): ?Annotation\UUID
     {
-        return $this->getAnnotations()->findAnnotation('UUID');
+        /** @var Annotation\UUID $annotation */
+        $annotation = $this->getAnnotations()->findAnnotation(Annotation\UUID::class);
+        return $annotation;
     }
 
-    private function getAutoincrementAnnotation(): ?Annotation
+    private function getAutoincrementAnnotation(): ?Annotation\Autoincrement
     {
-        return $this->getAnnotations()->findAnnotation('Autoincrement');
+        /** @var Annotation\Autoincrement $annotation */
+        $annotation = $this->getAnnotations()->findAnnotation(Annotation\Autoincrement::class);
+        return $annotation;
     }
 
     private function getAnnotations(): Annotations
     {
         if ($this->annotations === null) {
-            $comment = $this->column->getComment();
-            if ($comment === null) {
-                return new Annotations([]);
-            }
-            $parser = new AnnotationParser();
-            $this->annotations = $parser->parse($comment);
+            $this->annotations = $this->annotationParser->getColumnAnnotations($this->column, $this->table);
         }
         return $this->annotations;
     }
@@ -173,9 +174,9 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         return sprintf($str, $this->getSetterName(), $defaultCode);
     }
 
-    private function getUuidCode(Annotation $uuidAnnotation): string
+    private function getUuidCode(Annotation\UUID $uuidAnnotation): string
     {
-        $comment = trim($uuidAnnotation->getAnnotationComment(), '\'"');
+        $comment = $uuidAnnotation->value;
         switch ($comment) {
             case '':
             case 'v1':

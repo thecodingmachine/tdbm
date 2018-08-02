@@ -29,6 +29,7 @@ use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use TheCodingMachine\FluidSchema\FluidSchema;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 
@@ -196,7 +197,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
     protected function getNamingStrategy()
     {
-        $strategy = new DefaultNamingStrategy();
+        $strategy = new DefaultNamingStrategy(AnnotationParser::buildWithDefaultAnnotations([]), self::getConnection()->getSchemaManager());
         $strategy->setBeanPrefix('');
         $strategy->setBeanSuffix('Bean');
         $strategy->setBaseBeanPrefix('');

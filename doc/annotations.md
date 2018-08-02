@@ -9,8 +9,6 @@ TDBM can read annotations to alter the generation of beans and DAOs.
 If you have used annotations in the past, you are probably used to put annotations in your PHP documentation blocks.
 But TDBM being a database-driven ORM, everything starts from the database. So TDBM will actually read annotations... from your database comments!
 
-Right now, TDBM supports only one annotation.
-
 The @UUID annotation
 --------------------
 
@@ -48,11 +46,11 @@ By default, **UUID v1** is used. UUID v1 is timestamp-based. Therefore, your dat
 
 However, this also means that your ID contains the creation timestamp of the field. If this is a sensitive information that you want to hide, you can instead use UUID v4.
 
-To do so, simply use the `@UUID v4` annotation like this:
+To do so, simply use the `@UUID("v4")` annotation like this:
 
 ```sql
 CREATE TABLE `articles` (
-  `id` varchar(36) NOT NULL COMMENT '@UUID v4',
+  `id` varchar(36) NOT NULL COMMENT '@UUID("v4")',
   `content` varchar(255),
   PRIMARY KEY (`id`)
 );
@@ -90,3 +88,23 @@ BEGIN
 END;
 /
 ```
+
+The @Bean annotation
+--------------------
+
+This annotation can be put on a table comment to alter the name of the generated bean.
+
+```sql
+CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@Bean(name=\"User\")");
+```
+
+In the example above, the bean class name will not be `Member` but `User`.
+The name of the DAO will also be changed from `MemberDao` to `UserDao`.
+
+<div class="alert alert-info">Note: the @Bean annotation is read by the <a href="configuring_naming.md">default naming strategy</a> provided by TDBM.
+If you use your own naming strategy, the @Bean annotation will be ignored unless you explicitly code it back in your
+naming strategy.</div>

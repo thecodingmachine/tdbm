@@ -8,6 +8,9 @@ use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\Autoincrement;
+use TheCodingMachine\TDBM\Utils\Annotation\UUID;
 use TheCodingMachine\TDBM\Utils\GeneratorEventDispatcher;
 use TheCodingMachine\TDBM\Utils\GeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
@@ -54,17 +57,24 @@ class Configuration implements ConfigurationInterface
      * @var PathFinderInterface
      */
     private $pathFinder;
+    /**
+     * @var AnnotationParser
+     */
+    private $annotationParser;
 
     /**
      * @param string $beanNamespace The namespace hosting the beans
      * @param string $daoNamespace The namespace hosting the DAOs
      * @param Connection $connection The connection to the database
+     * @param NamingStrategyInterface $namingStrategy
      * @param Cache|null $cache The Doctrine cache to store database metadata
      * @param SchemaAnalyzer|null $schemaAnalyzer The schema analyzer that will be used to find shortest paths... Will be automatically created if not passed
      * @param LoggerInterface|null $logger The logger
      * @param GeneratorListenerInterface[] $generatorListeners A list of listeners that will be triggered when beans/daos are generated
+     * @param AnnotationParser|null $annotationParser
+     * @throws \Mouf\Database\SchemaAnalyzer\SchemaAnalyzerException
      */
-    public function __construct(string $beanNamespace, string $daoNamespace, Connection $connection, NamingStrategyInterface $namingStrategy, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null, array $generatorListeners = [])
+    public function __construct(string $beanNamespace, string $daoNamespace, Connection $connection, NamingStrategyInterface $namingStrategy, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null, array $generatorListeners = [], AnnotationParser $annotationParser = null)
     {
         $this->beanNamespace = rtrim($beanNamespace, '\\');
         $this->daoNamespace = rtrim($daoNamespace, '\\');
@@ -83,6 +93,7 @@ class Configuration implements ConfigurationInterface
         $this->logger = $logger;
         $this->generatorEventDispatcher = new GeneratorEventDispatcher($generatorListeners);
         $this->pathFinder = new PathFinder();
+        $this->annotationParser = $annotationParser ?: AnnotationParser::buildWithDefaultAnnotations([]);
     }
 
     /**
@@ -178,5 +189,13 @@ class Configuration implements ConfigurationInterface
     public function setPathFinder(PathFinderInterface $pathFinder): void
     {
         $this->pathFinder = $pathFinder;
+    }
+
+    /**
+     * @return AnnotationParser
+     */
+    public function getAnnotationParser(): AnnotationParser
+    {
+        return $this->annotationParser;
     }
 }

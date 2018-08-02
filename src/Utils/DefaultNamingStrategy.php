@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\Common\Inflector\Inflector;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Schema\Schema;
 use TheCodingMachine\TDBM\TDBMException;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\Bean;
 
 class DefaultNamingStrategy extends AbstractNamingStrategy
 {
@@ -20,6 +24,24 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
     private $baseDaoPrefix = 'Abstract';
     private $baseDaoSuffix = 'Dao';
     private $exceptions = [];
+    /**
+     * @var AnnotationParser
+     */
+    private $annotationParser;
+    /**
+     * @var AbstractSchemaManager
+     */
+    private $schemaManager;
+    /**
+     * @var Schema
+     */
+    private $schema;
+
+    public function __construct(AnnotationParser $annotationParser, AbstractSchemaManager $schemaManager)
+    {
+        $this->annotationParser = $annotationParser;
+        $this->schemaManager = $schemaManager;
+    }
 
     /**
      * Sets the string prefix to any bean class name.
@@ -110,7 +132,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      */
     public function getBeanClassName(string $tableName): string
     {
-        return $this->beanPrefix.$this->toSingularCamelCase($tableName).$this->beanSuffix;
+        return $this->beanPrefix.$this->tableNameToSingularCamelCase($tableName).$this->beanSuffix;
     }
 
     /**
@@ -121,7 +143,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      */
     public function getBaseBeanClassName(string $tableName): string
     {
-        return $this->baseBeanPrefix.$this->toSingularCamelCase($tableName).$this->baseBeanSuffix;
+        return $this->baseBeanPrefix.$this->tableNameToSingularCamelCase($tableName).$this->baseBeanSuffix;
     }
 
     /**
@@ -132,7 +154,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      */
     public function getDaoClassName(string $tableName): string
     {
-        return $this->daoPrefix.$this->toSingularCamelCase($tableName).$this->daoSuffix;
+        return $this->daoPrefix.$this->tableNameToSingularCamelCase($tableName).$this->daoSuffix;
     }
 
     /**
@@ -143,7 +165,19 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      */
     public function getBaseDaoClassName(string $tableName): string
     {
-        return $this->baseDaoPrefix.$this->toSingularCamelCase($tableName).$this->baseDaoSuffix;
+        return $this->baseDaoPrefix.$this->tableNameToSingularCamelCase($tableName).$this->baseDaoSuffix;
+    }
+
+    private function tableNameToSingularCamelCase(string $tableName): string
+    {
+        // Now, let's check if we have a @Bean annotation on it.
+        /** @var Bean $beanAnnotation */
+        $beanAnnotation = $this->annotationParser->getTableAnnotations($this->getSchema()->getTable($tableName))->findAnnotation(Bean::class);
+        if ($beanAnnotation !== null) {
+            return $beanAnnotation->name;
+        }
+
+        return $this->toSingularCamelCase($tableName);
     }
 
     /**
@@ -245,7 +279,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
         // First, are there many column or only one?
         // If one column, we name the setter after it. Otherwise, we name the setter after the table name
         if (count($foreignKey->getUnquotedLocalColumns()) > 1) {
-            $name = $this->toSingularCamelCase($foreignKey->getForeignTableName());
+            $name = $this->tableNameToSingularCamelCase($foreignKey->getForeignTableName());
             if ($alternativeName) {
                 $camelizedColumns = array_map(['TheCodingMachine\\TDBM\\Utils\\TDBMDaoGenerator', 'toCamelCase'], $foreignKey->getUnquotedLocalColumns());
 
@@ -283,5 +317,13 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
         } else {
             throw new TDBMException('Unexpected property type. Should be either ObjectBeanPropertyDescriptor or ScalarBeanPropertyDescriptor'); // @codeCoverageIgnore
         }
+    }
+
+    private function getSchema(): Schema
+    {
+        if ($this->schema === null) {
+            $this->schema = $this->schemaManager->createSchema();
+        }
+        return $this->schema;
     }
 }

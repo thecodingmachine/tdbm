@@ -114,7 +114,7 @@ class TDBMDaoGenerator
         $baseBeanName = $this->namingStrategy->getBaseBeanClassName($tableName);
         $baseDaoName = $this->namingStrategy->getBaseDaoClassName($tableName);
 
-        $beanDescriptor = new BeanDescriptor($table, $this->configuration->getBeanNamespace(), $this->configuration->getBeanNamespace().'\\Generated', $this->configuration->getSchemaAnalyzer(), $this->schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy);
+        $beanDescriptor = new BeanDescriptor($table, $this->configuration->getBeanNamespace(), $this->configuration->getBeanNamespace().'\\Generated', $this->configuration->getSchemaAnalyzer(), $this->schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy, $this->configuration->getAnnotationParser());
         $this->generateBean($beanDescriptor, $beanName, $baseBeanName, $table);
         $this->generateDao($beanDescriptor, $daoName, $baseDaoName, $beanName, $table);
         return $beanDescriptor;

@@ -2,7 +2,6 @@
 
 namespace TheCodingMachine\TDBM;
 
-
 class WeakrefObjectStorageTest extends \PHPUnit_Framework_TestCase
 {
     public function testObjectStorage()

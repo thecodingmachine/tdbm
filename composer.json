@@ -8,7 +8,7 @@
         "bean",
         "model"
     ],
-    "homepage" : "https://github.com/thecodingmachine/tdbm",
+    "homepage" : "https://thecodingmachine.github.io/tdbm/",
     "type" : "library",
     "license" : "MIT",
     "authors" : [{
@@ -33,6 +33,7 @@
         "mouf/utils.log.psr.multi-logger": "^1.0",
         "symfony/filesystem": "^2.7 || ^3 || ^4",
         "ramsey/uuid": "^3.7",
+        "doctrine/annotations": "^1.6",
         "ext-PDO": "*",
         "ext-json": "*",
         "ext-hash": "*",
@@ -70,7 +71,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "5.0.x-dev"
+            "dev-master": "5.1.x-dev"
         }
     }
 }
