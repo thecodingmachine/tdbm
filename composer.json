@@ -33,7 +33,7 @@
         "mouf/utils.log.psr.multi-logger": "^1.0",
         "symfony/filesystem": "^2.7 || ^3 || ^4",
         "ramsey/uuid": "^3.7",
-        "doctrine/annotations": "^1.2",
+        "doctrine/annotations": "^1.6",
         "ext-PDO": "*",
         "ext-json": "*",
         "ext-hash": "*",
