@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE
+ Copyright (C) 2006-2018 David Négrier - THE CODING MACHINE
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -84,8 +84,15 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         // Remove all previously generated files.
         $this->recursiveDelete($this->rootPath . 'src/Test/Dao/');
+        mkdir($this->rootPath . 'src/Test/Dao/Generated', 0755, true);
+        // Let's generate a dummy file to see it is indeed removed.
+        $dummyFile = $this->rootPath . 'src/Test/Dao/Generated/foobar.php';
+        touch($dummyFile);
+        $this->assertFileExists($dummyFile);
 
         $this->tdbmDaoGenerator->generateAllDaosAndBeans();
+
+        $this->assertFileNotExists($dummyFile);
 
         // Let's require all files to check they are valid PHP!
         // Test the daoFactory
