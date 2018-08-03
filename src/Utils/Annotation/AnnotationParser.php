@@ -20,7 +20,7 @@ class AnnotationParser
 
     /**
      * AnnotationParser constructor.
-     * @param string[] $annotations An array mapping the annotation name to the fully qualified class name
+     * @param array<string,string> $annotations An array mapping the annotation name to the fully qualified class name
      */
     public function __construct(array $annotations)
     {
