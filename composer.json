@@ -50,6 +50,9 @@
         "thecodingmachine/phpstan-strict-rules": "^0.10.1",
         "bamarni/composer-bin-plugin": "^1.2"
     },
+    "conflict": {
+        "mouf/database.tdbm": "~5.0.0"
+    },
     "suggest" : {
         "ext/weakref" : "Allows efficient memory management. Useful for batches."
     },
