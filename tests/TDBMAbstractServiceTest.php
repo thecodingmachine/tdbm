@@ -285,6 +285,7 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         $db->table('animal')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
             ->column('name')->string(45)->index()
+            ->column('UPPERCASE_COLUMN')->string(45)->null()
             ->column('order')->integer()->null();
 
         $db->table('dog')
