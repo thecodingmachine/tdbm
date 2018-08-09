@@ -1241,6 +1241,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertInstanceOf(CatBean::class, $animalBean);
         /* @var $animalBean CatBean */
         $animalBean->setCutenessLevel(999);
+        $animalBean->setUppercaseColumn('foobar');
 
         $animalDao->save($animalBean);
     }
