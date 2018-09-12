@@ -120,11 +120,11 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         $counter = 0;
         $parameters = [];
 
-        $pkColumns = TDBMDaoGenerator::getPrimaryKeyColumnsOrFail($this->mainTable);
+        $fkForeignColumns = $fk->getUnquotedForeignColumns();
 
         foreach ($fk->getUnquotedLocalColumns() as $columnName) {
-            $pkColumn = $pkColumns[$counter];
-            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($pkColumn, true), var_export($this->fk->getForeignTableName(), true));
+            $fkColumn = $fkForeignColumns[$counter];
+            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($fkColumn, true), var_export($this->fk->getForeignTableName(), true));
             ++$counter;
         }
         $parametersCode = '['.implode(', ', $parameters).']';
