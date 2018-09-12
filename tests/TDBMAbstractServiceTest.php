@@ -346,6 +346,13 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
         $toSchema->getTable($connection->quoteIdentifier('ref_no_prim_key'))->addForeignKeyConstraint($connection->quoteIdentifier('ref_no_prim_key'), [$connection->quoteIdentifier('from')], [$connection->quoteIdentifier('to')]);
 
+        // A table with multiple primary keys.
+        $db->table('states')
+            ->column('country_id')->references('country')
+            ->column('code')->string(3)
+            ->column('name')->string(50)->then()
+            ->primaryKey(['country_id', 'code']);
+
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {

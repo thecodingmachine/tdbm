@@ -79,11 +79,12 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('country');
-        $this->assertCount(4, $fks);
-        $tables = [$fks[0]->getLocalTableName(), $fks[1]->getLocalTableName(), $fks[2]->getLocalTableName(), $fks[3]->getLocalTableName()];
+        $this->assertCount(5, $fks);
+        $tables = [$fks[0]->getLocalTableName(), $fks[1]->getLocalTableName(), $fks[2]->getLocalTableName(), $fks[3]->getLocalTableName(), $fks[4]->getLocalTableName()];
         $this->assertContains('users', $tables);
         $this->assertContains('all_nullable', $tables);
         $this->assertContains('boats', $tables);
+        $this->assertContains('states', $tables);
     }
 
     public function testGetPivotTableLinkedToTable()

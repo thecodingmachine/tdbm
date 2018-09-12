@@ -446,6 +446,7 @@ class DbRow
     {
         $this->primaryKeys = $primaryKeys;
         foreach ($this->primaryKeys as $column => $value) {
+            // Warning: in case of multi-columns with one being a reference, the $dbRow will contain a reference column (which is not the case elsewhere in the application)
             $this->dbRow[$column] = $value;
         }
     }

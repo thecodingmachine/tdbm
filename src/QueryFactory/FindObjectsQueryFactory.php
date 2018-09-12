@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
 use TheCodingMachine\TDBM\TDBMService;
@@ -35,7 +36,11 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
             return $this->tdbmService->getConnection()->quoteIdentifier($this->mainTable).'.'.$this->tdbmService->getConnection()->quoteIdentifier($pkColumn);
         }, $pkColumnNames);
 
-        $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM MAGICJOIN('.$this->mainTable.')';
+        if (count($pkColumnNames) === 1 || $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM MAGICJOIN('.$this->mainTable.')';
+        } else {
+            $countSql = 'SELECT COUNT(*) FROM (SELECT DISTINCT '.implode(', ', $pkColumnNames).' FROM MAGICJOIN('.$this->mainTable.')) tmp';
+        }
 
         if (!empty($this->filterString)) {
             $sql .= ' WHERE '.$this->filterString;
