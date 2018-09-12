@@ -1602,6 +1602,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $newBean = new RefNoPrimKeyBean($bean, 'baz');
         $dao->save($newBean);
         $this->assertSame('foo', $newBean->getFrom()->getTo());
+
+        $resultSet = $bean->getRefNoPrimKey();
+        $this->assertCount(2, $resultSet);
     }
 
     /**
