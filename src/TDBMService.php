@@ -886,10 +886,10 @@ class TDBMService
 
         $primaryKeyColumns = $this->getPrimaryKeyColumns($table);
         $values = array();
+        $dbRowValues = $dbRow->_getDbRow();
         foreach ($primaryKeyColumns as $column) {
-            $value = $dbRow->get($column);
-            if ($value !== null) {
-                $values[$column] = $value;
+            if (isset($dbRowValues[$column])) {
+                $values[$column] = $dbRowValues[$column];
             }
         }
 

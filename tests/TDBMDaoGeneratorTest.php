@@ -46,6 +46,7 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RefNoPrimKeyBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RoleBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\StateBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\UserBean;
 use TheCodingMachine\TDBM\Test\Dao\BoatDao;
 use TheCodingMachine\TDBM\Test\Dao\CatDao;
@@ -57,6 +58,7 @@ use TheCodingMachine\TDBM\Test\Dao\FileDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
+use TheCodingMachine\TDBM\Test\Dao\StateDao;
 use TheCodingMachine\TDBM\Test\Dao\UserDao;
 use TheCodingMachine\TDBM\Utils\PathFinder\NoPathFoundException;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
@@ -1720,9 +1722,50 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame('John Doe', $users[0]->getName());
     }
 
+    /**
+     * @depends testDaoGeneration
+     */
     public function testDecimalIsMappedToString()
     {
         $reflectionClass = new \ReflectionClass(BoatBaseBean::class);
         $this->assertSame('string', (string) $reflectionClass->getMethod('getLength')->getReturnType());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testNoGetByIdOnMultiPrimaryKeys()
+    {
+        $reflectionClass = new \ReflectionClass(StateDao::class);
+        $this->assertFalse($reflectionClass->hasMethod('getById'));
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testInsertMultiPrimaryKeysBean()
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+
+        $country = $countryDao->getById(1);
+
+        $stateDao = new StateDao($this->tdbmService);
+        $state = new StateBean($country, 'IDF', 'Ile de France');
+        $stateDao->save($state);
+
+        $this->assertSame($state, $stateDao->findAll()[0]);
+    }
+
+    /**
+     * @depends testInsertMultiPrimaryKeysBean
+     */
+    public function testDeleteMultiPrimaryKeysBean()
+    {
+        $stateDao = new StateDao($this->tdbmService);
+
+        $state = $stateDao->findAll()[0];
+        $stateDao->delete($state);
+        $this->assertCount(0, $stateDao->findAll());
+
     }
 }
