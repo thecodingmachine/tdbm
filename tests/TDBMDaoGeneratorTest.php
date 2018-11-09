@@ -52,6 +52,7 @@ use TheCodingMachine\TDBM\Test\Dao\BoatDao;
 use TheCodingMachine\TDBM\Test\Dao\CatDao;
 use TheCodingMachine\TDBM\Test\Dao\CategoryDao;
 use TheCodingMachine\TDBM\Test\Dao\ContactDao;
+use TheCodingMachine\TDBM\Test\Dao\ContractDao;
 use TheCodingMachine\TDBM\Test\Dao\CountryDao;
 use TheCodingMachine\TDBM\Test\Dao\DogDao;
 use TheCodingMachine\TDBM\Test\Dao\FileDao;
@@ -1769,5 +1770,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $stateDao->delete($state);
         $this->assertCount(0, $stateDao->findAll());
 
+    }
+
+    public function testGetContractOnMultipleUniqueIndexWithNullValue(){
+        $contractDao = new ContractDao($this->tdbmService);
+        $contract = (new ContactDao($this->tdbmService))->getById(1);
+        $contract = $contractDao->findOneByContactAndCountry($contract, null);
+        $this->assertCount(1, $contract);
     }
 }

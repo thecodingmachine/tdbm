@@ -353,6 +353,19 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('name')->string(50)->then()
             ->primaryKey(['country_id', 'code']);
 
+//        $db->table('contacts_countries')
+//            ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
+//            ->column('contact_id')->references('contact')->notNull()
+//            ->column('country_id')->references('country')->notNull();
+
+        $db->table('contracts')
+            ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
+            ->column('signature_date')->datetimeImmutable()
+            ->column('contact_id')->references('contact')->notNull()
+            ->column('country_id')->references('country')->null();
+        $toSchema->getTable('contracts')->addUniqueIndex(['contact_id', 'country_id']);
+
+
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
@@ -497,6 +510,15 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         self::insert($connection, 'ref_no_prim_key', [
             'from' => 'foo',
             'to' => 'foo',
+        ]);
+
+        self::insert($connection, 'contracts', [
+            'contact_id' => 1,
+            'country_id' => null
+        ]);
+        self::insert($connection, 'contracts', [
+            'contact_id' => 1,
+            'country_id' => 1
         ]);
     }
 

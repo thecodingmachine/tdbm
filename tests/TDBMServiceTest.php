@@ -785,4 +785,5 @@ SQL;
 
         $this->assertEquals(3, $countries->count());
     }
+
 }
