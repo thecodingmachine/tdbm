@@ -353,6 +353,11 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
             ->column('name')->string(50)->then()
             ->primaryKey(['country_id', 'code']);
 
+        $db->table('contacts_countries')
+            ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
+            ->column('contact_id')->references('contact')->notNull()
+            ->column('country_id')->references('country')->notNull();
+
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
