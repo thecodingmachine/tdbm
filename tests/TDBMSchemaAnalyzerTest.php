@@ -69,7 +69,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('contact');
-        $this->assertCount(1, $fks);
+        $this->assertCount(2, $fks);
     }
 
     public function testGetIncomingForeignKeys3()
@@ -79,8 +79,8 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('country');
-        $this->assertCount(5, $fks);
-        $tables = [$fks[0]->getLocalTableName(), $fks[1]->getLocalTableName(), $fks[2]->getLocalTableName(), $fks[3]->getLocalTableName(), $fks[4]->getLocalTableName()];
+        $this->assertCount(6, $fks);
+        $tables = [$fks[0]->getLocalTableName(), $fks[1]->getLocalTableName(), $fks[2]->getLocalTableName(), $fks[3]->getLocalTableName(), $fks[4]->getLocalTableName(), $fks[5]->getLocalTableName()];
         $this->assertContains('users', $tables);
         $this->assertContains('all_nullable', $tables);
         $this->assertContains('boats', $tables);

@@ -1776,6 +1776,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $contractDao = new ContractDao($this->tdbmService);
         $contract = (new ContactDao($this->tdbmService))->getById(1);
         $contract = $contractDao->findOneByContactAndCountry($contract, null);
+        var_dump($contract);exit;
         $this->assertCount(1, $contract);
     }
 }
