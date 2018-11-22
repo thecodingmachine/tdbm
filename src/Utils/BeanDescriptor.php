@@ -9,6 +9,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\SafeFunctions;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
@@ -626,7 +627,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
                 $filterArrayCode .= '            '.var_export($element->getColumnName(), true).' => '.$element->getVariableName().",\n";
             } elseif ($element instanceof ObjectBeanPropertyDescriptor) {
                 $foreignKey = $element->getForeignKey();
-                $columns = array_combine($foreignKey->getLocalColumns(), $foreignKey->getForeignColumns());
+                $columns = SafeFunctions::arrayCombine($foreignKey->getLocalColumns(), $foreignKey->getForeignColumns());
                 ++$count;
                 $foreignTable = $this->schema->getTable($foreignKey->getForeignTableName());
                 foreach ($columns as $localColumn => $foreignColumn) {
