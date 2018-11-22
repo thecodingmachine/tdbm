@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
+use function array_unique;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
+use function in_array;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
 use TheCodingMachine\TDBM\TDBMInvalidArgumentException;
 use TheCodingMachine\TDBM\TDBMService;
@@ -141,6 +143,10 @@ abstract class AbstractQueryFactory implements QueryFactory
         }
 
         foreach ($additionalTablesFetch as $additionalTable) {
+            if (in_array($additionalTable, $allFetchedTables, true)) {
+                continue;
+            }
+
             $relatedTables = $this->tdbmService->_getRelatedTablesByInheritance($additionalTable);
             $tableGroupName = $this->getTableGroupName($relatedTables);
             foreach ($relatedTables as $table) {
@@ -150,7 +156,7 @@ abstract class AbstractQueryFactory implements QueryFactory
         }
 
         // Let's remove any duplicate
-        $allFetchedTables = array_flip(array_flip($allFetchedTables));
+        $allFetchedTables = array_unique($allFetchedTables);
         
         // We quote in MySQL because MagicJoin requires MySQL style quotes
         $mysqlPlatform = new MySqlPlatform();

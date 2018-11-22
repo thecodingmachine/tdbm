@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils\PathFinder;
 
-class PathFinderTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class PathFinderTest extends TestCase
 {
     public function testGetPath()
     {

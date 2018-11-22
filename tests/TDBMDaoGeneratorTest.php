@@ -33,6 +33,7 @@ use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\AnimalBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Article2Bean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArticleBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\BoatBean;
@@ -55,6 +56,7 @@ use TheCodingMachine\TDBM\Test\Dao\ContactDao;
 use TheCodingMachine\TDBM\Test\Dao\CountryDao;
 use TheCodingMachine\TDBM\Test\Dao\DogDao;
 use TheCodingMachine\TDBM\Test\Dao\FileDao;
+use TheCodingMachine\TDBM\Test\Dao\Generated\ContactBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
@@ -266,6 +268,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userBean = $userDao->findOneByLogin('speedy.gonzalez');
         $userBean->setOrder(2);
         $userDao->save($userBean);
+        $this->assertSame(2, $userBean->getOrder());
     }
 
     /**
@@ -604,6 +607,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // Let's bind it to role 2.
         $user->setRoles([$roleDao->getById(2)]);
         $userDao->save($user);
+        $this->assertTrue($user->hasRole($roleDao->getById(2)));
     }
 
     /**
@@ -825,12 +829,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userDao = new TestUserDao($this->tdbmService);
         $user = $userDao->getUserByLogin('john.smith');
 
-        $this->assertNull(null, $user->getManager());
+        $this->assertNull($user->getManager());
 
         $jsonEncoded = json_encode($user);
         $userDecoded = json_decode($jsonEncoded, true);
 
-        $this->assertNull(null, $userDecoded['manager']);
+        $this->assertNull($userDecoded['manager']);
     }
 
     /**
@@ -849,6 +853,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $user->setManager(null);
         $userDao->save($user);
+        $this->assertNull($user->getManager());
     }
 
     /**
@@ -1196,6 +1201,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $dog->setOrder(1);
 
         $dogDao->save($dog);
+        $this->assertNull($dog->getRace());
     }
 
     /**
@@ -1227,6 +1233,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $cat->setOrder(2);
 
         $catDao->save($cat);
+        $this->assertNotNull($cat->getId());
     }
 
     /**
@@ -1406,6 +1413,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $boat = new BoatBean($country, 'Titanic');
 
         $boatDao->save($boat);
+        $this->assertNotNull($country->getId());
     }
 
     /**
@@ -1500,6 +1508,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             echo $process->getOutput();
             $this->fail('Generated code is not PSR-2 compliant');
         }
+        $this->assertTrue($process->isSuccessful());
     }
 
     /**
@@ -1639,6 +1648,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $leaf = new CategoryBean('Leaf');
         $leaf->setParent($intermediate);
         $categoryDao->save($leaf);
+        $this->assertNull($root2->getId());
     }
 
     /**
@@ -1769,5 +1779,22 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $stateDao->delete($state);
         $this->assertCount(0, $stateDao->findAll());
 
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testSortOnInheritedTable()
+    {
+        $animalDao = new AnimalDao($this->tdbmService);
+
+        // Let's insert an animal that is nothing.
+        $animal = new AnimalBean('Mickey');
+        $animalDao->save($animal);
+
+        $animals = $animalDao->findAll()->withOrder('dog.race ASC');
+
+        $animalsArr = $animals->toArray();
+        $this->assertCount(3, $animalsArr);
     }
 }

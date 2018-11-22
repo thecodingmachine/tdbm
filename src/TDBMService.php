@@ -351,7 +351,7 @@ class TDBMService
                 $incomingFks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($tableName);
 
                 foreach ($incomingFks as $incomingFk) {
-                    $filter = array_combine($incomingFk->getUnquotedLocalColumns(), $pks);
+                    $filter = SafeFunctions::arrayCombine($incomingFk->getUnquotedLocalColumns(), $pks);
 
                     $results = $this->findObjects($incomingFk->getLocalTableName(), $filter);
 
@@ -822,8 +822,8 @@ class TDBMService
         $localColumns = $localFk->getUnquotedLocalColumns();
         $remoteColumns = $remoteFk->getUnquotedLocalColumns();
 
-        $localFilters = array_combine($localColumns, $localBeanPk);
-        $remoteFilters = array_combine($remoteColumns, $remoteBeanPk);
+        $localFilters = SafeFunctions::arrayCombine($localColumns, $localBeanPk);
+        $remoteFilters = SafeFunctions::arrayCombine($remoteColumns, $remoteBeanPk);
 
         $filters = array_merge($localFilters, $remoteFilters);
 
@@ -958,7 +958,7 @@ class TDBMService
 			got %s instead.', count($primaryKeyColumns), $tableName, count($indexedPrimaryKeys)));
         }
 
-        return array_combine($primaryKeyColumns, $indexedPrimaryKeys);
+        return SafeFunctions::arrayCombine($primaryKeyColumns, $indexedPrimaryKeys);
     }
 
     /**
@@ -1439,7 +1439,7 @@ class TDBMService
             return $pivotTableName.'.'.$name;
         }, $localFk->getUnquotedLocalColumns());
 
-        $filter = array_combine($columnNames, $primaryKeys);
+        $filter = SafeFunctions::arrayCombine($columnNames, $primaryKeys);
 
         return $this->findObjects($remoteTable, $filter);
     }

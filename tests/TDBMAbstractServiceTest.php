@@ -28,12 +28,13 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
+use PHPUnit\Framework\TestCase;
 use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 
-abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
+abstract class TDBMAbstractServiceTest extends TestCase
 {
     /**
      * @var Connection
@@ -295,6 +296,10 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
         $db->table('cat')
             ->extends('animal')
             ->column('cuteness_level')->integer()->null();
+
+        $db->table('panda')
+            ->extends('animal')
+            ->column('weight')->float()->null();
 
         $db->table('boats')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')

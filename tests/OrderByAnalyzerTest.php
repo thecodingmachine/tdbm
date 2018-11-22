@@ -5,8 +5,9 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\VoidCache;
+use PHPUnit\Framework\TestCase;
 
-class OrderByAnalyzerTest extends \PHPUnit_Framework_TestCase
+class OrderByAnalyzerTest extends TestCase
 {
     public function testAnalyzeOrderBy()
     {
@@ -64,5 +65,6 @@ class OrderByAnalyzerTest extends \PHPUnit_Framework_TestCase
         $results = $analyzer->analyzeOrderBy('foo');
         $results2 = $analyzer->analyzeOrderBy('foo');
         // For code coverage purpose
+        $this->assertSame($results, $results2);
     }
 }
