@@ -55,6 +55,7 @@ use TheCodingMachine\TDBM\Test\Dao\ContactDao;
 use TheCodingMachine\TDBM\Test\Dao\CountryDao;
 use TheCodingMachine\TDBM\Test\Dao\DogDao;
 use TheCodingMachine\TDBM\Test\Dao\FileDao;
+use TheCodingMachine\TDBM\Test\Dao\Generated\ContactBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
@@ -1770,5 +1771,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $stateDao->delete($state);
         $this->assertCount(0, $stateDao->findAll());
 
+    }
+
+    public function testSortOnInheritedTable()
+    {
+        $contactDao = new ContactDao($this->tdbmService);
+
+        $contacts = $contactDao->findAll()->withOrder('users.email ASC');
+
+        $this->assertCount($contacts, 5);
     }
 }
