@@ -3,9 +3,10 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
+use PHPUnit\Framework\TestCase;
 use TheCodingMachine\TDBM\TDBMException;
 
-class AnnotationParserTest extends \PHPUnit_Framework_TestCase
+class AnnotationParserTest extends TestCase
 {
     public function testParse()
     {
