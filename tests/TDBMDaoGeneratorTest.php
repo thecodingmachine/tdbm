@@ -33,6 +33,7 @@ use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\AnimalBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Article2Bean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArticleBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\BoatBean;
@@ -55,6 +56,7 @@ use TheCodingMachine\TDBM\Test\Dao\ContactDao;
 use TheCodingMachine\TDBM\Test\Dao\CountryDao;
 use TheCodingMachine\TDBM\Test\Dao\DogDao;
 use TheCodingMachine\TDBM\Test\Dao\FileDao;
+use TheCodingMachine\TDBM\Test\Dao\Generated\ContactBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
@@ -1778,5 +1780,22 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $stateDao->delete($state);
         $this->assertCount(0, $stateDao->findAll());
 
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testSortOnInheritedTable()
+    {
+        $animalDao = new AnimalDao($this->tdbmService);
+
+        // Let's insert an animal that is nothing.
+        $animal = new AnimalBean('Mickey');
+        $animalDao->save($animal);
+
+        $animals = $animalDao->findAll()->withOrder('dog.race ASC');
+
+        $animalsArr = $animals->toArray();
+        $this->assertCount(3, $animalsArr);
     }
 }
