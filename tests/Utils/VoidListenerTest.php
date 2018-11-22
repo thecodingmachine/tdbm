@@ -3,9 +3,10 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use PHPUnit\Framework\TestCase;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 
-class VoidListenerTest extends \PHPUnit_Framework_TestCase
+class VoidListenerTest extends TestCase
 {
     public function testNothing()
     {
@@ -13,6 +14,7 @@ class VoidListenerTest extends \PHPUnit_Framework_TestCase
         $voidListener = new VoidListener();
         $voidListener->onGenerate($configuration, []);
 
-        // Hum... no way to test nothing happened!
+        // Hum... no way to test nothing happened! :)
+        $this->assertTrue(true);
     }
 }

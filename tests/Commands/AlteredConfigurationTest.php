@@ -6,12 +6,13 @@ namespace TheCodingMachine\TDBM\Commands;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use PHPUnit\Framework\TestCase;
 use TheCodingMachine\TDBM\Configuration;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-class AlteredConfigurationTest extends \PHPUnit_Framework_TestCase
+class AlteredConfigurationTest extends TestCase
 {
     public function testAlteredConfiguration()
     {

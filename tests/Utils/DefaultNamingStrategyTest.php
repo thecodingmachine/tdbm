@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
-class DefaultNamingStrategyTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class DefaultNamingStrategyTest extends TestCase
 {
     public function testGetBeanName()
     {
