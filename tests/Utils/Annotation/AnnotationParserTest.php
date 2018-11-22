@@ -7,9 +7,10 @@ use Doctrine\Common\Annotations\AnnotationException;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use PHPUnit\Framework\TestCase;
 use TheCodingMachine\TDBM\TDBMException;
 
-class AnnotationParserTest extends \PHPUnit_Framework_TestCase
+class AnnotationParserTest extends TestCase
 {
     public function testParse()
     {

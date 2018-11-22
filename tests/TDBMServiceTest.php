@@ -130,6 +130,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $jane->setProperty('country_id', 2, 'users');
 
         $this->tdbmService->completeSave();
+        $this->assertNotNull($jane->getProperty('id', 'users'));
     }
 
     public function testCompleteSave2()
@@ -150,6 +151,8 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $object->setProperty('label', 'CAN_EDIT_BOOK');
 
         $this->tdbmService->save($object);
+
+        $this->assertSame('CAN_EDIT_BOOK', $object->getProperty('label'));
     }
 
     /**
@@ -196,6 +199,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
         // Try to delete a deleted object (this should do nothing)
         $this->tdbmService->delete($object);
+        $this->assertSame(TDBMObjectStateEnum::STATE_DELETED, $object->_getStatus());
     }
 
     public function testFindObjects()
@@ -598,6 +602,7 @@ SQL;
     public function testLinkedTableFetch()
     {
         $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, ['country'], null, TDBMObject::class);
+        $this->assertInstanceOf(ResultIterator::class, $beans);
     }
 
     public function testFindObject()

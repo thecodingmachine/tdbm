@@ -2,7 +2,9 @@
 
 namespace TheCodingMachine\TDBM;
 
-class StandardObjectStorageTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class StandardObjectStorageTest extends TestCase
 {
     public function testObjectStorage()
     {

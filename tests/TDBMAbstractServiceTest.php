@@ -28,12 +28,13 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
+use PHPUnit\Framework\TestCase;
 use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 
-abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
+abstract class TDBMAbstractServiceTest extends TestCase
 {
     /**
      * @var Connection

@@ -266,6 +266,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userBean = $userDao->findOneByLogin('speedy.gonzalez');
         $userBean->setOrder(2);
         $userDao->save($userBean);
+        $this->assertSame(2, $userBean->getOrder());
     }
 
     /**
@@ -604,6 +605,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // Let's bind it to role 2.
         $user->setRoles([$roleDao->getById(2)]);
         $userDao->save($user);
+        $this->assertTrue($user->hasRole($roleDao->getById(2)));
     }
 
     /**
@@ -825,12 +827,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userDao = new TestUserDao($this->tdbmService);
         $user = $userDao->getUserByLogin('john.smith');
 
-        $this->assertNull(null, $user->getManager());
+        $this->assertNull($user->getManager());
 
         $jsonEncoded = json_encode($user);
         $userDecoded = json_decode($jsonEncoded, true);
 
-        $this->assertNull(null, $userDecoded['manager']);
+        $this->assertNull($userDecoded['manager']);
     }
 
     /**
@@ -849,6 +851,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $user->setManager(null);
         $userDao->save($user);
+        $this->assertNull($user->getManager());
     }
 
     /**
@@ -1196,6 +1199,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $dog->setOrder(1);
 
         $dogDao->save($dog);
+        $this->assertNull($dog->getRace());
     }
 
     /**
@@ -1227,6 +1231,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $cat->setOrder(2);
 
         $catDao->save($cat);
+        $this->assertNotNull($cat->getId());
     }
 
     /**
@@ -1406,6 +1411,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $boat = new BoatBean($country, 'Titanic');
 
         $boatDao->save($boat);
+        $this->assertNotNull($country->getId());
     }
 
     /**
@@ -1500,6 +1506,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             echo $process->getOutput();
             $this->fail('Generated code is not PSR-2 compliant');
         }
+        $this->assertTrue($process->isSuccessful());
     }
 
     /**
@@ -1639,6 +1646,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $leaf = new CategoryBean('Leaf');
         $leaf->setParent($intermediate);
         $categoryDao->save($leaf);
+        $this->assertNull($root2->getId());
     }
 
     /**
