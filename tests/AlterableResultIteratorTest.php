@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-class AlterableResultIteratorTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class AlterableResultIteratorTest extends TestCase
 {
     public function testUnalteredResultSet()
     {

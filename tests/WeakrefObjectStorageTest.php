@@ -3,7 +3,9 @@
 namespace TheCodingMachine\TDBM;
 
 
-class WeakrefObjectStorageTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class WeakrefObjectStorageTest extends TestCase
 {
     public function testObjectStorage()
     {
