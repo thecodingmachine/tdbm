@@ -33,6 +33,7 @@ use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\AnimalBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Article2Bean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArticleBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\BoatBean;
@@ -1781,12 +1782,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     }
 
+    /**
+     * @depends testDaoGeneration
+     */
     public function testSortOnInheritedTable()
     {
-        $contactDao = new ContactDao($this->tdbmService);
+        $animalDao = new AnimalDao($this->tdbmService);
 
-        $contacts = $contactDao->findAll()->withOrder('users.email ASC');
+        // Let's insert an animal that is nothing.
+        $animal = new AnimalBean('Mickey');
+        $animalDao->save($animal);
 
-        $this->assertCount($contacts, 5);
+        $animals = $animalDao->findAll()->withOrder('dog.race ASC');
+
+        $animalsArr = $animals->toArray();
+        $this->assertCount(2, $animalsArr);
     }
 }

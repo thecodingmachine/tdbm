@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
+use function array_unique;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
@@ -105,6 +106,7 @@ abstract class AbstractQueryFactory implements QueryFactory
                 if ($orderByColumn['type'] === 'colref') {
                     if ($orderByColumn['table'] !== null) {
                         if ($canAddAdditionalTablesFetch) {
+                            // FIXME: do not ADD if already in inherited tables!
                             $additionalTablesFetch[] = $orderByColumn['table'];
                         } else {
                             $sortColumnName = 'sort_column_'.$sortColumn;
@@ -150,7 +152,7 @@ abstract class AbstractQueryFactory implements QueryFactory
         }
 
         // Let's remove any duplicate
-        $allFetchedTables = array_flip(array_flip($allFetchedTables));
+        $allFetchedTables = array_unique($allFetchedTables);
         
         // We quote in MySQL because MagicJoin requires MySQL style quotes
         $mysqlPlatform = new MySqlPlatform();
