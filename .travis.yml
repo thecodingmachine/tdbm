@@ -21,6 +21,11 @@ matrix:
       addons:
         mariadb: '10.0'
     - php: 7.1
+      env: PREFER_LOWEST="" DB=mysql8
+      sudo: required
+      services:
+      - docker
+    - php: 7.1
       env: PREFER_LOWEST="--prefer-lowest" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
       sudo: required
       services:
@@ -60,7 +65,14 @@ before_script:
 - pecl install weakref-beta
 script:
 # Let's run the Oracle script only when the password is available (it is not available in forks unfortunately)
-- if [ "$DB" != "oracle" ] ; then ./vendor/bin/phpunit $PHPUNITFILE; else docker run -v $(pwd):/app -v $(pwd)/tests/Fixtures/oracle-startup.sql:/docker-entrypoint-initdb.d/oracle-startup.sql moufmouf/oracle-xe-php vendor/bin/phpunit $PHPUNITFILE; fi
+- |
+  if [ "$DB" == "oracle" ] ; then
+    docker run -v $(pwd):/app -v $(pwd)/tests/Fixtures/oracle-startup.sql:/docker-entrypoint-initdb.d/oracle-startup.sql moufmouf/oracle-xe-php vendor/bin/phpunit $PHPUNITFILE;
+  elif [ "$DB" == "mysql8" ] ; then
+    tests/phpunit-mysql8.sh
+  else
+    ./vendor/bin/phpunit $PHPUNITFILE;
+  fi
 - composer phpstan
 - ./vendor/bin/composer-require-checker check --config-file=composer-require-checker.json
 after_script:
