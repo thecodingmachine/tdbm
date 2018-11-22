@@ -1796,6 +1796,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $animals = $animalDao->findAll()->withOrder('dog.race ASC');
 
         $animalsArr = $animals->toArray();
-        $this->assertCount(2, $animalsArr);
+        $this->assertCount(3, $animalsArr);
     }
 }

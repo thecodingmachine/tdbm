@@ -6,6 +6,7 @@ namespace TheCodingMachine\TDBM\QueryFactory;
 use function array_unique;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
+use function in_array;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
 use TheCodingMachine\TDBM\TDBMInvalidArgumentException;
 use TheCodingMachine\TDBM\TDBMService;
@@ -106,7 +107,6 @@ abstract class AbstractQueryFactory implements QueryFactory
                 if ($orderByColumn['type'] === 'colref') {
                     if ($orderByColumn['table'] !== null) {
                         if ($canAddAdditionalTablesFetch) {
-                            // FIXME: do not ADD if already in inherited tables!
                             $additionalTablesFetch[] = $orderByColumn['table'];
                         } else {
                             $sortColumnName = 'sort_column_'.$sortColumn;
@@ -143,6 +143,10 @@ abstract class AbstractQueryFactory implements QueryFactory
         }
 
         foreach ($additionalTablesFetch as $additionalTable) {
+            if (in_array($additionalTable, $allFetchedTables, true)) {
+                continue;
+            }
+
             $relatedTables = $this->tdbmService->_getRelatedTablesByInheritance($additionalTable);
             $tableGroupName = $this->getTableGroupName($relatedTables);
             foreach ($relatedTables as $table) {
