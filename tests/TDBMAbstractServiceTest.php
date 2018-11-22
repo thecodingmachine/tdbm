@@ -297,6 +297,10 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->extends('animal')
             ->column('cuteness_level')->integer()->null();
 
+        $db->table('panda')
+            ->extends('animal')
+            ->column('weight')->float()->null();
+
         $db->table('boats')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
             ->column('name')->string(255)
