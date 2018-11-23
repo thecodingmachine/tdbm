@@ -163,7 +163,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
                 if ($default !== null && in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */, 'SYSDATE' /* Oracle */ , 'CURRENT_TIMESTAMP()' /* MariaDB 10.3 */], true)) {
                     $defaultCode = 'new \DateTimeImmutable()';
                 } else {
-                    throw new TDBMException('Unable to set default value for date. Database passed this default value: "'.$default.'"');
+                    throw new TDBMException('Unable to set default value for date in "'.$this->table->getName().'.'.$this->column->getName().'". Database passed this default value: "'.$default.'"');
                 }
             } else {
                 $defaultValue = $type->convertToPHPValue($this->column->getDefault(), new MySQL57Platform());
