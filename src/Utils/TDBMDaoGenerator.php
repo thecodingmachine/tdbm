@@ -167,6 +167,9 @@ class TDBMDaoGenerator
 
         // Hard code PSR-2 fix
         $fileContent = str_replace("\n\n}\n", '}', $fileContent);
+        // Add the declare strict-types directive
+        $commentEnd = strpos($fileContent, ' */') + 3;
+        $fileContent = substr($fileContent, 0, $commentEnd) . "\n\ndeclare(strict_types=1);" . substr($fileContent, $commentEnd + 1);
 
         $this->dumpFile($possibleBaseFileName, $fileContent);
 
