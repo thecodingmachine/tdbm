@@ -6,6 +6,8 @@ cache:
     - $HOME/.composer/cache
 matrix:
   include:
+    - php: 7.3
+      env: PREFER_LOWEST="" DB=mysql
     - php: 7.2
       env: PREFER_LOWEST="" DB=mysql
     - php: 7.1
