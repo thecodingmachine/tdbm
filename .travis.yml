@@ -7,7 +7,7 @@ cache:
 matrix:
   include:
     - php: 7.3
-      env: PREFER_LOWEST="" DB=mysql
+      env: PREFER_LOWEST="" DB=mysql NO_WEAKREF=1
     - php: 7.2
       env: PREFER_LOWEST="" DB=mysql
     - php: 7.1
@@ -59,7 +59,7 @@ before_script:
 - composer update --prefer-dist
 # For some reason, $PREFER_LOWEST will fail unless a composer update has been run before...
 - if [ "$PREFER_LOWEST" = "--prefer-lowest" ] ; then composer update --prefer-dist --prefer-lowest; fi
-- pecl install weakref-beta
+- if [ -z "$NO_WEAKREF" ] ; pecl install weakref-beta; fi
 script:
 # Let's run the Oracle script only when the password is available (it is not available in forks unfortunately)
 - if [ "$DB" != "oracle" ] ; then ./vendor/bin/phpunit $PHPUNITFILE; else docker run -v $(pwd):/app -v $(pwd)/tests/Fixtures/oracle-startup.sql:/docker-entrypoint-initdb.d/oracle-startup.sql moufmouf/oracle-xe-php vendor/bin/phpunit $PHPUNITFILE; fi
