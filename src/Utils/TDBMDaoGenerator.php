@@ -7,6 +7,7 @@ use Doctrine\Common\Inflector\Inflector;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use function str_replace;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
@@ -157,11 +158,17 @@ class TDBMDaoGenerator
     public function generateBean(BeanDescriptor $beanDescriptor, string $className, string $baseClassName, Table $table): void
     {
         $beannamespace = $this->configuration->getBeanNamespace();
-        $str = $beanDescriptor->generatePhpCode();
+        $file = $beanDescriptor->generatePhpCode();
+
 
         $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($beannamespace.'\\Generated\\'.$baseClassName)->getPathname();
 
-        $this->dumpFile($possibleBaseFileName, $str);
+        $fileContent = $file->generate();
+
+        // Hard code PSR-2 fix
+        $fileContent = str_replace("\n\n}\n", '}', $fileContent);
+
+        $this->dumpFile($possibleBaseFileName, $fileContent);
 
         $possibleFileName = $this->configuration->getPathFinder()->getPath($beannamespace.'\\'.$className)->getPathname();
 

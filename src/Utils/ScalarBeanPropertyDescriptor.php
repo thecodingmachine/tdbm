@@ -11,6 +11,10 @@ use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
 use \TheCodingMachine\TDBM\Utils\Annotation;
+use Zend\Code\Generator\DocBlock\Tag\ParamTag;
+use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
+use Zend\Code\Generator\MethodGenerator;
+use Zend\Code\Generator\ParameterGenerator;
 
 /**
  * This class represent a property in a bean (a property has a getter, a setter, etc...).
@@ -44,20 +48,6 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $this->table = $table;
         $this->column = $column;
         $this->annotationParser = $annotationParser;
-    }
-
-    /**
-     * Returns the param annotation for this property (useful for constructor).
-     *
-     * @return string
-     */
-    public function getParamAnnotation(): string
-    {
-        $paramType = $this->getPhpType();
-
-        $str = '     * @param %s %s';
-
-        return sprintf($str, $paramType, $this->getVariableName());
     }
 
     /**
@@ -141,7 +131,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function assignToDefaultCode(): string
     {
-        $str = '        $this->%s(%s);';
+        $str = '$this->%s(%s);';
 
         $uuidAnnotation = $this->getUuidAnnotation();
         if ($uuidAnnotation !== null) {
@@ -205,9 +195,9 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     /**
      * Returns the PHP code for getters and setters.
      *
-     * @return string
+     * @return MethodGenerator[]
      */
-    public function getGetterSetterCode(): string
+    public function getGetterSetterCode(): array
     {
         $normalizedType = $this->getPhpType();
 
@@ -221,60 +211,58 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         if ($normalizedType === 'resource') {
             $resourceTypeCheck .= <<<EOF
 
-        if (!\is_resource($%s)) {
-            throw \TheCodingMachine\TDBM\TDBMInvalidArgumentException::badType('resource', $%s, __METHOD__);
-        }
+if (!\is_resource($%s)) {
+    throw \TheCodingMachine\TDBM\TDBMInvalidArgumentException::badType('resource', $%s, __METHOD__);
+}
 EOF;
             $resourceTypeCheck = sprintf($resourceTypeCheck, $this->column->getName(), $this->column->getName());
         }
 
-        $getterAndSetterCode = '    /**
-     * The getter for the "%s" column.
-     *
-     * @return %s
-     */
-    public function %s()%s%s%s
-    {
-        return $this->get(%s, %s);
-    }
 
-    /**
-     * The setter for the "%s" column.
-     *
-     * @param %s $%s
-     */
-    public function %s(%s%s$%s) : void
-    {%s
-        $this->set(%s, $%s, %s);
-    }
+        $paramType = null;
+        if ($this->isTypeHintable()) {
+            $paramType = ($isNullable?'?':'').$normalizedType;
+        }
 
-';
+        $getter = new MethodGenerator($columnGetterName);
+        $getter->setDocBlock(sprintf('The getter for the "%s" column.', $this->column->getName()));
 
-        return sprintf(
-            $getterAndSetterCode,
-            // Getter
-            $this->column->getName(),
-            $normalizedType.($isNullable ? '|null' : ''),
-            $columnGetterName,
-            ($this->isTypeHintable() ? ' : ' : ''),
-            ($isNullable && $this->isTypeHintable() ? '?' : ''),
-            ($this->isTypeHintable() ? $normalizedType: ''),
+        $types = [ $normalizedType ];
+        if ($isNullable) {
+            $types[] = 'null';
+        }
+        $getter->getDocBlock()->setTag(new ReturnTag($types));
+
+        $getter->setReturnType($paramType);
+
+        $getter->setBody(sprintf('return $this->get(%s, %s);',
             var_export($this->column->getName(), true),
-            var_export($this->table->getName(), true),
-            // Setter
-            $this->column->getName(),
-            $normalizedType.(($this->column->getNotnull() || !$this->isTypeHintable()) ? '' : '|null'),
-            $this->column->getName(),
-            $columnSetterName,
-            ($this->column->getNotnull() || !$this->isTypeHintable()) ? '' : '?',
-            $this->isTypeHintable() ? $normalizedType . ' ' : '',
-                //$castTo,
-            $this->column->getName(),
+            var_export($this->table->getName(), true)));
+
+
+
+        $setter = new MethodGenerator($columnSetterName);
+        $setter->setDocBlock(sprintf('The setter for the "%s" column.', $this->column->getName()));
+
+        $types = [ $normalizedType ];
+        if ($isNullable) {
+            $types[] = 'null';
+        }
+        $setter->getDocBlock()->setTag(new ParamTag($this->column->getName(), $types));
+
+        $parameter = new ParameterGenerator($this->column->getName(), $paramType);
+        $setter->setParameter($parameter);
+        $setter->setReturnType('void');
+
+        $setter->setBody(sprintf('%s
+$this->set(%s, $%s, %s);',
             $resourceTypeCheck,
             var_export($this->column->getName(), true),
             $this->column->getName(),
-            var_export($this->table->getName(), true)
-        );
+            var_export($this->table->getName(), true)));
+
+
+        return [$getter, $setter];
     }
 
     /**
@@ -292,12 +280,12 @@ EOF;
 
         if ($normalizedType == '\\DateTimeImmutable') {
             if ($this->column->getNotnull()) {
-                return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."()->format('c');\n";
+                return '$array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."()->format('c');\n";
             } else {
-                return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
+                return '$array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
             }
         } else {
-            return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."();\n";
+            return '$array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."();\n";
         }
     }
 
@@ -319,7 +307,7 @@ EOF;
     {
         $uuidAnnotation = $this->getUuidAnnotation();
         if ($uuidAnnotation !== null && $this->isPrimaryKey()) {
-            return sprintf("        \$this->%s(%s);\n", $this->getSetterName(), $this->getUuidCode($uuidAnnotation));
+            return sprintf("\$this->%s(%s);\n", $this->getSetterName(), $this->getUuidCode($uuidAnnotation));
         }
         return null;
     }

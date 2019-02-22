@@ -8,11 +8,23 @@ use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use JsonSerializable;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use Ramsey\Uuid\Uuid;
+use TheCodingMachine\TDBM\AbstractTDBMObject;
+use TheCodingMachine\TDBM\AlterableResultIterator;
+use TheCodingMachine\TDBM\ResultIterator;
 use TheCodingMachine\TDBM\SafeFunctions;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use Zend\Code\Generator\ClassGenerator;
+use Zend\Code\Generator\DocBlock\Tag\ParamTag;
+use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
+use Zend\Code\Generator\DocBlockGenerator;
+use Zend\Code\Generator\FileGenerator;
+use Zend\Code\Generator\MethodGenerator;
+use Zend\Code\Generator\ParameterGenerator;
 
 /**
  * This class represents a bean.
@@ -230,7 +242,7 @@ class BeanDescriptor implements BeanDescriptorInterface
                     continue;
                 }
 
-                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->schemaAnalyzer, $this->namingStrategy);
+                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace);
             } else {
                 $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column, $this->namingStrategy, $this->annotationParser);
             }
@@ -269,29 +281,25 @@ class BeanDescriptor implements BeanDescriptorInterface
         return $beanPropertyDescriptorsMap;
     }
 
-    private function generateBeanConstructor() : string
+    private function generateBeanConstructor() : MethodGenerator
     {
         $constructorProperties = $this->getConstructorProperties();
 
-        $constructorCode = '    /**
-     * The constructor takes all compulsory arguments.
-     *
-%s
-     */
-    public function __construct(%s)
-    {
-%s%s    }
+        $constructor = new MethodGenerator('__construct', [], MethodGenerator::FLAG_PUBLIC);
+        $constructor->setDocBlock('The constructor takes all compulsory arguments.');
 
-';
-
-        $paramAnnotations = [];
-        $arguments = [];
         $assigns = [];
         $parentConstructorArguments = [];
 
         foreach ($constructorProperties as $property) {
-            $arguments[] = ($property->isTypeHintable()?($property->getPhpType().' '):'').$property->getVariableName();
-            $paramAnnotations[] = $property->getParamAnnotation();
+            $parameter = new ParameterGenerator(ltrim($property->getVariableName(), '$'));
+            if ($property->isTypeHintable()) {
+                $parameter->setType($property->getPhpType());
+            }
+            $constructor->setParameter($parameter);
+
+            $constructor->getDocBlock()->setTag($property->getParamAnnotation());
+
             if ($property->getTable()->getName() === $this->table->getName()) {
                 $assigns[] = $property->getConstructorAssignCode()."\n";
             } else {
@@ -299,13 +307,17 @@ class BeanDescriptor implements BeanDescriptorInterface
             }
         }
 
-        $parentConstructorCode = sprintf("        parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
+        $parentConstructorCode = sprintf("parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
 
         foreach ($this->getPropertiesWithDefault() as $property) {
             $assigns[] = $property->assignToDefaultCode()."\n";
         }
 
-        return sprintf($constructorCode, implode("\n", $paramAnnotations), implode(', ', $arguments), $parentConstructorCode, implode('', $assigns));
+        $body = $parentConstructorCode . implode('', $assigns);
+
+        $constructor->setBody($body);
+
+        return $constructor;
     }
 
     /**
@@ -344,7 +356,7 @@ class BeanDescriptor implements BeanDescriptorInterface
                 continue;
             }
 
-            $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy);
+            $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace);
         }
 
         return $descs;
@@ -380,7 +392,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         return $descriptors;
     }
 
-    public function generateJsonSerialize(): string
+    public function generateJsonSerialize(): MethodGenerator
     {
         $tableName = $this->table->getName();
         $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
@@ -390,20 +402,16 @@ class BeanDescriptor implements BeanDescriptorInterface
             $initializer = '$array = [];';
         }
 
-        $str = '
-    /**
-     * Serializes the object for JSON encoding.
-     *
-     * @param bool $stopRecursion Parameter used internally by TDBM to stop embedded objects from embedding other objects.
-     * @return array
-     */
-    public function jsonSerialize($stopRecursion = false)
-    {
-        %s
+        $method = new MethodGenerator('jsonSerialize');
+        $method->setDocBlock('Serializes the object for JSON encoding.');
+        $method->getDocBlock()->setTag(new ParamTag('$stopRecursion', ['bool'], 'Parameter used internally by TDBM to stop embedded objects from embedding other objects.'));
+        $method->getDocBlock()->setTag(new ReturnTag(['array']));
+        $method->setParameter(new ParameterGenerator('stopRecursion', 'bool', false));
+
+        $str = '%s
 %s
 %s
-        return $array;
-    }
+return $array;
 ';
 
         $propertiesCode = '';
@@ -417,7 +425,9 @@ class BeanDescriptor implements BeanDescriptorInterface
             $methodsCode .= $methodDescriptor->getJsonSerializeCode();
         }
 
-        return sprintf($str, $initializer, $propertiesCode, $methodsCode);
+        $method->setBody(sprintf($str, $initializer, $propertiesCode, $methodsCode));
+
+        return $method;
     }
 
     /**
@@ -453,10 +463,16 @@ class BeanDescriptor implements BeanDescriptorInterface
     /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
-     * @return string
+     * @return FileGenerator
      */
-    public function generatePhpCode(): string
+    public function generatePhpCode(): FileGenerator
     {
+
+        $file = new FileGenerator();
+        $class = new ClassGenerator();
+        $file->setClass($class);
+        $file->setNamespace($this->generatedBeanNamespace);
+
         $tableName = $this->table->getName();
         $baseClassName = $this->namingStrategy->getBaseBeanClassName($tableName);
         $className = $this->namingStrategy->getBeanClassName($tableName);
@@ -464,60 +480,70 @@ class BeanDescriptor implements BeanDescriptorInterface
 
         $classes = $this->generateExtendsAndUseStatements($parentFk);
 
-        $uses = array_map(function ($className) {
+        foreach ($classes as $useClass) {
+            $file->setUse($this->beanNamespace.'\\'.$useClass);
+        }
+
+        /*$uses = array_map(function ($className) {
             return 'use '.$this->beanNamespace.'\\'.$className.";\n";
         }, $classes);
-        $use = implode('', $uses);
+        $use = implode('', $uses);*/
 
         $extends = $this->getExtendedBeanClassName();
         if ($extends === null) {
-            $extends = 'AbstractTDBMObject';
-            $use .= "use TheCodingMachine\\TDBM\\AbstractTDBMObject;\n";
+            $class->setExtendedClass(AbstractTDBMObject::class);
+            $file->setUse(AbstractTDBMObject::class);
+        } else {
+            $class->setExtendedClass($extends);
         }
 
-        $str = "<?php
-declare(strict_types=1);
+        $file->setUse(ResultIterator::class);
+        $file->setUse(AlterableResultIterator::class);
+        $file->setUse(Uuid::class);
+        $file->setUse(JsonSerializable::class);
 
-namespace {$this->generatedBeanNamespace};
+        $class->setName($baseClassName);
+        $class->setAbstract(true);
 
-use TheCodingMachine\\TDBM\\ResultIterator;
-use TheCodingMachine\\TDBM\\AlterableResultIterator;
-use Ramsey\\Uuid\\Uuid;
-$use
-/*
- * This file has been automatically generated by TDBM.
- * DO NOT edit this file, as it might be overwritten.
- * If you need to perform changes, edit the $className class instead!
- */
+        // TODO: CHECK AVAILABILITY OF declare(strict_types=1);
 
-/**
- * The $baseClassName class maps the '$tableName' table in database.
- */
-abstract class $baseClassName extends $extends implements \\JsonSerializable
-{
-";
+        $file->setDocBlock(new DocBlockGenerator('This file has been automatically generated by TDBM.', <<<EOF
+This file has been automatically generated by TDBM.
+DO NOT edit this file, as it might be overwritten.
+If you need to perform changes, edit the $className class instead!
+EOF
+        ));
 
-        $str .= $this->generateBeanConstructor();
+        $class->setDocBlock(new DocBlockGenerator("The $baseClassName class maps the '$tableName' table in database."));
+        $class->setImplementedInterfaces([ JsonSerializable::class ]);
+
+
+        $class->addMethodFromGenerator($this->generateBeanConstructor());
 
         foreach ($this->getExposedProperties() as $property) {
-            $str .= $property->getGetterSetterCode();
+            foreach ($property->getGetterSetterCode() as $generator) {
+                $class->addMethodFromGenerator($generator);
+            }
         }
 
         foreach ($this->getMethodDescriptors() as $methodDescriptor) {
-            $str .= $methodDescriptor->getCode();
+            foreach ($methodDescriptor->getCode() as $generator) {
+                $class->addMethodFromGenerator($generator);
+            }
         }
-        $str .= $this->generateJsonSerialize();
 
-        $str .= $this->generateGetUsedTablesCode();
+        $class->addMethodFromGenerator($this->generateJsonSerialize());
+        $class->addMethodFromGenerator($this->generateGetUsedTablesCode());
+        $onDeleteCode = $this->generateOnDeleteCode();
+        if ($onDeleteCode) {
+            $class->addMethodFromGenerator($onDeleteCode);
+        }
+        $cloneCode = $this->generateCloneCode();
+        if ($cloneCode) {
+            $class->addMethodFromGenerator($cloneCode);
+        }
 
-        $str .= $this->generateOnDeleteCode();
-
-        $str .= $this->generateCloneCode();
-
-        $str .= '}
-';
-
-        return $str;
+        return $file;
     }
 
     /**
@@ -579,7 +605,7 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
             $fk = $this->isPartOfForeignKey($this->table, $this->table->getColumn($column));
             if ($fk !== null) {
                 if (!in_array($fk, $elements)) {
-                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->schemaAnalyzer, $this->namingStrategy);
+                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->namingStrategy, $this->beanNamespace);
                 }
             } else {
                 $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column), $this->namingStrategy, $this->annotationParser);
@@ -647,7 +673,12 @@ abstract class $baseClassName extends $extends implements \\JsonSerializable
                 $first = false;
             }
         }
-        $paramsString = implode("\n", $params);
+
+        $paramsString = '';
+        foreach ($params as $param) {
+            $paramsString .= $param->generate()."\n";
+        }
+        //$paramsString = implode("\n", $params);
 
         $methodName = $this->namingStrategy->getFindByIndexMethodName($index, $elements);
 
@@ -697,60 +728,53 @@ $paramsString
     /**
      * Generates the code for the getUsedTable protected method.
      *
-     * @return string
+     * @return MethodGenerator
      */
-    private function generateGetUsedTablesCode(): string
+    private function generateGetUsedTablesCode(): MethodGenerator
     {
         $hasParentRelationship = $this->schemaAnalyzer->getParentRelationship($this->table->getName()) !== null;
         if ($hasParentRelationship) {
-            $code = sprintf('        $tables = parent::getUsedTables();
-        $tables[] = %s;
+            $code = sprintf('$tables = parent::getUsedTables();
+$tables[] = %s;
 
-        return $tables;', var_export($this->table->getName(), true));
+return $tables;', var_export($this->table->getName(), true));
         } else {
             $code = sprintf('        return [ %s ];', var_export($this->table->getName(), true));
         }
 
-        return sprintf('
-    /**
-     * Returns an array of used tables by this bean (from parent to child relationship).
-     *
-     * @return string[]
-     */
-    protected function getUsedTables() : array
-    {
-%s
-    }
-', $code);
+        $method = new MethodGenerator('getUsedTables');
+        $method->setDocBlock('Returns an array of used tables by this bean (from parent to child relationship).');
+        $method->getDocBlock()->setTag(new ReturnTag(['string[]']));
+        $method->setReturnType('array');
+        $method->setBody($code);
+
+        return $method;
     }
 
-    private function generateOnDeleteCode(): string
+    private function generateOnDeleteCode(): ?MethodGenerator
     {
         $code = '';
         $relationships = $this->getPropertiesForTable($this->table);
         foreach ($relationships as $relationship) {
             if ($relationship instanceof ObjectBeanPropertyDescriptor) {
-                $code .= sprintf('        $this->setRef('.var_export($relationship->getForeignKey()->getName(), true).', null, '.var_export($this->table->getName(), true).");\n");
+                $code .= sprintf('$this->setRef('.var_export($relationship->getForeignKey()->getName(), true).', null, '.var_export($this->table->getName(), true).");\n");
             }
         }
 
-        if ($code) {
-            return sprintf('
-    /**
-     * Method called when the bean is removed from database.
-     *
-     */
-    protected function onDelete() : void
-    {
-        parent::onDelete();
-%s    }
-', $code);
+        if (!$code) {
+            return null;
         }
 
-        return '';
+        $method = new MethodGenerator('onDelete');
+        $method->setDocBlock('Method called when the bean is removed from database.');
+        $method->setReturnType('void');
+        $method->setBody('parent::onDelete();
+'.$code);
+
+        return $method;
     }
 
-    private function generateCloneCode(): string
+    private function generateCloneCode(): ?MethodGenerator
     {
         $code = '';
 
@@ -758,16 +782,11 @@ $paramsString
             $code .= $beanPropertyDescriptor->getCloneRule();
         }
 
-        if (!empty($code)) {
-            $code = '
-    public function __clone()
-    {
-        parent::__clone();
-'.$code.'    }
-';
-        }
+        $method = new MethodGenerator('__clone');
+        $method->setBody('parent::__clone();
+'.$code);
 
-        return $code;
+        return $method;
     }
 
     /**
