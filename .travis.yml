@@ -6,8 +6,6 @@ cache:
     - $HOME/.composer/cache
 matrix:
   include:
-    - php: 7.3
-      env: PREFER_LOWEST="" DB=mysql NO_WEAKREF=1
     - php: 7.2
       env: PREFER_LOWEST="" DB=mysql
     - php: 7.1
@@ -49,6 +47,9 @@ matrix:
       env: PREFER_LOWEST="" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
     - php: 7.1
       env: PREFER_LOWEST="--prefer-lowest" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
+    # 7.3 allowed to fail due to an issue with greenlion/PHP-SQL-Parser: https://github.com/greenlion/PHP-SQL-Parser/pull/304
+    - php: 7.3
+      env: PREFER_LOWEST="" DB=mysql NO_WEAKREF=1
 env:
   global:
   - GIT_NAME: "'Couscous auto deploy'"
