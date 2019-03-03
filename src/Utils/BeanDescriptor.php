@@ -598,7 +598,7 @@ EOF
         $class->setDocBlock(new DocBlockGenerator("The $baseClassName class will maintain the persistence of $beanClassWithoutNameSpace class into the $tableName table."));
 
         $tdbmServiceProperty = new PropertyGenerator('tdbmService');
-        $tdbmServiceProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, [TDBMService::class])]));
+        $tdbmServiceProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, ['\\'.TDBMService::class])]));
         $class->addPropertyFromGenerator($tdbmServiceProperty);
 
         $defaultSortProperty = new PropertyGenerator('defaultSort', $defaultSort);
@@ -614,7 +614,7 @@ EOF
             [ new ParameterGenerator('tdbmService', TDBMService::class) ],
             MethodGenerator::FLAG_PUBLIC,
             '$this->tdbmService = $tdbmService;',
-            new DocBlockGenerator('Sets the TDBM service used by this DAO.')
+            'Sets the TDBM service used by this DAO.'
         );
 
         $saveMethod = new MethodGenerator(
@@ -645,11 +645,11 @@ EOF;
             [],
             MethodGenerator::FLAG_PUBLIC,
             $findAllBody,
-            new DocBlockGenerator("Get all $beanClassWithoutNameSpace records.",
+            (new DocBlockGenerator("Get all $beanClassWithoutNameSpace records.",
                 null,
                 [
-                    new ReturnTag([ $beanClassName.'[]', ResultIterator::class ])
-                ])
+                    new ReturnTag([ '\\'.$beanClassName.'[]', '\\'.ResultIterator::class ])
+                ]))->setWordWrap(false)
         );
         $findAllMethod->setReturnType('iterable');
         $class->addMethodFromGenerator($findAllMethod);
@@ -666,14 +666,14 @@ EOF;
                 ],
                 MethodGenerator::FLAG_PUBLIC,
                 "return \$this->tdbmService->findObjectByPk('$tableName', ['$primaryKeyColumn' => \$id], [], \$lazyLoading);",
-                new DocBlockGenerator("Get $beanClassWithoutNameSpace specified by its ID (its primary key).",
+                (new DocBlockGenerator("Get $beanClassWithoutNameSpace specified by its ID (its primary key).",
                     'If the primary key does not exist, an exception is thrown.',
                     [
                         new ParamTag('id', [$primaryKeyPhpType]),
                         new ParamTag('lazyLoading', ['bool'], 'If set to true, the object will not be loaded right away. Instead, it will be loaded when you first try to access a method of the object.'),
-                        new ReturnTag([$beanClassName . '[]', ResultIterator::class]),
-                        new ThrowsTag(TDBMException::class)
-                    ])
+                        new ReturnTag(['\\'.$beanClassName . '[]', '\\'.ResultIterator::class]),
+                        new ThrowsTag('\\'.TDBMException::class)
+                    ]))->setWordWrap(false)
             );
             $class->addMethodFromGenerator($getByIdMethod);
         }
@@ -695,12 +695,12 @@ EOF;
             ],
             MethodGenerator::FLAG_PUBLIC,
             $deleteMethodBody,
-            new DocBlockGenerator("Get all $beanClassWithoutNameSpace records.",
+            (new DocBlockGenerator("Get all $beanClassWithoutNameSpace records.",
                 null,
                 [
-                    new ParamTag('obj', [$beanClassName], 'The object to delete'),
+                    new ParamTag('obj', ['\\'.$beanClassName], 'The object to delete'),
                     new ParamTag('cascade', ['bool'], 'If true, it will delete all objects linked to $obj'),
-                ])
+                ]))->setWordWrap(false)
         );
         $deleteMethod->setReturnType('void');
         $class->addMethodFromGenerator($deleteMethod);
@@ -724,7 +724,7 @@ EOF;
             ],
             MethodGenerator::FLAG_PUBLIC,
             $findMethodBody,
-            new DocBlockGenerator("Get all $beanClassWithoutNameSpace records.",
+            (new DocBlockGenerator("Get all $beanClassWithoutNameSpace records.",
                 null,
                 [
                     new ParamTag('filter', ['mixed'], 'The filter bag (see TDBMService::findObjects for complete description)'),
@@ -732,8 +732,8 @@ EOF;
                     new ParamTag('orderBy', ['mixed'], 'The order string'),
                     new ParamTag('additionalTablesFetch', ['string[]'], 'A list of additional tables to fetch (for performance improvement)'),
                     new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.'),
-                    new ReturnTag([$beanClassName . '[]', ResultIterator::class])
-                ])
+                    new ReturnTag(['\\' . $beanClassName . '[]', '\\'.ResultIterator::class])
+                ]))->setWordWrap(false)
         );
         $findMethod->setReturnType('iterable');
         $class->addMethodFromGenerator($findMethod);
@@ -758,7 +758,7 @@ EOF;
             ],
             MethodGenerator::FLAG_PUBLIC,
             $findFromSqlMethodBody,
-            new DocBlockGenerator("Get a list of $beanClassWithoutNameSpace specified by its filters.",
+            (new DocBlockGenerator("Get a list of $beanClassWithoutNameSpace specified by its filters.",
                 "Unlike the `find` method that guesses the FROM part of the statement, here you can pass the \$from part.
 
 You should not put an alias on the main table name. So your \$from variable should look like:
@@ -771,8 +771,8 @@ You should not put an alias on the main table name. So your \$from variable shou
                     new ParamTag('orderBy', ['mixed'], 'The order string'),
                     new ParamTag('additionalTablesFetch', ['string[]'], 'A list of additional tables to fetch (for performance improvement)'),
                     new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.'),
-                    new ReturnTag([$beanClassName . '[]', ResultIterator::class])
-                ])
+                    new ReturnTag(['\\'.$beanClassName . '[]', '\\'.ResultIterator::class])
+                ]))->setWordWrap(false)
         );
         $findFromSqlMethod->setReturnType('iterable');
         $class->addMethodFromGenerator($findFromSqlMethod);
@@ -794,7 +794,7 @@ EOF;
             ],
             MethodGenerator::FLAG_PUBLIC,
             $findFromRawSqlMethodBody,
-            new DocBlockGenerator("Get a list of $beanClassWithoutNameSpace from a SQL query.",
+            (new DocBlockGenerator("Get a list of $beanClassWithoutNameSpace from a SQL query.",
                 "Unlike the `find` and `findFromSql` methods, here you can pass the whole \$sql query.
 
 You should not put an alias on the main table name, and select its columns using `*`. So the SELECT part of you \$sql should look like:
@@ -805,8 +805,8 @@ You should not put an alias on the main table name, and select its columns using
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the query'),
                     new ParamTag('countSql', ['string', 'null'], 'The sql query that provides total count of rows (automatically computed if not provided)'),
                     new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.'),
-                    new ReturnTag([$beanClassName . '[]', ResultIterator::class])
-                ])
+                    new ReturnTag(['\\'.$beanClassName . '[]', '\\'.ResultIterator::class])
+                ]))->setWordWrap(false)
         );
         $findFromRawSqlMethod->setReturnType('iterable');
         $class->addMethodFromGenerator($findFromRawSqlMethod);
@@ -827,14 +827,14 @@ EOF;
             ],
             MethodGenerator::FLAG_PUBLIC,
             $findOneMethodBody,
-            new DocBlockGenerator("Get a single $beanClassWithoutNameSpace specified by its filters.",
+            (new DocBlockGenerator("Get a single $beanClassWithoutNameSpace specified by its filters.",
                 null,
                 [
                     new ParamTag('filter', ['mixed'], 'The filter bag (see TDBMService::findObjects for complete description)'),
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the filter'),
                     new ParamTag('additionalTablesFetch', ['string[]'], 'A list of additional tables to fetch (for performance improvement)'),
-                    new ReturnTag([$beanClassName, 'null'])
-                ])
+                    new ReturnTag(['\\'.$beanClassName, 'null'])
+                ]))->setWordWrap(false)
         );
         $findOneMethod->setReturnType("?$beanClassName");
         $class->addMethodFromGenerator($findOneMethod);
@@ -863,7 +863,7 @@ You should not put an alias on the main table name. So your \$from variable shou
                     new ParamTag('from', ['string'], 'The sql from statement'),
                     new ParamTag('filter', ['mixed'], 'The filter bag (see TDBMService::findObjects for complete description)'),
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the filter'),
-                    new ReturnTag([$beanClassName, 'null'])
+                    new ReturnTag(['\\'.$beanClassName, 'null'])
                 ])
         );
         $findOneFromSqlMethod->setReturnType("?$beanClassName");
@@ -1068,9 +1068,11 @@ You should not put an alias on the main table name. So your \$from variable shou
         if ($index->isUnique()) {
             $parameters[] = new ParameterGenerator('additionalTablesFetch', 'array', []);
             $params[] = new ParamTag('additionalTablesFetch', [ 'string[]' ], 'A list of additional tables to fetch (for performance improvement)');
-            $params[] = new ReturnTag([ $beanClassName, 'null' ]);
+            $params[] = new ReturnTag([ '\\'.$beanNamespace.'\\'.$beanClassName, 'null' ]);
+            $method->setReturnType('?\\'.$beanNamespace.'\\'.$beanClassName);
 
             $docBlock = new DocBlockGenerator("Get a $beanClassName filtered by ".implode(', ', $commentArguments). '.', null, $params);
+            $docBlock->setWordWrap(false);
 
             $body = "\$filter = [
 ".$filterArrayCode."        ];
@@ -1083,9 +1085,11 @@ return \$this->findOne(\$filter, [], \$additionalTablesFetch);
             $params[] = new ParamTag('additionalTablesFetch', [ 'string[]' ], 'A list of additional tables to fetch (for performance improvement)');
             $parameters[] = (new ParameterGenerator('mode', '?int'))->setDefaultValue(null);
             $params[] = new ParamTag('mode', [ 'int', 'null' ], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.');
-            $params[] = new ReturnTag([ $beanClassName.'[]', ResultIterator::class ]);
+            $params[] = new ReturnTag([ '\\'.$beanNamespace.'\\'.$beanClassName.'[]', '\\'.ResultIterator::class ]);
+            $method->setReturnType('iterable');
 
             $docBlock = new DocBlockGenerator("Get a list of $beanClassName filtered by ".implode(', ', $commentArguments).".", null, $params);
+            $docBlock->setWordWrap(false);
 
             $body = "\$filter = [
 ".$filterArrayCode."        ];
