@@ -9,6 +9,7 @@ use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\CodeGeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\GeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinderInterface;
@@ -101,6 +102,14 @@ class AlteredConfiguration implements ConfigurationInterface
     public function getGeneratorEventDispatcher(): GeneratorListenerInterface
     {
         return $this->configuration->getGeneratorEventDispatcher();
+    }
+
+    /**
+     * @return CodeGeneratorListenerInterface
+     */
+    public function getCodeGeneratorListener(): CodeGeneratorListenerInterface
+    {
+        return $this->configuration->getCodeGeneratorListener();
     }
 
     /**

@@ -11,6 +11,8 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Autoincrement;
 use TheCodingMachine\TDBM\Utils\Annotation\UUID;
+use TheCodingMachine\TDBM\Utils\BaseCodeGeneratorListener;
+use TheCodingMachine\TDBM\Utils\CodeGeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\GeneratorEventDispatcher;
 use TheCodingMachine\TDBM\Utils\GeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
@@ -50,6 +52,10 @@ class Configuration implements ConfigurationInterface
      */
     private $generatorEventDispatcher;
     /**
+     * @var CodeGeneratorListenerInterface
+     */
+    private $codeGeneratorListener;
+    /**
      * @var NamingStrategyInterface
      */
     private $namingStrategy;
@@ -74,7 +80,7 @@ class Configuration implements ConfigurationInterface
      * @param AnnotationParser|null $annotationParser
      * @throws \Mouf\Database\SchemaAnalyzer\SchemaAnalyzerException
      */
-    public function __construct(string $beanNamespace, string $daoNamespace, Connection $connection, NamingStrategyInterface $namingStrategy, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null, array $generatorListeners = [], AnnotationParser $annotationParser = null)
+    public function __construct(string $beanNamespace, string $daoNamespace, Connection $connection, NamingStrategyInterface $namingStrategy, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null, array $generatorListeners = [], AnnotationParser $annotationParser = null, CodeGeneratorListenerInterface $codeGeneratorListener = null)
     {
         $this->beanNamespace = rtrim($beanNamespace, '\\');
         $this->daoNamespace = rtrim($daoNamespace, '\\');
@@ -94,6 +100,7 @@ class Configuration implements ConfigurationInterface
         $this->generatorEventDispatcher = new GeneratorEventDispatcher($generatorListeners);
         $this->pathFinder = new PathFinder();
         $this->annotationParser = $annotationParser ?: AnnotationParser::buildWithDefaultAnnotations([]);
+        $this->codeGeneratorListener = $codeGeneratorListener ?: new BaseCodeGeneratorListener();
     }
 
     /**
@@ -160,7 +167,13 @@ class Configuration implements ConfigurationInterface
         return $this->generatorEventDispatcher;
     }
 
-
+    /**
+     * @return CodeGeneratorListenerInterface
+     */
+    public function getCodeGeneratorListener(): CodeGeneratorListenerInterface
+    {
+        return $this->codeGeneratorListener;
+    }
 
     /**
      * Creates a unique cache key for the current connection.

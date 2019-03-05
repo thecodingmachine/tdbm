@@ -14,6 +14,7 @@ use PhpParser\Comment\Doc;
 use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\AbstractTDBMObject;
 use TheCodingMachine\TDBM\AlterableResultIterator;
+use TheCodingMachine\TDBM\ConfigurationInterface;
 use TheCodingMachine\TDBM\ResultIterator;
 use TheCodingMachine\TDBM\SafeFunctions;
 use TheCodingMachine\TDBM\TDBMException;
@@ -85,8 +86,16 @@ class BeanDescriptor implements BeanDescriptorInterface
      * @var string
      */
     private $generatedDaoNamespace;
+    /**
+     * @var CodeGeneratorListenerInterface
+     */
+    private $codeGeneratorListener;
+    /**
+     * @var ConfigurationInterface
+     */
+    private $configuration;
 
-    public function __construct(Table $table, string $beanNamespace, string $generatedBeanNamespace, string $daoNamespace, string $generatedDaoNamespace, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy, AnnotationParser $annotationParser)
+    public function __construct(Table $table, string $beanNamespace, string $generatedBeanNamespace, string $daoNamespace, string $generatedDaoNamespace, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy, AnnotationParser $annotationParser, CodeGeneratorListenerInterface $codeGeneratorListener, ConfigurationInterface $configuration)
     {
         $this->table = $table;
         $this->beanNamespace = $beanNamespace;
@@ -98,6 +107,8 @@ class BeanDescriptor implements BeanDescriptorInterface
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
         $this->namingStrategy = $namingStrategy;
         $this->annotationParser = $annotationParser;
+        $this->codeGeneratorListener = $codeGeneratorListener;
+        $this->configuration = $configuration;
         $this->initBeanPropertyDescriptors();
     }
 
@@ -520,21 +531,45 @@ EOF
         $class->setImplementedInterfaces([ JsonSerializable::class ]);
 
 
-        $class->addMethodFromGenerator($this->generateBeanConstructor());
+        $method = $this->generateBeanConstructor();
+        $method = $this->codeGeneratorListener->onBaseBeanConstructorGenerated($method, $this, $this->configuration, $class);
+        if ($method) {
+            $class->addMethodFromGenerator($this->generateBeanConstructor());
+        }
 
         foreach ($this->getExposedProperties() as $property) {
-            foreach ($property->getGetterSetterCode() as $generator) {
-                $class->addMethodFromGenerator($generator);
-            }
+            [$getter, $setter] = $property->getGetterSetterCode();
+            [$getter, $setter] = $this->codeGeneratorListener->onBaseBeanPropertyGenerated($getter, $setter, $property, $this, $this->configuration, $class);
+            $class->addMethodFromGenerator($getter);
+            $class->addMethodFromGenerator($setter);
         }
 
         foreach ($this->getMethodDescriptors() as $methodDescriptor) {
-            foreach ($methodDescriptor->getCode() as $generator) {
-                $class->addMethodFromGenerator($generator);
+            if ($methodDescriptor instanceof DirectForeignKeyMethodDescriptor) {
+                [$method] = $methodDescriptor->getCode();
+                $method = $this->codeGeneratorListener->onBaseBeanOneToManyGenerated($method, $methodDescriptor, $this, $this->configuration, $class);
+                if ($method) {
+                    $class->addMethodFromGenerator($method);
+                }
+            } elseif ($methodDescriptor instanceof PivotTableMethodsDescriptor) {
+                [ $getter, $adder, $remover, $has, $setter ] = $methodDescriptor->getCode();
+                $methods = $this->codeGeneratorListener->onBaseBeanManyToManyGenerated($getter, $adder, $remover, $has, $setter, $methodDescriptor, $this, $this->configuration, $class);
+                foreach ($methods as $method) {
+                    if ($method) {
+                        $class->addMethodFromGenerator($method);
+                    }
+                }
+            } else {
+                throw new \RuntimeException('Unexpected instance'); // @codeCoverageIgnore
             }
         }
 
-        $class->addMethodFromGenerator($this->generateJsonSerialize());
+        $method = $this->generateJsonSerialize();
+        $method = $this->codeGeneratorListener->onBaseBeanJsonSerializeGenerated($method, $this, $this->configuration, $class);
+        if ($method !== null) {
+            $class->addMethodFromGenerator($method);
+        }
+
         $class->addMethodFromGenerator($this->generateGetUsedTablesCode());
         $onDeleteCode = $this->generateOnDeleteCode();
         if ($onDeleteCode) {
@@ -542,7 +577,10 @@ EOF
         }
         $cloneCode = $this->generateCloneCode();
         if ($cloneCode) {
-            $class->addMethodFromGenerator($cloneCode);
+            $cloneCode = $this->codeGeneratorListener->onBaseBeanCloneGenerated($cloneCode, $this, $this->configuration, $class);
+            if ($cloneCode) {
+                $class->addMethodFromGenerator($cloneCode);
+            }
         }
 
         return $file;
@@ -571,7 +609,7 @@ EOF
         $beanClassWithoutNameSpace = $this->namingStrategy->getBeanClassName($tableName);
         $beanClassName = $this->beanNamespace.'\\'.$beanClassWithoutNameSpace;
 
-        $findByDaoCodeMethods = $this->generateFindByDaoCode($this->beanNamespace, $beanClassWithoutNameSpace);
+        $findByDaoCodeMethods = $this->generateFindByDaoCode($this->beanNamespace, $beanClassWithoutNameSpace, $class);
 
         $usedBeans[] = $beanClassName;
         // Let's suppress duplicates in used beans (if any)
@@ -609,13 +647,15 @@ EOF
         $defaultSortPropertyDirection->setDocBlock(new DocBlockGenerator('The default sort direction.', null, [new VarTag(null, ['string'])]));
         $class->addPropertyFromGenerator($defaultSortPropertyDirection);
 
-        $class->addMethod(
-            '__construct',
+        $constructorMethod = new MethodGenerator('__construct',
             [ new ParameterGenerator('tdbmService', TDBMService::class) ],
             MethodGenerator::FLAG_PUBLIC,
             '$this->tdbmService = $tdbmService;',
-            'Sets the TDBM service used by this DAO.'
-        );
+            'Sets the TDBM service used by this DAO.');
+        $constructorMethod = $this->codeGeneratorListener->onBaseDaoConstructorGenerated($constructorMethod, $this, $this->configuration, $class);
+        if ($constructorMethod !== null) {
+            $class->addMethodFromGenerator($constructorMethod);
+        }
 
         $saveMethod = new MethodGenerator(
             'save',
@@ -629,7 +669,10 @@ EOF
                 ]));
         $saveMethod->setReturnType('void');
 
-        $class->addMethodFromGenerator($saveMethod);
+        $saveMethod = $this->codeGeneratorListener->onBaseDaoSaveGenerated($saveMethod, $this, $this->configuration, $class);
+        if ($saveMethod !== null) {
+            $class->addMethodFromGenerator($saveMethod);
+        }
 
         $findAllBody = <<<EOF
 if (\$this->defaultSort) {
@@ -652,7 +695,10 @@ EOF;
                 ]))->setWordWrap(false)
         );
         $findAllMethod->setReturnType('iterable');
-        $class->addMethodFromGenerator($findAllMethod);
+        $findAllMethod = $this->codeGeneratorListener->onBaseDaoFindAllGenerated($findAllMethod, $this, $this->configuration, $class);
+        if ($findAllMethod !== null) {
+            $class->addMethodFromGenerator($findAllMethod);
+        }
 
         if (count($primaryKeyColumns) === 1) {
             $primaryKeyColumn = $primaryKeyColumns[0];
@@ -675,7 +721,10 @@ EOF;
                         new ThrowsTag('\\'.TDBMException::class)
                     ]))->setWordWrap(false)
             );
-            $class->addMethodFromGenerator($getByIdMethod);
+            $getByIdMethod = $this->codeGeneratorListener->onBaseDaoGetByIdGenerated($getByIdMethod, $this, $this->configuration, $class);
+            if ($getByIdMethod) {
+                $class->addMethodFromGenerator($getByIdMethod);
+            }
         }
 
         $deleteMethodBody = <<<EOF
@@ -703,7 +752,10 @@ EOF;
                 ]))->setWordWrap(false)
         );
         $deleteMethod->setReturnType('void');
-        $class->addMethodFromGenerator($deleteMethod);
+        $deleteMethod = $this->codeGeneratorListener->onBaseDaoDeleteGenerated($deleteMethod, $this, $this->configuration, $class);
+        if ($deleteMethod !== null) {
+            $class->addMethodFromGenerator($deleteMethod);
+        }
 
         $findMethodBody = <<<EOF
 if (\$this->defaultSort && \$orderBy == null) {
@@ -736,8 +788,10 @@ EOF;
                 ]))->setWordWrap(false)
         );
         $findMethod->setReturnType('iterable');
-        $class->addMethodFromGenerator($findMethod);
-
+        $findMethod = $this->codeGeneratorListener->onBaseDaoFindGenerated($findMethod, $this, $this->configuration, $class);
+        if ($findMethod !== null) {
+            $class->addMethodFromGenerator($findMethod);
+        }
 
         $findFromSqlMethodBody = <<<EOF
 if (\$this->defaultSort && \$orderBy == null) {
@@ -775,10 +829,10 @@ You should not put an alias on the main table name. So your \$from variable shou
                 ]))->setWordWrap(false)
         );
         $findFromSqlMethod->setReturnType('iterable');
-        $class->addMethodFromGenerator($findFromSqlMethod);
-
-
-
+        $findFromSqlMethod = $this->codeGeneratorListener->onBaseDaoFindFromSqlGenerated($findFromSqlMethod, $this, $this->configuration, $class);
+        if ($findFromSqlMethod !== null) {
+            $class->addMethodFromGenerator($findFromSqlMethod);
+        }
 
         $findFromRawSqlMethodBody = <<<EOF
 return \$this->tdbmService->findObjectsFromRawSql('$tableName', \$sql, \$parameters, \$mode, null, \$countSql);
@@ -809,9 +863,10 @@ You should not put an alias on the main table name, and select its columns using
                 ]))->setWordWrap(false)
         );
         $findFromRawSqlMethod->setReturnType('iterable');
-        $class->addMethodFromGenerator($findFromRawSqlMethod);
-
-
+        $findFromRawSqlMethod = $this->codeGeneratorListener->onBaseDaoFindFromRawSqlGenerated($findFromRawSqlMethod, $this, $this->configuration, $class);
+        if ($findFromRawSqlMethod !== null) {
+            $class->addMethodFromGenerator($findFromRawSqlMethod);
+        }
 
         $findOneMethodBody = <<<EOF
 return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters, \$additionalTablesFetch);
@@ -837,8 +892,10 @@ EOF;
                 ]))->setWordWrap(false)
         );
         $findOneMethod->setReturnType("?$beanClassName");
-        $class->addMethodFromGenerator($findOneMethod);
-
+        $findOneMethod = $this->codeGeneratorListener->onBaseDaoFindOneGenerated($findOneMethod, $this, $this->configuration, $class);
+        if ($findOneMethod !== null) {
+            $class->addMethodFromGenerator($findOneMethod);
+        }
 
         $findOneFromSqlMethodBody = <<<EOF
 return \$this->tdbmService->findObjectFromSql('$tableName', \$from, \$filter, \$parameters);
@@ -867,7 +924,10 @@ You should not put an alias on the main table name. So your \$from variable shou
                 ])
         );
         $findOneFromSqlMethod->setReturnType("?$beanClassName");
-        $class->addMethodFromGenerator($findOneFromSqlMethod);
+        $findOneFromSqlMethod = $this->codeGeneratorListener->onBaseDaoFindOneFromSqlGenerated($findOneFromSqlMethod, $this, $this->configuration, $class);
+        if ($findOneFromSqlMethod !== null) {
+            $class->addMethodFromGenerator($findOneFromSqlMethod);
+        }
 
 
         $setDefaultSortMethod = new MethodGenerator(
@@ -884,7 +944,10 @@ You should not put an alias on the main table name. So your \$from variable shou
                 ])
         );
         $setDefaultSortMethod->setReturnType('void');
-        $class->addMethodFromGenerator($setDefaultSortMethod);
+        $setDefaultSortMethod = $this->codeGeneratorListener->onBaseDaoSetDefaultSortGenerated($setDefaultSortMethod, $this, $this->configuration, $class);
+        if ($setDefaultSortMethod !== null) {
+            $class->addMethodFromGenerator($setDefaultSortMethod);
+        }
 
         foreach ($findByDaoCodeMethods as $method) {
             $class->addMethodFromGenerator($method);
@@ -926,14 +989,18 @@ You should not put an alias on the main table name. So your \$from variable shou
      *
      * @return MethodGenerator[]
      */
-    private function generateFindByDaoCode(string $beanNamespace, string $beanClassName): array
+    private function generateFindByDaoCode(string $beanNamespace, string $beanClassName, ClassGenerator $class): array
     {
         $methods = [];
         foreach ($this->removeDuplicateIndexes($this->table->getIndexes()) as $index) {
             if (!$index->isPrimary()) {
                 $method = $this->generateFindByDaoCodeForIndex($index, $beanNamespace, $beanClassName);
+
                 if ($method !== null) {
-                    $methods[] = $method;
+                    $method = $this->codeGeneratorListener->onBaseDaoFindByIndexGenerated($method, $index, $this, $this->configuration, $class);
+                    if ($method !== null) {
+                        $methods[] = $method;
+                    }
                 }
             }
         }
