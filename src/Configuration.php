@@ -12,6 +12,7 @@ use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Autoincrement;
 use TheCodingMachine\TDBM\Utils\Annotation\UUID;
 use TheCodingMachine\TDBM\Utils\BaseCodeGeneratorListener;
+use TheCodingMachine\TDBM\Utils\CodeGeneratorEventDispatcher;
 use TheCodingMachine\TDBM\Utils\CodeGeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\GeneratorEventDispatcher;
@@ -79,9 +80,10 @@ class Configuration implements ConfigurationInterface
      * @param LoggerInterface|null $logger The logger
      * @param GeneratorListenerInterface[] $generatorListeners A list of listeners that will be triggered when beans/daos are generated
      * @param AnnotationParser|null $annotationParser
+     * @param CodeGeneratorListenerInterface[] $codeGeneratorListeners A list of listeners that can alter code generation of each bean/dao
      * @throws \Mouf\Database\SchemaAnalyzer\SchemaAnalyzerException
      */
-    public function __construct(string $beanNamespace, string $daoNamespace, Connection $connection, NamingStrategyInterface $namingStrategy = null, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null, array $generatorListeners = [], AnnotationParser $annotationParser = null, CodeGeneratorListenerInterface $codeGeneratorListener = null)
+    public function __construct(string $beanNamespace, string $daoNamespace, Connection $connection, NamingStrategyInterface $namingStrategy = null, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null, array $generatorListeners = [], AnnotationParser $annotationParser = null, array $codeGeneratorListeners = [])
     {
         $this->beanNamespace = rtrim($beanNamespace, '\\');
         $this->daoNamespace = rtrim($daoNamespace, '\\');
@@ -100,7 +102,7 @@ class Configuration implements ConfigurationInterface
         $this->generatorEventDispatcher = new GeneratorEventDispatcher($generatorListeners);
         $this->pathFinder = new PathFinder();
         $this->annotationParser = $annotationParser ?: AnnotationParser::buildWithDefaultAnnotations([]);
-        $this->codeGeneratorListener = $codeGeneratorListener ?: new BaseCodeGeneratorListener();
+        $this->codeGeneratorListener = new CodeGeneratorEventDispatcher($codeGeneratorListeners);
         $this->namingStrategy = $namingStrategy ?: new DefaultNamingStrategy($this->annotationParser, $this->connection->getSchemaManager());
     }
 
