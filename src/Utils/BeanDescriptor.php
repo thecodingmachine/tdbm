@@ -540,8 +540,12 @@ EOF
         foreach ($this->getExposedProperties() as $property) {
             [$getter, $setter] = $property->getGetterSetterCode();
             [$getter, $setter] = $this->codeGeneratorListener->onBaseBeanPropertyGenerated($getter, $setter, $property, $this, $this->configuration, $class);
-            $class->addMethodFromGenerator($getter);
-            $class->addMethodFromGenerator($setter);
+            if ($getter !== null) {
+                $class->addMethodFromGenerator($getter);
+            }
+            if ($setter !== null) {
+                $class->addMethodFromGenerator($setter);
+            }
         }
 
         foreach ($this->getMethodDescriptors() as $methodDescriptor) {
