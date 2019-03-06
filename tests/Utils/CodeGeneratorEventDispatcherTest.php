@@ -33,7 +33,7 @@ class CodeGeneratorEventDispatcherTest extends TestCase
     {
         $this->dispatcher = new CodeGeneratorEventDispatcher([new BaseCodeGeneratorListener()]);
         $this->nullDispatcher = new CodeGeneratorEventDispatcher([new class implements CodeGeneratorListenerInterface {
-            public function onBaseBeanGenerated(?FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
+            public function onBaseBeanGenerated(FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
             {
                 return null;
             }
@@ -68,7 +68,7 @@ class CodeGeneratorEventDispatcherTest extends TestCase
                 return null;
             }
 
-            public function onBaseDaoGenerated(?FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
+            public function onBaseDaoGenerated(FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
             {
                 return null;
             }

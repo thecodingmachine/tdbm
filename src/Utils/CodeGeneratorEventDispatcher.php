@@ -25,7 +25,7 @@ class CodeGeneratorEventDispatcher implements CodeGeneratorListenerInterface
         $this->listeners = $listeners;
     }
 
-    public function onBaseBeanGenerated(?FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
+    public function onBaseBeanGenerated(FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
     {
         foreach ($this->listeners as $listener) {
             $fileGenerator = $listener->onBaseBeanGenerated($fileGenerator, $beanDescriptor, $configuration);
@@ -122,7 +122,7 @@ class CodeGeneratorEventDispatcher implements CodeGeneratorListenerInterface
         return $methodGenerator;
     }
 
-    public function onBaseDaoGenerated(?FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
+    public function onBaseDaoGenerated(FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
     {
         foreach ($this->listeners as $listener) {
             $fileGenerator = $listener->onBaseDaoGenerated($fileGenerator, $beanDescriptor, $configuration);
