@@ -585,6 +585,8 @@ EOF
             $class->addMethodFromGenerator($cloneCode);
         }
 
+        $file = $this->codeGeneratorListener->onBaseBeanGenerated($file, $this, $this->configuration);
+
         return $file;
     }
 
@@ -954,6 +956,8 @@ You should not put an alias on the main table name. So your \$from variable shou
         foreach ($findByDaoCodeMethods as $method) {
             $class->addMethodFromGenerator($method);
         }
+
+        $file = $this->codeGeneratorListener->onBaseDaoGenerated($file, $this, $this->configuration);
 
         return $file;
     }
