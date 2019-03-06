@@ -159,7 +159,9 @@ class TDBMDaoGenerator
     {
         $beannamespace = $this->configuration->getBeanNamespace();
         $file = $beanDescriptor->generatePhpCode();
-
+        if ($file === null) {
+            return;
+        }
 
         $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($beannamespace.'\\Generated\\'.$baseClassName)->getPathname();
 
@@ -215,7 +217,9 @@ class $className extends $baseClassName
     private function generateDao(BeanDescriptor $beanDescriptor, string $className, string $baseClassName, string $beanClassName, Table $table): void
     {
         $file = $beanDescriptor->generateDaoPhpCode();
-
+        if ($file === null) {
+            return;
+        }
         $daonamespace = $this->configuration->getDaoNamespace();
         $tableName = $table->getName();
 

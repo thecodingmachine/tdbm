@@ -479,9 +479,9 @@ return $array;
     /**
      * Returns the representation of the PHP bean file with all getters and setters.
      *
-     * @return FileGenerator
+     * @return ?FileGenerator
      */
-    public function generatePhpCode(): FileGenerator
+    public function generatePhpCode(): ?FileGenerator
     {
 
         $file = new FileGenerator();
@@ -593,9 +593,9 @@ EOF
     /**
      * Writes the representation of the PHP DAO file.
      *
-     * @return FileGenerator
+     * @return ?FileGenerator
      */
-    public function generateDaoPhpCode(): FileGenerator
+    public function generateDaoPhpCode(): ?FileGenerator
     {
         $file = new FileGenerator();
         $class = new ClassGenerator();
