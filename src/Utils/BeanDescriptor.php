@@ -580,11 +580,9 @@ EOF
             $class->addMethodFromGenerator($onDeleteCode);
         }
         $cloneCode = $this->generateCloneCode();
+        $cloneCode = $this->codeGeneratorListener->onBaseBeanCloneGenerated($cloneCode, $this, $this->configuration, $class);
         if ($cloneCode) {
-            $cloneCode = $this->codeGeneratorListener->onBaseBeanCloneGenerated($cloneCode, $this, $this->configuration, $class);
-            if ($cloneCode) {
-                $class->addMethodFromGenerator($cloneCode);
-            }
+            $class->addMethodFromGenerator($cloneCode);
         }
 
         return $file;
@@ -1224,7 +1222,7 @@ return $tables;', var_export($this->table->getName(), true));
         return $method;
     }
 
-    private function generateCloneCode(): ?MethodGenerator
+    private function generateCloneCode(): MethodGenerator
     {
         $code = '';
 

@@ -104,6 +104,9 @@ menu:
         internals:
             text: TDBM internals
             relativeUrl: doc/internals.html
+        code_generation:
+            text: Customizing code generation
+            relativeUrl: doc/customizing_code_generation.html
         faq:
             text: Frequently asked questions
             relativeUrl: doc/faq.html
