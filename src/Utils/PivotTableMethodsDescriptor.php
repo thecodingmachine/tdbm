@@ -195,4 +195,28 @@ Exiting relationships will be removed and replaced by the provided relationships
 }
 ';
     }
+
+    /**
+     * @return Table
+     */
+    public function getPivotTable(): Table
+    {
+        return $this->pivotTable;
+    }
+
+    /**
+     * @return ForeignKeyConstraint
+     */
+    public function getLocalFk(): ForeignKeyConstraint
+    {
+        return $this->localFk;
+    }
+
+    /**
+     * @return ForeignKeyConstraint
+     */
+    public function getRemoteFk(): ForeignKeyConstraint
+    {
+        return $this->remoteFk;
+    }
 }

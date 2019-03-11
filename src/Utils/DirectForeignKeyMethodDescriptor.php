@@ -147,4 +147,21 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
     {
         return '';
     }
+
+    /**
+     * @return ForeignKeyConstraint
+     */
+    public function getForeignKey(): ForeignKeyConstraint
+    {
+        return $this->fk;
+    }
+
+    /**
+     * Returns the table that is pointed to.
+     * @return Table
+     */
+    public function getMainTable(): Table
+    {
+        return $this->mainTable;
+    }
 }
