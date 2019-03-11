@@ -3,6 +3,8 @@
 namespace TheCodingMachine\TDBM\Utils;
 
 
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Schema\Table;
 use PHPUnit\Framework\TestCase;
 
 class PivotTableMethodsDescriptorTest extends TestCase
@@ -14,7 +16,7 @@ class PivotTableMethodsDescriptorTest extends TestCase
         $localFk = $this->createMock(ForeignKeyConstraint::class);
         $remoteFk = $this->createMock(ForeignKeyConstraint::class);
         $ns = $this->createMock(DefaultNamingStrategy::class);
-        $descriptor = new PivotTableMethodsDescriptor($table, $fk1, $fk2, $ns, 'Bean\Namespace');
+        $descriptor = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $ns, 'Bean\Namespace');
 
         $this->assertSame($table, $descriptor->getPivotTable());
         $this->assertSame($localFk, $descriptor->getLocalFk());
