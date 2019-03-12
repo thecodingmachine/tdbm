@@ -47,6 +47,20 @@ class AnnotationParserTest extends TestCase
         $this->assertInstanceOf(UUID::class, $annotation);
     }
 
+    public function testParseMultiAnnotations()
+    {
+        $parser = new AnnotationParser([
+            'UUID' => UUID::class,
+            'Autoincrement' => Autoincrement::class
+        ]);
+        $column = new Column('foo', Type::getType(Type::STRING), ['comment'=>"\n@UUID\n@Autoincrement"]);
+        $table = new Table('bar');
+        $annotations = $parser->getColumnAnnotations($column, $table);
+
+        $annotation = $annotations->findAnnotation(Autoincrement::class);
+        $this->assertInstanceOf(Autoincrement::class, $annotation);
+    }
+
     public function testException()
     {
         $parser = new AnnotationParser([
