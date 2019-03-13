@@ -291,7 +291,7 @@ class $baseClassName
      *
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
-    public function findAll() : iterable
+    public function findAll() : ResultIterator
     {
         if (\$this->defaultSort) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
@@ -348,7 +348,7 @@ class $baseClassName
      * @param int|null \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
-    protected function find(\$filter = null, array \$parameters = [], \$orderBy=null, array \$additionalTablesFetch = [], ?int \$mode = null) : iterable
+    protected function find(\$filter = null, array \$parameters = [], \$orderBy=null, array \$additionalTablesFetch = [], ?int \$mode = null) : ResultIterator
     {
         if (\$this->defaultSort && \$orderBy == null) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
@@ -371,7 +371,7 @@ class $baseClassName
      * @param int|null \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
-    protected function findFromSql(string \$from, \$filter = null, array \$parameters = [], \$orderBy = null, ?int \$mode = null) : iterable
+    protected function findFromSql(string \$from, \$filter = null, array \$parameters = [], \$orderBy = null, ?int \$mode = null) : ResultIterator
     {
         if (\$this->defaultSort && \$orderBy == null) {
             \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
@@ -393,7 +393,7 @@ class $baseClassName
      * @param int|null \$mode Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.
      * @return {$beanClassWithoutNameSpace}[]|ResultIterator
      */
-    protected function findFromRawSql(string \$sql, array \$parameters = [], ?string \$countSql = null, ?int \$mode = null) : iterable
+    protected function findFromRawSql(string \$sql, array \$parameters = [], ?string \$countSql = null, ?int \$mode = null) : ResultIterator
     {
         return \$this->tdbmService->findObjectsFromRawSql('$tableName', \$sql, \$parameters, \$mode, null, \$countSql);
     }
