@@ -698,7 +698,7 @@ EOF;
                     new ReturnTag([ '\\'.$beanClassName.'[]', '\\'.ResultIterator::class ])
                 ]))->setWordWrap(false)
         );
-        $findAllMethod->setReturnType('iterable');
+        $findAllMethod->setReturnType('\\'.ResultIterator::class);
         $findAllMethod = $this->codeGeneratorListener->onBaseDaoFindAllGenerated($findAllMethod, $this, $this->configuration, $class);
         if ($findAllMethod !== null) {
             $class->addMethodFromGenerator($findAllMethod);
@@ -791,7 +791,7 @@ EOF;
                     new ReturnTag(['\\' . $beanClassName . '[]', '\\'.ResultIterator::class])
                 ]))->setWordWrap(false)
         );
-        $findMethod->setReturnType('iterable');
+        $findMethod->setReturnType('\\'.ResultIterator::class);
         $findMethod = $this->codeGeneratorListener->onBaseDaoFindGenerated($findMethod, $this, $this->configuration, $class);
         if ($findMethod !== null) {
             $class->addMethodFromGenerator($findMethod);
@@ -832,7 +832,7 @@ You should not put an alias on the main table name. So your \$from variable shou
                     new ReturnTag(['\\'.$beanClassName . '[]', '\\'.ResultIterator::class])
                 ]))->setWordWrap(false)
         );
-        $findFromSqlMethod->setReturnType('iterable');
+        $findFromSqlMethod->setReturnType('\\'.ResultIterator::class);
         $findFromSqlMethod = $this->codeGeneratorListener->onBaseDaoFindFromSqlGenerated($findFromSqlMethod, $this, $this->configuration, $class);
         if ($findFromSqlMethod !== null) {
             $class->addMethodFromGenerator($findFromSqlMethod);
@@ -866,7 +866,7 @@ You should not put an alias on the main table name, and select its columns using
                     new ReturnTag(['\\'.$beanClassName . '[]', '\\'.ResultIterator::class])
                 ]))->setWordWrap(false)
         );
-        $findFromRawSqlMethod->setReturnType('iterable');
+        $findFromRawSqlMethod->setReturnType('\\'.ResultIterator::class);
         $findFromRawSqlMethod = $this->codeGeneratorListener->onBaseDaoFindFromRawSqlGenerated($findFromRawSqlMethod, $this, $this->configuration, $class);
         if ($findFromRawSqlMethod !== null) {
             $class->addMethodFromGenerator($findFromRawSqlMethod);
@@ -1159,7 +1159,7 @@ return \$this->findOne(\$filter, [], \$additionalTablesFetch);
             $parameters[] = (new ParameterGenerator('mode', '?int'))->setDefaultValue(null);
             $params[] = new ParamTag('mode', [ 'int', 'null' ], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.');
             $params[] = new ReturnTag([ '\\'.$beanNamespace.'\\'.$beanClassName.'[]', '\\'.ResultIterator::class ]);
-            $method->setReturnType('iterable');
+            $method->setReturnType('\\'.ResultIterator::class);
 
             $docBlock = new DocBlockGenerator("Get a list of $beanClassName filtered by ".implode(', ', $commentArguments).".", null, $params);
             $docBlock->setWordWrap(false);
