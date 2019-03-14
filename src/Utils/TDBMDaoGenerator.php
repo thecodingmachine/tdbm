@@ -151,6 +151,22 @@ class TDBMDaoGenerator
     public function generateBean(BeanDescriptor $beanDescriptor, string $className, string $baseClassName, Table $table): void
     {
         $beannamespace = $this->configuration->getBeanNamespace();
+        $file = $beanDescriptor->generatePhpCode();
+        if ($file === null) {
+            return;
+        }
+
+        $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($beannamespace.'\\Generated\\'.$baseClassName)->getPathname();
+
+        $fileContent = $file->generate();
+
+        // Hard code PSR-2 fix
+        $fileContent = str_replace("\n\n}\n", '}', $fileContent);
+        // Add the declare strict-types directive
+        $commentEnd = strpos($fileContent, ' */') + 3;
+        $fileContent = substr($fileContent, 0, $commentEnd) . "\n\ndeclare(strict_types=1);" . substr($fileContent, $commentEnd + 1);
+
+        $this->dumpFile($possibleBaseFileName, $fileContent);
 
         $possibleFileName = $this->configuration->getPathFinder()->getPath($beannamespace.'\\'.$className)->getPathname();
 
@@ -178,23 +194,6 @@ class $className extends $baseClassName
 
             $this->dumpFile($possibleFileName, $str);
         }
-
-        $file = $beanDescriptor->generatePhpCode();
-        if ($file === null) {
-            return;
-        }
-
-        $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($beannamespace.'\\Generated\\'.$baseClassName)->getPathname();
-
-        $fileContent = $file->generate();
-
-        // Hard code PSR-2 fix
-        $fileContent = str_replace("\n\n}\n", '}', $fileContent);
-        // Add the declare strict-types directive
-        $commentEnd = strpos($fileContent, ' */') + 3;
-        $fileContent = substr($fileContent, 0, $commentEnd) . "\n\ndeclare(strict_types=1);" . substr($fileContent, $commentEnd + 1);
-
-        $this->dumpFile($possibleBaseFileName, $fileContent);
     }
 
     /**
@@ -210,10 +209,27 @@ class $className extends $baseClassName
      */
     private function generateDao(BeanDescriptor $beanDescriptor, string $className, string $baseClassName, string $beanClassName, Table $table): void
     {
+        $file = $beanDescriptor->generateDaoPhpCode();
+        if ($file === null) {
+            return;
+        }
         $daonamespace = $this->configuration->getDaoNamespace();
         $tableName = $table->getName();
 
         $beanClassWithoutNameSpace = $beanClassName;
+
+        $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($daonamespace.'\\Generated\\'.$baseClassName)->getPathname();
+
+        $fileContent = $file->generate();
+
+        // Hard code PSR-2 fix
+        $fileContent = str_replace("\n\n}\n", '}', $fileContent);
+        // Add the declare strict-types directive
+        $commentEnd = strpos($fileContent, ' */') + 3;
+        $fileContent = substr($fileContent, 0, $commentEnd) . "\n\ndeclare(strict_types=1);" . substr($fileContent, $commentEnd + 1);
+
+        $this->dumpFile($possibleBaseFileName, $fileContent);
+
 
         $possibleFileName = $this->configuration->getPathFinder()->getPath($daonamespace.'\\'.$className)->getPathname();
 
@@ -240,23 +256,6 @@ class $className extends $baseClassName
 ";
             $this->dumpFile($possibleFileName, $str);
         }
-
-        $file = $beanDescriptor->generateDaoPhpCode();
-        if ($file === null) {
-            return;
-        }
-
-        $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($daonamespace.'\\Generated\\'.$baseClassName)->getPathname();
-
-        $fileContent = $file->generate();
-
-        // Hard code PSR-2 fix
-        $fileContent = str_replace("\n\n}\n", '}', $fileContent);
-        // Add the declare strict-types directive
-        $commentEnd = strpos($fileContent, ' */') + 3;
-        $fileContent = substr($fileContent, 0, $commentEnd) . "\n\ndeclare(strict_types=1);" . substr($fileContent, $commentEnd + 1);
-
-        $this->dumpFile($possibleBaseFileName, $fileContent);
     }
 
     /**
