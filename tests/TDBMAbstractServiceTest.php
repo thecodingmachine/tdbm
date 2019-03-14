@@ -509,11 +509,13 @@ abstract class TDBMAbstractServiceTest extends \PHPUnit_Framework_TestCase
 
         self::insert($connection, 'contracts', [
             'contact_id' => 1,
-            'country_id' => null
+            'country_id' => null,
+            'signature_date' => '2018-03-12 11:57:13'
         ]);
         self::insert($connection, 'contracts', [
             'contact_id' => 1,
-            'country_id' => 1
+            'country_id' => 1,
+            'signature_date' => '2018-03-12 11:57:13'
         ]);
     }
 
