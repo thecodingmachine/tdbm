@@ -8,6 +8,10 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\TDBMException;
+use Zend\Code\Generator\DocBlock\Tag\ParamTag;
+use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
+use Zend\Code\Generator\MethodGenerator;
+use Zend\Code\Generator\ParameterGenerator;
 
 /**
  * This class represent a property in a bean that points to another table.
@@ -18,24 +22,22 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @var ForeignKeyConstraint
      */
     private $foreignKey;
-
     /**
-     * @var SchemaAnalyzer
+     * @var string
      */
-    private $schemaAnalyzer;
+    private $beanNamespace;
 
     /**
      * ObjectBeanPropertyDescriptor constructor.
      * @param Table $table
      * @param ForeignKeyConstraint $foreignKey
-     * @param SchemaAnalyzer $schemaAnalyzer
      * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, SchemaAnalyzer $schemaAnalyzer, NamingStrategyInterface $namingStrategy)
+    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, NamingStrategyInterface $namingStrategy, string $beanNamespace)
     {
         parent::__construct($table, $namingStrategy);
         $this->foreignKey = $foreignKey;
-        $this->schemaAnalyzer = $schemaAnalyzer;
+        $this->beanNamespace = $beanNamespace;
     }
 
     /**
@@ -65,20 +67,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getPhpType(): string
     {
-        return $this->getClassName();
-    }
-
-
-    /**
-     * Returns the param annotation for this property (useful for constructor).
-     *
-     * @return string
-     */
-    public function getParamAnnotation(): string
-    {
-        $str = '     * @param %s %s';
-
-        return sprintf($str, $this->getClassName(), $this->getVariableName());
+        return '\\'.$this->beanNamespace.'\\'.$this->getClassName();
     }
 
     /**
@@ -142,9 +131,9 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     /**
      * Returns the PHP code for getters and setters.
      *
-     * @return string
+     * @return MethodGenerator[]
      */
-    public function getGetterSetterCode(): string
+    public function getGetterSetterCode(): array
     {
         $tableName = $this->table->getName();
         $getterName = $this->getGetterName();
@@ -153,29 +142,29 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
         $referencedBeanName = $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
 
-        $str = '    /**
-     * Returns the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getUnquotedLocalColumns()).' column.
-     *
-     * @return '.$referencedBeanName.($isNullable?'|null':'').'
-     */
-    public function '.$getterName.'(): '.($isNullable?'?':'').$referencedBeanName.'
-    {
-        return $this->getRef('.var_export($this->foreignKey->getName(), true).', '.var_export($tableName, true).');
-    }
+        $getter = new MethodGenerator($getterName);
+        $getter->setDocBlock('Returns the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getUnquotedLocalColumns()).' column.');
 
-    /**
-     * The setter for the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getUnquotedLocalColumns()).' column.
-     *
-     * @param '.$referencedBeanName.($isNullable?'|null':'').' $object
-     */
-    public function '.$setterName.'('.($isNullable?'?':'').$referencedBeanName.' $object) : void
-    {
-        $this->setRef('.var_export($this->foreignKey->getName(), true).', $object, '.var_export($tableName, true).');
-    }
+        /*$types = [ $referencedBeanName ];
+        if ($isNullable) {
+            $types[] = 'null';
+        }
+        $getter->getDocBlock()->setTag(new ReturnTag($types));*/
 
-';
+        $getter->setReturnType(($isNullable?'?':'').$this->beanNamespace.'\\'.$referencedBeanName);
 
-        return $str;
+        $getter->setBody('return $this->getRef('.var_export($this->foreignKey->getName(), true).', '.var_export($tableName, true).');');
+
+        $setter = new MethodGenerator($setterName);
+        $setter->setDocBlock('The setter for the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getUnquotedLocalColumns()).' column.');
+
+        $setter->setParameter(new ParameterGenerator('object', ($isNullable?'?':'').$this->beanNamespace.'\\'.$referencedBeanName));
+
+        $setter->setReturnType('void');
+
+        $setter->setBody('$this->setRef('.var_export($this->foreignKey->getName(), true).', $object, '.var_export($tableName, true).');');
+
+        return [$getter, $setter];
     }
 
     /**
@@ -186,15 +175,15 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     public function getJsonSerializeCode(): string
     {
         if (!$this->isCompulsory()) {
-            return '        if (!$stopRecursion) {
-            $object = $this->'.$this->getGetterName().'();
-            $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $object ? $object->jsonSerialize(true) : null;
-        }
+            return 'if (!$stopRecursion) {
+    $object = $this->'.$this->getGetterName().'();
+    $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $object ? $object->jsonSerialize(true) : null;
+}
 ';
         } else {
-            return '        if (!$stopRecursion) {
-            $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName().'()->jsonSerialize(true);
-        }
+            return 'if (!$stopRecursion) {
+    $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName().'()->jsonSerialize(true);
+}
 ';
         }
     }

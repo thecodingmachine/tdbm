@@ -6,7 +6,10 @@ namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
+use TheCodingMachine\TDBM\AlterableResultIterator;
 use TheCodingMachine\TDBM\TDBMException;
+use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
+use Zend\Code\Generator\MethodGenerator;
 
 /**
  * Represents a method to get a list of beans from a direct foreign key pointing to our bean.
@@ -81,38 +84,31 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
     /**
      * Returns the code of the method.
      *
-     * @return string
+     * @return MethodGenerator[]
      */
-    public function getCode() : string
+    public function getCode() : array
     {
-        $code = '';
-
-        $getterCode = '    /**
-     * Returns the list of %s pointing to this bean via the %s column.
-     *
-     * @return %s[]|AlterableResultIterator
-     */
-    public function %s() : AlterableResultIterator
-    {
-        return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s, %s);
-    }
-
-';
-
         $beanClass = $this->getBeanClassName();
-        $code .= sprintf(
-            $getterCode,
-            $beanClass,
-            implode(', ', $this->fk->getUnquotedLocalColumns()),
-            $beanClass,
-            $this->getName(),
+
+        $getter = new MethodGenerator($this->getName());
+        $getter->setDocBlock(sprintf('Returns the list of %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->fk->getUnquotedLocalColumns())));
+        $getter->getDocBlock()->setTag(new ReturnTag([
+            $beanClass.'[]',
+            '\\'.AlterableResultIterator::class
+        ]));
+        $getter->setReturnType(AlterableResultIterator::class);
+
+        $code = sprintf(
+            'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s, %s);',
             var_export($this->fk->getLocalTableName(), true),
             var_export($this->fk->getName(), true),
             var_export($this->fk->getLocalTableName(), true),
             $this->getFilters($this->fk)
         );
 
-        return $code;
+        $getter->setBody($code);
+
+        return [ $getter ];
     }
 
     private function getFilters(ForeignKeyConstraint $fk) : string
@@ -150,5 +146,22 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
     public function getJsonSerializeCode() : string
     {
         return '';
+    }
+
+    /**
+     * @return ForeignKeyConstraint
+     */
+    public function getForeignKey(): ForeignKeyConstraint
+    {
+        return $this->fk;
+    }
+
+    /**
+     * Returns the table that is pointed to.
+     * @return Table
+     */
+    public function getMainTable(): Table
+    {
+        return $this->mainTable;
     }
 }
