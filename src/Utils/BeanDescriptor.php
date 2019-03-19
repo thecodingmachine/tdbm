@@ -725,6 +725,7 @@ EOF;
                         new ThrowsTag('\\'.TDBMException::class)
                     ]))->setWordWrap(false)
             );
+            $getByIdMethod->setReturnType($beanClassName);
             $getByIdMethod = $this->codeGeneratorListener->onBaseDaoGetByIdGenerated($getByIdMethod, $this, $this->configuration, $class);
             if ($getByIdMethod) {
                 $class->addMethodFromGenerator($getByIdMethod);
