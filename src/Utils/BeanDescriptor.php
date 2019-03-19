@@ -721,10 +721,11 @@ EOF;
                     [
                         new ParamTag('id', [$primaryKeyPhpType]),
                         new ParamTag('lazyLoading', ['bool'], 'If set to true, the object will not be loaded right away. Instead, it will be loaded when you first try to access a method of the object.'),
-                        new ReturnTag(['\\'.$beanClassName . '[]', '\\'.ResultIterator::class]),
+                        new ReturnTag(['\\'.$beanClassName]),
                         new ThrowsTag('\\'.TDBMException::class)
                     ]))->setWordWrap(false)
             );
+            $getByIdMethod->setReturnType($beanClassName);
             $getByIdMethod = $this->codeGeneratorListener->onBaseDaoGetByIdGenerated($getByIdMethod, $this, $this->configuration, $class);
             if ($getByIdMethod) {
                 $class->addMethodFromGenerator($getByIdMethod);
