@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace TheCodingMachine\TDBM;
 
+use function class_exists;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\ClearableCache;
 use Doctrine\Common\Cache\VoidCache;
@@ -46,7 +47,7 @@ use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
-use function var_export;
+use WeakReference;
 
 /**
  * The TDBMService class is the main TDBM class. It provides methods to retrieve TDBMObject instances
@@ -179,7 +180,9 @@ class TDBMService
      */
     public function __construct(ConfigurationInterface $configuration)
     {
-        if (extension_loaded('weakref')) {
+        if (class_exists(WeakReference::class)) {
+            $this->objectStorage = new NativeWeakrefObjectStorage();
+        } elseif (extension_loaded('weakref')) {
             $this->objectStorage = new WeakrefObjectStorage();
         } else {
             $this->objectStorage = new StandardObjectStorage();
