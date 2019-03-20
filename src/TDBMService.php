@@ -102,7 +102,7 @@ class TDBMService
      * Access is done by table name and then by primary key.
      * If the primary key is split on several columns, access is done by an array of columns, serialized.
      *
-     * @var StandardObjectStorage|WeakrefObjectStorage
+     * @var ObjectStorageInterface
      */
     private $objectStorage;
 
