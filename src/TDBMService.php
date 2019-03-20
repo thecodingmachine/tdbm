@@ -1253,7 +1253,20 @@ class TDBMService
         $count = count($pageArr);
 
         if ($count > 1) {
-            throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
+	    $additionalErrorInfos = '';
+            if ($filter && !empty($parameters)) {
+                $additionalErrorInfos = ' for ' . $filter;
+                foreach ($parameters as $fieldname => $parameter) {
+                    if (is_array($parameter)) {
+                        $value = '(' . implode(',', $parameter) . ')';
+                    } else {
+                        $value = $parameter;
+                    }
+                    $additionalErrorInfos = str_replace(':' . $fieldname, $value, $additionalErrorInfos);
+                }
+            }
+            $additionalErrorInfos .= '.';
+            throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one" . $additionalErrorInfos);
         } elseif ($count === 0) {
             return null;
         }
@@ -1280,7 +1293,20 @@ class TDBMService
         $page = $objects->take(0, 2);
         $count = $page->count();
         if ($count > 1) {
-            throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
+	    $additionalErrorInfos = '';
+            if ($filter && !empty($parameters)) {
+                $additionalErrorInfos = ' for ' . $filter;
+                foreach ($parameters as $fieldname => $parameter) {
+                    if (is_array($parameter)) {
+                        $value = '(' . implode(',', $parameter) . ')';
+                    } else {
+                        $value = $parameter;
+                    }
+                    $additionalErrorInfos = str_replace(':' . $fieldname, $value, $additionalErrorInfos);
+                }
+            }
+            $additionalErrorInfos .= '.';
+            throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one" . $additionalErrorInfos);
         } elseif ($count === 0) {
             return null;
         }
