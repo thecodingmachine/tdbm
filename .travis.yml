@@ -58,6 +58,10 @@ matrix:
       services:
         - postgresql
   allow_failures:
+    - php: 7.3 # 7.3 allowed to fail due to an issue with greenlion/PHP-SQL-Parser: https://github.com/greenlion/PHP-SQL-Parser/pull/304
+      env: PREFER_LOWEST="" DB=mysql NO_WEAKREF=1
+    - php: 7.4
+      env: PREFER_LOWEST="" DB=mysql NO_WEAKREF=1
     - php: 7.1
       env: PREFER_LOWEST="" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
     - php: 7.1
