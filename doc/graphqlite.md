@@ -147,19 +147,23 @@ You can check the getters in the generated beans, they should be annotated with 
 
 ## Additional annotations supported
 
+TDBM-GraphQL supports additional annotations to manage the fields' visibility:
 
-
-TODO
-TODO
-TODO
-TODO
-
-When installation is done, you need to generate DAOs and beans from your data model.
-
-Run the following command:
-
-```bash
-bin/console tdbm:generate
+```sql
+ALTER TABLE users MODIFY COLUMN `name` VARCHAR(255) NOT NULL COMMENT '
+  @TheCodingMachine\\GraphQLite\\Annotations\\Field
+  @TheCodingMachine\\GraphQLite\\Annotations\\Logged
+  @TheCodingMachine\\GraphQLite\\Annotations\\Right("CAN_SEE_NAME")
+  @TheCodingMachine\\GraphQLite\\Annotations\\FailWith(null)
+';
 ```
 
+You can find more about [these security annotations in the GraphQLite documentation](https://graphqlite.thecodingmachine.io/docs/authentication_authorization).
 
+You can also create these annotations using the TDBM Fluid Schema Builder.
+
+```php
+$db->table('users')
+   ->column('name')->string(50)->graphqlField()
+   ->logged()->right('CAN_SEE_NAME')->failWith(null);
+```
