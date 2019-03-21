@@ -45,6 +45,7 @@ use Phlib\Logger\Decorator\LevelFilter;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
+use function var_export;
 
 /**
  * The TDBMService class is the main TDBM class. It provides methods to retrieve TDBMObject instances
@@ -1244,6 +1245,15 @@ class TDBMService
     public function findObject(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null) : ?AbstractTDBMObject
     {
         $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
+        return $this->getAtMostOneObjectOrFail($objects, $mainTable, $filter, $parameters);
+    }
+
+    /**
+     * @param string|array|null $filter
+     * @param mixed[]           $parameters
+     */
+    private function getAtMostOneObjectOrFail(ResultIterator $objects, string $mainTable, $filter, array $parameters): ?AbstractTDBMObject
+    {
         $page = $objects->take(0, 2);
 
 
@@ -1253,7 +1263,20 @@ class TDBMService
         $count = count($pageArr);
 
         if ($count > 1) {
-            throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
+            $additionalErrorInfos = '';
+            if (is_string($filter) && !empty($parameters)) {
+                $additionalErrorInfos = ' for filter "' . $filter.'"';
+                foreach ($parameters as $fieldName => $parameter) {
+                    if (is_array($parameter)) {
+                        $value = '(' . implode(',', $parameter) . ')';
+                    } else {
+                        $value = $parameter;
+                    }
+                    $additionalErrorInfos = str_replace(':' . $fieldName, var_export($value, true), $additionalErrorInfos);
+                }
+            }
+            $additionalErrorInfos .= '.';
+            throw new DuplicateRowException("Error while querying an object in table '$mainTable': More than 1 row have been returned, but we should have received at most one" . $additionalErrorInfos);
         } elseif ($count === 0) {
             return null;
         }
@@ -1277,15 +1300,7 @@ class TDBMService
     public function findObjectFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), ?string $className = null) : ?AbstractTDBMObject
     {
         $objects = $this->findObjectsFromSql($mainTable, $from, $filter, $parameters, null, self::MODE_ARRAY, $className);
-        $page = $objects->take(0, 2);
-        $count = $page->count();
-        if ($count > 1) {
-            throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
-        } elseif ($count === 0) {
-            return null;
-        }
-
-        return $page[0];
+        return $this->getAtMostOneObjectOrFail($objects, $mainTable, $filter, $parameters);
     }
 
     /**
