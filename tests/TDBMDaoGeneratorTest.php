@@ -26,6 +26,7 @@ use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
+use ReflectionMethod;
 use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
@@ -43,6 +44,7 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\DogBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\FileBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\BoatBaseBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\FileBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RefNoPrimKeyBean;
@@ -1705,6 +1707,32 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $firstLine = fgets($resource);
         $this->assertSame("<?php\n", $firstLine);
+    }
+
+    /**
+     * @depends testReadBlob
+     */
+    public function testProtectedGetterSetter()
+    {
+        $md5Getter = new ReflectionMethod(FileBaseBean::class, 'getMd5');
+        $md5Setter = new ReflectionMethod(FileBaseBean::class, 'setMd5');
+
+        $this->assertTrue($md5Getter->isProtected());
+        $this->assertTrue($md5Setter->isProtected());
+
+        $md5Getter2 = new ReflectionMethod(FileBaseBean::class, 'getArticle');
+        $md5Setter2 = new ReflectionMethod(FileBaseBean::class, 'setArticle');
+
+        $this->assertTrue($md5Getter2->isProtected());
+        $this->assertTrue($md5Setter2->isProtected());
+
+        $fileDao = new FileDao($this->tdbmService);
+        $loadedFile = $fileDao->getById(1);
+
+        // The md5 and article columns are not JSON serialized
+        $this->assertSame([
+            'id' => 1,
+        ], $loadedFile->jsonSerialize());
     }
 
     /**

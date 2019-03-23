@@ -109,3 +109,63 @@ The name of the DAO will also be changed from `MemberDao` to `UserDao`.
 <div class="alert alert-info">Note: the @Bean annotation is read by the <a href="configuring_naming.md">default naming strategy</a> provided by TDBM.
 If you use your own naming strategy, the @Bean annotation will be ignored unless you explicitly code it back in your
 naming strategy.</div>
+
+
+The @ProtectedGetter and @ProtectedSetter annotations
+-----------------------------------------------------
+<small>(Available in TDBM 5.1+)</small>
+
+These annotations can be put on a column comment to alter the visibility of the generated getter.
+
+```sql
+CREATE TABLE `users` (
+  `id` INTEGER NOT NULL,
+  `login` varchar(255),
+  `password` varchar(255) COMMENT '@ProtectedGetter',
+  `status` INTEGER COMMENT '@ProtectedSetter',
+  PRIMARY KEY (`id`)
+);
+```
+
+In the example above, the `getPassword` method and the `setStatus` method will be protected.
+
+Use the `@ProtectedGetter` and `@ProtectedSetter` if you want to avoid an "anemic" data model.
+
+The getters and the setters are only available from the class itself and you can instead add methods more
+"domain-oriented".
+
+For instance:
+
+```php
+class User extends AbstractUser
+{
+    public function enableUser(): void {
+        $this->setStatus(1);
+    }
+    
+    public function disableUser(): void {
+        $this->setStatus(0);
+    }
+    
+    public function setPassword(string $password): void {
+        parent::setPassword(password_hash($password, PASSWORD_DEFAULT));
+    }
+    
+    public function verifyPassword(string $password): bool {
+        return password_verify($password, $this->getPassword());
+    }
+    
+}
+```
+
+Hiding the getter and setter makes your bean more reliable and easier to use.
+
+By hiding `setStatus` and replacing it with `enableUser/disableUser`, you make sue
+that the developer using the User bean cannot set an invalid status.
+
+Making the `getPassword` method protected, you cannot even get the hashed password from the bean, only verify it.
+
+Notice: a complete implementation should also check if a password needs rehashing but this is going beyond the scope of this simple example.
+
+<div class="alert alert-info">When you use the `@ProtectedGetter` annotation, TDBM will assume the column
+access is sensitive and will therefore prevent the column from being JSON serialized.</div>

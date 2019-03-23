@@ -258,7 +258,7 @@ class BeanDescriptor implements BeanDescriptorInterface
                     continue;
                 }
 
-                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace);
+                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
             } else {
                 $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column, $this->namingStrategy, $this->annotationParser);
             }
@@ -1053,7 +1053,7 @@ You should not put an alias on the main table name. So your \$from variable shou
             $fk = $this->isPartOfForeignKey($this->table, $this->table->getColumn($column));
             if ($fk !== null) {
                 if (!in_array($fk, $elements)) {
-                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->namingStrategy, $this->beanNamespace);
+                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
                 }
             } else {
                 $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column), $this->namingStrategy, $this->annotationParser);

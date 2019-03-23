@@ -11,6 +11,7 @@ use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
 use \TheCodingMachine\TDBM\Utils\Annotation;
+use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\MethodGenerator;
@@ -239,7 +240,9 @@ EOF;
             var_export($this->column->getName(), true),
             var_export($this->table->getName(), true)));
 
-
+        if ($this->isGetterProtected()) {
+            $getter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+        }
 
         $setter = new MethodGenerator($columnSetterName);
         $setter->setDocBlock(sprintf('The setter for the "%s" column.', $this->column->getName()));
@@ -261,6 +264,9 @@ $this->set(%s, $%s, %s);',
             $this->column->getName(),
             var_export($this->table->getName(), true)));
 
+        if ($this->isSetterProtected()) {
+            $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+        }
 
         return [$getter, $setter];
     }
@@ -275,6 +281,11 @@ $this->set(%s, $%s, %s);',
         $normalizedType = $this->getPhpType();
 
         if (!$this->canBeSerialized()) {
+            return '';
+        }
+
+        // Do not export the property is the getter is protected.
+        if ($this->isGetterProtected()) {
             return '';
         }
 
@@ -342,5 +353,19 @@ $this->set(%s, $%s, %s);',
         ];
 
         return \in_array($type, $invalidScalarTypes, true) === false;
+    }
+
+    private function isGetterProtected(): bool
+    {
+        /** @var Annotation\ProtectedGetter $annotation */
+        $annotation = $this->getAnnotations()->findAnnotation(Annotation\ProtectedGetter::class);
+        return $annotation !== null;
+    }
+
+    private function isSetterProtected(): bool
+    {
+        /** @var Annotation\ProtectedSetter $annotation */
+        $annotation = $this->getAnnotations()->findAnnotation(Annotation\ProtectedSetter::class);
+        return $annotation !== null;
     }
 }

@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use function array_map;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\TDBMException;
-use Zend\Code\Generator\DocBlock\Tag\ParamTag;
-use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
+use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
 
@@ -28,16 +29,30 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     private $beanNamespace;
 
     /**
+     * @var Annotations[]
+     */
+    private $annotations;
+    /**
+     * @var Column[]
+     */
+    private $localColumns;
+    /**
+     * @var AnnotationParser
+     */
+    private $annotationParser;
+
+    /**
      * ObjectBeanPropertyDescriptor constructor.
      * @param Table $table
      * @param ForeignKeyConstraint $foreignKey
      * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, NamingStrategyInterface $namingStrategy, string $beanNamespace)
+    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, NamingStrategyInterface $namingStrategy, string $beanNamespace, AnnotationParser $annotationParser)
     {
         parent::__construct($table, $namingStrategy);
         $this->foreignKey = $foreignKey;
         $this->beanNamespace = $beanNamespace;
+        $this->annotationParser = $annotationParser;
     }
 
     /**
@@ -78,16 +93,26 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     public function isCompulsory(): bool
     {
         // Are all columns nullable?
-        $localColumnNames = $this->foreignKey->getUnquotedLocalColumns();
-
-        foreach ($localColumnNames as $name) {
-            $column = $this->table->getColumn($name);
+        foreach ($this->getLocalColumns() as $column) {
             if ($column->getNotnull()) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * @return Column[]
+     */
+    private function getLocalColumns(): array
+    {
+        if ($this->localColumns === null) {
+            $localColumnNames = $this->foreignKey->getUnquotedLocalColumns();
+
+            $this->localColumns = array_map([$this->table, 'getColumn'], $localColumnNames);
+        }
+        return $this->localColumns;
     }
 
     /**
@@ -155,6 +180,10 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
         $getter->setBody('return $this->getRef('.var_export($this->foreignKey->getName(), true).', '.var_export($tableName, true).');');
 
+        if ($this->isGetterProtected()) {
+            $getter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+        }
+
         $setter = new MethodGenerator($setterName);
         $setter->setDocBlock('The setter for the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getUnquotedLocalColumns()).' column.');
 
@@ -163,6 +192,10 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $setter->setReturnType('void');
 
         $setter->setBody('$this->setRef('.var_export($this->foreignKey->getName(), true).', $object, '.var_export($tableName, true).');');
+
+        if ($this->isSetterProtected()) {
+            $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+        }
 
         return [$getter, $setter];
     }
@@ -174,6 +207,10 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getJsonSerializeCode(): string
     {
+        if ($this->isGetterProtected()) {
+            return '';
+        }
+
         if (!$this->isCompulsory()) {
             return 'if (!$stopRecursion) {
     $object = $this->'.$this->getGetterName().'();
@@ -205,5 +242,41 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     public function isTypeHintable() : bool
     {
         return true;
+    }
+
+    private function isGetterProtected(): bool
+    {
+        foreach ($this->getAnnotations() as $annotations) {
+            if ($annotations->findAnnotation(Annotation\ProtectedGetter::class)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function isSetterProtected(): bool
+    {
+        foreach ($this->getAnnotations() as $annotations) {
+            if ($annotations->findAnnotation(Annotation\ProtectedSetter::class)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return Annotations[]
+     */
+    private function getAnnotations(): array
+    {
+        if ($this->annotations === null) {
+            $this->annotations = [];
+
+            // Are all columns nullable?
+            foreach ($this->getLocalColumns() as $column) {
+                $this->annotations[] = $this->annotationParser->getColumnAnnotations($column, $this->table);
+            }
+        }
+        return $this->annotations;
     }
 }
