@@ -43,6 +43,7 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\CategoryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\DogBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\FileBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\ArticleBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\BoatBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\FileBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
@@ -1725,6 +1726,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->assertTrue($md5Getter2->isProtected());
         $this->assertTrue($md5Setter2->isProtected());
+
+        $oneToManyGetter = new ReflectionMethod(ArticleBaseBean::class, 'getFiles');
+        $this->assertTrue($oneToManyGetter->isProtected());
 
         $fileDao = new FileDao($this->tdbmService);
         $loadedFile = $fileDao->getById(1);

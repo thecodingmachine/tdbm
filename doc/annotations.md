@@ -169,3 +169,12 @@ Notice: a complete implementation should also check if a password needs rehashin
 
 <div class="alert alert-info">When you use the `@ProtectedGetter` annotation, TDBM will assume the column
 access is sensitive and will therefore prevent the column from being JSON serialized.</div>
+
+The @ProtectedOneToMany annotation
+----------------------------------
+<small>(Available in TDBM 5.1+)</small>
+
+This annotation can be put on a column comment to alter the visibility of the "inverse" relationship.
+
+For instance, if you put the `@ProtectedOneToMany` on the "country_id" column of a "users" table,
+then in the `Country` bean, the `getUsers()` method will be protected.

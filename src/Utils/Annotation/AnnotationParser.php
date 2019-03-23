@@ -42,6 +42,7 @@ class AnnotationParser
             'Bean' => Bean::class,
             'ProtectedGetter' => ProtectedGetter::class,
             'ProtectedSetter' => ProtectedSetter::class,
+            'ProtectedOneToMany' => ProtectedOneToMany::class,
         ];
         $annotations = $defaultAnnotations + $additionalAnnotations;
         return new self($annotations);

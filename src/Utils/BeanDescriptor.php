@@ -348,7 +348,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         $descriptors = [];
 
         foreach ($fks as $fk) {
-            $descriptors[] = new DirectForeignKeyMethodDescriptor($fk, $this->table, $this->namingStrategy);
+            $descriptors[] = new DirectForeignKeyMethodDescriptor($fk, $this->table, $this->namingStrategy, $this->annotationParser);
         }
 
         return $descriptors;
