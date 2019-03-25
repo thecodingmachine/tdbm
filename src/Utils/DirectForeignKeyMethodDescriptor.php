@@ -8,6 +8,8 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
 use TheCodingMachine\TDBM\AlterableResultIterator;
 use TheCodingMachine\TDBM\TDBMException;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\MethodGenerator;
 
@@ -16,10 +18,12 @@ use Zend\Code\Generator\MethodGenerator;
  */
 class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
 {
+    use ForeignKeyAnalyzerTrait;
+
     /**
      * @var ForeignKeyConstraint
      */
-    private $fk;
+    private $foreignKey;
 
     private $useAlternateName = false;
     /**
@@ -30,17 +34,22 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      * @var NamingStrategyInterface
      */
     private $namingStrategy;
+    /**
+     * @var AnnotationParser
+     */
+    private $annotationParser;
 
     /**
      * @param ForeignKeyConstraint $fk The foreign key pointing to our bean
      * @param Table $mainTable The main table that is pointed to
      * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(ForeignKeyConstraint $fk, Table $mainTable, NamingStrategyInterface $namingStrategy)
+    public function __construct(ForeignKeyConstraint $fk, Table $mainTable, NamingStrategyInterface $namingStrategy, AnnotationParser $annotationParser)
     {
-        $this->fk = $fk;
+        $this->foreignKey = $fk;
         $this->mainTable = $mainTable;
         $this->namingStrategy = $namingStrategy;
+        $this->annotationParser = $annotationParser;
     }
 
     /**
@@ -51,11 +60,11 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
     public function getName() : string
     {
         if (!$this->useAlternateName) {
-            return 'get'.TDBMDaoGenerator::toCamelCase($this->fk->getLocalTableName());
+            return 'get'.TDBMDaoGenerator::toCamelCase($this->foreignKey->getLocalTableName());
         } else {
-            $methodName = 'get'.TDBMDaoGenerator::toCamelCase($this->fk->getLocalTableName()).'By';
+            $methodName = 'get'.TDBMDaoGenerator::toCamelCase($this->foreignKey->getLocalTableName()).'By';
 
-            $camelizedColumns = array_map([TDBMDaoGenerator::class, 'toCamelCase'], $this->fk->getUnquotedLocalColumns());
+            $camelizedColumns = array_map([TDBMDaoGenerator::class, 'toCamelCase'], $this->foreignKey->getUnquotedLocalColumns());
 
             $methodName .= implode('And', $camelizedColumns);
 
@@ -70,7 +79,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      */
     public function getBeanClassName(): string
     {
-        return $this->namingStrategy->getBeanClassName($this->fk->getLocalTableName());
+        return $this->namingStrategy->getBeanClassName($this->foreignKey->getLocalTableName());
     }
 
     /**
@@ -91,7 +100,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         $beanClass = $this->getBeanClassName();
 
         $getter = new MethodGenerator($this->getName());
-        $getter->setDocBlock(sprintf('Returns the list of %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->fk->getUnquotedLocalColumns())));
+        $getter->setDocBlock(sprintf('Returns the list of %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
         $getter->getDocBlock()->setTag(new ReturnTag([
             $beanClass.'[]',
             '\\'.AlterableResultIterator::class
@@ -100,13 +109,17 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
 
         $code = sprintf(
             'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s, %s);',
-            var_export($this->fk->getLocalTableName(), true),
-            var_export($this->fk->getName(), true),
-            var_export($this->fk->getLocalTableName(), true),
-            $this->getFilters($this->fk)
+            var_export($this->foreignKey->getLocalTableName(), true),
+            var_export($this->foreignKey->getName(), true),
+            var_export($this->foreignKey->getLocalTableName(), true),
+            $this->getFilters($this->foreignKey)
         );
 
         $getter->setBody($code);
+
+        if ($this->isProtected()) {
+            $getter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+        }
 
         return [ $getter ];
     }
@@ -120,7 +133,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
 
         foreach ($fk->getUnquotedLocalColumns() as $columnName) {
             $fkColumn = $fkForeignColumns[$counter];
-            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($fkColumn, true), var_export($this->fk->getForeignTableName(), true));
+            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($fkColumn, true), var_export($this->foreignKey->getForeignTableName(), true));
             ++$counter;
         }
         $parametersCode = '['.implode(', ', $parameters).']';
@@ -153,7 +166,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      */
     public function getForeignKey(): ForeignKeyConstraint
     {
-        return $this->fk;
+        return $this->foreignKey;
     }
 
     /**
@@ -163,5 +176,15 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
     public function getMainTable(): Table
     {
         return $this->mainTable;
+    }
+
+    private function isProtected(): bool
+    {
+        foreach ($this->getAnnotations() as $annotations) {
+            if ($annotations->findAnnotation(Annotation\ProtectedOneToMany::class)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

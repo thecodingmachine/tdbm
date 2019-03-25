@@ -39,7 +39,10 @@ class AnnotationParser
         $defaultAnnotations = [
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class,
-            'Bean' => Bean::class
+            'Bean' => Bean::class,
+            'ProtectedGetter' => ProtectedGetter::class,
+            'ProtectedSetter' => ProtectedSetter::class,
+            'ProtectedOneToMany' => ProtectedOneToMany::class,
         ];
         $annotations = $defaultAnnotations + $additionalAnnotations;
         return new self($annotations);

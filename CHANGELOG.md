@@ -6,7 +6,8 @@ New features:
 - \#96: New @Bean annotation in table comments to alter the name of a bean
 - \#95: Table and column annotations are now parsed using doctrine/annotations lexer/parser
 - \#97: Generated DAOs and beans are now purged automatically. When a table is removed, the matching generated beans and daos will be removed too.
-- \#116: New CodeGeneratorListernerInterface allows third party library to alter generated beans and DAOs on the fly (for the power users!)
+- \#116: New CodeGeneratorListenerInterface allows third party library to alter generated beans and DAOs on the fly (for the power users!)
+- \#125: New @ProtectedGetter, @ProtectedSetter and @ProtectedOneToMany annotations (to be used in the DB column comments) enable generating beans with protected getters and setters
 
 5.0
 ===

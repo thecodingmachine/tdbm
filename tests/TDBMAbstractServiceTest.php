@@ -330,7 +330,9 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         $db->table('files')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
-            ->column('file')->blob();
+            ->column('file')->blob()
+            ->column('md5')->string()->null()->comment("@ProtectedGetter\n@ProtectedSetter")
+            ->column('article_id')->references('article')->null()->comment("@ProtectedGetter\n@ProtectedSetter\n@ProtectedOneToMany");
 
         $toSchema->getTable('users')
             ->addUniqueIndex([$connection->quoteIdentifier('login')], 'users_login_idx')
