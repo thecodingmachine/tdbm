@@ -26,11 +26,13 @@ use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
+use ReflectionClass;
 use ReflectionMethod;
 use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
@@ -1828,5 +1830,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $animalsArr = $animals->toArray();
         $this->assertCount(3, $animalsArr);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testInterfacesAnnotation()
+    {
+        $refClass = new ReflectionClass(UserBaseBean::class);
+        $found = false;
+        foreach ($refClass->getInterfaces() as $interface) {
+            if ($interface->getName() === TestUserInterface::class) {
+                $found = true;
+            }
+        }
+        $this->assertTrue($found);
     }
 }

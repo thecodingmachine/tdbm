@@ -30,7 +30,10 @@ use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use PHPUnit\Framework\TestCase;
 use TheCodingMachine\FluidSchema\FluidSchema;
+use TheCodingMachine\FluidSchema\TdbmFluidSchema;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\Interfaces;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 
@@ -216,7 +219,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         $fromSchema = $connection->getSchemaManager()->createSchema();
         $toSchema = clone $fromSchema;
 
-        $db = new FluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
+        $db = new TdbmFluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
 
         $db->table('country')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
@@ -252,7 +255,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('email')->string(255)
             ->column('manager_id')->references('contact')->null();
 
-        $db->table('users')
+        $db->table('users')->addAnnotation(Interfaces::class, ['names' => [TestUserInterface::class]])
             ->extends('contact')
             ->column('login')->string(255)
             ->column('password')->string(255)->null()
