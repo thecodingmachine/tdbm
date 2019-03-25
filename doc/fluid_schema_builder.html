@@ -5,7 +5,7 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-    <title>Installation | TDBM</title>
+    <title>TDBM Fluid Schema Builder | TDBM</title>
 
     <meta name="HandheldFriendly" content="True">
     <meta name="MobileOptimized" content="320">
@@ -88,7 +88,7 @@
                                 Introduction
                             </a>
                         </li>
-                                                                                                                    <li class="active visible-xs-block">
+                                                                                                                    <li class=" visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
                                 Installing TDBM
                             </a>
@@ -203,7 +203,7 @@
                                 Frequently asked questions
                             </a>
                         </li>
-                                                                                                                    <li class=" visible-xs-block">
+                                                                                                                    <li class="active visible-xs-block">
                             <a href="https://thecodingmachine.github.io/tdbm/doc/fluid_schema_builder.html">
                                 Fluid schema builder
                             </a>
@@ -237,7 +237,7 @@
                                                                 <li>
                         <h4>Installation</h4>
                     </li>
-                                                                <li class="active">
+                                                                <li class="">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
                             Installing TDBM
                         </a>
@@ -361,7 +361,7 @@
                                                                 <li>
                         <h4>Integrations and extensions</h4>
                     </li>
-                                                                <li class="">
+                                                                <li class="active">
                         <a href="https://thecodingmachine.github.io/tdbm/doc/fluid_schema_builder.html">
                             Fluid schema builder
                         </a>
@@ -388,43 +388,142 @@
         <div class="container pt100">
             <div class="row">
                 <div class="col-xs-12">
-                    <h1>Installation <small></small></h1>                    <p>TDBM offers a number of integration packages to help you get started with your favorite framework. Depending on which framework you are using (or maybe you use no framework?), the installation may vary.</p>
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_laravel.html" class="btn btn-primary btn-large btn-block">Install in Laravel</a>
-    </div>
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_lumen.html" class="btn btn-primary btn-large btn-block">Install in Lumen</a>
-    </div>
-</div>
-<p><br/></p>
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_symfony.html" class="btn btn-primary btn-large btn-block">Install in Symfony</a>
-    </div>
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_silex.html" class="btn btn-primary btn-large btn-block">Install in Silex</a>
-    </div>
-</div>
-<p><br/></p>
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_mouf.html" class="btn btn-primary btn-large btn-block">Install in Mouf</a>
-    </div>
-    <div class="col-xs-12 col-sm-6">
-        <a href="install_service-provider.html" class="btn btn-primary btn-large btn-block">Installation in any <em>container-interop/service-provider</em> compatible container</a>
-    </div>
-</div>
-<p><br/></p>
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
-        <a href="manual_install.html" class="btn btn-primary btn-large btn-block">Manual installation (no framework)</a>
-    </div>
-</div>
+                    <h1>TDBM Fluid Schema Builder <small></small></h1>                    <p>TDBM uses your database model to build the beans and DAOs.</p>
+<p>The TDBM package itself does not offer any tool to create your data model. You
+can use any tool you want (your database's favorite GUI like PhpMyAdmin or a
+migration library like Doctrine Migrations).</p>
+<p>However, if you need some help, we provide &quot;TDBM Fluid Schema Builder&quot;. It is an additional PHP library
+that you can use to create / edit your database model. It can be used to build any
+database model, but has special options to add <a href="annotations.html">database annotations</a> that can be understood by
+TDBM.</p>
+<h2 id="installation">Installation</h2>
+<pre><code class="language-bash">$ composer require thecodingmachine/tdbm-fluid-schema-builder</code></pre>
+<h2 id="usage">Usage</h2>
+<p>The TDBM Fluid Schema Builder is a wrapper around the DBAL <code>Schema</code> object that provides a developer
+friendly interface.</p>
+<p><strong>Typical usage</strong></p>
+<pre><code class="language-php">// $schema is a DBAL\Schema instance
+$db = new FluidSchema($schema);
+
+$posts = $db-&gt;table('posts');
+
+$posts-&gt;id() // Let's create a default autoincremented ID column
+      -&gt;column('description')-&gt;string(50)-&gt;null() // Let's create a 'description' column
+      -&gt;column('user_id')-&gt;references('users');   // Let's create a foreign key.
+                                                  // We only specify the table name.
+                                                  // FluidSchema infers the column type and the "remote" column.</code></pre>
+<h2 id="supported-column-types">Supported column types</h2>
+<pre><code class="language-php">$table = $db-&gt;table('foo');
+
+// Supported types
+$table-&gt;column('xxxx')-&gt;string(50)              // VARCHAR(50)
+      -&gt;column('xxxx')-&gt;integer()
+      -&gt;column('xxxx')-&gt;float()
+      -&gt;column('xxxx')-&gt;text()                  // Long string
+      -&gt;column('xxxx')-&gt;boolean()
+      -&gt;column('xxxx')-&gt;smallInt()
+      -&gt;column('xxxx')-&gt;bigInt()
+      -&gt;column('xxxx')-&gt;decimal(10, 2)          // DECIMAL(10, 2)
+      -&gt;column('xxxx')-&gt;guid()
+      -&gt;column('xxxx')-&gt;binary(255)
+      -&gt;column('xxxx')-&gt;blob()                  // Long binary
+      -&gt;column('xxxx')-&gt;date()
+      -&gt;column('xxxx')-&gt;datetime()
+      -&gt;column('xxxx')-&gt;datetimeTz()
+      -&gt;column('xxxx')-&gt;time()
+      -&gt;column('xxxx')-&gt;dateImmutable()         // From Doctrine DBAL 2.6+
+      -&gt;column('xxxx')-&gt;datetimeImmutable()     // From Doctrine DBAL 2.6+
+      -&gt;column('xxxx')-&gt;datetimeTzImmutable()   // From Doctrine DBAL 2.6+
+      -&gt;column('xxxx')-&gt;timeImmutable()         // From Doctrine DBAL 2.6+
+      -&gt;column('xxxx')-&gt;dateInterval()          // From Doctrine DBAL 2.6+
+      -&gt;column('xxxx')-&gt;array()
+      -&gt;column('xxxx')-&gt;simpleArray()
+      -&gt;column('xxxx')-&gt;json()                  // From Doctrine DBAL 2.6+
+      -&gt;column('xxxx')-&gt;jsonArray()             // Deprecated in Doctrine DBAL 2.6+
+      -&gt;column('xxxx')-&gt;object();               // Serialized PHP object</code></pre>
+<p><strong>Shortcut methods:</strong></p>
+<pre><code class="language-php">// Create an 'id' primary key that is an autoincremented integer
+$table-&gt;id();
+
+// Don't like autincrements? No problem!
+// Create an 'uuid' primary key that is of the DBAL 'guid' type
+// The column will be annotated with the @UUID annotation 
+$table-&gt;uuid('v1'); // UUID supported types can be v1 or v4.
+
+// Create "created_at" and "updated_at" columns
+$table-&gt;timestamps();</code></pre>
+<p><strong>Creating indexes:</strong></p>
+<pre><code class="language-php">// Directly on a column:
+$table-&gt;column('login')-&gt;string(50)-&gt;index();
+
+// Or on the table object (if there are several columns to add to an index):
+$table-&gt;index(['category1', 'category2']);</code></pre>
+<p><strong>Creating unique indexes:</strong></p>
+<pre><code class="language-php">// Directly on a column:
+$table-&gt;column('login')-&gt;string(50)-&gt;unique();
+
+// Or on the table object (if there are several columns to add to the constraint):
+$table-&gt;unique(['login', 'status']);</code></pre>
+<p><strong>Make a column nullable:</strong></p>
+<pre><code class="language-php">$table-&gt;column('description')-&gt;string(50)-&gt;null();</code></pre>
+<p><strong>Set the default value of a column:</strong></p>
+<pre><code class="language-php">$table-&gt;column('enabled')-&gt;bool()-&gt;default(true);</code></pre>
+<p><strong>Create a foreign key</strong></p>
+<pre><code class="language-php">$table-&gt;column('country_id')-&gt;references('countries');</code></pre>
+<p><strong>Note:</strong> The foreign key will be automatically created on the primary table of the table &quot;countries&quot;.
+The type of the &quot;country_id&quot; column will be exactly the same as the type of the primary key of the &quot;countries&quot; table.</p>
+<p><strong>Create a jointure table (aka associative table) between 2 tables:</strong></p>
+<pre><code class="language-php">$db-&gt;junctionTable('users', 'roles');
+
+// This will create a 'users_roles' table with 2 foreign keys:
+//  - 'user_id' pointing on the PK of 'users'
+//  - 'role_id' pointing on the PK of 'roles'</code></pre>
+<p><strong>Add a comment to a column:</strong></p>
+<pre><code class="language-php">$table-&gt;column('description')-&gt;string(50)-&gt;comment('Lorem ipsum');</code></pre>
+<p><strong>Declare a primary key:</strong></p>
+<pre><code class="language-php">$table-&gt;column('uuid')-&gt;string(36)-&gt;primaryKey();
+
+// or
+
+$table-&gt;column('uuid')-&gt;then()
+      -&gt;primaryKey(['uuid']);</code></pre>
+<p><strong>Declare an inheritance relationship between 2 tables:</strong></p>
+<p>In SQL, there is no notion of &quot;inheritance&quot; like with PHP objects.
+However, <a href="modeling_inheritance.html">a common way to model inheritance is to write one table for the base class</a> (containing the base columns/properties) and then one table per extended class containing the additional columns/properties.
+Each extended table has <strong>a primary key that is also a foreign key pointing to the base table</strong>.</p>
+<pre><code class="language-php">$db-&gt;table('contacts')
+   -&gt;id()
+   -&gt;column('email')-&gt;string(50);
+
+$db-&gt;table('users')
+   -&gt;extends('contacts')
+   -&gt;column('password')-&gt;string(50);</code></pre>
+<p>The <code>extends</code> method will automatically create a primary key with the same name and same type as the extended table. It will also make sure this primary key is a foreign key pointing to the extended table.</p>
+<h2 id="customize-the-beans-generation">Customize the beans generation</h2>
+<p>You can customize the name of a bean (if you want the bean to have a different name than the table)</p>
+<pre><code class="language-php">$posts = $db-&gt;table('posts')-&gt;customBeanName('Article');</code></pre>
+<h2 id="graphqlite-integration">GraphQLite integration</h2>
+<p>If you are using the <a href="graphqlite.html">TDBM GraphQLite integration</a>, you can also use the TDBM Fluid Schema Builder
+to add GraphQLite related annotations:</p>
+<pre><code class="language-php">// The "posts" table will generate a GraphQL type (i.e. the bean will be annotated with the GraphQLite @Type annotation).
+$posts = $db-&gt;table('posts')-&gt;graphqlType();
+
+// You can pass a new 'v1' or 'v4' parameter to uuid().
+// This will generate a @UUID TDBM annotation that will help TDBM autogenerate the UUID 
+$posts = $db-&gt;table('posts')-&gt;column('title')-&gt;string(50)-&gt;graphqlField() // The column is a GraphQL field
+            -&gt;fieldName('the_title') // Let's set the name of the field to a different value 
+            -&gt;logged() // The user must be logged to view the field
+            -&gt;right('CAN_EDIT') // The user must have the 'CAN_EDIT' right to view the field
+            -&gt;failWith(null) // If the user is not logged or has no right, let's serve 'null'
+            -&gt;endGraphql();
+
+$db-&gt;junctionTable('posts', 'users')-&gt;graphqlField(); // Expose the many-to-many relationship as a GraphQL field.</code></pre>
+<h2 id="learn-more">Learn more</h2>
+<p>TDBM Fluid Schema Builder is a wrapper around <a href="https://github.com/thecodingmachine/dbal-fluid-schema-builder">DBAL Fluid Schema Builder</a>.</p>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
-                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/install.md">fork and edit it</a>!
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/fluid_schema_builder.md">fork and edit it</a>!
                     </p>
                 </div>
             </div>
