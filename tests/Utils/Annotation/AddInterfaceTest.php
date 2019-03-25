@@ -6,18 +6,18 @@ use BadMethodCallException;
 use PHPUnit\Framework\TestCase;
 use TheCodingMachine\TDBM\Utils\GeneratorListenerInterface;
 
-class InterfacesTest extends TestCase
+class AddInterfaceTest extends TestCase
 {
 
     public function testConstruct(): void
     {
         $this->expectException(BadMethodCallException::class);
-        new Interfaces(['foo' => 'bar']);
+        new AddInterface(['foo' => 'bar']);
     }
 
     public function testGetNames(): void
     {
-        $interfaces = new Interfaces(['names' => [GeneratorListenerInterface::class]]);
-        $this->assertSame([GeneratorListenerInterface::class], $interfaces->getNames());
+        $interfaces = new AddInterface(['name' => GeneratorListenerInterface::class]);
+        $this->assertSame(GeneratorListenerInterface::class, $interfaces->getName());
     }
 }

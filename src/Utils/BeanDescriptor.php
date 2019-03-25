@@ -21,6 +21,7 @@ use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
 use TheCodingMachine\TDBM\TDBMService;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use Zend\Code\Generator\ClassGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
@@ -528,7 +529,16 @@ EOF
         ));
 
         $class->setDocBlock(new DocBlockGenerator("The $baseClassName class maps the '$tableName' table in database."));
-        $class->setImplementedInterfaces([ JsonSerializable::class ]);
+
+        /** @var AddInterface[] $addInterfaceAnnotations */
+        $addInterfaceAnnotations = $this->annotationParser->getTableAnnotations($this->table)->findAnnotations(AddInterface::class);
+
+        $interfaces = [ JsonSerializable::class ];
+        foreach ($addInterfaceAnnotations as $annotation) {
+            $interfaces[] = $annotation->getName();
+        }
+
+        $class->setImplementedInterfaces($interfaces);
 
 
         $method = $this->generateBeanConstructor();

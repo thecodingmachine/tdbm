@@ -33,7 +33,7 @@ use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\FluidSchema\TdbmFluidSchema;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
-use TheCodingMachine\TDBM\Utils\Annotation\Interfaces;
+use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 
@@ -255,7 +255,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('email')->string(255)
             ->column('manager_id')->references('contact')->null();
 
-        $db->table('users')->addAnnotation(Interfaces::class, ['names' => [TestUserInterface::class]])
+        $db->table('users')->addAnnotation(AddInterface::class, ['name' => TestUserInterface::class])
             ->extends('contact')
             ->column('login')->string(255)
             ->column('password')->string(255)->null()
