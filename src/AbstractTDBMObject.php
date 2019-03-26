@@ -207,7 +207,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
             }
         }
 
-        return $tableName;
+        return (string) $tableName;
     }
 
     /**
@@ -233,7 +233,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
             if (count($this->dbRows) > 1) {
                 throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
             } elseif (count($this->dbRows) === 1) {
-                $tableName = array_keys($this->dbRows)[0];
+                $tableName = (string) array_keys($this->dbRows)[0];
             } else {
                 throw new TDBMException('Please specify a table for this object.');
             }
@@ -259,7 +259,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
             if (count($this->dbRows) > 1) {
                 throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
             } elseif (count($this->dbRows) === 1) {
-                $tableName = array_keys($this->dbRows)[0];
+                $tableName = (string) array_keys($this->dbRows)[0];
             } else {
                 throw new TDBMException('Please specify a table for this object.');
             }
