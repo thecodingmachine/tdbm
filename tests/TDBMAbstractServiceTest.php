@@ -31,7 +31,11 @@ use Doctrine\DBAL\Platforms\OraclePlatform;
 use PHPUnit\Framework\TestCase;
 use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\FluidSchema\TdbmFluidSchema;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
+use TheCodingMachine\TDBM\Fixtures\Traits\TestOtherUserTrait;
+use TheCodingMachine\TDBM\Fixtures\Traits\TestUserDaoTrait;
+use TheCodingMachine\TDBM\Fixtures\Traits\TestUserTrait;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
@@ -255,7 +259,12 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('email')->string(255)
             ->column('manager_id')->references('contact')->null();
 
-        $db->table('users')->addAnnotation(AddInterface::class, ['name' => TestUserInterface::class])
+        $db->table('users')
+            ->addAnnotation('AddTrait', ['name'=>TestUserTrait::class], false)
+            ->addAnnotation('AddTrait', ['name'=>TestOtherUserTrait::class, 'modifiers'=>['\\'.TestOtherUserTrait::class.'::method1 insteadof \\'.TestUserTrait::class, '\\'.TestUserTrait::class.'::method1 as method1renamed']], false)
+            ->addAnnotation('AddTraitOnDao', ['name'=>TestUserDaoTrait::class], false)
+            ->implementsInterface(TestUserInterface::class)
+            ->implementsInterfaceOnDao(TestUserDaoInterface::class)
             ->extends('contact')
             ->column('login')->string(255)
             ->column('password')->string(255)->null()

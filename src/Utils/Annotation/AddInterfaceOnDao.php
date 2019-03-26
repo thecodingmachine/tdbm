@@ -9,10 +9,10 @@ namespace TheCodingMachine\TDBM\Utils\Annotation;
  *   @Attribute("name", type = "string"),
  * })
  */
-final class AddInterface
+final class AddInterfaceOnDao
 {
     /**
-     * The PHP interface that is implemented by the Bean.
+     * The PHP interface that is implemented by the Dao.
      *
      * @var string
      */
@@ -26,7 +26,7 @@ final class AddInterface
     public function __construct(array $values)
     {
         if (!isset($values['value']) && !isset($values['name'])) {
-            throw new \BadMethodCallException('The @AddInterface annotation must be passed an interface to implement. For instance: \'@AddInterface("Foo\\BarInterface")\'');
+            throw new \BadMethodCallException('The @AddInterfaceOnDao annotation must be passed an interface to implement. For instance: \'@AddInterfaceOnDao("Foo\\BarInterface")\'');
         }
         $this->name = $values['value'] ?? $values['name'];
     }

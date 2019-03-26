@@ -43,7 +43,10 @@ class AnnotationParser
             'ProtectedGetter' => ProtectedGetter::class,
             'ProtectedSetter' => ProtectedSetter::class,
             'ProtectedOneToMany' => ProtectedOneToMany::class,
-            'AddInterface' => AddInterface::class
+            'AddInterface' => AddInterface::class,
+            'AddInterfaceOnDao' => AddInterfaceOnDao::class,
+            'AddTrait' => AddTrait::class,
+            'AddTraitOnDao' => AddTraitOnDao::class,
         ];
         $annotations = $defaultAnnotations + $additionalAnnotations;
         return new self($annotations);

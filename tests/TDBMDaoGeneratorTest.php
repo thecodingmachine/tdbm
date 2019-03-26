@@ -32,6 +32,7 @@ use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
@@ -1835,15 +1836,30 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testInterfacesAnnotation()
+    public function testAddInterfaceAnnotation()
     {
         $refClass = new ReflectionClass(UserBaseBean::class);
-        $found = false;
-        foreach ($refClass->getInterfaces() as $interface) {
-            if ($interface->getName() === TestUserInterface::class) {
-                $found = true;
-            }
-        }
-        $this->assertTrue($found);
+        $this->assertTrue($refClass->implementsInterface(TestUserInterface::class));
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testAddInterfaceOnDaoAnnotation()
+    {
+        $refClass = new ReflectionClass(UserBaseDao::class);
+        $this->assertTrue($refClass->implementsInterface(TestUserDaoInterface::class));
+    }
+
+    public function testTrait()
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $userBean = $userDao->getById(1);
+
+        $this->assertSame('TestOtherUserTrait', $userBean->method1());
+        $this->assertSame('TestUserTrait', $userBean->method1renamed());
+
+        $refClass = new ReflectionClass(UserBaseDao::class);
+        $this->assertTrue($refClass->hasMethod('findNothing'));
     }
 }
