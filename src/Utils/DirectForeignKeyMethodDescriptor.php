@@ -7,6 +7,7 @@ namespace TheCodingMachine\TDBM\Utils;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
 use TheCodingMachine\TDBM\AlterableResultIterator;
+use TheCodingMachine\TDBM\Schema\ForeignKey;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use Zend\Code\Generator\AbstractMemberGenerator;
@@ -107,11 +108,12 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         ]));
         $getter->setReturnType(AlterableResultIterator::class);
 
+        $tdbmFk = ForeignKey::createFromFk($this->foreignKey);
+
         $code = sprintf(
-            'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s, %s);',
+            'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s);',
             var_export($this->foreignKey->getLocalTableName(), true),
-            var_export($this->foreignKey->getName(), true),
-            var_export($this->foreignKey->getLocalTableName(), true),
+            var_export($tdbmFk->getCacheKey(), true),
             $this->getFilters($this->foreignKey)
         );
 

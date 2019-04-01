@@ -1424,19 +1424,6 @@ class TDBMService
     }
 
     /**
-     * Returns the foreign key object.
-     *
-     * @param string $table
-     * @param string $fkName
-     *
-     * @return ForeignKeyConstraint
-     */
-    public function _getForeignKeyByName(string $table, string $fkName): ForeignKeyConstraint
-    {
-        return $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getForeignKey($fkName);
-    }
-
-    /**
      * @param string $pivotTableName
      * @param AbstractTDBMObject $bean
      *
