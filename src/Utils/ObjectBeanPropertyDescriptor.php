@@ -7,6 +7,7 @@ use function array_map;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use TheCodingMachine\TDBM\Schema\ForeignKey;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
@@ -158,8 +159,9 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $getter->getDocBlock()->setTag(new ReturnTag($types));*/
 
         $getter->setReturnType(($isNullable?'?':'').$this->beanNamespace.'\\'.$referencedBeanName);
+        $tdbmFk = ForeignKey::createFromFk($this->foreignKey);
 
-        $getter->setBody('return $this->getRef('.var_export($this->foreignKey->getName(), true).', '.var_export($tableName, true).');');
+        $getter->setBody('return $this->getRef('.var_export($tdbmFk->getCacheKey(), true).', '.var_export($tableName, true).');');
 
         if ($this->isGetterProtected()) {
             $getter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
@@ -172,7 +174,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
         $setter->setReturnType('void');
 
-        $setter->setBody('$this->setRef('.var_export($this->foreignKey->getName(), true).', $object, '.var_export($tableName, true).');');
+        $setter->setBody('$this->setRef('.var_export($tdbmFk->getCacheKey(), true).', $object, '.var_export($tableName, true).');');
 
         if ($this->isSetterProtected()) {
             $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);

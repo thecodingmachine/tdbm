@@ -17,10 +17,13 @@ use TheCodingMachine\TDBM\AlterableResultIterator;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 use TheCodingMachine\TDBM\ResultIterator;
 use TheCodingMachine\TDBM\SafeFunctions;
+use TheCodingMachine\TDBM\Schema\ForeignKey;
+use TheCodingMachine\TDBM\Schema\ForeignKeys;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
 use TheCodingMachine\TDBM\TDBMService;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\ClassGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
@@ -517,6 +520,7 @@ return $array;
         $file->setUse(AlterableResultIterator::class);
         $file->setUse(Uuid::class);
         $file->setUse(JsonSerializable::class);
+        $file->setUse(ForeignKeys::class);
 
         $class->setName($baseClassName);
         $class->setAbstract(true);
@@ -537,7 +541,11 @@ EOF
             $class->addMethodFromGenerator($this->generateBeanConstructor());
         }
 
+        $fks = [];
         foreach ($this->getExposedProperties() as $property) {
+            if ($property instanceof ObjectBeanPropertyDescriptor) {
+                $fks[] = $property->getForeignKey();
+            }
             [$getter, $setter] = $property->getGetterSetterCode();
             [$getter, $setter] = $this->codeGeneratorListener->onBaseBeanPropertyGenerated($getter, $setter, $property, $this, $this->configuration, $class);
             if ($getter !== null) {
@@ -567,6 +575,15 @@ EOF
                 throw new \RuntimeException('Unexpected instance'); // @codeCoverageIgnore
             }
         }
+
+        $foreignKeysProperty = new PropertyGenerator('foreignKeys');
+        $foreignKeysProperty->setStatic(true);
+        $foreignKeysProperty->setVisibility(AbstractMemberGenerator::VISIBILITY_PRIVATE);
+        $foreignKeysProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, ['\\'.ForeignKeys::class])]));
+        $class->addPropertyFromGenerator($foreignKeysProperty);
+
+        $method = $this->generateGetForeignKeys($fks);
+        $class->addMethodFromGenerator($method);
 
         $method = $this->generateJsonSerialize();
         $method = $this->codeGeneratorListener->onBaseBeanJsonSerializeGenerated($method, $this, $this->configuration, $class);
@@ -1210,7 +1227,8 @@ return $tables;', var_export($this->table->getName(), true));
         $relationships = $this->getPropertiesForTable($this->table);
         foreach ($relationships as $relationship) {
             if ($relationship instanceof ObjectBeanPropertyDescriptor) {
-                $code .= sprintf('$this->setRef('.var_export($relationship->getForeignKey()->getName(), true).', null, '.var_export($this->table->getName(), true).");\n");
+                $tdbmFk = ForeignKey::createFromFk($relationship->getForeignKey());
+                $code .= '$this->setRef('.var_export($tdbmFk->getCacheKey(), true).', null, '.var_export($this->table->getName(), true).");\n";
             }
         }
 
@@ -1321,5 +1339,73 @@ return $tables;', var_export($this->table->getName(), true));
     public function getGeneratedBeanNamespace(): string
     {
         return $this->generatedBeanNamespace;
+    }
+
+    /**
+     * @param ForeignKeyConstraint[] $fks
+     */
+    private function generateGetForeignKeys(array $fks): MethodGenerator
+    {
+        $fkArray = [];
+
+        foreach ($fks as $fk) {
+            $tdbmFk = ForeignKey::createFromFk($fk);
+            $fkArray[$tdbmFk->getCacheKey()] = [
+                ForeignKey::FOREIGN_TABLE => $fk->getForeignTableName(),
+                ForeignKey::LOCAL_COLUMNS => $fk->getUnquotedLocalColumns(),
+                ForeignKey::FOREIGN_COLUMNS => $fk->getUnquotedForeignColumns(),
+            ];
+        }
+
+        ksort($fkArray);
+        foreach ($fkArray as $tableFks) {
+            ksort($tableFks);
+        }
+
+        $code = <<<EOF
+if (\$tableName === %s) {
+    if (self::\$foreignKeys === null) {
+        self::\$foreignKeys = new ForeignKeys(%s);
+    }
+    return self::\$foreignKeys;
+}
+return parent::getForeignKeys(\$tableName);
+EOF;
+        $code = sprintf($code, var_export($this->getTable()->getName(), true), $this->psr2VarExport($fkArray, '    '));
+
+        $method = new MethodGenerator('getForeignKeys');
+        $method->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+        $method->setStatic(true);
+        $method->setDocBlock('Internal method used to retrieve the list of foreign keys attached to this bean.');
+        $method->setReturnType(ForeignKeys::class);
+
+        $parameter = new ParameterGenerator('tableName');
+        $parameter->setType('string');
+        $method->setParameter($parameter);
+
+
+        $method->setBody($code);
+
+        return $method;
+    }
+
+    /**
+     * @param mixed $var
+     * @param string $indent
+     * @return string
+     */
+    private function psr2VarExport($var, string $indent=''): string
+    {
+        if (is_array($var)) {
+            $indexed = array_keys($var) === range(0, count($var) - 1);
+            $r = [];
+            foreach ($var as $key => $value) {
+                $r[] = "$indent    "
+                    . ($indexed ? '' : $this->psr2VarExport($key) . ' => ')
+                    . $this->psr2VarExport($value, "$indent    ");
+            }
+            return "[\n" . implode(",\n", $r) . "\n" . $indent . ']';
+        }
+        return var_export($var, true);
     }
 }
