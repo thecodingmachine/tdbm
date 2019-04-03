@@ -546,6 +546,12 @@ class TDBMService
         if (isset($this->tableToBeanMap[$tableName])) {
             return $this->tableToBeanMap[$tableName];
         } else {
+            $key = $this->cachePrefix.'_tableToBean_'.$tableName;
+            $cache = $this->cache->fetch($key);
+            if ($cache) {
+                return $cache;
+            }
+
             $className = $this->beanNamespace.'\\'.$this->namingStrategy->getBeanClassName($tableName);
 
             if (!class_exists($className)) {
@@ -553,6 +559,7 @@ class TDBMService
             }
 
             $this->tableToBeanMap[$tableName] = $className;
+            $this->cache->save($key, $className);
             return $className;
         }
     }
