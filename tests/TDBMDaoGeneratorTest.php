@@ -66,6 +66,7 @@ use TheCodingMachine\TDBM\Test\Dao\RoleDao;
 use TheCodingMachine\TDBM\Test\Dao\StateDao;
 use TheCodingMachine\TDBM\Test\Dao\UserDao;
 use TheCodingMachine\TDBM\Utils\PathFinder\NoPathFoundException;
+use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Symfony\Component\Process\Process;
 
@@ -165,6 +166,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testGetBeanClassName()
     {
         $this->assertEquals(UserBean::class, $this->tdbmService->getBeanClassName('users'));
+
+        // Let's create another TDBMService to test the cache.
+        $configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), $this->getCache(), null, null, [$this->getDummyGeneratorListener()]);
+        $configuration->setPathFinder(new PathFinder(null, dirname(__DIR__, 4)));
+        $newTdbmService = new TDBMService($configuration);
+        $this->assertEquals(UserBean::class, $newTdbmService->getBeanClassName('users'));
     }
 
     /**

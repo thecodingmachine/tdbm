@@ -56,6 +56,11 @@ abstract class TDBMAbstractServiceTest extends TestCase
      */
     private $configuration;
 
+    /**
+     * @var ArrayCache
+     */
+    private $cache;
+
     public static function setUpBeforeClass()
     {
         self::resetConnection();
@@ -187,10 +192,18 @@ abstract class TDBMAbstractServiceTest extends TestCase
         return $this->dummyGeneratorListener;
     }
 
+    protected function getCache(): ArrayCache
+    {
+        if ($this->cache === null) {
+            $this->cache = new ArrayCache();
+        }
+        return $this->cache;
+    }
+
     protected function getConfiguration() : ConfigurationInterface
     {
         if ($this->configuration === null) {
-            $this->configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), new ArrayCache(), null, null, [$this->getDummyGeneratorListener()]);
+            $this->configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), $this->getCache(), null, null, [$this->getDummyGeneratorListener()]);
             $this->configuration->setPathFinder(new PathFinder(null, dirname(__DIR__, 4)));
         }
         return $this->configuration;

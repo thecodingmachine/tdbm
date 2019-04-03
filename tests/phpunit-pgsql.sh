@@ -8,6 +8,8 @@ cd ..
 
 docker run --rm --name postgres-tdbm-test -p 5432:5432 -e POSTGRES_PASSWORD= -d postgres:9.6
 
+sleep 5
+
 vendor/bin/phpunit -c phpunit.postgres.xml
 
-docker stop postgres-tdbm-test
+#docker stop postgres-tdbm-test
