@@ -375,7 +375,7 @@ class BeanDescriptor implements BeanDescriptorInterface
                 continue;
             }
 
-            $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace);
+            $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
         }
 
         return $descs;

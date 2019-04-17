@@ -3,9 +3,12 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
 use function sprintf;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\MethodGenerator;
@@ -37,6 +40,19 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      * @var string
      */
     private $beanNamespace;
+    /**
+     * @var AnnotationParser
+     */
+    private $annotationParser;
+
+    /**
+     * @var array
+     */
+    private $localAnnotations;
+    /**
+     * @var array
+     */
+    private $remoteAnnotations;
 
     /**
      * @param Table $pivotTable The pivot table
@@ -44,13 +60,14 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      * @param ForeignKeyConstraint $remoteFk
      * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $pivotTable, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, NamingStrategyInterface $namingStrategy, string $beanNamespace)
+    public function __construct(Table $pivotTable, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, NamingStrategyInterface $namingStrategy, string $beanNamespace, AnnotationParser $annotationParser)
     {
         $this->pivotTable = $pivotTable;
         $this->localFk = $localFk;
         $this->remoteFk = $remoteFk;
         $this->namingStrategy = $namingStrategy;
         $this->beanNamespace = $beanNamespace;
+        $this->annotationParser = $annotationParser;
     }
 
     /**
@@ -224,5 +241,84 @@ PHP;
     public function getRemoteFk(): ForeignKeyConstraint
     {
         return $this->remoteFk;
+    }
+
+    /**
+     * @param string $type
+     * @return null|object
+     */
+    private function findLocalAnnotation(string $type)
+    {
+        foreach ($this->getLocalAnnotations() as $annotations) {
+            $annotation = $annotations->findAnnotation($type);
+            if ($annotation !== null) {
+                return $annotation;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param string $type
+     * @return null|object
+     */
+    private function findRemoteAnnotation(string $type)
+    {
+        foreach ($this->getRemoteAnnotations() as $annotations) {
+            $annotation = $annotations->findAnnotation($type);
+            if ($annotation !== null) {
+                return $annotation;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @return Annotations[]
+     */
+    private function getLocalAnnotations(): array
+    {
+        if ($this->localAnnotations === null) {
+            $this->localAnnotations = $this->getFkAnnotations($this->localFk);
+        }
+        return $this->localAnnotations;
+    }
+
+    /**
+     * @return Annotations[]
+     */
+    private function getRemoteAnnotations(): array
+    {
+        if ($this->remoteAnnotations === null) {
+            $this->remoteAnnotations = $this->getFkAnnotations($this->remoteFk);
+        }
+        return $this->remoteAnnotations;
+    }
+
+    /**
+     * @param ForeignKeyConstraint $fk
+     * @return Annotations[]
+     */
+    private function getFkAnnotations(ForeignKeyConstraint $fk): array
+    {
+        $annotations = [];
+        foreach ($this->getFkColumns($fk) as $column) {
+            $annotations[] = $this->annotationParser->getColumnAnnotations($column, $fk->getLocalTable());
+        }
+        return $annotations;
+    }
+
+    /**
+     * @param ForeignKeyConstraint $fk
+     * @return Column[]
+     */
+    private function getFkColumns(ForeignKeyConstraint $fk): array
+    {
+        $table = $fk->getLocalTable();
+        $columns = [];
+        foreach ($fk->getUnquotedLocalColumns() as $column) {
+            $columns[] = $table->getColumn($column);
+        }
+        return $columns;
     }
 }
