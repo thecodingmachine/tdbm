@@ -185,15 +185,21 @@ Exiting relationships will be removed and replaced by the provided relationships
      */
     public function getJsonSerializeCode() : string
     {
-        $remoteBeanName = $this->getBeanClassName();
-        $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
-
-        return 'if (!$stopRecursion) {
-    $array[\''.lcfirst($this->getPluralName()).'\'] = array_map(function ('.$remoteBeanName.' '.$variableName.') {
-        return '.$variableName.'->jsonSerialize(true);
-    }, $this->'.$this->getName().'());
-}
-';
+        $index = lcfirst($this->getPluralName());
+        $class = $this->getBeanClassName();
+        $getter = $this->getName();
+        $code = <<<PHP
+\$array['$index'] = array_map(function ($class \$object) {
+    return \$object->jsonSerialize(true);
+}, \$this->$getter());
+PHP;
+        $code = preg_replace('(\n)', '\0    ', $code);
+        $code = <<<PHP
+if (!\$stopRecursion) {
+    $code
+};
+PHP;
+        return $code;
     }
 
     /**

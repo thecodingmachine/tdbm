@@ -3,14 +3,12 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
-use function array_map;
-use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use TheCodingMachine\TDBM\Schema\ForeignKey;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
-use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
+use TheCodingMachine\TDBM\Utils\Annotation;
 use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
@@ -194,18 +192,19 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             return '';
         }
 
+        $index = $this->namingStrategy->getJsonProperty($this);
+        $getter = $this->getGetterName();
         if (!$this->isCompulsory()) {
-            return 'if (!$stopRecursion) {
-    $object = $this->'.$this->getGetterName().'();
-    $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $object ? $object->jsonSerialize(true) : null;
-}
-';
+            $code = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->jsonSerialize(true) : null;";
         } else {
-            return 'if (!$stopRecursion) {
-    $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName().'()->jsonSerialize(true);
-}
-';
+            $code = "\$array['$index'] = \$this->$getter()->jsonSerialize(true);";
         }
+        $code = <<<PHP
+if (!\$stopRecursion) {
+    $code
+};
+PHP;
+        return $code;
     }
 
     /**
@@ -229,22 +228,26 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
     private function isGetterProtected(): bool
     {
-        foreach ($this->getAnnotations() as $annotations) {
-            if ($annotations->findAnnotation(Annotation\ProtectedGetter::class)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->findAnnotation(Annotation\ProtectedGetter::class) !== null;
     }
 
     private function isSetterProtected(): bool
     {
-        foreach ($this->getAnnotations() as $annotations) {
-            if ($annotations->findAnnotation(Annotation\ProtectedSetter::class)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->findAnnotation(Annotation\ProtectedSetter::class) !== null;
     }
 
+    /**
+     * @param string $type
+     * @return null|object
+     */
+    private function findAnnotation(string $type)
+    {
+        foreach ($this->getAnnotations() as $annotations) {
+            $annotation = $annotations->findAnnotation($type);
+            if ($annotation !== null) {
+                return $annotation;
+            }
+        }
+        return null;
+    }
 }

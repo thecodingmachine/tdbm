@@ -10,6 +10,7 @@ use TheCodingMachine\TDBM\AlterableResultIterator;
 use TheCodingMachine\TDBM\Schema\ForeignKey;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation;
 use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\MethodGenerator;
@@ -182,11 +183,21 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
 
     private function isProtected(): bool
     {
+        return $this->findAnnotation(Annotation\ProtectedOneToMany::class) !== null;
+    }
+
+    /**
+     * @param string $type
+     * @return null|object
+     */
+    private function findAnnotation(string $type)
+    {
         foreach ($this->getAnnotations() as $annotations) {
-            if ($annotations->findAnnotation(Annotation\ProtectedOneToMany::class)) {
-                return true;
+            $annotation = $annotations->findAnnotation($type);
+            if ($annotation !== null) {
+                return $annotation;
             }
         }
-        return false;
+        return null;
     }
 }

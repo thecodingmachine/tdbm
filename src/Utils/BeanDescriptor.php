@@ -415,11 +415,6 @@ class BeanDescriptor implements BeanDescriptorInterface
     {
         $tableName = $this->table->getName();
         $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
-        if ($parentFk !== null) {
-            $initializer = '$array = parent::jsonSerialize($stopRecursion);';
-        } else {
-            $initializer = '$array = [];';
-        }
 
         $method = new MethodGenerator('jsonSerialize');
         $method->setDocBlock('Serializes the object for JSON encoding.');
@@ -427,24 +422,30 @@ class BeanDescriptor implements BeanDescriptorInterface
         $method->getDocBlock()->setTag(new ReturnTag(['array']));
         $method->setParameter(new ParameterGenerator('stopRecursion', 'bool', false));
 
-        $str = '%s
-%s
-%s
-return $array;
-';
+        if ($parentFk !== null) {
+            $body = '$array = parent::jsonSerialize($stopRecursion);';
+        } else {
+            $body = '$array = [];';
+        }
 
-        $propertiesCode = '';
         foreach ($this->getExposedProperties() as $beanPropertyDescriptor) {
-            $propertiesCode .= $beanPropertyDescriptor->getJsonSerializeCode();
+            $propertyCode = $beanPropertyDescriptor->getJsonSerializeCode();
+            if (!empty($propertyCode)) {
+                $body .= PHP_EOL . $propertyCode;
+            }
         }
 
         // Many2many relationships
-        $methodsCode = '';
         foreach ($this->getMethodDescriptors() as $methodDescriptor) {
-            $methodsCode .= $methodDescriptor->getJsonSerializeCode();
+            $methodCode = $methodDescriptor->getJsonSerializeCode();
+            if (!empty($methodCode)) {
+                $body .= PHP_EOL . $methodCode;
+            }
         }
 
-        $method->setBody(sprintf($str, $initializer, $propertiesCode, $methodsCode));
+        $body .= PHP_EOL . 'return $array;';
+
+        $method->setBody($body);
 
         return $method;
     }
