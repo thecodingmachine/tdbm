@@ -203,19 +203,22 @@ Exiting relationships will be removed and replaced by the provided relationships
     public function getJsonSerializeCode() : string
     {
         if ($this->findRemoteAnnotation(Annotation\JsonIgnore::class) ||
-            $this->findLocalAnnotation(Annotation\JsonInclude::class)) {
+            $this->findLocalAnnotation(Annotation\JsonInclude::class) ||
+            $this->findLocalAnnotation(Annotation\JsonRecursive::class)) {
             return '';
         }
 
         $isIncluded = $this->findRemoteAnnotation(Annotation\JsonInclude::class) !== null;
+        $isRecursive = $this->findRemoteAnnotation(Annotation\JsonRecursive::class) !== null;
         /** @var Annotation\JsonKey|null $jsonKey */
         $jsonKey = $this->findRemoteAnnotation(Annotation\JsonKey::class);
         $index = $jsonKey ? $jsonKey->key : lcfirst($this->getPluralName());
         $class = $this->getBeanClassName();
         $getter = $this->getName();
+        $stopRecursion = $isRecursive ? '' : 'true';
         $code = <<<PHP
 \$array['$index'] = array_map(function ($class \$object) {
-    return \$object->jsonSerialize(true);
+    return \$object->jsonSerialize($stopRecursion);
 }, \$this->$getter());
 PHP;
         if (!$isIncluded) {

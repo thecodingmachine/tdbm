@@ -197,14 +197,16 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         }
 
         $isIncluded = $this->findAnnotation(Annotation\JsonInclude::class) !== null;
+        $isRecursive = $this->findAnnotation(Annotation\JsonRecursive::class) !== null;
         /** @var Annotation\JsonKey|null $jsonKey */
         $jsonKey = $this->findAnnotation(Annotation\JsonKey::class);
         $index = $jsonKey ? $jsonKey->key : $this->namingStrategy->getJsonProperty($this);
         $getter = $this->getGetterName();
+        $stopRecursion = $isRecursive ? '' : 'true';
         if (!$this->isCompulsory()) {
-            $code = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->jsonSerialize(true) : null;";
+            $code = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->jsonSerialize($stopRecursion) : null;";
         } else {
-            $code = "\$array['$index'] = \$this->$getter()->jsonSerialize(true);";
+            $code = "\$array['$index'] = \$this->$getter()->jsonSerialize($stopRecursion);";
         }
         if (!$isIncluded) {
             $code = <<<PHP
