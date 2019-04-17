@@ -202,10 +202,12 @@ Exiting relationships will be removed and replaced by the provided relationships
      */
     public function getJsonSerializeCode() : string
     {
-        if ($this->findRemoteAnnotation(Annotation\JsonIgnore::class)) {
+        if ($this->findRemoteAnnotation(Annotation\JsonIgnore::class) ||
+            $this->findLocalAnnotation(Annotation\JsonInclude::class)) {
             return '';
         }
 
+        $isIncluded = $this->findRemoteAnnotation(Annotation\JsonInclude::class) !== null;
         /** @var Annotation\JsonKey|null $jsonKey */
         $jsonKey = $this->findRemoteAnnotation(Annotation\JsonKey::class);
         $index = $jsonKey ? $jsonKey->key : lcfirst($this->getPluralName());
@@ -216,12 +218,14 @@ Exiting relationships will be removed and replaced by the provided relationships
     return \$object->jsonSerialize(true);
 }, \$this->$getter());
 PHP;
-        $code = preg_replace('(\n)', '\0    ', $code);
-        $code = <<<PHP
+        if (!$isIncluded) {
+            $code = preg_replace('(\n)', '\0    ', $code);
+            $code = <<<PHP
 if (!\$stopRecursion) {
     $code
 };
 PHP;
+        }
         return $code;
     }
 

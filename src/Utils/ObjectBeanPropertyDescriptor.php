@@ -196,6 +196,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             return '';
         }
 
+        $isIncluded = $this->findAnnotation(Annotation\JsonInclude::class) !== null;
         /** @var Annotation\JsonKey|null $jsonKey */
         $jsonKey = $this->findAnnotation(Annotation\JsonKey::class);
         $index = $jsonKey ? $jsonKey->key : $this->namingStrategy->getJsonProperty($this);
@@ -205,11 +206,13 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         } else {
             $code = "\$array['$index'] = \$this->$getter()->jsonSerialize(true);";
         }
-        $code = <<<PHP
+        if (!$isIncluded) {
+            $code = <<<PHP
 if (!\$stopRecursion) {
     $code
 };
 PHP;
+        }
         return $code;
     }
 

@@ -45,6 +45,7 @@ class AnnotationParser
             'ProtectedOneToMany' => ProtectedOneToMany::class,
             'JsonKey' => JsonKey::class,
             'JsonIgnore' => JsonIgnore::class,
+            'JsonInclude' => JsonInclude::class,
         ];
         $annotations = $defaultAnnotations + $additionalAnnotations;
         return new self($annotations);
