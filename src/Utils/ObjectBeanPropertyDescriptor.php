@@ -188,6 +188,10 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getJsonSerializeCode(): string
     {
+        if ($this->findAnnotation(Annotation\JsonIgnore::class)) {
+            return '';
+        }
+
         if ($this->isGetterProtected()) {
             return '';
         }

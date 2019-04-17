@@ -278,6 +278,10 @@ $this->set(%s, $%s, %s);',
      */
     public function getJsonSerializeCode(): string
     {
+        if ($this->findAnnotation(Annotation\JsonIgnore::class)) {
+            return '';
+        }
+
         if (!$this->canBeSerialized()) {
             return '';
         }

@@ -202,6 +202,10 @@ Exiting relationships will be removed and replaced by the provided relationships
      */
     public function getJsonSerializeCode() : string
     {
+        if ($this->findRemoteAnnotation(Annotation\JsonIgnore::class)) {
+            return '';
+        }
+
         /** @var Annotation\JsonKey|null $jsonKey */
         $jsonKey = $this->findRemoteAnnotation(Annotation\JsonKey::class);
         $index = $jsonKey ? $jsonKey->key : lcfirst($this->getPluralName());
