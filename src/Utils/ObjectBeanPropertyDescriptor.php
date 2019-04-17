@@ -192,7 +192,9 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             return '';
         }
 
-        $index = $this->namingStrategy->getJsonProperty($this);
+        /** @var Annotation\JsonKey|null $jsonKey */
+        $jsonKey = $this->findAnnotation(Annotation\JsonKey::class);
+        $index = $jsonKey ? $jsonKey->key : $this->namingStrategy->getJsonProperty($this);
         $getter = $this->getGetterName();
         if (!$this->isCompulsory()) {
             $code = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->jsonSerialize(true) : null;";

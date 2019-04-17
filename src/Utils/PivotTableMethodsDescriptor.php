@@ -202,7 +202,9 @@ Exiting relationships will be removed and replaced by the provided relationships
      */
     public function getJsonSerializeCode() : string
     {
-        $index = lcfirst($this->getPluralName());
+        /** @var Annotation\JsonKey|null $jsonKey */
+        $jsonKey = $this->findRemoteAnnotation(Annotation\JsonKey::class);
+        $index = $jsonKey ? $jsonKey->key : lcfirst($this->getPluralName());
         $class = $this->getBeanClassName();
         $getter = $this->getName();
         $code = <<<PHP

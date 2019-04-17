@@ -287,7 +287,9 @@ $this->set(%s, $%s, %s);',
             return '';
         }
 
-        $index = $this->namingStrategy->getJsonProperty($this);
+        /** @var Annotation\JsonKey|null $jsonKey */
+        $jsonKey = $this->findAnnotation(Annotation\JsonKey::class);
+        $index = $jsonKey ? $jsonKey->key : $this->namingStrategy->getJsonProperty($this);
         $getter = $this->getGetterName();
         if ($this->getPhpType() === '\\DateTimeImmutable') {
             if ($this->column->getNotnull()) {
