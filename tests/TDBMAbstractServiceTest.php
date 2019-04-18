@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace TheCodingMachine\TDBM;
 
+use DateTime;
+use DateTimeImmutable;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
@@ -28,6 +30,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
+use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\TestCase;
 use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
@@ -580,38 +583,38 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'id' => 1,
             'owner_id' => 1,
             'name' => '/',
-            'created_at' => (new \DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
         ]);
         self::insert($connection, 'nodes', [
             'id' => 2,
             'name' => 'private',
-            'created_at' => (new \DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
             'parent_id' => 1,
         ]);
         self::insert($connection, 'nodes', [
             'id' => 3,
             'name' => 'var',
-            'created_at' => (new \DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
             'parent_id' => 2,
         ]);
         self::insert($connection, 'nodes', [
             'id' => 4,
             'name' => 'var',
-            'created_at' => (new \DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
             'parent_id' => 1,
             'alias_id' => 3
         ]);
         self::insert($connection, 'nodes', [
             'id' => 5,
             'name' => 'www',
-            'created_at' => (new \DateTime('last week'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last week'))->format('Y-m-d H:i:s'),
             'parent_id' => 4
         ]);
         self::insert($connection, 'nodes', [
             'id' => 6,
             'owner_id' => 2,
             'name' => 'index.html',
-            'created_at' => (new \DateTime('now'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
             'size' => 512,
             'weight' => 42.5,
             'parent_id' => 5
@@ -619,14 +622,14 @@ abstract class TDBMAbstractServiceTest extends TestCase
         self::insert($connection, 'nodes', [
             'id' => 7,
             'name' => 'index.html',
-            'created_at' => (new \DateTime('now'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
             'alias_id' => 6,
             'parent_id' => 1
         ]);
         self::insert($connection, 'nodes', [
             'id' => 8,
             'name' => 'index.htm',
-            'created_at' => (new \DateTime('now'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
             'alias_id' => 7,
             'parent_id' => 1
         ]);
@@ -668,36 +671,34 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'artist_id' => 1,
             'title' => 'Animals'
         ]);
-        if ($connection->getDatabasePlatform() instanceof OraclePlatform) {
-            $oracleSuffix='AM';
-        } else {
-            $oracleSuffix='';
-        }
+
+        $timeType = Type::getType(Type::TIME_IMMUTABLE);
 
         self::insert($connection, 'tracks', [
             'album_id' => 1,
             'title' =>'Pigs on the Wing 1',
-            'duration' => '00:01:25'.$oracleSuffix,
+            // Note: Oracle does not have a TIME column type
+            'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:01:25'), $connection->getDatabasePlatform()),
         ]);
         self::insert($connection, 'tracks', [
             'album_id' => 1,
             'title' => 'Dogs',
-            'duration' => '00:17:04'.$oracleSuffix,
+            'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:17:04'), $connection->getDatabasePlatform()),
         ]);
         self::insert($connection, 'tracks', [
             'album_id' => 1,
             'title' => 'Pigs (Three Different Ones)',
-            'duration' => '00:11:22'.$oracleSuffix,
+            'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:11:22'), $connection->getDatabasePlatform()),
         ]);
         self::insert($connection, 'tracks', [
             'album_id' => 1,
             'title' => 'Sheep',
-            'duration' => '00:10:24'.$oracleSuffix,
+            'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:10:24'), $connection->getDatabasePlatform()),
         ]);
         self::insert($connection, 'tracks', [
             'album_id' => 1,
             'title' => 'Pigs on the Wing 2',
-            'duration' => '00:01:26'.$oracleSuffix,
+            'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:01:26'), $connection->getDatabasePlatform()),
         ]);
         self::insert($connection, 'featuring', [
             'track_id' => 1,
