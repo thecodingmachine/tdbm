@@ -10,6 +10,7 @@ use TheCodingMachine\TDBM\AlterableResultIterator;
 use TheCodingMachine\TDBM\Schema\ForeignKey;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation;
 use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\MethodGenerator;
@@ -160,7 +161,40 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      */
     public function getJsonSerializeCode() : string
     {
-        return '';
+        /** @var Annotation\JsonCollection|null $jsonCollection */
+        $jsonCollection = $this->findAnnotation(Annotation\JsonCollection::class);
+        if ($jsonCollection === null) {
+            return '';
+        }
+
+        /** @var Annotation\JsonFormat|null $jsonFormat */
+        $jsonFormat = $this->findAnnotation(Annotation\JsonFormat::class);
+        if ($jsonFormat !== null) {
+            $method = $jsonFormat->method ?? 'get' . ucfirst($jsonFormat->property);
+            $format = "$method()";
+        } else {
+            $stopRecursion = $this->findAnnotation(Annotation\JsonRecursive::class) ? '' : 'true';
+            $format = "jsonSerialize($stopRecursion)";
+        }
+        $isIncluded = $this->findAnnotation(Annotation\JsonInclude::class) !== null;
+        $index = $jsonCollection->key ?: lcfirst(TDBMDaoGenerator::toCamelCase($this->foreignKey->getLocalTableName()));
+        $class = $this->getBeanClassName();
+        $variableName = '$' . TDBMDaoGenerator::toVariableName($class);
+        $getter = $this->getName();
+        $code = <<<PHP
+\$array['$index'] = array_map(function ($class $variableName) {
+    return ${variableName}->$format;
+}, \$this->$getter()->toArray());
+PHP;
+        if (!$isIncluded) {
+            $code = preg_replace('(\n)', '\0    ', $code);
+            $code = <<<PHP
+if (!\$stopRecursion) {
+    $code
+};
+PHP;
+        }
+        return $code;
     }
 
     /**
@@ -182,11 +216,21 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
 
     private function isProtected(): bool
     {
+        return $this->findAnnotation(Annotation\ProtectedOneToMany::class) !== null;
+    }
+
+    /**
+     * @param string $type
+     * @return null|object
+     */
+    private function findAnnotation(string $type)
+    {
         foreach ($this->getAnnotations() as $annotations) {
-            if ($annotations->findAnnotation(Annotation\ProtectedOneToMany::class)) {
-                return true;
+            $annotation = $annotations->findAnnotation($type);
+            if ($annotation !== null) {
+                return $annotation;
             }
         }
-        return false;
+        return null;
     }
 }
