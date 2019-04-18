@@ -295,14 +295,43 @@ $this->set(%s, $%s, %s);',
         $jsonKey = $this->findAnnotation(Annotation\JsonKey::class);
         $index = $jsonKey ? $jsonKey->key : $this->namingStrategy->getJsonProperty($this);
         $getter = $this->getGetterName();
-        if ($this->getPhpType() === '\\DateTimeImmutable') {
-            if ($this->column->getNotnull()) {
-                return "\$array['$index'] = \$this->$getter()->format('c');";
-            } else {
-                return "\$array['$index'] = (\$date = \$this->$getter()) ? \$date->format('c') : null;";
-            }
+        switch ($this->getPhpType()) {
+            case '\\DateTimeImmutable':
+                /** @var Annotation\JsonFormat|null $jsonFormat */
+                $jsonFormat = $this->findAnnotation(Annotation\JsonFormat::class);
+                $format = $jsonFormat ? $jsonFormat->datetime : 'c';
+                if ($this->column->getNotnull()) {
+                    return "\$array['$index'] = \$this->$getter()->format('$format');";
+                } else {
+                    return "\$array['$index'] = (\$date = \$this->$getter()) ? \$date->format('$format') : null;";
+                }
+            case 'int':
+            case 'float':
+                /** @var Annotation\JsonFormat|null $jsonFormat */
+                $jsonFormat = $this->findAnnotation(Annotation\JsonFormat::class);
+                if ($jsonFormat) {
+                    $args = [$jsonFormat->decimals, $jsonFormat->point, $jsonFormat->separator];
+                    for ($i = 2; $i >= 0; --$i) {
+                        if ($args[$i] === null) {
+                            unset($args[$i]);
+                        } else {
+                            break;
+                        }
+                    }
+                    $args = array_map(function ($v) {
+                        return var_export($v, true);
+                    }, $args);
+                    $args = empty($args) ? '' : ', ' . implode(', ', $args);
+                    $unit = $jsonFormat->unit ? ' . ' . var_export($jsonFormat->unit, true) : '';
+                    if ($this->column->getNotnull()) {
+                        return "\$array['$index'] = number_format(\$this->$getter()$args)$unit;";
+                    } else {
+                        return "\$array['$index'] = (\$value = \$this->$getter()) !== null ? number_format(\$value$args)$unit : null;";
+                    }
+                }
+            default:
+                return "\$array['$index'] = \$this->$getter();";
         }
-        return "\$array['$index'] = \$this->$getter();";
     }
 
     /**
