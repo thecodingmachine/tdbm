@@ -33,7 +33,14 @@ use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\TestCase;
 use TheCodingMachine\FluidSchema\FluidSchema;
+use TheCodingMachine\FluidSchema\TdbmFluidSchema;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
+use TheCodingMachine\TDBM\Fixtures\Traits\TestOtherUserTrait;
+use TheCodingMachine\TDBM\Fixtures\Traits\TestUserDaoTrait;
+use TheCodingMachine\TDBM\Fixtures\Traits\TestUserTrait;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 
@@ -232,7 +239,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         $fromSchema = $connection->getSchemaManager()->createSchema();
         $toSchema = clone $fromSchema;
 
-        $db = new FluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
+        $db = new TdbmFluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
 
         $db->table('country')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
@@ -269,6 +276,11 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('manager_id')->references('contact')->null();
 
         $db->table('users')
+            ->addAnnotation('AddTrait', ['name'=>TestUserTrait::class], false)
+            ->addAnnotation('AddTrait', ['name'=>TestOtherUserTrait::class, 'modifiers'=>['\\'.TestOtherUserTrait::class.'::method1 insteadof \\'.TestUserTrait::class, '\\'.TestUserTrait::class.'::method1 as method1renamed']], false)
+            ->addAnnotation('AddTraitOnDao', ['name'=>TestUserDaoTrait::class], false)
+            ->implementsInterface(TestUserInterface::class)
+            ->implementsInterfaceOnDao(TestUserDaoInterface::class)
             ->extends('contact')
             ->column('login')->string(255)
             ->column('password')->string(255)->null()

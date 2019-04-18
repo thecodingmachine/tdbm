@@ -22,7 +22,12 @@ use TheCodingMachine\TDBM\Schema\ForeignKeys;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
 use TheCodingMachine\TDBM\TDBMService;
+use TheCodingMachine\TDBM\Utils\Annotation\AbstractTraitAnnotation;
+use TheCodingMachine\TDBM\Utils\Annotation\AddInterfaceOnDao;
+use TheCodingMachine\TDBM\Utils\Annotation\AddTrait;
+use TheCodingMachine\TDBM\Utils\Annotation\AddTraitOnDao;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\ClassGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
@@ -533,8 +538,18 @@ EOF
         ));
 
         $class->setDocBlock(new DocBlockGenerator("The $baseClassName class maps the '$tableName' table in database."));
-        $class->setImplementedInterfaces([ JsonSerializable::class ]);
 
+        /** @var AddInterface[] $addInterfaceAnnotations */
+        $addInterfaceAnnotations = $this->annotationParser->getTableAnnotations($this->table)->findAnnotations(AddInterface::class);
+
+        $interfaces = [ JsonSerializable::class ];
+        foreach ($addInterfaceAnnotations as $annotation) {
+            $interfaces[] = $annotation->getName();
+        }
+
+        $class->setImplementedInterfaces($interfaces);
+
+        $this->registerTraits($class, AddTrait::class);
 
         $method = $this->generateBeanConstructor();
         $method = $this->codeGeneratorListener->onBaseBeanConstructorGenerated($method, $this, $this->configuration, $class);
@@ -608,6 +623,25 @@ EOF
         return $file;
     }
 
+    private function registerTraits(ClassGenerator $class, string $annotationClass): void
+    {
+        /** @var AbstractTraitAnnotation[] $addTraitAnnotations */
+        $addTraitAnnotations = $this->annotationParser->getTableAnnotations($this->table)->findAnnotations($annotationClass);
+
+        foreach ($addTraitAnnotations as $annotation) {
+            $class->addTrait($annotation->getName());
+        }
+
+        foreach ($addTraitAnnotations as $annotation) {
+            foreach ($annotation->getInsteadOf() as $method => $replacedTrait) {
+                $class->addTraitOverride($method, $replacedTrait);
+            }
+            foreach ($annotation->getAs() as $method => $replacedMethod) {
+                $class->addTraitAlias($method, $replacedMethod);
+            }
+        }
+    }
+
     /**
      * Writes the representation of the PHP DAO file.
      *
@@ -656,6 +690,18 @@ EOF
         $class->setName($baseClassName);
 
         $class->setDocBlock(new DocBlockGenerator("The $baseClassName class will maintain the persistence of $beanClassWithoutNameSpace class into the $tableName table."));
+
+        /** @var AddInterfaceOnDao[] $addInterfaceOnDaoAnnotations */
+        $addInterfaceOnDaoAnnotations = $this->annotationParser->getTableAnnotations($this->table)->findAnnotations(AddInterfaceOnDao::class);
+
+        $interfaces = [];
+        foreach ($addInterfaceOnDaoAnnotations as $annotation) {
+            $interfaces[] = $annotation->getName();
+        }
+
+        $class->setImplementedInterfaces($interfaces);
+
+        $this->registerTraits($class, AddTraitOnDao::class);
 
         $tdbmServiceProperty = new PropertyGenerator('tdbmService');
         $tdbmServiceProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, ['\\'.TDBMService::class])]));

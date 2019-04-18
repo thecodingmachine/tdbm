@@ -24,13 +24,18 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Platforms\MySQL57Platform;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
+use ReflectionClass;
 use ReflectionMethod;
 use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\ArtistDao;
@@ -1953,5 +1958,50 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // ... and, ultimately, list of featuring artists, since feat is included
         self::assertTrue(isset($json['tracks'][0]['feat'][0]));
         self::assertEquals('Roger Waters', $json['tracks'][0]['feat'][0]['name']);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testAddInterfaceAnnotation()
+    {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            // See https://github.com/doctrine/dbal/pull/3512
+            $this->markTestSkipped('Only MySQL supports table level comments');
+        }
+
+        $refClass = new ReflectionClass(UserBaseBean::class);
+        $this->assertTrue($refClass->implementsInterface(TestUserInterface::class));
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testAddInterfaceOnDaoAnnotation()
+    {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            // See https://github.com/doctrine/dbal/pull/3512
+            $this->markTestSkipped('Only MySQL supports table level comments');
+        }
+
+        $refClass = new ReflectionClass(UserBaseDao::class);
+        $this->assertTrue($refClass->implementsInterface(TestUserDaoInterface::class));
+    }
+
+    public function testTrait()
+    {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            // See https://github.com/doctrine/dbal/pull/3512
+            $this->markTestSkipped('Only MySQL supports table level comments');
+        }
+
+        $userDao = new UserDao($this->tdbmService);
+        $userBean = $userDao->getById(1);
+
+        $this->assertSame('TestOtherUserTrait', $userBean->method1());
+        $this->assertSame('TestUserTrait', $userBean->method1renamed());
+
+        $refClass = new ReflectionClass(UserBaseDao::class);
+        $this->assertTrue($refClass->hasMethod('findNothing'));
     }
 }

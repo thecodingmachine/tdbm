@@ -182,6 +182,20 @@ You can customize the name of a bean (if you want the bean to have a different n
 $posts = $db->table('posts')->customBeanName('Article');
 ```
 
+## Add interfaces or traits to the generated beans and DAOs
+
+You can use the `implementsInterface` or `implementsInterfaceOnDao` to add PHP interfaces to the generated beans and DAOs.
+This can be useful if you are writing a third party library that does not have direct access to the generated beans and DAOs.
+By providing a database patch, you can force a given bean to implement an interface.
+
+```php
+// Customize implemented interfaces
+$db->table('posts')
+   ->implementsInterface('App\\PostInterface')  // The generated bean will implement interface App\\PostInterface
+   ->implementsInterfaceOnDao('App\\PostDaoInterface'); // The generated DAO will implement interface App\\PostDaoInterface
+```
+
+
 ## GraphQLite integration
 
 If you are using the [TDBM GraphQLite integration](graphqlite.md), you can also use the TDBM Fluid Schema Builder

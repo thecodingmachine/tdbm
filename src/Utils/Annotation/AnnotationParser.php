@@ -49,6 +49,10 @@ class AnnotationParser
             'JsonRecursive' => JsonRecursive::class,
             'JsonCollection' => JsonCollection::class,
             'JsonFormat' => JsonFormat::class,
+            'AddInterface' => AddInterface::class,
+            'AddInterfaceOnDao' => AddInterfaceOnDao::class,
+            'AddTrait' => AddTrait::class,
+            'AddTraitOnDao' => AddTraitOnDao::class,
         ];
         $annotations = $defaultAnnotations + $additionalAnnotations;
         return new self($annotations);

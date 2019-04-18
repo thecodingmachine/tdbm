@@ -839,9 +839,9 @@ class TDBMService
         $escapedFilters = [];
 
         foreach ($filters as $columnName => $value) {
-            $columnDescriptor = $tableDescriptor->getColumn($columnName);
+            $columnDescriptor = $tableDescriptor->getColumn((string) $columnName);
             $types[] = $columnDescriptor->getType();
-            $escapedFilters[$this->connection->quoteIdentifier($columnName)] = $value;
+            $escapedFilters[$this->connection->quoteIdentifier((string) $columnName)] = $value;
         }
         return ['filters' => $escapedFilters, 'types' => $types];
     }
@@ -1361,7 +1361,7 @@ class TDBMService
     }
 
     /**
-     * @param array[] $beanData An array of data: array<table, array<column, value>>
+     * @param array<string, array> $beanData An array of data: array<table, array<column, value>>
      *
      * @return mixed[] an array with first item = class name, second item = table name and third item = list of tables needed
      *
@@ -1370,7 +1370,7 @@ class TDBMService
     public function _getClassNameFromBeanData(array $beanData): array
     {
         if (count($beanData) === 1) {
-            $tableName = array_keys($beanData)[0];
+            $tableName = (string) array_keys($beanData)[0];
             $allTables = [$tableName];
         } else {
             $tables = [];

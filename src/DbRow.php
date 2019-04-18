@@ -382,7 +382,7 @@ class DbRow
      * Builds a raw db row from dbRow and references passed in parameters.
      *
      * @param mixed[] $dbRow
-     * @param AbstractTDBMObject[] $references
+     * @param array<string,AbstractTDBMObject|null> $references
      * @return mixed[]
      * @throws TDBMMissingReferenceException
      */

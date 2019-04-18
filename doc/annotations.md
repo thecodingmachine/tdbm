@@ -398,3 +398,97 @@ And, at last, a `NodeEntryBean`:
   "entry": "Hello, World"
 }
 ```
+
+
+The @AddInterface annotation
+----------------------------
+<small>(Available in TDBM 5.1+)</small>
+
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
+
+Use this annotation in a table comment to force a bean to implement a given PHP interface.
+
+```sql
+CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@AddInterface(\"App\\MemberInterface\")");
+```
+
+Why this annotation?
+
+If you are developing an application, it is likely you will not need this annotation. You can simply edit your bean
+and add an `implements` clause in the class declaration.
+
+However, if you are developing a library meant to be used by other developers, you can provide a SQL patch that will
+alter the comments of the table. The `implements` clause will be added by TDBM on the base bean class automatically.
+Therefore, this annotation allows third party-libraries to add interfaces to your beans.
+
+This annotation is particularly powerful when used in conjunction with the `@AddTrait` annotation.
+
+The @AddInterfaceOnDao annotation
+---------------------------------
+<small>(Available in TDBM 5.1+)</small>
+
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
+
+This annotation is similar to the `@AddInterface` annotation but it adds the interface on the DAO instead of the Bean.
+Use this annotation in a table comment to force a DAO to implement a given PHP interface.
+
+```sql
+CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@AddInterfaceDao(\"App\\MemberDaoInterface\")");
+```
+
+The @AddTrait annotation
+------------------------
+<small>(Available in TDBM 5.1+)</small>
+
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
+
+Use this annotation in a table comment to force a bean to use a given PHP trait.
+
+```sql
+CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@AddTrait(\"App\\MemberTrait\")");
+```
+
+This annotation is very useful to third party libraries that provide a table and want to ship a default behaviour for the beans
+associated with the table.
+
+You can also use the "modifiers" attribute of the annotation to override or alias some methods of the traits:
+
+```sql
+CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@AddTrait(name=\"App\\MemberTrait\"
+           modifiers={\"\\App\\MemberTrait::myMethod insteadof OtherTrait\",
+                      \"\\App\\OtherTrait::myMethod as myRenamedMethod\"}
+           )");
+```
+
+The @AddTraitOnDao annotation
+-----------------------------
+<small>(Available in TDBM 5.1+)</small>
+
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
+
+This annotation is similar to the `@AddTrait` annotation but it adds the trait on the DAO instead of the Bean.
+
+```sql
+CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@AddTraitOnDao(\"App\\MemberDaoTrait\")");
+```
+
