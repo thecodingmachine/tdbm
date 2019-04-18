@@ -404,6 +404,8 @@ The @AddInterface annotation
 ----------------------------
 <small>(Available in TDBM 5.1+)</small>
 
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
+
 Use this annotation in a table comment to force a bean to implement a given PHP interface.
 
 ```sql
@@ -429,6 +431,8 @@ The @AddInterfaceOnDao annotation
 ---------------------------------
 <small>(Available in TDBM 5.1+)</small>
 
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
+
 This annotation is similar to the `@AddInterface` annotation but it adds the interface on the DAO instead of the Bean.
 Use this annotation in a table comment to force a DAO to implement a given PHP interface.
 
@@ -443,6 +447,8 @@ CREATE TABLE `members` (
 The @AddTrait annotation
 ------------------------
 <small>(Available in TDBM 5.1+)</small>
+
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
 
 Use this annotation in a table comment to force a bean to use a given PHP trait.
 
@@ -473,6 +479,8 @@ CREATE TABLE `members` (
 The @AddTraitOnDao annotation
 -----------------------------
 <small>(Available in TDBM 5.1+)</small>
+
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
 
 This annotation is similar to the `@AddTrait` annotation but it adds the trait on the DAO instead of the Bean.
 
