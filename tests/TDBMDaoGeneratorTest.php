@@ -24,6 +24,8 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Platforms\MySQL57Platform;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
 use ReflectionClass;
@@ -1963,6 +1965,11 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testAddInterfaceAnnotation()
     {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            // See https://github.com/doctrine/dbal/pull/3512
+            $this->markTestSkipped('Only MySQL supports table level comments');
+        }
+
         $refClass = new ReflectionClass(UserBaseBean::class);
         $this->assertTrue($refClass->implementsInterface(TestUserInterface::class));
     }
@@ -1972,12 +1979,22 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testAddInterfaceOnDaoAnnotation()
     {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            // See https://github.com/doctrine/dbal/pull/3512
+            $this->markTestSkipped('Only MySQL supports table level comments');
+        }
+
         $refClass = new ReflectionClass(UserBaseDao::class);
         $this->assertTrue($refClass->implementsInterface(TestUserDaoInterface::class));
     }
 
     public function testTrait()
     {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            // See https://github.com/doctrine/dbal/pull/3512
+            $this->markTestSkipped('Only MySQL supports table level comments');
+        }
+
         $userDao = new UserDao($this->tdbmService);
         $userBean = $userDao->getById(1);
 
