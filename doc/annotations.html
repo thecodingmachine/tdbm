@@ -503,6 +503,203 @@ access is sensitive and will therefore prevent the column from being JSON serial
 <p>This annotation can be put on a column comment to alter the visibility of the &quot;inverse&quot; relationship.</p>
 <p>For instance, if you put the <code>@ProtectedOneToMany</code> on the &quot;country_id&quot; column of a &quot;users&quot; table,
 then in the <code>Country</code> bean, the <code>getUsers()</code> method will be protected.</p>
+<h2 id="the-json-annotations">The @Json annotations</h2>
+<p><small>(In development)</small></p>
+<p>The <code>@Json</code> set of annotations helps monitoring the generation of <code>jsonSerialize</code> method.</p>
+<h3 id="jsonkey">@JsonKey:</h3>
+<p>Use the <code>@JsonKey</code> annotation to change the name of the serialized property. It works with a scalar column, a direct
+foreign key and even a pivot table.</p>
+<h3 id="jsonformat">@JsonFormat:</h3>
+<p>Use the <code>@JsonFormat</code> annotation to specify format to use when serializing.
+Depending on the type of the property, the arguments are:</p>
+<ul>
+<li>Datetime: <code>datetime=&lt;string&gt;</code> a format compatible with <code>date</code> function.</li>
+<li>int/float: <code>decimals=&lt;int&gt;</code>, <code>point=&lt;string&gt;</code>, <code>separator=&lt;string&gt;</code>, <code>unit=&lt;string&gt;</code> the 3 first arguments are then
+passed to function <code>number_format</code>. An additional argument <code>unit</code> may be useful to suffix the property value.</li>
+<li>object: <code>method=&lt;string&gt;</code> or <code>property=&lt;string&gt;</code> a method or a property accessible with a standard getter.</li>
+</ul>
+<h3 id="jsonignore">@JsonIgnore:</h3>
+<p>Use the <code>@JsonIgnore</code> annotation if you want to hide a property when serializing a bean. You may use it to hide scalar
+or referenced objects, whether from direct foreign key or from a pivot table. In order to do so, you need to annotate
+one of the foreign key columns.</p>
+<h3 id="jsoninclude">@JsonInclude:</h3>
+<p>Use the <code>@JsonInclude</code> annotation to ignore parameter <code>$stopRecursion</code> in <code>jsonSerialize</code>, therefore treating sub-object
+almost like a scalar. If used on a pivot table, the reciprocal will be ignored (implicit <code>@JsonIgnore</code> on secondary
+foreign key).</p>
+<h3 id="jsonrecursive">@JsonRecursive:</h3>
+<p>Use the <code>@JsonRecursive</code> annotation to set parameter <code>$stopRecursion</code> to <code>true</code> when calling <code>jsonSerialize</code> on
+sub-object. Likewise <code>@JsonInclude</code>, the reciprocal will be ignored when used on a pivot table.</p>
+<h3 id="jsoncollection">@JsonCollection:</h3>
+<p>Use the <code>@JsonCollection</code> annotation on a foreign key to invert the serialization, from one-to-one to one-to-many. You
+may provide the collection property name in json using argument <code>key=&lt;string&gt;</code>.
+Moreover, the <code>@JsonCollection</code> annotation is compatible with <code>@JsonFormat</code>, <code>@JsonRecursive</code> and <code>@JsonInclude</code>.</p>
+<p>Here is an example of a schema using massive @Json annotations to customize code generation:</p>
+<pre><code class="language-sql">CREATE TABLE `accounts` (
+  `id` INTEGER NOT NULL,
+  `name` VARCHAR(255),
+  PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `nodes` (
+  `id` INTEGER NOT NULL COMMENT '@JsonIgnore',
+  `alias_id` INTEGER COMMENT '@JsonRecursive',
+  `parent_id` INTEGER COMMENT '@JsonInclude',
+  `root_id` INTEGER COMMENT '@JsonIgnore',
+  `owner_id` INTEGER COMMENT '@JsonFormat(property="name") @JsonInclude',
+  `name` VARCHAR(255) COMMENT '@JsonKey("basename")',
+  `size` INTEGER COMMENT '@JsonFormat(unit=" ko")',
+  `weight` FLOAT COMMENT '@JsonFormat(decimals=2,unit="g")',
+  `created_at` DATE COMMENT '@JsonFormat("Y-m-d")',
+  FOREIGN KEY fk_alias(`alias_id`)
+    REFERENCES nodes(`id`),
+  FOREIGN KEY fk_parent(`parent_id`)
+    REFERENCES nodes(`id`),
+  FOREIGN KEY fk_root(`root_id`)
+    REFERENCES nodes(`id`),
+  FOREIGN KEY fk_owner(`owner_id`)
+    REFERENCES accounts(`id`),
+  PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `nodes_guests` (
+  `node_id` INTEGER NOT NULL COMMENT '@JsonIgnore',
+  `guest_id` INTEGER NOT NULL COMMENT '@JsonKey("guests") @JsonFormat(method="getName")',
+  FOREIGN KEY fk_node(`node_id`)
+    REFERENCES nodes(`id`),
+  FOREIGN KEY fk_guest(`guest_id`)
+    REFERENCES accounts(`id`)
+);
+
+CREATE TABLE `node_entries` (
+  `id` INTEGER NOT NULL,
+  `node_id` INTEGER NOT NULL COMMENT '@JsonCollection("entries") @JsonFormat(property="entry")',
+  `entry` VARCHAR(255),
+  FOREIGN KEY fk_node(`node_id`)
+    REFERENCES nodes(`id`),
+  PRIMARY KEY (`id`)
+);</code></pre>
+<p>With such a configuration: a serialized <code>NodeBean</code> looks like this:</p>
+<pre><code class="language-json">{
+  "alias": null,
+  "parent": {
+    "parent": {
+      "parent": {
+        "parent": null,
+        "owner": "root",
+        "basename": "\/",
+        "size": "0 o",
+        "weight": null,
+        "createdAt": "2018-04-18"
+      },
+      "owner": null,
+      "basename": "var",
+      "size": "0 o",
+      "weight": null,
+      "createdAt": "2018-04-18"
+    },
+    "owner": null,
+    "basename": "www",
+    "size": "0 o",
+    "weight": null,
+    "createdAt": "2019-04-08"
+  },
+  "owner": "user",
+  "basename": "index.html",
+  "size": "512 o",
+  "weight": "42.50g",
+  "createdAt": "2019-04-18",
+  "entries": [
+    "&lt;h1&gt;",
+    "Hello, World",
+    "&lt;\/h1&gt;"
+  ],
+  "guests": [
+    "root",
+    "www"
+  ]
+}</code></pre>
+<p>Or:</p>
+<pre><code class="language-json">{
+  "alias": {
+    "alias": null,
+    "parent": {
+      "parent": {
+        "parent": null,
+        "owner": "root",
+        "basename": "\/",
+        "size": "0 o",
+        "weight": null,
+        "createdAt": "2018-04-18"
+      },
+      "owner": null,
+      "basename": "private",
+      "size": "0 o",
+      "weight": null,
+      "createdAt": "2018-04-18"
+    },
+    "owner": null,
+    "basename": "var",
+    "size": "0 o",
+    "weight": null,
+    "createdAt": "2018-04-18",
+    "entries": [],
+    "guests": []
+  },
+  "parent": {
+    "parent": null,
+    "owner": "root",
+    "basename": "\/",
+    "size": "0 o",
+    "weight": null,
+    "createdAt": "2018-04-18"
+  },
+  "owner": null,
+  "basename": "var",
+  "size": "0 o",
+  "weight": null,
+  "createdAt": "2018-04-18",
+  "entries": [],
+  "guests": []
+}</code></pre>
+<p>A <code>AccountBean</code>:</p>
+<pre><code class="language-json">{
+  "id": 1,
+  "name": "user"
+}</code></pre>
+<p>And, at last, a <code>NodeEntryBean</code>:</p>
+<pre><code class="language-json">{
+  "id": 2,
+  "node": {
+    "parent": {
+      "parent": {
+        "parent": {
+          "parent": null,
+          "owner": "root",
+          "basename": "\/",
+          "size": "0 o",
+          "weight": null,
+          "createdAt": "2018-04-18"
+        },
+        "owner": null,
+        "basename": "var",
+        "size": "0 o",
+        "weight": null,
+        "createdAt": "2018-04-18"
+      },
+      "owner": null,
+      "basename": "www",
+      "size": "0 o",
+      "weight": null,
+      "createdAt": "2019-04-08"
+    },
+    "owner": "user",
+    "basename": "index.html",
+    "size": "512 o",
+    "weight": "42.50g",
+    "createdAt": "2019-04-18"
+  },
+  "entry": "Hello, World"
+}</code></pre>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
