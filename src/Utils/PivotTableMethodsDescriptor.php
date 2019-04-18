@@ -208,17 +208,24 @@ Exiting relationships will be removed and replaced by the provided relationships
             return '';
         }
 
+        /** @var Annotation\JsonFormat|null $jsonFormat */
+        $jsonFormat = $this->findRemoteAnnotation(Annotation\JsonFormat::class);
+        if ($jsonFormat !== null) {
+            $method = $jsonFormat->method ?? 'get' . ucfirst($jsonFormat->property);
+            $format = "$method()";
+        } else {
+            $stopRecursion = $this->findRemoteAnnotation(Annotation\JsonRecursive::class) ? '' : 'true';
+            $format = "jsonSerialize($stopRecursion)";
+        }
         $isIncluded = $this->findRemoteAnnotation(Annotation\JsonInclude::class) !== null;
-        $isRecursive = $this->findRemoteAnnotation(Annotation\JsonRecursive::class) !== null;
         /** @var Annotation\JsonKey|null $jsonKey */
         $jsonKey = $this->findRemoteAnnotation(Annotation\JsonKey::class);
         $index = $jsonKey ? $jsonKey->key : lcfirst($this->getPluralName());
         $class = $this->getBeanClassName();
         $getter = $this->getName();
-        $stopRecursion = $isRecursive ? '' : 'true';
         $code = <<<PHP
 \$array['$index'] = array_map(function ($class \$object) {
-    return \$object->jsonSerialize($stopRecursion);
+    return \$object->$format;
 }, \$this->$getter());
 PHP;
         if (!$isIncluded) {

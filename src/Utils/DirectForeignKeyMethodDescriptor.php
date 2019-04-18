@@ -166,17 +166,27 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         if ($jsonCollection === null) {
             return '';
         }
+
+        /** @var Annotation\JsonFormat|null $jsonFormat */
+        $jsonFormat = $this->findAnnotation(Annotation\JsonFormat::class);
+        if ($jsonFormat !== null) {
+            $method = $jsonFormat->method ?? 'get' . ucfirst($jsonFormat->property);
+            $format = "$method()";
+        } else {
+            $stopRecursion = $this->findAnnotation(Annotation\JsonRecursive::class) ? '' : 'true';
+            $format = "jsonSerialize($stopRecursion)";
+        }
+        $isIncluded = $this->findAnnotation(Annotation\JsonInclude::class) !== null;
         $index = $jsonCollection->key ?: lcfirst(TDBMDaoGenerator::toCamelCase($this->foreignKey->getLocalTableName()));
         $class = $this->getBeanClassName();
         $variableName = '$' . TDBMDaoGenerator::toVariableName($class);
-        $method = $this->getName();
-        $stopRecursion = $this->findAnnotation(Annotation\JsonRecursive::class) ? '' : 'true';
+        $getter = $this->getName();
         $code = <<<PHP
 \$array['$index'] = array_map(function ($class $variableName) {
-    return ${variableName}->jsonSerialize($stopRecursion);
-}, \$this->$method()->toArray());
+    return ${variableName}->$format;
+}, \$this->$getter()->toArray());
 PHP;
-        if (!$this->findAnnotation(Annotation\JsonInclude::class)) {
+        if (!$isIncluded) {
             $code = preg_replace('(\n)', '\0    ', $code);
             $code = <<<PHP
 if (!\$stopRecursion) {

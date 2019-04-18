@@ -36,4 +36,14 @@ final class JsonFormat
      * @var string
      */
     public $unit = null;
+    /**
+     * The property to get from an object.
+     * @var string
+     */
+    public $property;
+    /**
+     * The method to call from an object.
+     * @var string
+     */
+    public $method;
 }
