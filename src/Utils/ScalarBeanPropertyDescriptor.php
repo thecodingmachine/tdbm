@@ -326,7 +326,7 @@ $this->set(%s, $%s, %s);',
                     if ($this->column->getNotnull()) {
                         return "\$array['$index'] = number_format(\$this->$getter()$args)$unit;";
                     } else {
-                        return "\$array['$index'] = (\$value = \$this->$getter()) !== null ? number_format(\$value$args)$unit : null;";
+                        return "\$array['$index'] = \$this->$getter() !== null ? number_format(\$this->$getter()$args)$unit : null;";
                     }
                 }
             default:
