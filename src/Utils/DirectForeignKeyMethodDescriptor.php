@@ -161,7 +161,30 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      */
     public function getJsonSerializeCode() : string
     {
-        return '';
+        /** @var Annotation\JsonCollection|null $jsonCollection */
+        $jsonCollection = $this->findAnnotation(Annotation\JsonCollection::class);
+        if ($jsonCollection === null) {
+            return '';
+        }
+        $index = $jsonCollection->key ?: lcfirst(TDBMDaoGenerator::toCamelCase($this->foreignKey->getLocalTableName()));
+        $class = $this->getBeanClassName();
+        $variableName = '$' . TDBMDaoGenerator::toVariableName($class);
+        $method = $this->getName();
+        $stopRecursion = $this->findAnnotation(Annotation\JsonRecursive::class) ? '' : 'true';
+        $code = <<<PHP
+\$array['$index'] = array_map(function ($class $variableName) {
+    return ${variableName}->jsonSerialize($stopRecursion);
+}, \$this->$method()->toArray());
+PHP;
+        if (!$this->findAnnotation(Annotation\JsonInclude::class)) {
+            $code = preg_replace('(\n)', '\0    ', $code);
+            $code = <<<PHP
+if (!\$stopRecursion) {
+    $code
+};
+PHP;
+        }
+        return $code;
     }
 
     /**

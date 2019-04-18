@@ -47,6 +47,7 @@ class AnnotationParser
             'JsonIgnore' => JsonIgnore::class,
             'JsonInclude' => JsonInclude::class,
             'JsonRecursive' => JsonRecursive::class,
+            'JsonCollection' => JsonCollection::class,
         ];
         $annotations = $defaultAnnotations + $additionalAnnotations;
         return new self($annotations);
