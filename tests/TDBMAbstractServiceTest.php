@@ -668,30 +668,36 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'artist_id' => 1,
             'title' => 'Animals'
         ]);
+        if ($connection->getDatabasePlatform() instanceof OraclePlatform) {
+            $oracleSuffix='AM';
+        } else {
+            $oracleSuffix='';
+        }
+
         self::insert($connection, 'tracks', [
             'album_id' => 1,
             'title' =>'Pigs on the Wing 1',
-            'duration' => '00:01:25'
+            'duration' => '00:01:25'.$oracleSuffix,
         ]);
         self::insert($connection, 'tracks', [
             'album_id' => 1,
             'title' => 'Dogs',
-            'duration' => '00:17:04',
+            'duration' => '00:17:04'.$oracleSuffix,
         ]);
         self::insert($connection, 'tracks', [
             'album_id' => 1,
             'title' => 'Pigs (Three Different Ones)',
-            'duration' => '00:11:22',
+            'duration' => '00:11:22'.$oracleSuffix,
         ]);
         self::insert($connection, 'tracks', [
             'album_id' => 1,
             'title' => 'Sheep',
-            'duration' => '00:10:24',
+            'duration' => '00:10:24'.$oracleSuffix,
         ]);
         self::insert($connection, 'tracks', [
             'album_id' => 1,
             'title' => 'Pigs on the Wing 2',
-            'duration' => '00:01:26',
+            'duration' => '00:01:26'.$oracleSuffix,
         ]);
         self::insert($connection, 'featuring', [
             'track_id' => 1,
