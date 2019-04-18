@@ -278,7 +278,9 @@ $this->set(%s, $%s, %s);',
      */
     public function getJsonSerializeCode(): string
     {
-        $normalizedType = $this->getPhpType();
+        if ($this->findAnnotation(Annotation\JsonIgnore::class)) {
+            return '';
+        }
 
         if (!$this->canBeSerialized()) {
             return '';
@@ -289,14 +291,46 @@ $this->set(%s, $%s, %s);',
             return '';
         }
 
-        if ($normalizedType == '\\DateTimeImmutable') {
-            if ($this->column->getNotnull()) {
-                return '$array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."()->format('c');\n";
-            } else {
-                return '$array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
-            }
-        } else {
-            return '$array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."();\n";
+        /** @var Annotation\JsonKey|null $jsonKey */
+        $jsonKey = $this->findAnnotation(Annotation\JsonKey::class);
+        $index = $jsonKey ? $jsonKey->key : $this->namingStrategy->getJsonProperty($this);
+        $getter = $this->getGetterName();
+        switch ($this->getPhpType()) {
+            case '\\DateTimeImmutable':
+                /** @var Annotation\JsonFormat|null $jsonFormat */
+                $jsonFormat = $this->findAnnotation(Annotation\JsonFormat::class);
+                $format = $jsonFormat ? $jsonFormat->datetime : 'c';
+                if ($this->column->getNotnull()) {
+                    return "\$array['$index'] = \$this->$getter()->format('$format');";
+                } else {
+                    return "\$array['$index'] = (\$date = \$this->$getter()) ? \$date->format('$format') : null;";
+                }
+            case 'int':
+            case 'float':
+                /** @var Annotation\JsonFormat|null $jsonFormat */
+                $jsonFormat = $this->findAnnotation(Annotation\JsonFormat::class);
+                if ($jsonFormat) {
+                    $args = [$jsonFormat->decimals, $jsonFormat->point, $jsonFormat->separator];
+                    for ($i = 2; $i >= 0; --$i) {
+                        if ($args[$i] === null) {
+                            unset($args[$i]);
+                        } else {
+                            break;
+                        }
+                    }
+                    $args = array_map(function ($v) {
+                        return var_export($v, true);
+                    }, $args);
+                    $args = empty($args) ? '' : ', ' . implode(', ', $args);
+                    $unit = $jsonFormat->unit ? ' . ' . var_export($jsonFormat->unit, true) : '';
+                    if ($this->column->getNotnull()) {
+                        return "\$array['$index'] = number_format(\$this->$getter()$args)$unit;";
+                    } else {
+                        return "\$array['$index'] = \$this->$getter() !== null ? number_format(\$this->$getter()$args)$unit : null;";
+                    }
+                }
+            default:
+                return "\$array['$index'] = \$this->$getter();";
         }
     }
 
@@ -357,15 +391,20 @@ $this->set(%s, $%s, %s);',
 
     private function isGetterProtected(): bool
     {
-        /** @var Annotation\ProtectedGetter $annotation */
-        $annotation = $this->getAnnotations()->findAnnotation(Annotation\ProtectedGetter::class);
-        return $annotation !== null;
+        return $this->findAnnotation(Annotation\ProtectedGetter::class) !== null;
     }
 
     private function isSetterProtected(): bool
     {
-        /** @var Annotation\ProtectedSetter $annotation */
-        $annotation = $this->getAnnotations()->findAnnotation(Annotation\ProtectedSetter::class);
-        return $annotation !== null;
+        return $this->findAnnotation(Annotation\ProtectedSetter::class) !== null;
+    }
+
+    /**
+     * @param string $type
+     * @return null|object
+     */
+    private function findAnnotation(string $type)
+    {
+        return $this->getAnnotations()->findAnnotation($type);
     }
 }

@@ -3,13 +3,12 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
-use function array_map;
-use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use TheCodingMachine\TDBM\Schema\ForeignKey;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
-use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
+use TheCodingMachine\TDBM\Utils\Annotation;
 use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
@@ -76,7 +75,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getPhpType(): string
     {
-        return '\\'.$this->beanNamespace.'\\'.$this->getClassName();
+        return '\\' . $this->beanNamespace . '\\' . $this->getClassName();
     }
 
     /**
@@ -149,7 +148,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $referencedBeanName = $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
 
         $getter = new MethodGenerator($getterName);
-        $getter->setDocBlock('Returns the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getUnquotedLocalColumns()).' column.');
+        $getter->setDocBlock('Returns the ' . $referencedBeanName . ' object bound to this object via the ' . implode(' and ', $this->foreignKey->getUnquotedLocalColumns()) . ' column.');
 
         /*$types = [ $referencedBeanName ];
         if ($isNullable) {
@@ -157,22 +156,23 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         }
         $getter->getDocBlock()->setTag(new ReturnTag($types));*/
 
-        $getter->setReturnType(($isNullable?'?':'').$this->beanNamespace.'\\'.$referencedBeanName);
+        $getter->setReturnType(($isNullable ? '?' : '') . $this->beanNamespace . '\\' . $referencedBeanName);
+        $tdbmFk = ForeignKey::createFromFk($this->foreignKey);
 
-        $getter->setBody('return $this->getRef('.var_export($this->foreignKey->getName(), true).', '.var_export($tableName, true).');');
+        $getter->setBody('return $this->getRef(' . var_export($tdbmFk->getCacheKey(), true) . ', ' . var_export($tableName, true) . ');');
 
         if ($this->isGetterProtected()) {
             $getter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
         }
 
         $setter = new MethodGenerator($setterName);
-        $setter->setDocBlock('The setter for the '.$referencedBeanName.' object bound to this object via the '.implode(' and ', $this->foreignKey->getUnquotedLocalColumns()).' column.');
+        $setter->setDocBlock('The setter for the ' . $referencedBeanName . ' object bound to this object via the ' . implode(' and ', $this->foreignKey->getUnquotedLocalColumns()) . ' column.');
 
-        $setter->setParameter(new ParameterGenerator('object', ($isNullable?'?':'').$this->beanNamespace.'\\'.$referencedBeanName));
+        $setter->setParameter(new ParameterGenerator('object', ($isNullable ? '?' : '') . $this->beanNamespace . '\\' . $referencedBeanName));
 
         $setter->setReturnType('void');
 
-        $setter->setBody('$this->setRef('.var_export($this->foreignKey->getName(), true).', $object, '.var_export($tableName, true).');');
+        $setter->setBody('$this->setRef(' . var_export($tdbmFk->getCacheKey(), true) . ', $object, ' . var_export($tableName, true) . ');');
 
         if ($this->isSetterProtected()) {
             $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
@@ -188,22 +188,50 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function getJsonSerializeCode(): string
     {
+        if ($this->findAnnotation(Annotation\JsonIgnore::class)) {
+            return '';
+        }
+
         if ($this->isGetterProtected()) {
             return '';
         }
 
-        if (!$this->isCompulsory()) {
-            return 'if (!$stopRecursion) {
-    $object = $this->'.$this->getGetterName().'();
-    $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $object ? $object->jsonSerialize(true) : null;
-}
-';
+        if ($this->findAnnotation(Annotation\JsonCollection::class)) {
+            if ($this->findAnnotation(Annotation\JsonInclude::class) ||
+                $this->findAnnotation(Annotation\JsonRecursive::class)) {
+                return '';
+            }
+            $isIncluded = false;
+            $format = "jsonSerialize(true)";
         } else {
-            return 'if (!$stopRecursion) {
-    $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName().'()->jsonSerialize(true);
-}
-';
+            $isIncluded = $this->findAnnotation(Annotation\JsonInclude::class) !== null;
+            /** @var Annotation\JsonFormat|null $jsonFormat */
+            $jsonFormat = $this->findAnnotation(Annotation\JsonFormat::class);
+            if ($jsonFormat !== null) {
+                $method = $jsonFormat->method ?? 'get' . ucfirst($jsonFormat->property);
+                $format = "$method()";
+            } else {
+                $stopRecursion = $this->findAnnotation(Annotation\JsonRecursive::class) ? '' : 'true';
+                $format = "jsonSerialize($stopRecursion)";
+            }
         }
+        /** @var Annotation\JsonKey|null $jsonKey */
+        $jsonKey = $this->findAnnotation(Annotation\JsonKey::class);
+        $index = $jsonKey ? $jsonKey->key : $this->namingStrategy->getJsonProperty($this);
+        $getter = $this->getGetterName();
+        if (!$this->isCompulsory()) {
+            $code = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->$format : null;";
+        } else {
+            $code = "\$array['$index'] = \$this->$getter()->$format;";
+        }
+        if (!$isIncluded) {
+            $code = <<<PHP
+if (!\$stopRecursion) {
+    $code
+};
+PHP;
+        }
+        return $code;
     }
 
     /**
@@ -220,29 +248,33 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      *
      * @return bool
      */
-    public function isTypeHintable() : bool
+    public function isTypeHintable(): bool
     {
         return true;
     }
 
     private function isGetterProtected(): bool
     {
-        foreach ($this->getAnnotations() as $annotations) {
-            if ($annotations->findAnnotation(Annotation\ProtectedGetter::class)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->findAnnotation(Annotation\ProtectedGetter::class) !== null;
     }
 
     private function isSetterProtected(): bool
     {
-        foreach ($this->getAnnotations() as $annotations) {
-            if ($annotations->findAnnotation(Annotation\ProtectedSetter::class)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->findAnnotation(Annotation\ProtectedSetter::class) !== null;
     }
 
+    /**
+     * @param string $type
+     * @return null|object
+     */
+    private function findAnnotation(string $type)
+    {
+        foreach ($this->getAnnotations() as $annotations) {
+            $annotation = $annotations->findAnnotation($type);
+            if ($annotation !== null) {
+                return $annotation;
+            }
+        }
+        return null;
+    }
 }

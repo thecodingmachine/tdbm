@@ -3,9 +3,12 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
 use function sprintf;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\MethodGenerator;
@@ -37,6 +40,19 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      * @var string
      */
     private $beanNamespace;
+    /**
+     * @var AnnotationParser
+     */
+    private $annotationParser;
+
+    /**
+     * @var array
+     */
+    private $localAnnotations;
+    /**
+     * @var array
+     */
+    private $remoteAnnotations;
 
     /**
      * @param Table $pivotTable The pivot table
@@ -44,13 +60,14 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      * @param ForeignKeyConstraint $remoteFk
      * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $pivotTable, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, NamingStrategyInterface $namingStrategy, string $beanNamespace)
+    public function __construct(Table $pivotTable, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, NamingStrategyInterface $namingStrategy, string $beanNamespace, AnnotationParser $annotationParser)
     {
         $this->pivotTable = $pivotTable;
         $this->localFk = $localFk;
         $this->remoteFk = $remoteFk;
         $this->namingStrategy = $namingStrategy;
         $this->beanNamespace = $beanNamespace;
+        $this->annotationParser = $annotationParser;
     }
 
     /**
@@ -185,15 +202,41 @@ Exiting relationships will be removed and replaced by the provided relationships
      */
     public function getJsonSerializeCode() : string
     {
-        $remoteBeanName = $this->getBeanClassName();
-        $variableName = '$'.TDBMDaoGenerator::toVariableName($remoteBeanName);
+        if ($this->findRemoteAnnotation(Annotation\JsonIgnore::class) ||
+            $this->findLocalAnnotation(Annotation\JsonInclude::class) ||
+            $this->findLocalAnnotation(Annotation\JsonRecursive::class)) {
+            return '';
+        }
 
-        return 'if (!$stopRecursion) {
-    $array[\''.lcfirst($this->getPluralName()).'\'] = array_map(function ('.$remoteBeanName.' '.$variableName.') {
-        return '.$variableName.'->jsonSerialize(true);
-    }, $this->'.$this->getName().'());
-}
-';
+        /** @var Annotation\JsonFormat|null $jsonFormat */
+        $jsonFormat = $this->findRemoteAnnotation(Annotation\JsonFormat::class);
+        if ($jsonFormat !== null) {
+            $method = $jsonFormat->method ?? 'get' . ucfirst($jsonFormat->property);
+            $format = "$method()";
+        } else {
+            $stopRecursion = $this->findRemoteAnnotation(Annotation\JsonRecursive::class) ? '' : 'true';
+            $format = "jsonSerialize($stopRecursion)";
+        }
+        $isIncluded = $this->findRemoteAnnotation(Annotation\JsonInclude::class) !== null;
+        /** @var Annotation\JsonKey|null $jsonKey */
+        $jsonKey = $this->findRemoteAnnotation(Annotation\JsonKey::class);
+        $index = $jsonKey ? $jsonKey->key : lcfirst($this->getPluralName());
+        $class = $this->getBeanClassName();
+        $getter = $this->getName();
+        $code = <<<PHP
+\$array['$index'] = array_map(function ($class \$object) {
+    return \$object->$format;
+}, \$this->$getter());
+PHP;
+        if (!$isIncluded) {
+            $code = preg_replace('(\n)', '\0    ', $code);
+            $code = <<<PHP
+if (!\$stopRecursion) {
+    $code
+};
+PHP;
+        }
+        return $code;
     }
 
     /**
@@ -218,5 +261,84 @@ Exiting relationships will be removed and replaced by the provided relationships
     public function getRemoteFk(): ForeignKeyConstraint
     {
         return $this->remoteFk;
+    }
+
+    /**
+     * @param string $type
+     * @return null|object
+     */
+    private function findLocalAnnotation(string $type)
+    {
+        foreach ($this->getLocalAnnotations() as $annotations) {
+            $annotation = $annotations->findAnnotation($type);
+            if ($annotation !== null) {
+                return $annotation;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param string $type
+     * @return null|object
+     */
+    private function findRemoteAnnotation(string $type)
+    {
+        foreach ($this->getRemoteAnnotations() as $annotations) {
+            $annotation = $annotations->findAnnotation($type);
+            if ($annotation !== null) {
+                return $annotation;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @return Annotations[]
+     */
+    private function getLocalAnnotations(): array
+    {
+        if ($this->localAnnotations === null) {
+            $this->localAnnotations = $this->getFkAnnotations($this->localFk);
+        }
+        return $this->localAnnotations;
+    }
+
+    /**
+     * @return Annotations[]
+     */
+    private function getRemoteAnnotations(): array
+    {
+        if ($this->remoteAnnotations === null) {
+            $this->remoteAnnotations = $this->getFkAnnotations($this->remoteFk);
+        }
+        return $this->remoteAnnotations;
+    }
+
+    /**
+     * @param ForeignKeyConstraint $fk
+     * @return Annotations[]
+     */
+    private function getFkAnnotations(ForeignKeyConstraint $fk): array
+    {
+        $annotations = [];
+        foreach ($this->getFkColumns($fk) as $column) {
+            $annotations[] = $this->annotationParser->getColumnAnnotations($column, $fk->getLocalTable());
+        }
+        return $annotations;
+    }
+
+    /**
+     * @param ForeignKeyConstraint $fk
+     * @return Column[]
+     */
+    private function getFkColumns(ForeignKeyConstraint $fk): array
+    {
+        $table = $fk->getLocalTable();
+        $columns = [];
+        foreach ($fk->getUnquotedLocalColumns() as $column) {
+            $columns[] = $table->getColumn($column);
+        }
+        return $columns;
     }
 }

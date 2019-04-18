@@ -179,6 +179,226 @@ This annotation can be put on a column comment to alter the visibility of the "i
 For instance, if you put the `@ProtectedOneToMany` on the "country_id" column of a "users" table,
 then in the `Country` bean, the `getUsers()` method will be protected.
 
+The @Json annotations
+---------------------
+<small>(In development)</small>
+
+The `@Json` set of annotations helps monitoring the generation of `jsonSerialize` method.
+
+###@JsonKey:
+Use the `@JsonKey` annotation to change the name of the serialized property. It works with a scalar column, a direct
+foreign key and even a pivot table.
+
+###@JsonFormat:
+Use the `@JsonFormat` annotation to specify format to use when serializing.
+Depending on the type of the property, the arguments are:
+  - Datetime: `datetime=<string>` a format compatible with `date` function.
+  - int/float: `decimals=<int>`, `point=<string>`, `separator=<string>`, `unit=<string>` the 3 first arguments are then
+  passed to function `number_format`. An additional argument `unit` may be useful to suffix the property value.
+  - object: `method=<string>` or `property=<string>` a method or a property accessible with a standard getter.
+
+###@JsonIgnore:
+Use the `@JsonIgnore` annotation if you want to hide a property when serializing a bean. You may use it to hide scalar
+or referenced objects, whether from direct foreign key or from a pivot table. In order to do so, you need to annotate
+one of the foreign key columns.
+
+###@JsonInclude:
+Use the `@JsonInclude` annotation to ignore parameter `$stopRecursion` in `jsonSerialize`, therefore treating sub-object
+almost like a scalar. If used on a pivot table, the reciprocal will be ignored (implicit `@JsonIgnore` on secondary
+foreign key).
+
+###@JsonRecursive:
+Use the `@JsonRecursive` annotation to set parameter `$stopRecursion` to `true` when calling `jsonSerialize` on
+sub-object. Likewise `@JsonInclude`, the reciprocal will be ignored when used on a pivot table.
+
+###@JsonCollection:
+Use the `@JsonCollection` annotation on a foreign key to invert the serialization, from one-to-one to one-to-many. You
+may provide the collection property name in json using argument `key=<string>`.
+Moreover, the `@JsonCollection` annotation is compatible with `@JsonFormat`, `@JsonRecursive` and `@JsonInclude`.
+
+Here is an example of a schema using massive @Json annotations to customize code generation:
+
+```sql
+CREATE TABLE `accounts` (
+  `id` INTEGER NOT NULL,
+  `name` VARCHAR(255),
+  PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `nodes` (
+  `id` INTEGER NOT NULL COMMENT '@JsonIgnore',
+  `alias_id` INTEGER COMMENT '@JsonRecursive',
+  `parent_id` INTEGER COMMENT '@JsonInclude',
+  `root_id` INTEGER COMMENT '@JsonIgnore',
+  `owner_id` INTEGER COMMENT '@JsonFormat(property="name") @JsonInclude',
+  `name` VARCHAR(255) COMMENT '@JsonKey("basename")',
+  `size` INTEGER COMMENT '@JsonFormat(unit=" ko")',
+  `weight` FLOAT COMMENT '@JsonFormat(decimals=2,unit="g")',
+  `created_at` DATE COMMENT '@JsonFormat("Y-m-d")',
+  FOREIGN KEY fk_alias(`alias_id`)
+    REFERENCES nodes(`id`),
+  FOREIGN KEY fk_parent(`parent_id`)
+    REFERENCES nodes(`id`),
+  FOREIGN KEY fk_root(`root_id`)
+    REFERENCES nodes(`id`),
+  FOREIGN KEY fk_owner(`owner_id`)
+    REFERENCES accounts(`id`),
+  PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `nodes_guests` (
+  `node_id` INTEGER NOT NULL COMMENT '@JsonIgnore',
+  `guest_id` INTEGER NOT NULL COMMENT '@JsonKey("guests") @JsonFormat(method="getName")',
+  FOREIGN KEY fk_node(`node_id`)
+    REFERENCES nodes(`id`),
+  FOREIGN KEY fk_guest(`guest_id`)
+    REFERENCES accounts(`id`)
+);
+
+CREATE TABLE `node_entries` (
+  `id` INTEGER NOT NULL,
+  `node_id` INTEGER NOT NULL COMMENT '@JsonCollection("entries") @JsonFormat(property="entry")',
+  `entry` VARCHAR(255),
+  FOREIGN KEY fk_node(`node_id`)
+    REFERENCES nodes(`id`),
+  PRIMARY KEY (`id`)
+);
+```
+
+With such a configuration: a serialized `NodeBean` looks like this:
+```json
+{
+  "alias": null,
+  "parent": {
+    "parent": {
+      "parent": {
+        "parent": null,
+        "owner": "root",
+        "basename": "\/",
+        "size": "0 o",
+        "weight": null,
+        "createdAt": "2018-04-18"
+      },
+      "owner": null,
+      "basename": "var",
+      "size": "0 o",
+      "weight": null,
+      "createdAt": "2018-04-18"
+    },
+    "owner": null,
+    "basename": "www",
+    "size": "0 o",
+    "weight": null,
+    "createdAt": "2019-04-08"
+  },
+  "owner": "user",
+  "basename": "index.html",
+  "size": "512 o",
+  "weight": "42.50g",
+  "createdAt": "2019-04-18",
+  "entries": [
+    "<h1>",
+    "Hello, World",
+    "<\/h1>"
+  ],
+  "guests": [
+    "root",
+    "www"
+  ]
+}
+```
+Or:
+```json
+{
+  "alias": {
+    "alias": null,
+    "parent": {
+      "parent": {
+        "parent": null,
+        "owner": "root",
+        "basename": "\/",
+        "size": "0 o",
+        "weight": null,
+        "createdAt": "2018-04-18"
+      },
+      "owner": null,
+      "basename": "private",
+      "size": "0 o",
+      "weight": null,
+      "createdAt": "2018-04-18"
+    },
+    "owner": null,
+    "basename": "var",
+    "size": "0 o",
+    "weight": null,
+    "createdAt": "2018-04-18",
+    "entries": [],
+    "guests": []
+  },
+  "parent": {
+    "parent": null,
+    "owner": "root",
+    "basename": "\/",
+    "size": "0 o",
+    "weight": null,
+    "createdAt": "2018-04-18"
+  },
+  "owner": null,
+  "basename": "var",
+  "size": "0 o",
+  "weight": null,
+  "createdAt": "2018-04-18",
+  "entries": [],
+  "guests": []
+}
+```
+
+A `AccountBean`:
+```json
+{
+  "id": 1,
+  "name": "user"
+}
+```
+
+And, at last, a `NodeEntryBean`:
+
+```json
+{
+  "id": 2,
+  "node": {
+    "parent": {
+      "parent": {
+        "parent": {
+          "parent": null,
+          "owner": "root",
+          "basename": "\/",
+          "size": "0 o",
+          "weight": null,
+          "createdAt": "2018-04-18"
+        },
+        "owner": null,
+        "basename": "var",
+        "size": "0 o",
+        "weight": null,
+        "createdAt": "2018-04-18"
+      },
+      "owner": null,
+      "basename": "www",
+      "size": "0 o",
+      "weight": null,
+      "createdAt": "2019-04-08"
+    },
+    "owner": "user",
+    "basename": "index.html",
+    "size": "512 o",
+    "weight": "42.50g",
+    "createdAt": "2019-04-18"
+  },
+  "entry": "Hello, World"
+}
+```
+
 
 The @AddInterface annotation
 ----------------------------

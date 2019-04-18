@@ -8,6 +8,7 @@ New features:
 - \#97: Generated DAOs and beans are now purged automatically. When a table is removed, the matching generated beans and daos will be removed too.
 - \#116: New CodeGeneratorListenerInterface allows third party library to alter generated beans and DAOs on the fly (for the power users!)
 - \#125: New @ProtectedGetter, @ProtectedSetter and @ProtectedOneToMany annotations (to be used in the DB column comments) enable generating beans with protected getters and setters
+- \#132: New @JsonKey, @JsonFormat, @JsonIgnore, @JsonInclude, @JsonRecursive and @JsonCollection annotations (to be used in the DB column comments) enable controlling the JSON serialization of beans
 
 5.0
 ===
