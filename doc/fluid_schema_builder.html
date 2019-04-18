@@ -502,6 +502,14 @@ $db-&gt;table('users')
 <h2 id="customize-the-beans-generation">Customize the beans generation</h2>
 <p>You can customize the name of a bean (if you want the bean to have a different name than the table)</p>
 <pre><code class="language-php">$posts = $db-&gt;table('posts')-&gt;customBeanName('Article');</code></pre>
+<h2 id="add-interfaces-or-traits-to-the-generated-beans-and-daos">Add interfaces or traits to the generated beans and DAOs</h2>
+<p>You can use the <code>implementsInterface</code> or <code>implementsInterfaceOnDao</code> to add PHP interfaces to the generated beans and DAOs.
+This can be useful if you are writing a third party library that does not have direct access to the generated beans and DAOs.
+By providing a database patch, you can force a given bean to implement an interface.</p>
+<pre><code class="language-php">// Customize implemented interfaces
+$db-&gt;table('posts')
+   -&gt;implementsInterface('App\\PostInterface')  // The generated bean will implement interface App\\PostInterface
+   -&gt;implementsInterfaceOnDao('App\\PostDaoInterface'); // The generated DAO will implement interface App\\PostDaoInterface</code></pre>
 <h2 id="graphqlite-integration">GraphQLite integration</h2>
 <p>If you are using the <a href="graphqlite.html">TDBM GraphQLite integration</a>, you can also use the TDBM Fluid Schema Builder
 to add GraphQLite related annotations:</p>

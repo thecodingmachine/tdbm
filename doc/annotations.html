@@ -700,6 +700,61 @@ CREATE TABLE `node_entries` (
   },
   "entry": "Hello, World"
 }</code></pre>
+<h2 id="the-addinterface-annotation">The @AddInterface annotation</h2>
+<p><small>(Available in TDBM 5.1+)</small></p>
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
+<p>Use this annotation in a table comment to force a bean to implement a given PHP interface.</p>
+<pre><code class="language-sql">CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@AddInterface(\"App\\MemberInterface\")");</code></pre>
+<p>Why this annotation?</p>
+<p>If you are developing an application, it is likely you will not need this annotation. You can simply edit your bean
+and add an <code>implements</code> clause in the class declaration.</p>
+<p>However, if you are developing a library meant to be used by other developers, you can provide a SQL patch that will
+alter the comments of the table. The <code>implements</code> clause will be added by TDBM on the base bean class automatically.
+Therefore, this annotation allows third party-libraries to add interfaces to your beans.</p>
+<p>This annotation is particularly powerful when used in conjunction with the <code>@AddTrait</code> annotation.</p>
+<h2 id="the-addinterfaceondao-annotation">The @AddInterfaceOnDao annotation</h2>
+<p><small>(Available in TDBM 5.1+)</small></p>
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
+<p>This annotation is similar to the <code>@AddInterface</code> annotation but it adds the interface on the DAO instead of the Bean.
+Use this annotation in a table comment to force a DAO to implement a given PHP interface.</p>
+<pre><code class="language-sql">CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@AddInterfaceDao(\"App\\MemberDaoInterface\")");</code></pre>
+<h2 id="the-addtrait-annotation">The @AddTrait annotation</h2>
+<p><small>(Available in TDBM 5.1+)</small></p>
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
+<p>Use this annotation in a table comment to force a bean to use a given PHP trait.</p>
+<pre><code class="language-sql">CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@AddTrait(\"App\\MemberTrait\")");</code></pre>
+<p>This annotation is very useful to third party libraries that provide a table and want to ship a default behaviour for the beans
+associated with the table.</p>
+<p>You can also use the &quot;modifiers&quot; attribute of the annotation to override or alias some methods of the traits:</p>
+<pre><code class="language-sql">CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@AddTrait(name=\"App\\MemberTrait\"
+           modifiers={\"\\App\\MemberTrait::myMethod insteadof OtherTrait\",
+                      \"\\App\\OtherTrait::myMethod as myRenamedMethod\"}
+           )");</code></pre>
+<h2 id="the-addtraitondao-annotation">The @AddTraitOnDao annotation</h2>
+<p><small>(Available in TDBM 5.1+)</small></p>
+<div class="alert alert-warning">Until <a href="https://github.com/doctrine/dbal/pull/3512" target="_blank">this PR is merged in Doctrine DBAL</a>, this annotation will only work on MySQL databases.</div>
+<p>This annotation is similar to the <code>@AddTrait</code> annotation but it adds the trait on the DAO instead of the Bean.</p>
+<pre><code class="language-sql">CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@AddTraitOnDao(\"App\\MemberDaoTrait\")");</code></pre>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
