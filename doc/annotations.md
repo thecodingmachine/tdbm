@@ -181,7 +181,6 @@ then in the `Country` bean, the `getUsers()` method will be protected.
 
 The @Json annotations
 ---------------------
-<small>(In development)</small>
 
 The `@Json` set of annotations helps monitoring the generation of `jsonSerialize` method.
 

@@ -36,3 +36,8 @@ So a typical serialized bean might look like this:
     ]
 }
 ```
+
+If you want to customize JSON serialization, you have 2 options:
+
+1. you can override the `jsonSerialize` method in each bean class (the method is defined in the abstract bean)
+2. you can add JSON annotations to your DB columns comments. [JSON annotations are described in the page dedicated to annotations.](annotations.md#the-json-annotations) 
