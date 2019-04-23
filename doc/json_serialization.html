@@ -416,6 +416,11 @@ of the embedded object are not embedded).</li>
         }
     ]
 }</code></pre>
+<p>If you want to customize JSON serialization, you have 2 options:</p>
+<ol>
+<li>you can override the <code>jsonSerialize</code> method in each bean class (the method is defined in the abstract bean)</li>
+<li>you can add JSON annotations to your DB columns comments. <a href="annotations.html#the-json-annotations">JSON annotations are described in the page dedicated to annotations.</a> </li>
+</ol>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
