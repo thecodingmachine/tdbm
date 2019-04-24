@@ -387,7 +387,7 @@ class TDBMService
      */
     public function buildFilterFromFilterBag($filter_bag, AbstractPlatform $platform, int $counter = 1): array
     {
-        if ($filter_bag === null) {
+        if ($filter_bag === null || $filter_bag === []) {
             return ['', [], $counter];
         } elseif (is_string($filter_bag)) {
             return [$filter_bag, [], $counter];
@@ -412,7 +412,7 @@ class TDBMService
                 }
             }
 
-            return [implode(' AND ', $sqlParts), $parameters, $counter];
+            return ['(' . implode(') AND (', $sqlParts) . ')', $parameters, $counter];
         } elseif ($filter_bag instanceof AbstractTDBMObject) {
             $sqlParts = [];
             $parameters = [];
