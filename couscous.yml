@@ -8,7 +8,7 @@ exclude:
     - tests
     - node_modules
     - template
-    - %gitignore%
+    - "%gitignore%"
 
 baseUrl: https://thecodingmachine.github.io/tdbm/
 
@@ -104,6 +104,17 @@ menu:
         internals:
             text: TDBM internals
             relativeUrl: doc/internals.html
+        code_generation:
+            text: Customizing code generation
+            relativeUrl: doc/customizing_code_generation.html
         faq:
             text: Frequently asked questions
             relativeUrl: doc/faq.html
+        integrations_main:
+            text: Integrations and extensions
+        integrations_schema_builder:
+            text: Fluid schema builder
+            relativeUrl: doc/fluid_schema_builder.html
+        integrations_graphqlite:
+            text: GraphQLite
+            relativeUrl: doc/graphqlite.html

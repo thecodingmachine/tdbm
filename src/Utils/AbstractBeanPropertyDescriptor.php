@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Table;
+use Zend\Code\Generator\DocBlock\Tag\ParamTag;
+use Zend\Code\Generator\MethodGenerator;
 
 /**
  * This class represent a property in a bean (a property has a getter, a setter, etc...).
@@ -61,9 +63,12 @@ abstract class AbstractBeanPropertyDescriptor
     /**
      * Returns the param annotation for this property (useful for constructor).
      *
-     * @return string
+     * @return ParamTag
      */
-    abstract public function getParamAnnotation(): string;
+    public function getParamAnnotation(): ParamTag
+    {
+        return new ParamTag($this->getVariableName(), [ $this->getPhpType() ]);
+    }
 
     public function getVariableName(): string
     {
@@ -87,7 +92,7 @@ abstract class AbstractBeanPropertyDescriptor
      */
     public function getConstructorAssignCode(): string
     {
-        $str = '        $this->%s(%s);';
+        $str = '$this->%s(%s);';
 
         return sprintf($str, $this->getSetterName(), $this->getVariableName());
     }
@@ -110,8 +115,6 @@ abstract class AbstractBeanPropertyDescriptor
      * Returns the code that assigns a value to its default value.
      *
      * @return string
-     *
-     * @throws \TDBMException
      */
     abstract public function assignToDefaultCode(): string;
 
@@ -133,9 +136,9 @@ abstract class AbstractBeanPropertyDescriptor
     /**
      * Returns the PHP code for getters and setters.
      *
-     * @return string
+     * @return MethodGenerator[]
      */
-    abstract public function getGetterSetterCode(): string;
+    abstract public function getGetterSetterCode(): array;
 
     /**
      * Returns the part of code useful when doing json serialization.

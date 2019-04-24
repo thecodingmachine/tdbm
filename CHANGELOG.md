@@ -1,3 +1,36 @@
+5.1
+===
+
+New features:
+
+- \#96: New @Bean annotation in table comments to alter the name of a bean
+- \#95: Table and column annotations are now parsed using doctrine/annotations lexer/parser
+- \#97: Generated DAOs and beans are now purged automatically. When a table is removed, the matching generated beans and daos will be removed too.
+- \#116: New CodeGeneratorListenerInterface allows third party library to alter generated beans and DAOs on the fly (for the power users!)
+- \#125: New @ProtectedGetter, @ProtectedSetter and @ProtectedOneToMany annotations (to be used in the DB column comments) enable generating beans with protected getters and setters
+- \#126: New @AddInterface, @AddInterfaceOnDao, @AddTrait, @AddTraitOnDao (to be used in the DB table comments) to automatically implement interface or use traits in Beans / DAOs
+- \#132: New @JsonKey, @JsonFormat, @JsonIgnore, @JsonInclude, @JsonRecursive and @JsonCollection annotations (to be used in the DB column comments) enable controlling the JSON serialization of beans
+
+5.0
+===
+
+Breaking changes:
+
+- TDBM is migrated to a new package name: thecodingmachine/tdbm
+- TDBM is migrated to a new namespace: TheCodingMachine\TDBM
+- Old package mouf/database.tdbm is still available for Mouf integration
+
+Major changes:
+
+- New website: https://thecodingmachine.github.io/tdbm/
+- Adding support for MariaDB, PostgreSQL and Oracle
+- Code coverage dramatically increased
+- Code 100% type-hinted thanks to PHPStan and thecodingmachine/phpstan-strict-rules
+
+Bugfixes:
+
+- [a lot!](https://github.com/thecodingmachine/tdbm/milestone/1?closed=1)
+
 4.3
 ===
 
@@ -19,7 +52,7 @@ Minor changes:
 
 Bugfix:
 
-- #138: fixing `findOneByXXX` parameters in generated DAOs
+- \#138: fixing `findOneByXXX` parameters in generated DAOs
 
 4.2
 ===

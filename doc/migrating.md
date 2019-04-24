@@ -4,6 +4,18 @@ subTitle:
 currentMenu: migrating
 ---
 
+Migrating to TDBM 5.1
+---------------------
+
+See [Changelog](https://github.com/thecodingmachine/tdbm/blob/master/CHANGELOG.md)
+
+
+Migrating to TDBM 5.0
+---------------------
+
+See [Changelog](https://github.com/thecodingmachine/tdbm/blob/master/CHANGELOG.md)
+
+
 Migrating to TDBM 4.3
 ---------------------
 

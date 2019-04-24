@@ -2,7 +2,6 @@
 
 namespace TheCodingMachine\TDBM;
 
-
 use PHPUnit\Framework\TestCase;
 
 class WeakrefObjectStorageTest extends TestCase

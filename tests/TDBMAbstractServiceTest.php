@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace TheCodingMachine\TDBM;
 
+use DateTime;
+use DateTimeImmutable;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
@@ -28,8 +30,17 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
+use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\TestCase;
 use TheCodingMachine\FluidSchema\FluidSchema;
+use TheCodingMachine\FluidSchema\TdbmFluidSchema;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
+use TheCodingMachine\TDBM\Fixtures\Traits\TestOtherUserTrait;
+use TheCodingMachine\TDBM\Fixtures\Traits\TestUserDaoTrait;
+use TheCodingMachine\TDBM\Fixtures\Traits\TestUserTrait;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 
@@ -54,6 +65,11 @@ abstract class TDBMAbstractServiceTest extends TestCase
      * @var ConfigurationInterface
      */
     private $configuration;
+
+    /**
+     * @var ArrayCache
+     */
+    private $cache;
 
     public static function setUpBeforeClass()
     {
@@ -186,10 +202,18 @@ abstract class TDBMAbstractServiceTest extends TestCase
         return $this->dummyGeneratorListener;
     }
 
+    protected function getCache(): ArrayCache
+    {
+        if ($this->cache === null) {
+            $this->cache = new ArrayCache();
+        }
+        return $this->cache;
+    }
+
     protected function getConfiguration() : ConfigurationInterface
     {
         if ($this->configuration === null) {
-            $this->configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), new ArrayCache(), null, null, [$this->getDummyGeneratorListener()]);
+            $this->configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), $this->getCache(), null, null, [$this->getDummyGeneratorListener()]);
             $this->configuration->setPathFinder(new PathFinder(null, dirname(__DIR__, 4)));
         }
         return $this->configuration;
@@ -197,7 +221,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
     protected function getNamingStrategy()
     {
-        $strategy = new DefaultNamingStrategy();
+        $strategy = new DefaultNamingStrategy(AnnotationParser::buildWithDefaultAnnotations([]), self::getConnection()->getSchemaManager());
         $strategy->setBeanPrefix('');
         $strategy->setBeanSuffix('Bean');
         $strategy->setBaseBeanPrefix('');
@@ -215,7 +239,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         $fromSchema = $connection->getSchemaManager()->createSchema();
         $toSchema = clone $fromSchema;
 
-        $db = new FluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
+        $db = new TdbmFluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
 
         $db->table('country')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
@@ -252,6 +276,11 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('manager_id')->references('contact')->null();
 
         $db->table('users')
+            ->addAnnotation('AddTrait', ['name'=>TestUserTrait::class], false)
+            ->addAnnotation('AddTrait', ['name'=>TestOtherUserTrait::class, 'modifiers'=>['\\'.TestOtherUserTrait::class.'::method1 insteadof \\'.TestUserTrait::class, '\\'.TestUserTrait::class.'::method1 as method1renamed']], false)
+            ->addAnnotation('AddTraitOnDao', ['name'=>TestUserDaoTrait::class], false)
+            ->implementsInterface(TestUserInterface::class)
+            ->implementsInterfaceOnDao(TestUserDaoInterface::class)
             ->extends('contact')
             ->column('login')->string(255)
             ->column('password')->string(255)->null()
@@ -285,6 +314,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         $db->table('animal')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
             ->column('name')->string(45)->index()
+            ->column('UPPERCASE_COLUMN')->string(45)->null()
             ->column('order')->integer()->null();
 
         $db->table('dog')
@@ -328,7 +358,9 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         $db->table('files')
             ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@Autoincrement')
-            ->column('file')->blob();
+            ->column('file')->blob()
+            ->column('md5')->string()->null()->comment("@ProtectedGetter\n@ProtectedSetter")
+            ->column('article_id')->references('article')->null()->comment("@ProtectedGetter\n@ProtectedSetter\n@ProtectedOneToMany");
 
         $toSchema->getTable('users')
             ->addUniqueIndex([$connection->quoteIdentifier('login')], 'users_login_idx')
@@ -355,6 +387,51 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('code')->string(3)
             ->column('name')->string(50)->then()
             ->primaryKey(['country_id', 'code']);
+
+        // Tables using @Json annotations
+        $db->table('accounts')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('name')->string();
+
+        $db->table('nodes')
+            ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@JsonIgnore')
+            ->column('alias_id')->references('nodes')->null()->comment('@JsonRecursive')
+            ->column('parent_id')->references('nodes')->null()->comment('@JsonInclude')
+            ->column('root_id')->references('nodes')->null()->comment('@JsonIgnore')
+            ->column('owner_id')->references('accounts')->null()->comment('@JsonFormat(property="name") @JsonInclude')
+            ->column('name')->string()->comment('@JsonKey("basename")')
+            ->column('size')->integer()->notNull()->default(0)->comment('@JsonFormat(unit=" o")')
+            ->column('weight')->float()->null()->comment('@JsonFormat(decimals=2,unit="g")')
+            ->column('created_at')->date()->null()->comment('@JsonFormat("Y-m-d")');
+
+        $db->table('nodes_guests')
+            ->column('node_id')->references('nodes')->comment('@JsonIgnore')
+            ->column('guest_id')->references('accounts')->comment('@JsonKey("guests") @JsonFormat(method="getName")');
+
+        $db->table('node_entries')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('node_id')->references('nodes')->comment('@JsonCollection("entries") @JsonFormat(property="entry")')
+            ->column('entry')->string()->null();
+
+        $db->table('artists')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('name')->string();
+
+        $db->table('albums')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('artist_id')->references('artists')->comment('@JsonCollection(key="discography")')
+            ->column('title')->string();
+
+        $db->table('tracks')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('album_id')->references('albums')->comment('@JsonCollection @JsonRecursive')
+            ->column('title')->string()
+            ->column('duration')->time()->comment('@JsonFormat("H:i:s")');
+
+        $db->table('featuring')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('track_id')->references('tracks')
+            ->column('artist_id')->references('artists')->comment('@JsonKey("feat") @JsonInclude');
 
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
@@ -500,6 +577,164 @@ abstract class TDBMAbstractServiceTest extends TestCase
         self::insert($connection, 'ref_no_prim_key', [
             'from' => 'foo',
             'to' => 'foo',
+        ]);
+
+        self::insert($connection, 'accounts', [
+            'id' => 1,
+            'name' => 'root'
+        ]);
+        self::insert($connection, 'accounts', [
+            'id' => 2,
+            'name' => 'user'
+        ]);
+        self::insert($connection, 'accounts', [
+            'id' => 3,
+            'name' => 'www'
+        ]);
+        self::insert($connection, 'nodes', [
+            'id' => 1,
+            'owner_id' => 1,
+            'name' => '/',
+            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+        ]);
+        self::insert($connection, 'nodes', [
+            'id' => 2,
+            'name' => 'private',
+            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'parent_id' => 1,
+        ]);
+        self::insert($connection, 'nodes', [
+            'id' => 3,
+            'name' => 'var',
+            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'parent_id' => 2,
+        ]);
+        self::insert($connection, 'nodes', [
+            'id' => 4,
+            'name' => 'var',
+            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'parent_id' => 1,
+            'alias_id' => 3
+        ]);
+        self::insert($connection, 'nodes', [
+            'id' => 5,
+            'name' => 'www',
+            'created_at' => (new DateTime('last week'))->format('Y-m-d H:i:s'),
+            'parent_id' => 4
+        ]);
+        self::insert($connection, 'nodes', [
+            'id' => 6,
+            'owner_id' => 2,
+            'name' => 'index.html',
+            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
+            'size' => 512,
+            'weight' => 42.5,
+            'parent_id' => 5
+        ]);
+        self::insert($connection, 'nodes', [
+            'id' => 7,
+            'name' => 'index.html',
+            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
+            'alias_id' => 6,
+            'parent_id' => 1
+        ]);
+        self::insert($connection, 'nodes', [
+            'id' => 8,
+            'name' => 'index.htm',
+            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
+            'alias_id' => 7,
+            'parent_id' => 1
+        ]);
+        self::insert($connection, 'nodes_guests', [
+            'node_id' => 6,
+            'guest_id' => 1
+        ]);
+        self::insert($connection, 'nodes_guests', [
+            'node_id' => 6,
+            'guest_id' => 3
+        ]);
+        self::insert($connection, 'node_entries', [
+            'node_id' => 6,
+            'entry' => '<h1>'
+        ]);
+        self::insert($connection, 'node_entries', [
+            'node_id' => 6,
+            'entry' => 'Hello, World'
+        ]);
+        self::insert($connection, 'node_entries', [
+            'node_id' => 6,
+            'entry' => '</h1>'
+        ]);
+
+        self::insert($connection, 'artists', [
+            'id' => 1,
+            'name' => 'Pink Floyd'
+        ]);
+        self::insert($connection, 'artists', [
+            'id' => 2,
+            'name' => 'Roger Waters'
+        ]);
+        self::insert($connection, 'artists', [
+            'id' => 3,
+            'name' => 'David Gilmour'
+        ]);
+        self::insert($connection, 'albums', [
+            'id' => 1,
+            'artist_id' => 1,
+            'title' => 'Animals'
+        ]);
+
+        $timeType = Type::getType(Type::TIME_IMMUTABLE);
+
+        self::insert($connection, 'tracks', [
+            'album_id' => 1,
+            'title' =>'Pigs on the Wing 1',
+            // Note: Oracle does not have a TIME column type
+            'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:01:25'), $connection->getDatabasePlatform()),
+        ]);
+        self::insert($connection, 'tracks', [
+            'album_id' => 1,
+            'title' => 'Dogs',
+            'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:17:04'), $connection->getDatabasePlatform()),
+        ]);
+        self::insert($connection, 'tracks', [
+            'album_id' => 1,
+            'title' => 'Pigs (Three Different Ones)',
+            'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:11:22'), $connection->getDatabasePlatform()),
+        ]);
+        self::insert($connection, 'tracks', [
+            'album_id' => 1,
+            'title' => 'Sheep',
+            'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:10:24'), $connection->getDatabasePlatform()),
+        ]);
+        self::insert($connection, 'tracks', [
+            'album_id' => 1,
+            'title' => 'Pigs on the Wing 2',
+            'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:01:26'), $connection->getDatabasePlatform()),
+        ]);
+        self::insert($connection, 'featuring', [
+            'track_id' => 1,
+            'artist_id' => 2
+        ]);
+        self::insert($connection, 'featuring', [
+            'track_id' => 2,
+            'artist_id' => 3
+        ]);
+        self::insert($connection, 'featuring', [
+            'track_id' => 2,
+            'artist_id' => 2
+        ]);
+        self::insert($connection, 'featuring', [
+            'track_id' => 3,
+            'artist_id' => 2
+        ]);
+        self::insert($connection, 'featuring', [
+            'track_id' => 4,
+            'artist_id' => 2
+        ]);
+        self::insert($connection, 'featuring', [
+            'track_id' => 5,
+            'artist_id' => 2
         ]);
     }
 

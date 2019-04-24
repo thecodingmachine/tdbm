@@ -123,7 +123,7 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      */
     public function getCurrentPage()
     {
-        return floor($this->offset / $this->limit) + 1;
+        return (int) floor($this->offset / $this->limit) + 1;
     }
 
     /**

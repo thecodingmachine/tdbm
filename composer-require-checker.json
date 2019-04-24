@@ -3,7 +3,12 @@
     "null", "true", "false",
     "static", "self", "parent",
     "array", "string", "int", "float", "bool", "iterable", "callable", "void", "object",
-    "WeakRef"
+    "WeakRef",
+    "TheCodingMachine\\TDBM\\Fixtures\\Interfaces\\TestUserDaoInterface",
+    "TheCodingMachine\\TDBM\\Fixtures\\Traits\\TestUserDaoTrait",
+    "TheCodingMachine\\TDBM\\Fixtures\\Interfaces\\TestUserInterface",
+    "TheCodingMachine\\TDBM\\Fixtures\\Traits\\TestUserTrait",
+    "TheCodingMachine\\TDBM\\Fixtures\\Traits\\TestOtherUserTrait"
   ],
   "php-core-extensions" : [
     "Core",

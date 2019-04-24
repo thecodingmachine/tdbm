@@ -3,9 +3,15 @@ parameters:
      - "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
      - "#Method .*::.* should return .* but returns .*TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject#"
      - "#Method .*::.* should return .* but returns TheCodingMachine\\\\TDBM\\\\ResultIterator#"
-     - "#Strict comparison using .== between TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject and null will always evaluate to .*#"
      - '#Strict comparison using === between string and false will always evaluate to false.#'
      - "#Array \\(array\\<TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject\\>\\) does not accept TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject\\|null.#"
-     - "#array<string,string>#"
+     - "#Call to an undefined method object::#"
+     - "#expects TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject, object given.#"
+     - "#should return array<TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject> but returns array<int, object>#"
+     - "#expects array<string>, array<int, int|string> given.#"
+     - "/Parameter #. \\$types of method Doctrine\\\\DBAL\\\\Connection::.*() expects array<int|string>, array<int, Doctrine\\\\DBAL\\\\Types\\\\Type> given./"
+     - "#Method TheCodingMachine\\\\TDBM\\\\Schema\\\\ForeignKey::.*() should return .* but returns array<string>|string.#"
+    reportUnmatchedIgnoredErrors: false
 includes:
     - vendor/thecodingmachine/phpstan-strict-rules/phpstan-strict-rules.neon
+

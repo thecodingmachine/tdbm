@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- Copyright (C) 2006-2014 David Négrier - THE CODING MACHINE
+ Copyright (C) 2006-2018 David Négrier - THE CODING MACHINE
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,26 +24,38 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Platforms\MySQL57Platform;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
+use ReflectionClass;
+use ReflectionMethod;
 use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
+use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
+use TheCodingMachine\TDBM\Test\Dao\ArtistDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AnimalBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\ArrayBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Article2Bean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArticleBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\BoatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CategoryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\DateArrayBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\DogBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\FileBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\ArticleBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\BoatBaseBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\FileBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\NodeBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RefNoPrimKeyBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RoleBean;
@@ -58,11 +70,13 @@ use TheCodingMachine\TDBM\Test\Dao\DogDao;
 use TheCodingMachine\TDBM\Test\Dao\FileDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\ContactBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
+use TheCodingMachine\TDBM\Test\Dao\NodeDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
 use TheCodingMachine\TDBM\Test\Dao\StateDao;
 use TheCodingMachine\TDBM\Test\Dao\UserDao;
 use TheCodingMachine\TDBM\Utils\PathFinder\NoPathFoundException;
+use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Symfony\Component\Process\Process;
 
@@ -88,8 +102,15 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         // Remove all previously generated files.
         $this->recursiveDelete($this->rootPath . 'src/Test/Dao/');
+        mkdir($this->rootPath . 'src/Test/Dao/Generated', 0755, true);
+        // Let's generate a dummy file to see it is indeed removed.
+        $dummyFile = $this->rootPath . 'src/Test/Dao/Generated/foobar.php';
+        touch($dummyFile);
+        $this->assertFileExists($dummyFile);
 
         $this->tdbmDaoGenerator->generateAllDaosAndBeans();
+
+        $this->assertFileNotExists($dummyFile);
 
         // Let's require all files to check they are valid PHP!
         // Test the daoFactory
@@ -155,15 +176,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testGetBeanClassName()
     {
         $this->assertEquals(UserBean::class, $this->tdbmService->getBeanClassName('users'));
-    }
 
-    /**
-     * @depends testDaoGeneration
-     */
-    public function testGetBeanClassNameException()
-    {
-        $this->expectException(TDBMInvalidArgumentException::class);
-        $this->tdbmService->getBeanClassName('not_exists');
+        // Let's create another TDBMService to test the cache.
+        $configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), $this->getCache(), null, null, [$this->getDummyGeneratorListener()]);
+        $configuration->setPathFinder(new PathFinder(null, dirname(__DIR__, 4)));
+        $newTdbmService = new TDBMService($configuration);
+        $this->assertEquals(UserBean::class, $newTdbmService->getBeanClassName('users'));
     }
 
     /**
@@ -1252,6 +1270,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertInstanceOf(CatBean::class, $animalBean);
         /* @var $animalBean CatBean */
         $animalBean->setCutenessLevel(999);
+        $animalBean->setUppercaseColumn('foobar');
 
         $animalDao->save($animalBean);
     }
@@ -1709,6 +1728,35 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     }
 
     /**
+     * @depends testReadBlob
+     */
+    public function testProtectedGetterSetter()
+    {
+        $md5Getter = new ReflectionMethod(FileBaseBean::class, 'getMd5');
+        $md5Setter = new ReflectionMethod(FileBaseBean::class, 'setMd5');
+
+        $this->assertTrue($md5Getter->isProtected());
+        $this->assertTrue($md5Setter->isProtected());
+
+        $md5Getter2 = new ReflectionMethod(FileBaseBean::class, 'getArticle');
+        $md5Setter2 = new ReflectionMethod(FileBaseBean::class, 'setArticle');
+
+        $this->assertTrue($md5Getter2->isProtected());
+        $this->assertTrue($md5Setter2->isProtected());
+
+        $oneToManyGetter = new ReflectionMethod(ArticleBaseBean::class, 'getFiles');
+        $this->assertTrue($oneToManyGetter->isProtected());
+
+        $fileDao = new FileDao($this->tdbmService);
+        $loadedFile = $fileDao->getById(1);
+
+        // The md5 and article columns are not JSON serialized
+        $this->assertSame([
+            'id' => 1,
+        ], $loadedFile->jsonSerialize());
+    }
+
+    /**
      * @depends testDaoGeneration
      */
     public function testBlobResourceException()
@@ -1797,5 +1845,163 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $animalsArr = $animals->toArray();
         $this->assertCount(3, $animalsArr);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testJsonKey()
+    {
+        $node = new NodeBean('foo.html');
+        $json = $node->jsonSerialize();
+        self::assertTrue(isset($json['basename']));
+        self::assertEquals('foo.html', $json['basename']);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testJsonIgnore()
+    {
+        $nodeDao = new NodeDao($this->tdbmService);
+        $index = $nodeDao->getById(6);
+        $json = $index->jsonSerialize();
+        // Ignored scalar 'id'
+        self::assertTrue(!isset($json['id']));
+        // Ignored object 'root'
+        self::assertTrue(!isset($json['root']));
+        self::assertTrue(isset($json['guests']));
+        self::assertTrue(!empty($json['guests']));
+        $account = $index->getAccounts()[0];
+        $json = $account->jsonSerialize();
+        // Ignored array 'nodes' (from nodes_users table)
+        self::assertTrue(!isset($json['nodes']));
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testJsonInclude()
+    {
+        $nodeDao = new NodeDao($this->tdbmService);
+        $index = $nodeDao->getById(6);
+        $json = $index->jsonSerialize();
+        // Whole chain of parents should be serialized
+        self::assertTrue(isset($json['parent']));
+        self::assertTrue(isset($json['parent']['parent']));
+        self::assertTrue(isset($json['parent']['parent']['parent']));
+        self::assertEquals('/', $json['parent']['parent']['parent']['basename']);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testJsonRecursive()
+    {
+        $nodeDao = new NodeDao($this->tdbmService);
+        $index = $nodeDao->getById(8);
+        $json = $index->jsonSerialize();
+        // Original chain of aliases is recursively serialized, ...
+        self::assertTrue(isset($json['alias']));
+        self::assertTrue(isset($json['alias']['alias']));
+        self::assertEquals('index.html', $json['alias']['alias']['basename']);
+        // ... each alias even serializes its parents, ...
+        self::assertTrue(isset($json['alias']['alias']['parent']['parent']));
+        // ... however, parents aliases chains are not serialized, as parents are serialized with $stopRecursion=true
+        self::assertTrue(!isset($json['alias']['alias']['parent']['parent']['alias']));
+        self::assertNotNull($index->getAlias()->getAlias()->getParent()->getParent()->getAlias());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testJsonFormat()
+    {
+        $nodeDao = new NodeDao($this->tdbmService);
+        $index = $nodeDao->getById(6);
+        $json = $index->jsonSerialize();
+        self::assertTrue(isset($json['size']));
+        self::assertEquals('512 o', $json['size']);
+        self::assertEquals('42.50g', $json['weight']);
+        self::assertEquals($index->getCreatedAt()->format('Y-m-d'), $json['createdAt']);
+        self::assertEquals($index->getOwner()->getName(), $json['owner']);
+        self::assertEquals($index->getAccounts()[1]->getName(), $json['guests'][1]);
+        self::assertTrue(isset($json['entries']));
+        self::assertEquals('Hello, World', $json['entries'][1]);
+        $www = $index->getParent();
+        $json = $www->jsonSerialize();
+        self::assertEquals('0 o', $json['size']);
+        self::assertNull($json['weight']);
+        self::assertNull($json['owner']);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testJsonCollection()
+    {
+        $artists = new ArtistDao($this->tdbmService);
+        $pinkFloyd = $artists->getById(1);
+        $animals =  $pinkFloyd->getAlbums()[0];
+        $json = $pinkFloyd->jsonSerialize();
+        // Collection name properly handled ('discography' instead of default 'albums')
+        self::assertTrue(isset($json['discography']));
+        self::assertEquals($animals->getTitle(), $json['discography'][0]['title']);
+        // Make sure top object is not its own grandfather
+        self::assertTrue(!isset($json['discography'][0]['artist']));
+        $json = $animals->jsonSerialize();
+        // Nevertheless, artist should be serialized in album as top object...
+        self::assertTrue(isset($json['artist']));
+        // ... as should be tracks...
+        self::assertTrue(isset($json['tracks'][0]));
+        self::assertEquals('Pigs on the Wing 1', $json['tracks'][0]['title']);
+        // ... and, ultimately, list of featuring artists, since feat is included
+        self::assertTrue(isset($json['tracks'][0]['feat'][0]));
+        self::assertEquals('Roger Waters', $json['tracks'][0]['feat'][0]['name']);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testAddInterfaceAnnotation()
+    {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            // See https://github.com/doctrine/dbal/pull/3512
+            $this->markTestSkipped('Only MySQL supports table level comments');
+        }
+
+        $refClass = new ReflectionClass(UserBaseBean::class);
+        $this->assertTrue($refClass->implementsInterface(TestUserInterface::class));
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testAddInterfaceOnDaoAnnotation()
+    {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            // See https://github.com/doctrine/dbal/pull/3512
+            $this->markTestSkipped('Only MySQL supports table level comments');
+        }
+
+        $refClass = new ReflectionClass(UserBaseDao::class);
+        $this->assertTrue($refClass->implementsInterface(TestUserDaoInterface::class));
+    }
+
+    public function testTrait()
+    {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            // See https://github.com/doctrine/dbal/pull/3512
+            $this->markTestSkipped('Only MySQL supports table level comments');
+        }
+
+        $userDao = new UserDao($this->tdbmService);
+        $userBean = $userDao->getById(1);
+
+        $this->assertSame('TestOtherUserTrait', $userBean->method1());
+        $this->assertSame('TestUserTrait', $userBean->method1renamed());
+
+        $refClass = new ReflectionClass(UserBaseDao::class);
+        $this->assertTrue($refClass->hasMethod('findNothing'));
     }
 }

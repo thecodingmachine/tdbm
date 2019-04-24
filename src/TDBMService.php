@@ -45,6 +45,7 @@ use Phlib\Logger\Decorator\LevelFilter;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
+use function var_export;
 
 /**
  * The TDBMService class is the main TDBM class. It provides methods to retrieve TDBMObject instances
@@ -351,7 +352,7 @@ class TDBMService
                 $incomingFks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($tableName);
 
                 foreach ($incomingFks as $incomingFk) {
-                    $filter = array_combine($incomingFk->getUnquotedLocalColumns(), $pks);
+                    $filter = SafeFunctions::arrayCombine($incomingFk->getUnquotedLocalColumns(), $pks);
 
                     $results = $this->findObjects($incomingFk->getLocalTableName(), $filter);
 
@@ -417,6 +418,9 @@ class TDBMService
             $parameters = [];
             $dbRows = $filter_bag->_getDbRows();
             $dbRow = reset($dbRows);
+            if ($dbRow === false) {
+                throw new \RuntimeException('Unexpected error: empty dbRow'); // @codeCoverageIgnore
+            }
             $primaryKeys = $dbRow->_getPrimaryKeys();
 
             foreach ($primaryKeys as $column => $value) {
@@ -542,6 +546,12 @@ class TDBMService
         if (isset($this->tableToBeanMap[$tableName])) {
             return $this->tableToBeanMap[$tableName];
         } else {
+            $key = $this->cachePrefix.'_tableToBean_'.$tableName;
+            $cache = $this->cache->fetch($key);
+            if ($cache) {
+                return $cache;
+            }
+
             $className = $this->beanNamespace.'\\'.$this->namingStrategy->getBeanClassName($tableName);
 
             if (!class_exists($className)) {
@@ -549,6 +559,7 @@ class TDBMService
             }
 
             $this->tableToBeanMap[$tableName] = $className;
+            $this->cache->save($key, $className);
             return $className;
         }
     }
@@ -819,8 +830,8 @@ class TDBMService
         $localColumns = $localFk->getUnquotedLocalColumns();
         $remoteColumns = $remoteFk->getUnquotedLocalColumns();
 
-        $localFilters = array_combine($localColumns, $localBeanPk);
-        $remoteFilters = array_combine($remoteColumns, $remoteBeanPk);
+        $localFilters = SafeFunctions::arrayCombine($localColumns, $localBeanPk);
+        $remoteFilters = SafeFunctions::arrayCombine($remoteColumns, $remoteBeanPk);
 
         $filters = array_merge($localFilters, $remoteFilters);
 
@@ -828,9 +839,9 @@ class TDBMService
         $escapedFilters = [];
 
         foreach ($filters as $columnName => $value) {
-            $columnDescriptor = $tableDescriptor->getColumn($columnName);
+            $columnDescriptor = $tableDescriptor->getColumn((string) $columnName);
             $types[] = $columnDescriptor->getType();
-            $escapedFilters[$this->connection->quoteIdentifier($columnName)] = $value;
+            $escapedFilters[$this->connection->quoteIdentifier((string) $columnName)] = $value;
         }
         return ['filters' => $escapedFilters, 'types' => $types];
     }
@@ -847,6 +858,9 @@ class TDBMService
     {
         $dbRows = $bean->_getDbRows();
         $dbRow = reset($dbRows);
+        if ($dbRow === false) {
+            throw new \RuntimeException('Unexpected error: empty dbRow'); // @codeCoverageIgnore
+        }
 
         return array_values($dbRow->_getPrimaryKeys());
     }
@@ -867,7 +881,11 @@ class TDBMService
         } else {
             ksort($primaryKeys);
 
-            return md5(json_encode($primaryKeys));
+            $pkJson = json_encode($primaryKeys);
+            if ($pkJson === false) {
+                throw new TDBMException('Unexepected error: unable to encode primary keys'); // @codeCoverageIgnore
+            }
+            return md5($pkJson);
         }
     }
 
@@ -901,7 +919,7 @@ class TDBMService
      * The primary keys are extracted from the object columns.
      *
      * @param string $table
-     * @param array $columns
+     * @param mixed[] $columns
      *
      * @return mixed[] Returns an array of column => value
      */
@@ -948,7 +966,7 @@ class TDBMService
 			got %s instead.', count($primaryKeyColumns), $tableName, count($indexedPrimaryKeys)));
         }
 
-        return array_combine($primaryKeyColumns, $indexedPrimaryKeys);
+        return SafeFunctions::arrayCombine($primaryKeyColumns, $indexedPrimaryKeys);
     }
 
     /**
@@ -1199,8 +1217,8 @@ class TDBMService
                     $this->reflectionClassCache[$className] = new \ReflectionClass($className);
                 }
                 // Let's bypass the constructor when creating the bean!
+                /** @var AbstractTDBMObject */
                 $bean = $this->reflectionClassCache[$className]->newInstanceWithoutConstructor();
-                /* @var $bean AbstractTDBMObject */
                 $bean->_constructLazy($table, $primaryKeys, $this);
 
                 return $bean;
@@ -1234,6 +1252,15 @@ class TDBMService
     public function findObject(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null) : ?AbstractTDBMObject
     {
         $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
+        return $this->getAtMostOneObjectOrFail($objects, $mainTable, $filter, $parameters);
+    }
+
+    /**
+     * @param string|array|null $filter
+     * @param mixed[]           $parameters
+     */
+    private function getAtMostOneObjectOrFail(ResultIterator $objects, string $mainTable, $filter, array $parameters): ?AbstractTDBMObject
+    {
         $page = $objects->take(0, 2);
 
 
@@ -1243,7 +1270,20 @@ class TDBMService
         $count = count($pageArr);
 
         if ($count > 1) {
-            throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
+            $additionalErrorInfos = '';
+            if (is_string($filter) && !empty($parameters)) {
+                $additionalErrorInfos = ' for filter "' . $filter.'"';
+                foreach ($parameters as $fieldName => $parameter) {
+                    if (is_array($parameter)) {
+                        $value = '(' . implode(',', $parameter) . ')';
+                    } else {
+                        $value = $parameter;
+                    }
+                    $additionalErrorInfos = str_replace(':' . $fieldName, var_export($value, true), $additionalErrorInfos);
+                }
+            }
+            $additionalErrorInfos .= '.';
+            throw new DuplicateRowException("Error while querying an object in table '$mainTable': More than 1 row have been returned, but we should have received at most one" . $additionalErrorInfos);
         } elseif ($count === 0) {
             return null;
         }
@@ -1267,15 +1307,7 @@ class TDBMService
     public function findObjectFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), ?string $className = null) : ?AbstractTDBMObject
     {
         $objects = $this->findObjectsFromSql($mainTable, $from, $filter, $parameters, null, self::MODE_ARRAY, $className);
-        $page = $objects->take(0, 2);
-        $count = $page->count();
-        if ($count > 1) {
-            throw new DuplicateRowException("Error while querying an object for table '$mainTable': More than 1 row have been returned, but we should have received at most one.");
-        } elseif ($count === 0) {
-            return null;
-        }
-
-        return $page[0];
+        return $this->getAtMostOneObjectOrFail($objects, $mainTable, $filter, $parameters);
     }
 
     /**
@@ -1329,7 +1361,7 @@ class TDBMService
     }
 
     /**
-     * @param array $beanData An array of data: array<table, array<column, value>>
+     * @param array<string, array> $beanData An array of data: array<table, array<column, value>>
      *
      * @return mixed[] an array with first item = class name, second item = table name and third item = list of tables needed
      *
@@ -1338,7 +1370,7 @@ class TDBMService
     public function _getClassNameFromBeanData(array $beanData): array
     {
         if (count($beanData) === 1) {
-            $tableName = array_keys($beanData)[0];
+            $tableName = (string) array_keys($beanData)[0];
             $allTables = [$tableName];
         } else {
             $tables = [];
@@ -1399,19 +1431,6 @@ class TDBMService
     }
 
     /**
-     * Returns the foreign key object.
-     *
-     * @param string $table
-     * @param string $fkName
-     *
-     * @return ForeignKeyConstraint
-     */
-    public function _getForeignKeyByName(string $table, string $fkName): ForeignKeyConstraint
-    {
-        return $this->tdbmSchemaAnalyzer->getSchema()->getTable($table)->getForeignKey($fkName);
-    }
-
-    /**
      * @param string $pivotTableName
      * @param AbstractTDBMObject $bean
      *
@@ -1429,7 +1448,7 @@ class TDBMService
             return $pivotTableName.'.'.$name;
         }, $localFk->getUnquotedLocalColumns());
 
-        $filter = array_combine($columnNames, $primaryKeys);
+        $filter = SafeFunctions::arrayCombine($columnNames, $primaryKeys);
 
         return $this->findObjects($remoteTable, $filter);
     }

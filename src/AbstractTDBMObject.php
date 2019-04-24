@@ -22,6 +22,7 @@ namespace TheCodingMachine\TDBM;
  */
 
 use JsonSerializable;
+use TheCodingMachine\TDBM\Schema\ForeignKeys;
 
 /**
  * Instances of this class represent a "bean". Usually, a bean is mapped to a row of one table.
@@ -90,7 +91,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
     {
         // FIXME: lazy loading should be forbidden on tables with inheritance and dynamic type assignation...
         if (!empty($tableName)) {
-            $this->dbRows[$tableName] = new DbRow($this, $tableName, $primaryKeys, $tdbmService);
+            $this->dbRows[$tableName] = new DbRow($this, $tableName, static::getForeignKeys($tableName), $primaryKeys, $tdbmService);
         }
 
         if ($tdbmService === null) {
@@ -116,7 +117,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
         $this->tdbmService = $tdbmService;
 
         foreach ($beanData as $table => $columns) {
-            $this->dbRows[$table] = new DbRow($this, $table, $tdbmService->_getPrimaryKeysFromObjectData($table, $columns), $tdbmService, $columns);
+            $this->dbRows[$table] = new DbRow($this, $table, static::getForeignKeys($table), $tdbmService->_getPrimaryKeysFromObjectData($table, $columns), $tdbmService, $columns);
         }
 
         $this->status = TDBMObjectStateEnum::STATE_LOADED;
@@ -133,7 +134,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
     {
         $this->tdbmService = $tdbmService;
 
-        $this->dbRows[$tableName] = new DbRow($this, $tableName, $primaryKeys, $tdbmService);
+        $this->dbRows[$tableName] = new DbRow($this, $tableName, static::getForeignKeys($tableName), $primaryKeys, $tdbmService);
 
         $this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
     }
@@ -207,7 +208,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
             }
         }
 
-        return $tableName;
+        return (string) $tableName;
     }
 
     /**
@@ -233,7 +234,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
             if (count($this->dbRows) > 1) {
                 throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
             } elseif (count($this->dbRows) === 1) {
-                $tableName = array_keys($this->dbRows)[0];
+                $tableName = (string) array_keys($this->dbRows)[0];
             } else {
                 throw new TDBMException('Please specify a table for this object.');
             }
@@ -259,7 +260,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
             if (count($this->dbRows) > 1) {
                 throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
             } elseif (count($this->dbRows) === 1) {
-                $tableName = array_keys($this->dbRows)[0];
+                $tableName = (string) array_keys($this->dbRows)[0];
             } else {
                 throw new TDBMException('Please specify a table for this object.');
             }
@@ -360,6 +361,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
         $storage = $this->retrieveRelationshipsStorage($pivotTableName);
 
         foreach ($storage as $oldRemoteBean) {
+            /* @var $oldRemoteBean AbstractTDBMObject */
             if (!in_array($oldRemoteBean, $remoteBeans, true)) {
                 // $oldRemoteBean must be removed
                 $this->_removeRelationship($pivotTableName, $oldRemoteBean);
@@ -511,13 +513,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @param string $tableName
      * @param string $foreignKeyName
-     * @param string $searchTableName
      * @param mixed[] $searchFilter
      * @param string $orderString     The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column). WARNING : This parameter is not kept when there is an additionnal or removal object !
      *
      * @return AlterableResultIterator
      */
-    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, string $searchTableName, array $searchFilter, string $orderString = null) : AlterableResultIterator
+    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, array $searchFilter, string $orderString = null) : AlterableResultIterator
     {
         $key = $tableName.'___'.$foreignKeyName;
         $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
@@ -525,7 +526,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
             return $alterableResultIterator;
         }
 
-        $unalteredResultIterator = $this->tdbmService->findObjects($searchTableName, $searchFilter, [], $orderString);
+        $unalteredResultIterator = $this->tdbmService->findObjects($tableName, $searchFilter, [], $orderString);
 
         $alterableResultIterator->setResultIterator($unalteredResultIterator->getIterator());
 
@@ -619,9 +620,9 @@ abstract class AbstractTDBMObject implements JsonSerializable
 
     private function registerTable(string $tableName): void
     {
-        $dbRow = new DbRow($this, $tableName);
+        $dbRow = new DbRow($this, $tableName, static::getForeignKeys($tableName));
 
-        if (in_array($this->status, [TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DIRTY])) {
+        if (in_array($this->status, [TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DIRTY], true)) {
             // Let's get the primary key for the new table
             $anotherDbRow = array_values($this->dbRows)[0];
             /* @var $anotherDbRow DbRow */
@@ -662,5 +663,13 @@ abstract class AbstractTDBMObject implements JsonSerializable
      */
     protected function onDelete() : void
     {
+    }
+
+    /**
+     * Returns the foreign keys used by this bean.
+     */
+    protected static function getForeignKeys(string $tableName): ForeignKeys
+    {
+        return new ForeignKeys([]);
     }
 }

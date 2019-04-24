@@ -6,15 +6,16 @@ namespace TheCodingMachine\TDBM\Utils;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Types\DateTimeImmutableType;
-use Doctrine\DBAL\Types\DateTimeType;
 use Doctrine\DBAL\Types\Type;
-use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\TDBMException;
-use TheCodingMachine\TDBM\Utils\Annotation\Annotation;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
+use \TheCodingMachine\TDBM\Utils\Annotation;
+use Zend\Code\Generator\AbstractMemberGenerator;
+use Zend\Code\Generator\DocBlock\Tag\ParamTag;
+use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
+use Zend\Code\Generator\MethodGenerator;
+use Zend\Code\Generator\ParameterGenerator;
 
 /**
  * This class represent a property in a bean (a property has a getter, a setter, etc...).
@@ -32,30 +33,22 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     private $annotations;
 
     /**
+     * @var AnnotationParser
+     */
+    private $annotationParser;
+
+    /**
      * ScalarBeanPropertyDescriptor constructor.
      * @param Table $table
      * @param Column $column
      * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $table, Column $column, NamingStrategyInterface $namingStrategy)
+    public function __construct(Table $table, Column $column, NamingStrategyInterface $namingStrategy, AnnotationParser $annotationParser)
     {
         parent::__construct($table, $namingStrategy);
         $this->table = $table;
         $this->column = $column;
-    }
-
-    /**
-     * Returns the param annotation for this property (useful for constructor).
-     *
-     * @return string
-     */
-    public function getParamAnnotation(): string
-    {
-        $paramType = $this->getPhpType();
-
-        $str = '     * @param %s %s';
-
-        return sprintf($str, $paramType, $this->getVariableName());
+        $this->annotationParser = $annotationParser;
     }
 
     /**
@@ -99,25 +92,24 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         return $this->getUuidAnnotation() !== null;
     }
 
-    private function getUuidAnnotation(): ?Annotation
+    private function getUuidAnnotation(): ?Annotation\UUID
     {
-        return $this->getAnnotations()->findAnnotation('UUID');
+        /** @var Annotation\UUID $annotation */
+        $annotation = $this->getAnnotations()->findAnnotation(Annotation\UUID::class);
+        return $annotation;
     }
 
-    private function getAutoincrementAnnotation(): ?Annotation
+    private function getAutoincrementAnnotation(): ?Annotation\Autoincrement
     {
-        return $this->getAnnotations()->findAnnotation('Autoincrement');
+        /** @var Annotation\Autoincrement $annotation */
+        $annotation = $this->getAnnotations()->findAnnotation(Annotation\Autoincrement::class);
+        return $annotation;
     }
 
     private function getAnnotations(): Annotations
     {
         if ($this->annotations === null) {
-            $comment = $this->column->getComment();
-            if ($comment === null) {
-                return new Annotations([]);
-            }
-            $parser = new AnnotationParser();
-            $this->annotations = $parser->parse($comment);
+            $this->annotations = $this->annotationParser->getColumnAnnotations($this->column, $this->table);
         }
         return $this->annotations;
     }
@@ -140,7 +132,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      */
     public function assignToDefaultCode(): string
     {
-        $str = '        $this->%s(%s);';
+        $str = '$this->%s(%s);';
 
         $uuidAnnotation = $this->getUuidAnnotation();
         if ($uuidAnnotation !== null) {
@@ -159,10 +151,10 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
                 'time',
                 'time_immutable',
             ], true)) {
-                if (in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */, 'SYSDATE' /* Oracle */ , 'CURRENT_TIMESTAMP()' /* MariaDB 10.3 */], true)) {
+                if ($default !== null && in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */, 'SYSDATE' /* Oracle */ , 'CURRENT_TIMESTAMP()' /* MariaDB 10.3 */], true)) {
                     $defaultCode = 'new \DateTimeImmutable()';
                 } else {
-                    throw new TDBMException('Unable to set default value for date. Database passed this default value: "'.$default.'"');
+                    throw new TDBMException('Unable to set default value for date in "'.$this->table->getName().'.'.$this->column->getName().'". Database passed this default value: "'.$default.'"');
                 }
             } else {
                 $defaultValue = $type->convertToPHPValue($this->column->getDefault(), new MySQL57Platform());
@@ -173,15 +165,15 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         return sprintf($str, $this->getSetterName(), $defaultCode);
     }
 
-    private function getUuidCode(Annotation $uuidAnnotation): string
+    private function getUuidCode(Annotation\UUID $uuidAnnotation): string
     {
-        $comment = trim($uuidAnnotation->getAnnotationComment(), '\'"');
+        $comment = $uuidAnnotation->value;
         switch ($comment) {
             case '':
             case 'v1':
-                return '(string) Uuid::uuid1()';
+                return 'Uuid::uuid1()->toString()';
             case 'v4':
-                return '(string) Uuid::uuid4()';
+                return 'Uuid::uuid4()->toString()';
             default:
                 throw new TDBMException('@UUID annotation accepts either "v1" or "v4" parameter. Unexpected parameter: ' . $comment);
         }
@@ -204,9 +196,9 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     /**
      * Returns the PHP code for getters and setters.
      *
-     * @return string
+     * @return MethodGenerator[]
      */
-    public function getGetterSetterCode(): string
+    public function getGetterSetterCode(): array
     {
         $normalizedType = $this->getPhpType();
 
@@ -220,60 +212,63 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         if ($normalizedType === 'resource') {
             $resourceTypeCheck .= <<<EOF
 
-        if (!\is_resource($%s)) {
-            throw \TheCodingMachine\TDBM\TDBMInvalidArgumentException::badType('resource', $%s, __METHOD__);
-        }
+if (!\is_resource($%s)) {
+    throw \TheCodingMachine\TDBM\TDBMInvalidArgumentException::badType('resource', $%s, __METHOD__);
+}
 EOF;
             $resourceTypeCheck = sprintf($resourceTypeCheck, $this->column->getName(), $this->column->getName());
         }
 
-        $getterAndSetterCode = '    /**
-     * The getter for the "%s" column.
-     *
-     * @return %s
-     */
-    public function %s()%s%s%s
-    {
-        return $this->get(%s, %s);
-    }
 
-    /**
-     * The setter for the "%s" column.
-     *
-     * @param %s $%s
-     */
-    public function %s(%s%s$%s) : void
-    {%s
-        $this->set(%s, $%s, %s);
-    }
+        $paramType = null;
+        if ($this->isTypeHintable()) {
+            $paramType = ($isNullable?'?':'').$normalizedType;
+        }
 
-';
+        $getter = new MethodGenerator($columnGetterName);
+        $getter->setDocBlock(sprintf('The getter for the "%s" column.', $this->column->getName()));
 
-        return sprintf(
-            $getterAndSetterCode,
-            // Getter
-            $this->column->getName(),
-            $normalizedType.($isNullable ? '|null' : ''),
-            $columnGetterName,
-            ($this->isTypeHintable() ? ' : ' : ''),
-            ($isNullable && $this->isTypeHintable() ? '?' : ''),
-            ($this->isTypeHintable() ? $normalizedType: ''),
+        $types = [ $normalizedType ];
+        if ($isNullable) {
+            $types[] = 'null';
+        }
+        $getter->getDocBlock()->setTag(new ReturnTag($types));
+
+        $getter->setReturnType($paramType);
+
+        $getter->setBody(sprintf('return $this->get(%s, %s);',
             var_export($this->column->getName(), true),
-            var_export($this->table->getName(), true),
-            // Setter
-            $this->column->getName(),
-            $normalizedType.(($this->column->getNotnull() || !$this->isTypeHintable()) ? '' : '|null'),
-            $this->column->getName(),
-            $columnSetterName,
-            ($this->column->getNotnull() || !$this->isTypeHintable()) ? '' : '?',
-            $this->isTypeHintable() ? $normalizedType . ' ' : '',
-                //$castTo,
-            $this->column->getName(),
+            var_export($this->table->getName(), true)));
+
+        if ($this->isGetterProtected()) {
+            $getter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+        }
+
+        $setter = new MethodGenerator($columnSetterName);
+        $setter->setDocBlock(sprintf('The setter for the "%s" column.', $this->column->getName()));
+
+        $types = [ $normalizedType ];
+        if ($isNullable) {
+            $types[] = 'null';
+        }
+        $setter->getDocBlock()->setTag(new ParamTag($this->column->getName(), $types));
+
+        $parameter = new ParameterGenerator($this->column->getName(), $paramType);
+        $setter->setParameter($parameter);
+        $setter->setReturnType('void');
+
+        $setter->setBody(sprintf('%s
+$this->set(%s, $%s, %s);',
             $resourceTypeCheck,
             var_export($this->column->getName(), true),
             $this->column->getName(),
-            var_export($this->table->getName(), true)
-        );
+            var_export($this->table->getName(), true)));
+
+        if ($this->isSetterProtected()) {
+            $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+        }
+
+        return [$getter, $setter];
     }
 
     /**
@@ -283,20 +278,59 @@ EOF;
      */
     public function getJsonSerializeCode(): string
     {
-        $normalizedType = $this->getPhpType();
+        if ($this->findAnnotation(Annotation\JsonIgnore::class)) {
+            return '';
+        }
 
         if (!$this->canBeSerialized()) {
             return '';
         }
 
-        if ($normalizedType == '\\DateTimeImmutable') {
-            if ($this->column->getNotnull()) {
-                return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."()->format('c');\n";
-            } else {
-                return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = ($this->'.$this->getGetterName().'() === null) ? null : $this->'.$this->getGetterName()."()->format('c');\n";
-            }
-        } else {
-            return '        $array['.var_export($this->namingStrategy->getJsonProperty($this), true).'] = $this->'.$this->getGetterName()."();\n";
+        // Do not export the property is the getter is protected.
+        if ($this->isGetterProtected()) {
+            return '';
+        }
+
+        /** @var Annotation\JsonKey|null $jsonKey */
+        $jsonKey = $this->findAnnotation(Annotation\JsonKey::class);
+        $index = $jsonKey ? $jsonKey->key : $this->namingStrategy->getJsonProperty($this);
+        $getter = $this->getGetterName();
+        switch ($this->getPhpType()) {
+            case '\\DateTimeImmutable':
+                /** @var Annotation\JsonFormat|null $jsonFormat */
+                $jsonFormat = $this->findAnnotation(Annotation\JsonFormat::class);
+                $format = $jsonFormat ? $jsonFormat->datetime : 'c';
+                if ($this->column->getNotnull()) {
+                    return "\$array['$index'] = \$this->$getter()->format('$format');";
+                } else {
+                    return "\$array['$index'] = (\$date = \$this->$getter()) ? \$date->format('$format') : null;";
+                }
+            case 'int':
+            case 'float':
+                /** @var Annotation\JsonFormat|null $jsonFormat */
+                $jsonFormat = $this->findAnnotation(Annotation\JsonFormat::class);
+                if ($jsonFormat) {
+                    $args = [$jsonFormat->decimals, $jsonFormat->point, $jsonFormat->separator];
+                    for ($i = 2; $i >= 0; --$i) {
+                        if ($args[$i] === null) {
+                            unset($args[$i]);
+                        } else {
+                            break;
+                        }
+                    }
+                    $args = array_map(function ($v) {
+                        return var_export($v, true);
+                    }, $args);
+                    $args = empty($args) ? '' : ', ' . implode(', ', $args);
+                    $unit = $jsonFormat->unit ? ' . ' . var_export($jsonFormat->unit, true) : '';
+                    if ($this->column->getNotnull()) {
+                        return "\$array['$index'] = number_format(\$this->$getter()$args)$unit;";
+                    } else {
+                        return "\$array['$index'] = \$this->$getter() !== null ? number_format(\$this->$getter()$args)$unit : null;";
+                    }
+                }
+            default:
+                return "\$array['$index'] = \$this->$getter();";
         }
     }
 
@@ -318,7 +352,7 @@ EOF;
     {
         $uuidAnnotation = $this->getUuidAnnotation();
         if ($uuidAnnotation !== null && $this->isPrimaryKey()) {
-            return sprintf("        \$this->%s(%s);\n", $this->getSetterName(), $this->getUuidCode($uuidAnnotation));
+            return sprintf("\$this->%s(%s);\n", $this->getSetterName(), $this->getUuidCode($uuidAnnotation));
         }
         return null;
     }
@@ -353,5 +387,24 @@ EOF;
         ];
 
         return \in_array($type, $invalidScalarTypes, true) === false;
+    }
+
+    private function isGetterProtected(): bool
+    {
+        return $this->findAnnotation(Annotation\ProtectedGetter::class) !== null;
+    }
+
+    private function isSetterProtected(): bool
+    {
+        return $this->findAnnotation(Annotation\ProtectedSetter::class) !== null;
+    }
+
+    /**
+     * @param string $type
+     * @return null|object
+     */
+    private function findAnnotation(string $type)
+    {
+        return $this->getAnnotations()->findAnnotation($type);
     }
 }

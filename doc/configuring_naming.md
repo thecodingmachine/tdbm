@@ -65,6 +65,20 @@ $strategy->setExceptions([
 ]);
 ```
 
+Using the @Bean annotation
+--------------------------
+<small>(Available in TDBM 5.1+)</small>
+
+You can also use the @Bean annotation to directly alter the name of the beans/daos.
+
+```sql
+CREATE TABLE `members` (
+  `id` varchar(36) NOT NULL,
+  `login` varchar(50),
+  PRIMARY KEY (`id`)
+) COMMENT("@Bean(name=\"User\")");
+```
+
 
 Implementing your own naming strategy
 -------------------------------------

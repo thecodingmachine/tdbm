@@ -6,6 +6,8 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\CodeGeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\GeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
@@ -55,10 +57,20 @@ interface ConfigurationInterface
     public function getGeneratorEventDispatcher(): GeneratorListenerInterface;
 
     /**
+     * @return CodeGeneratorListenerInterface
+     */
+    public function getCodeGeneratorListener(): CodeGeneratorListenerInterface;
+
+    /**
      * Returns a class able to find the place of a PHP file based on the class name.
      * Useful to find the path where DAOs and beans should be written to.
      *
      * @return PathFinderInterface
      */
-    public function getPathFinder() : PathFinderInterface;
+    public function getPathFinder(): PathFinderInterface;
+
+    /**
+     * @return AnnotationParser
+     */
+    public function getAnnotationParser(): AnnotationParser;
 }

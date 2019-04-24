@@ -9,13 +9,14 @@ currentMenu: install_symfony
 To install TDBM in Symfony 4.x:
 
 ```bash
-composer require thecodingmachine/tdbm-bundle ^5.0
+$ composer config extra.symfony.allow-contrib true
+$ composer require thecodingmachine/tdbm-bundle ^5.0
 ```
 
 <div class="alert alert-info">
 TDBM requires Doctrine DBAL to be available. In Symfony 4+, DBAL is available as a separated bundle.
 Therefore, installing the TDBM bundle will install Doctrine ORM bundle a dependency. Nothing to worry 
-about, this is unfortunately an expected behaviour ([more details](https://github.com/symfony/recipes/issues/218))
+about, this is unfortunately an expected behaviour (<a href="https://github.com/symfony/recipes/issues/218">more details</a>)
 </div>
 
 ### Configuration

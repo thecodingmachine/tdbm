@@ -8,6 +8,8 @@ use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\ConfigurationInterface;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\CodeGeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\GeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinderInterface;
@@ -103,6 +105,14 @@ class AlteredConfiguration implements ConfigurationInterface
     }
 
     /**
+     * @return CodeGeneratorListenerInterface
+     */
+    public function getCodeGeneratorListener(): CodeGeneratorListenerInterface
+    {
+        return $this->configuration->getCodeGeneratorListener();
+    }
+
+    /**
      * @param LoggerInterface $logger
      */
     public function setLogger(LoggerInterface $logger): void
@@ -119,5 +129,13 @@ class AlteredConfiguration implements ConfigurationInterface
     public function getPathFinder(): PathFinderInterface
     {
         return $this->configuration->getPathFinder();
+    }
+
+    /**
+     * @return AnnotationParser
+     */
+    public function getAnnotationParser(): AnnotationParser
+    {
+        return $this->configuration->getAnnotationParser();
     }
 }

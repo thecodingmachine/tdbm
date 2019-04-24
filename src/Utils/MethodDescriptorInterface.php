@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use Zend\Code\Generator\MethodGenerator;
+
 interface MethodDescriptorInterface
 {
     /**
@@ -27,9 +29,9 @@ interface MethodDescriptorInterface
     /**
      * Returns the code of the method.
      *
-     * @return string
+     * @return MethodGenerator[]
      */
-    public function getCode() : string;
+    public function getCode() : array;
 
     /**
      * Returns an array of classes that needs a "use" for this method.
