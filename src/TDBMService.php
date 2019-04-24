@@ -1116,7 +1116,7 @@ class TDBMService
 
         $parameters = array_merge($parameters, $additionalParameters);
 
-        $queryFactory = new FindObjectsQueryFactory($mainTable, $additionalTablesFetch, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer);
+        $queryFactory = new FindObjectsQueryFactory($mainTable, $additionalTablesFetch, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer, $this->cache);
 
         return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
