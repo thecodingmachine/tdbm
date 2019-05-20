@@ -210,13 +210,21 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
         $resourceTypeCheck = '';
         if ($normalizedType === 'resource') {
-            $resourceTypeCheck .= <<<EOF
-
+            if ($isNullable) {
+                $resourceTypeCheck .= <<<EOF
+if ($%s !== null && !\is_resource($%s)) {
+    throw \TheCodingMachine\TDBM\TDBMInvalidArgumentException::badType('resource', $%s, __METHOD__);
+}
+EOF;
+                $resourceTypeCheck = sprintf($resourceTypeCheck, $this->column->getName(), $this->column->getName(), $this->column->getName());
+            } else {
+                $resourceTypeCheck .= <<<EOF
 if (!\is_resource($%s)) {
     throw \TheCodingMachine\TDBM\TDBMInvalidArgumentException::badType('resource', $%s, __METHOD__);
 }
 EOF;
-            $resourceTypeCheck = sprintf($resourceTypeCheck, $this->column->getName(), $this->column->getName());
+                $resourceTypeCheck = sprintf($resourceTypeCheck, $this->column->getName(), $this->column->getName());
+            }
         }
 
 
