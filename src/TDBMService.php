@@ -403,7 +403,7 @@ class TDBMService
                 } else {
                     $paramName = 'tdbmparam'.$counter;
                     if (is_array($value)) {
-                        $sqlParts[] = $platform->quoteIdentifier($column).' IN :'.$paramName;
+                        $sqlParts[] = $platform->quoteIdentifier($column).' IN (:'.$paramName.')';
                     } else {
                         $sqlParts[] = $platform->quoteIdentifier($column).' = :'.$paramName;
                     }
