@@ -403,7 +403,7 @@ class TDBMService
                 } else {
                     $paramName = 'tdbmparam'.$counter;
                     if (is_array($value)) {
-                        $sqlParts[] = $platform->quoteIdentifier($column).' IN :'.$paramName;
+                        $sqlParts[] = $platform->quoteIdentifier($column).' IN (:'.$paramName.')';
                     } else {
                         $sqlParts[] = $platform->quoteIdentifier($column).' = :'.$paramName;
                     }
@@ -1134,7 +1134,7 @@ class TDBMService
 
         $parameters = array_merge($parameters, $additionalParameters);
 
-        $queryFactory = new FindObjectsQueryFactory($mainTable, $additionalTablesFetch, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer);
+        $queryFactory = new FindObjectsQueryFactory($mainTable, $additionalTablesFetch, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer, $this->cache);
 
         return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
