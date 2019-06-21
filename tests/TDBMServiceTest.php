@@ -757,7 +757,7 @@ SQL;
             'users',
             'login LIKE :login OR login LIKE :login2',
             array('login' => 'robert.marley', 'login2' => 'bill.shakespeare'),
-            'login DESC',
+            'users.login DESC',
             null,
             TDBMObject::class
         );
