@@ -20,7 +20,7 @@
         <!-- "Real" test database -->
         <var name="db_host" value="127.0.0.1" />
         <var name="db_username" value="root" />
-        <var name="db_password" value="root" />
+        <var name="db_password" value="" />
         <var name="db_name" value="tdbm_testcase" />
         <var name="db_port" value="3306"/>
         <var name="db_driver" value="pdo_mysql"/>

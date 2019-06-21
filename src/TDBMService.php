@@ -387,7 +387,7 @@ class TDBMService
      */
     public function buildFilterFromFilterBag($filter_bag, AbstractPlatform $platform, int $counter = 1): array
     {
-        if ($filter_bag === null) {
+        if ($filter_bag === null || $filter_bag === []) {
             return ['', [], $counter];
         } elseif (is_string($filter_bag)) {
             return [$filter_bag, [], $counter];
@@ -403,7 +403,7 @@ class TDBMService
                 } else {
                     $paramName = 'tdbmparam'.$counter;
                     if (is_array($value)) {
-                        $sqlParts[] = $platform->quoteIdentifier($column).' IN :'.$paramName;
+                        $sqlParts[] = $platform->quoteIdentifier($column).' IN (:'.$paramName.')';
                     } else {
                         $sqlParts[] = $platform->quoteIdentifier($column).' = :'.$paramName;
                     }
@@ -412,7 +412,7 @@ class TDBMService
                 }
             }
 
-            return [implode(' AND ', $sqlParts), $parameters, $counter];
+            return ['(' . implode(') AND (', $sqlParts) . ')', $parameters, $counter];
         } elseif ($filter_bag instanceof AbstractTDBMObject) {
             $sqlParts = [];
             $parameters = [];
@@ -1134,7 +1134,7 @@ class TDBMService
 
         $parameters = array_merge($parameters, $additionalParameters);
 
-        $queryFactory = new FindObjectsQueryFactory($mainTable, $additionalTablesFetch, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer);
+        $queryFactory = new FindObjectsQueryFactory($mainTable, $additionalTablesFetch, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer, $this->cache);
 
         return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
