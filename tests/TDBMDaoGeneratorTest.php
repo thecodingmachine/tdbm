@@ -1988,6 +1988,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertTrue($refClass->implementsInterface(TestUserDaoInterface::class));
     }
 
+    /**
+     * @depends testDaoGeneration
+     */
     public function testTrait()
     {
         if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
@@ -2003,5 +2006,18 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $refClass = new ReflectionClass(UserBaseDao::class);
         $this->assertTrue($refClass->hasMethod('findNothing'));
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCanNullifyBlob()
+    {
+        $article = new ArticleBean('content');
+        $fp = fopen(__FILE__, 'r');
+        $article->setAttachment($fp);
+        $article->setAttachment(null);
+        $this->assertNull($article->getAttachment(null));
+        fclose($fp);
     }
 }
