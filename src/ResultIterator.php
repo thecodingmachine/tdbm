@@ -3,11 +3,16 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
+use function array_map;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
+use function is_array;
+use function is_int;
 use Mouf\Database\MagicQuery;
 use TheCodingMachine\TDBM\QueryFactory\QueryFactory;
 use Porpaginas\Result;
 use Psr\Log\LoggerInterface;
+use TheCodingMachine\TDBM\Utils\DbalUtils;
 use Traversable;
 
 /*
@@ -82,9 +87,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     protected function executeCountQuery(): void
     {
-        $sql = $this->magicQuery->build($this->queryFactory->getMagicSqlCount(), $this->parameters);
+        $sql = $this->magicQuery->buildPreparedStatement($this->queryFactory->getMagicSqlCount(), $this->parameters);
         $this->logger->debug('Running count query: '.$sql);
-        $this->totalCount = (int) $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters);
+        $this->totalCount = (int) $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters, 0, DbalUtils::generateArrayTypes($this->parameters));
     }
 
     /**

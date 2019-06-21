@@ -632,12 +632,12 @@ SQL;
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\DuplicateRowException
-     *
      * @throws DuplicateRowException
      */
     public function testFindObjectDuplicateRow()
     {
+        $this->expectException(DuplicateRowException::class);
+
         $bean = $this->tdbmService->findObject('contact');
     }
 
@@ -721,12 +721,12 @@ SQL;
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\DuplicateRowException
-     *
      * @throws DuplicateRowException
      */
     public function testFindObjectFromSqlException()
     {
+        $this->expectException(DuplicateRowException::class);
+        $this->expectExceptionMessage('Error while querying an object in table \'roles\': More than 1 row have been returned, but we should have received at most one for filter "rights.label = \'CAN_SING\'".');
         $this->tdbmService->findObjectFromSql(
             'roles',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',

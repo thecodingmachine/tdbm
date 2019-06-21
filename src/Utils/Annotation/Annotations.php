@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
+use function array_values;
 use TheCodingMachine\TDBM\TDBMException;
 
 /**
@@ -38,9 +39,9 @@ class Annotations
      */
     public function findAnnotations(string $annotationType): array
     {
-        return array_filter($this->annotations, function ($annotation) use ($annotationType) {
+        return array_values(array_filter($this->annotations, function ($annotation) use ($annotationType) {
             return is_a($annotation, $annotationType);
-        });
+        }));
     }
 
     /**

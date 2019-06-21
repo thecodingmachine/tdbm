@@ -52,6 +52,9 @@ matrix:
       env: PREFER_LOWEST="" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
     - php: 7.1
       env: PREFER_LOWEST="--prefer-lowest" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
+    # 7.3 allowed to fail due to an issue with greenlion/PHP-SQL-Parser: https://github.com/greenlion/PHP-SQL-Parser/pull/304
+    - php: 7.3
+      env: PREFER_LOWEST="" DB=mysql NO_WEAKREF=1
 env:
   global:
   - GIT_NAME: "'Couscous auto deploy'"
@@ -62,7 +65,7 @@ before_script:
 - composer update --prefer-dist
 # For some reason, $PREFER_LOWEST will fail unless a composer update has been run before...
 - if [ "$PREFER_LOWEST" = "--prefer-lowest" ] ; then composer update --prefer-dist --prefer-lowest; fi
-- pecl install weakref-beta
+- if [ -z "$NO_WEAKREF" ] ; then pecl install weakref-beta; fi
 script:
 # Let's run the Oracle script only when the password is available (it is not available in forks unfortunately)
 - |
@@ -75,7 +78,7 @@ script:
     ./vendor/bin/phpunit $PHPUNITFILE;
   fi
 - composer phpstan
-- ./vendor/bin/composer-require-checker check --config-file=composer-require-checker.json
+- composer require-checker
 after_script:
 - if [ "$COVERALLS" = "true" ] ; then ./vendor/bin/coveralls -v; fi
 - if [ "$COVERALLS" = "true" ] ; then vendor/bin/couscous travis-auto-deploy --php-version=7.1 -vvv; fi

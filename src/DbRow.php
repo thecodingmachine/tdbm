@@ -21,6 +21,8 @@ namespace TheCodingMachine\TDBM;
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+use TheCodingMachine\TDBM\Schema\ForeignKeys;
+
 /**
  * Instances of this class represent a row in a database.
  *
@@ -94,6 +96,10 @@ class DbRow
      * @var array
      */
     private $modifiedReferences = [];
+    /**
+     * @var ForeignKeys
+     */
+    private $foreignKeys;
 
     /**
      * You should never call the constructor directly. Instead, you should use the
@@ -109,10 +115,11 @@ class DbRow
      * @param mixed[] $dbRow
      * @throws TDBMException
      */
-    public function __construct(AbstractTDBMObject $object, string $tableName, array $primaryKeys = array(), TDBMService $tdbmService = null, array $dbRow = [])
+    public function __construct(AbstractTDBMObject $object, string $tableName, ForeignKeys $foreignKeys, array $primaryKeys = array(), TDBMService $tdbmService = null, array $dbRow = [])
     {
         $this->object = $object;
         $this->dbTableName = $tableName;
+        $this->foreignKeys = $foreignKeys;
 
         $this->status = TDBMObjectStateEnum::STATE_DETACHED;
 
@@ -277,7 +284,7 @@ class DbRow
             $this->_dbLoadIfNotLoaded();
 
             // Let's match the name of the columns to the primary key values
-            $fk = $this->tdbmService->_getForeignKeyByName($this->dbTableName, $foreignKeyName);
+            $fk = $this->foreignKeys->getForeignKey($foreignKeyName);
 
             $values = [];
             foreach ($fk->getUnquotedLocalColumns() as $column) {
@@ -287,7 +294,7 @@ class DbRow
                 $values[] = $this->dbRow[$column];
             }
 
-            $filter = array_combine($fk->getUnquotedForeignColumns(), $values);
+            $filter = SafeFunctions::arrayCombine($fk->getUnquotedForeignColumns(), $values);
 
             // If the foreign key points to the primary key, let's use findObjectByPk
             if ($this->tdbmService->getPrimaryKeyColumns($fk->getForeignTableName()) === $fk->getUnquotedForeignColumns()) {
@@ -375,7 +382,7 @@ class DbRow
      * Builds a raw db row from dbRow and references passed in parameters.
      *
      * @param mixed[] $dbRow
-     * @param AbstractTDBMObject[] $references
+     * @param array<string,AbstractTDBMObject|null> $references
      * @return mixed[]
      * @throws TDBMMissingReferenceException
      */
@@ -388,7 +395,7 @@ class DbRow
         // Let's merge $dbRow and $references
         foreach ($references as $foreignKeyName => $reference) {
             // Let's match the name of the columns to the primary key values
-            $fk = $this->tdbmService->_getForeignKeyByName($this->dbTableName, $foreignKeyName);
+            $fk = $this->foreignKeys->getForeignKey($foreignKeyName);
             $localColumns = $fk->getUnquotedLocalColumns();
 
             if ($reference !== null) {

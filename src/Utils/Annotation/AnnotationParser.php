@@ -3,10 +3,13 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
+use function array_map;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\DocParser;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
+use function explode;
+use function implode;
 
 /**
  * Parses annotations in database columns.
@@ -36,7 +39,20 @@ class AnnotationParser
         $defaultAnnotations = [
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class,
-            'Bean' => Bean::class
+            'Bean' => Bean::class,
+            'ProtectedGetter' => ProtectedGetter::class,
+            'ProtectedSetter' => ProtectedSetter::class,
+            'ProtectedOneToMany' => ProtectedOneToMany::class,
+            'JsonKey' => JsonKey::class,
+            'JsonIgnore' => JsonIgnore::class,
+            'JsonInclude' => JsonInclude::class,
+            'JsonRecursive' => JsonRecursive::class,
+            'JsonCollection' => JsonCollection::class,
+            'JsonFormat' => JsonFormat::class,
+            'AddInterface' => AddInterface::class,
+            'AddInterfaceOnDao' => AddInterfaceOnDao::class,
+            'AddTrait' => AddTrait::class,
+            'AddTraitOnDao' => AddTraitOnDao::class,
         ];
         $annotations = $defaultAnnotations + $additionalAnnotations;
         return new self($annotations);
@@ -51,6 +67,11 @@ class AnnotationParser
 
         // compatibility with UUID annotation from TDBM 5.0
         $comment = \str_replace(['@UUID v1', '@UUID v4'], ['@UUID("v1")', '@UUID("v4")'], $comment);
+
+        // Let's add * in front of the line (otherwise, parsing is failing)
+        $lines = explode("\n", $comment);
+        $lines = array_map(function(string $line) { return '* '.$line; }, $lines);
+        $comment = implode("\n", $lines);
 
         $annotations = $this->docParser->parse($comment, $context);
 

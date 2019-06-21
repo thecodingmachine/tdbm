@@ -7,6 +7,7 @@ use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use Psr\Log\LoggerInterface;
+use TheCodingMachine\TDBM\Utils\DbalUtils;
 
 /*
  Copyright (C) 2006-2017 David Négrier - THE CODING MACHINE
@@ -85,7 +86,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
     private function getQuery(): string
     {
-        $sql = $this->magicQuery->build($this->magicSql, $this->parameters);
+        $sql = $this->magicQuery->buildPreparedStatement($this->magicSql, $this->parameters);
         $sql = $this->tdbmService->getConnection()->getDatabasePlatform()->modifyLimitQuery($sql, $this->limit, $this->offset);
         return $sql;
     }
@@ -96,7 +97,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
         $this->logger->debug('Running SQL request: '.$sql);
 
-        $this->statement = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters);
+        $this->statement = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters, DbalUtils::generateArrayTypes($this->parameters));
 
         $this->fetchStarted = true;
     }

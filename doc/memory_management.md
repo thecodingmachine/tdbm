@@ -59,3 +59,7 @@ and only keep track of beans you are actively using.
 <div class="alert alert-info">To sum up, if you have very large datasets to fetch, you should
 use the <strong>cursor</strong> mode on your data sets and <strong>install the weakref PHP
 extension</strong>.</div>
+
+<div class="alert alert-warning">The weakref extension is not available in PHP 7.3+ because of internal changes
+in the PHP engine. PHP 7.4 will <a href="https://wiki.php.net/rfc/weakrefs">feature a native Weakref implementation when it is released</a>.
+If you need weakref, stick with PHP 7.2 and jump to PHP 7.4 when it is available!</div>

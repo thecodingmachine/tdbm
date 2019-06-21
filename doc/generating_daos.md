@@ -6,7 +6,7 @@ currentMenu: generating_daos
 
 TDBM generates PHP files from your database model.
 
-<div class="alert alert-info">Each time your database model is modified, you must to regenerate those files.</div>
+<div class="alert alert-info">Each time your database model is modified, you have to regenerate those files.</div>
 
 The way you generate DAOs and beans **depends on the framework you use**.
  
