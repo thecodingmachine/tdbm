@@ -350,7 +350,8 @@ abstract class TDBMAbstractServiceTest extends TestCase
         $db->table('article')
             ->column('id')->string(36)->primaryKey()->comment('@UUID')
             ->column('content')->string(255)
-            ->column('author_id')->references('users')->null();
+            ->column('author_id')->references('users')->null()
+            ->column('attachment')->blob()->null();
 
         $db->table('article2')
             ->column('id')->string(36)->primaryKey()->comment('@UUID v4')

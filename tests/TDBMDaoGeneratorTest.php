@@ -2019,4 +2019,17 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $refClass = new ReflectionClass(UserBaseBean::class);
         $this->assertFalse($refClass->isInstantiable());
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCanNullifyBlob()
+    {
+        $article = new ArticleBean('content');
+        $fp = fopen(__FILE__, 'r');
+        $article->setAttachment($fp);
+        $article->setAttachment(null);
+        $this->assertNull($article->getAttachment(null));
+        fclose($fp);
+    }
 }
