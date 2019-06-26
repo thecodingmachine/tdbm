@@ -1988,6 +1988,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertTrue($refClass->implementsInterface(TestUserDaoInterface::class));
     }
 
+    /**
+     * @depends testDaoGeneration
+     */
     public function testTrait()
     {
         if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
@@ -2003,5 +2006,17 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $refClass = new ReflectionClass(UserBaseDao::class);
         $this->assertTrue($refClass->hasMethod('findNothing'));
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testNonInstantiableAbstractDaosAndBeans()
+    {
+        $refClass = new ReflectionClass(UserBaseDao::class);
+        $this->assertFalse($refClass->isInstantiable());
+
+        $refClass = new ReflectionClass(UserBaseBean::class);
+        $this->assertFalse($refClass->isInstantiable());
     }
 }
