@@ -167,3 +167,40 @@ $db->table('users')
    ->column('name')->string(50)->graphqlField()
    ->logged()->right('CAN_SEE_NAME')->failWith(null);
 ```
+
+## Use your beans as input types
+
+TDBM will automatically annotate the `xxxDao::getById()` method with a `@Factory` annotation.
+As a result, you can directly inject you beans as arguments in your GraphQL queries.
+
+For instance:
+
+```php
+class ProductController
+{
+    // ...
+
+    /**
+     * @Query()
+     * @return Product[]
+     */
+    public function getProducts(Category $category): array
+    {
+        // ...
+    }
+}
+```
+
+Assuming "Category" is a bean, TDBM-GraphQL will automatically fetch the bean from the database and populate the `$category`
+argument with it.
+
+Your GraphQL query will look like this:
+
+```graphql
+{
+    products(category: { id: 42 }) {
+        id
+        name
+    }
+}
+```
