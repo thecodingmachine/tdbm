@@ -489,6 +489,32 @@ The library provides a number of helpers to create the annotations for you:</p>
 <pre><code class="language-php">$db-&gt;table('users')
    -&gt;column('name')-&gt;string(50)-&gt;graphqlField()
    -&gt;logged()-&gt;right('CAN_SEE_NAME')-&gt;failWith(null);</code></pre>
+<h2 id="use-your-beans-as-input-types">Use your beans as input types</h2>
+<p>TDBM will automatically annotate the <code>xxxDao::getById()</code> method with a <code>@Factory</code> annotation.
+As a result, you can directly inject you beans as arguments in your GraphQL queries.</p>
+<p>For instance:</p>
+<pre><code class="language-php">class ProductController
+{
+    // ...
+
+    /**
+     * @Query()
+     * @return Product[]
+     */
+    public function getProducts(Category $category): array
+    {
+        // ...
+    }
+}</code></pre>
+<p>Assuming &quot;Category&quot; is a bean, TDBM-GraphQL will automatically fetch the bean from the database and populate the <code>$category</code>
+argument with it.</p>
+<p>Your GraphQL query will look like this:</p>
+<pre><code class="language-graphql">{
+    products(category: { id: 42 }) {
+        id
+        name
+    }
+}</code></pre>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
