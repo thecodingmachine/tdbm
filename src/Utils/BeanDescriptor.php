@@ -495,6 +495,7 @@ class BeanDescriptor implements BeanDescriptorInterface
 
         $file = new FileGenerator();
         $class = new ClassGenerator();
+        $class->setAbstract(true);
         $file->setClass($class);
         $file->setNamespace($this->generatedBeanNamespace);
 
@@ -651,6 +652,7 @@ EOF
     {
         $file = new FileGenerator();
         $class = new ClassGenerator();
+        $class->setAbstract(true);
         $file->setClass($class);
         $file->setNamespace($this->generatedDaoNamespace);
 
