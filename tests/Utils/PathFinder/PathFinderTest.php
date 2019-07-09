@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class PathFinderTest extends TestCase
 {
-    public function testGetPath()
+    public function testGetPath(): void
     {
         $pathFinder = new PathFinder(null, dirname(__DIR__, 6));
         $path = realpath($pathFinder->getPath(PathFinder::class)->getPathname());
@@ -16,7 +16,7 @@ class PathFinderTest extends TestCase
         $this->assertSame($expectedPath, $path);
     }
 
-    public function testGetPathNotFound()
+    public function testGetPathNotFound(): void
     {
         $pathFinder = new PathFinder(null, dirname(__DIR__, 6));
         $this->expectException(NoPathFoundException::class);

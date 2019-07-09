@@ -29,7 +29,7 @@ class CodeGeneratorEventDispatcherTest extends TestCase
     private $beanPropertyDescriptor;
     private $nullDispatcher;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->dispatcher = new CodeGeneratorEventDispatcher([new BaseCodeGeneratorListener()]);
         $this->nullDispatcher = new CodeGeneratorEventDispatcher([new class implements CodeGeneratorListenerInterface {
@@ -146,122 +146,122 @@ class CodeGeneratorEventDispatcherTest extends TestCase
         $this->file = new FileGenerator();
     }
 
-    public function testOnBaseDaoFindAllGenerated()
+    public function testOnBaseDaoFindAllGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoFindAllGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoFindAllGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseBeanJsonSerializeGenerated()
+    public function testOnBaseBeanJsonSerializeGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseBeanJsonSerializeGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseBeanJsonSerializeGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoConstructorGenerated()
+    public function testOnBaseDaoConstructorGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoConstructorGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoConstructorGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoFindOneFromSqlGenerated()
+    public function testOnBaseDaoFindOneFromSqlGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoFindOneFromSqlGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoFindOneFromSqlGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoGenerated()
+    public function testOnBaseDaoGenerated(): void
     {
         $this->assertSame($this->file, $this->dispatcher->onBaseDaoGenerated($this->file, $this->beanDescriptor, $this->configuration));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoGenerated($this->file, $this->beanDescriptor, $this->configuration));
     }
 
-    public function testOnBaseDaoSetDefaultSortGenerated()
+    public function testOnBaseDaoSetDefaultSortGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoSetDefaultSortGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoSetDefaultSortGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoSaveGenerated()
+    public function testOnBaseDaoSaveGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoSaveGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoSaveGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoGetByIdGenerated()
+    public function testOnBaseDaoGetByIdGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoGetByIdGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoGetByIdGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseBeanCloneGenerated()
+    public function testOnBaseBeanCloneGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseBeanCloneGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseBeanCloneGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoFindOneGenerated()
+    public function testOnBaseDaoFindOneGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoFindOneGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoFindOneGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseBeanPropertyGenerated()
+    public function testOnBaseBeanPropertyGenerated(): void
     {
         $this->assertSame([$this->method1, $this->method2], $this->dispatcher->onBaseBeanPropertyGenerated($this->method1, $this->method2, $this->beanPropertyDescriptor, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame([null, null], $this->nullDispatcher->onBaseBeanPropertyGenerated(null, null, $this->beanPropertyDescriptor, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoFindGenerated()
+    public function testOnBaseDaoFindGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoFindGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoFindGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseBeanOneToManyGenerated()
+    public function testOnBaseBeanOneToManyGenerated(): void
     {
         $directForeignKeyMethodDescriptor = $this->getMockBuilder(DirectForeignKeyMethodDescriptor::class)->disableOriginalConstructor()->getMock();
         $this->assertSame($this->method1, $this->dispatcher->onBaseBeanOneToManyGenerated($this->method1, $directForeignKeyMethodDescriptor, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseBeanOneToManyGenerated($this->method1, $directForeignKeyMethodDescriptor, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoFindFromSqlGenerated()
+    public function testOnBaseDaoFindFromSqlGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoFindFromSqlGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoFindFromSqlGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseBeanConstructorGenerated()
+    public function testOnBaseBeanConstructorGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseBeanConstructorGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseBeanConstructorGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoFindFromRawSqlGenerated()
+    public function testOnBaseDaoFindFromRawSqlGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoFindFromRawSqlGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoFindFromRawSqlGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoDeleteGenerated()
+    public function testOnBaseDaoDeleteGenerated(): void
     {
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoDeleteGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoDeleteGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseBeanGenerated()
+    public function testOnBaseBeanGenerated(): void
     {
         $this->assertSame($this->file, $this->dispatcher->onBaseBeanGenerated($this->file, $this->beanDescriptor, $this->configuration));
         $this->assertSame(null, $this->nullDispatcher->onBaseBeanGenerated($this->file, $this->beanDescriptor, $this->configuration));
     }
 
-    public function testOnBaseBeanManyToManyGenerated()
+    public function testOnBaseBeanManyToManyGenerated(): void
     {
         $this->assertSame([$this->method1, $this->method2, $this->method3, $this->method4, $this->method5], $this->dispatcher->onBaseBeanManyToManyGenerated($this->method1, $this->method2, $this->method3, $this->method4, $this->method5, $this->pivotTableMethodsDescriptor, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame([null, null, null, null, null], $this->nullDispatcher->onBaseBeanManyToManyGenerated(null, null, null, null, null, $this->pivotTableMethodsDescriptor, $this->beanDescriptor, $this->configuration, $this->class));
     }
 
-    public function testOnBaseDaoFindByIndexGenerated()
+    public function testOnBaseDaoFindByIndexGenerated(): void
     {
         $index = $this->getMockBuilder(Index::class)->disableOriginalConstructor()->getMock();
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoFindByIndexGenerated($this->method1, $index, $this->beanDescriptor, $this->configuration, $this->class));

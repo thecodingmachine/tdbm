@@ -8,7 +8,7 @@ use TheCodingMachine\TDBM\ConfigurationInterface;
 
 class VoidListenerTest extends TestCase
 {
-    public function testNothing()
+    public function testNothing(): void
     {
         $configuration = $this->getMockBuilder(ConfigurationInterface::class)->getMock();
         $voidListener = new VoidListener();

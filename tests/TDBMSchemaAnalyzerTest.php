@@ -31,14 +31,14 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
      */
     protected $tdbmSchemaAnalyzer;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer);
     }
 
-    public function testGetSchema()
+    public function testGetSchema(): void
     {
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
@@ -52,7 +52,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $this->assertTrue($schema1 === $schema2);
     }
 
-    public function testGetIncomingForeignKeys()
+    public function testGetIncomingForeignKeys(): void
     {
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
@@ -62,7 +62,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $this->assertCount(1, $fks);
     }
 
-    public function testGetIncomingForeignKeys2()
+    public function testGetIncomingForeignKeys2(): void
     {
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
@@ -72,7 +72,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $this->assertCount(1, $fks);
     }
 
-    public function testGetIncomingForeignKeys3()
+    public function testGetIncomingForeignKeys3(): void
     {
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
@@ -87,7 +87,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $this->assertContains('states', $tables);
     }
 
-    public function testGetPivotTableLinkedToTable()
+    public function testGetPivotTableLinkedToTable(): void
     {
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();

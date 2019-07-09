@@ -71,7 +71,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
      */
     private $cache;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::resetConnection();
 
@@ -189,7 +189,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         }
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->tdbmService = new TDBMService($this->getConfiguration());
     }

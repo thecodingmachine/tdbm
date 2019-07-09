@@ -12,7 +12,7 @@ use TheCodingMachine\TDBM\TDBMException;
 
 class AnnotationParserTest extends TestCase
 {
-    public function testParse()
+    public function testParse(): void
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,
@@ -33,7 +33,7 @@ class AnnotationParserTest extends TestCase
         $this->assertNull($annotation);
     }
 
-    public function testParseMultiLine()
+    public function testParseMultiLine(): void
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,
@@ -47,7 +47,7 @@ class AnnotationParserTest extends TestCase
         $this->assertInstanceOf(UUID::class, $annotation);
     }
 
-    public function testParseMultiAnnotations()
+    public function testParseMultiAnnotations(): void
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,
@@ -61,7 +61,7 @@ class AnnotationParserTest extends TestCase
         $this->assertInstanceOf(Autoincrement::class, $annotation);
     }
 
-    public function testException()
+    public function testException(): void
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,
@@ -74,7 +74,7 @@ class AnnotationParserTest extends TestCase
         $annotations->findAnnotation(UUID::class);
     }
 
-    public function testParseParameters()
+    public function testParseParameters(): void
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,
@@ -87,7 +87,7 @@ class AnnotationParserTest extends TestCase
         $this->assertSame('v4', $annotation->value);
     }
 
-    public function testParseOldUUID()
+    public function testParseOldUUID(): void
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,

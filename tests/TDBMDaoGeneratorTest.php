@@ -87,7 +87,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     private $rootPath;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
@@ -98,7 +98,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         //$this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
     }
 
-    public function testDaoGeneration()
+    public function testDaoGeneration(): void
     {
         // Remove all previously generated files.
         $this->recursiveDelete($this->rootPath . 'src/Test/Dao/');
@@ -134,7 +134,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertFalse(class_exists('TheCodingMachine\\TDBM\\Test\\Dao\\RolesRightDao'));
     }
 
-    public function testGenerationException()
+    public function testGenerationException(): void
     {
         $configuration = new Configuration('UnknownVendor\\Dao', 'UnknownVendor\\Bean', self::getConnection(), $this->getNamingStrategy());
 
@@ -173,7 +173,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testGetBeanClassName()
+    public function testGetBeanClassName(): void
     {
         $this->assertEquals(UserBean::class, $this->tdbmService->getBeanClassName('users'));
 
@@ -187,7 +187,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testGeneratedGetById()
+    public function testGeneratedGetById(): void
     {
         $contactDao = new ContactDao($this->tdbmService);
         $contactBean = $contactDao->getById(1);
@@ -200,7 +200,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testGeneratedGetByIdLazyLoaded()
+    public function testGeneratedGetByIdLazyLoaded(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $roleBean = $roleDao->getById(1, true);
@@ -214,7 +214,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testDefaultValueOnNewBean()
+    public function testDefaultValueOnNewBean(): void
     {
         $roleBean = new RoleBean('my_role');
         $this->assertEquals(1, $roleBean->getStatus());
@@ -223,7 +223,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testForeignKeyInBean()
+    public function testForeignKeyInBean(): void
     {
         $userDao = new UserDao($this->tdbmService);
         $userBean = $userDao->getById(1);
@@ -243,7 +243,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testNewBeans()
+    public function testNewBeans(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
         $userDao = new UserDao($this->tdbmService);
@@ -258,7 +258,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testDateTimeImmutableGetter()
+    public function testDateTimeImmutableGetter(): void
     {
         $userDao = new UserDao($this->tdbmService);
         $user = $userDao->getById(1);
@@ -269,7 +269,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testAssigningNewBeans()
+    public function testAssigningNewBeans(): void
     {
         $userDao = new UserDao($this->tdbmService);
         $countryBean = new CountryBean('Mexico');
@@ -282,7 +282,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testAssigningNewBeans
      */
-    public function testUpdatingProtectedColumn()
+    public function testUpdatingProtectedColumn(): void
     {
         $userDao = new UserDao($this->tdbmService);
         $userBean = $userDao->findOneByLogin('speedy.gonzalez');
@@ -294,7 +294,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testAssigningExistingRelationship()
+    public function testAssigningExistingRelationship(): void
     {
         $userDao = new UserDao($this->tdbmService);
         $user = $userDao->getById(1);
@@ -308,7 +308,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testDirectReversedRelationship()
+    public function testDirectReversedRelationship(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
         $country = $countryDao->getById(1);
@@ -333,7 +333,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testDeleteInDirectReversedRelationship()
+    public function testDeleteInDirectReversedRelationship(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
         $country = $countryDao->getById(1);
@@ -358,7 +358,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJointureGetters()
+    public function testJointureGetters(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $role = $roleDao->getById(1);
@@ -376,7 +376,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testNestedIterationOnAlterableResultIterator()
+    public function testNestedIterationOnAlterableResultIterator(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
         $country = $countryDao->getById(2);
@@ -395,7 +395,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testNewBeanConstructor()
+    public function testNewBeanConstructor(): void
     {
         $role = new RoleBean('Newrole');
         $this->assertEquals(TDBMObjectStateEnum::STATE_DETACHED, $role->_getStatus());
@@ -404,7 +404,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJointureAdderOnNewBean()
+    public function testJointureAdderOnNewBean(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
         $country = $countryDao->getById(1);
@@ -427,7 +427,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJointureDeleteBeforeGetters()
+    public function testJointureDeleteBeforeGetters(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $userDao = new UserDao($this->tdbmService);
@@ -445,7 +445,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJointureMultiAdd()
+    public function testJointureMultiAdd(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
         $country = $countryDao->getById(1);
@@ -464,7 +464,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testDaoGeneration
      */
-    public function testJointureSave1()
+    public function testJointureSave1(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $role = $roleDao->getById(1);
@@ -488,7 +488,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testJointureSave1
      */
-    public function testJointureSave2()
+    public function testJointureSave2(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $role = $roleDao->getById(1);
@@ -501,7 +501,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testJointureSave2
      */
-    public function testJointureSave3()
+    public function testJointureSave3(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $role = $roleDao->getById(1);
@@ -521,7 +521,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testJointureSave3
      */
-    public function testJointureSave4()
+    public function testJointureSave4(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $role = $roleDao->getById(1);
@@ -537,7 +537,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testJointureSave4
      */
-    public function testJointureSave5()
+    public function testJointureSave5(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $role = $roleDao->getById(1);
@@ -555,7 +555,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testJointureSave5
      */
-    public function testJointureSave6()
+    public function testJointureSave6(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $role = $roleDao->getById(1);
@@ -571,7 +571,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testJointureSave6
      */
-    public function testJointureSave7()
+    public function testJointureSave7(): void
     {
         $role = new RoleBean('my new role');
         $userDao = new UserDao($this->tdbmService);
@@ -589,7 +589,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testJointureSave7
      */
-    public function testJointureSave8()
+    public function testJointureSave8(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $userDao = new UserDao($this->tdbmService);
@@ -617,7 +617,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testJointureSave8
      */
-    public function testJointureSave9()
+    public function testJointureSave9(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $userDao = new UserDao($this->tdbmService);
@@ -635,7 +635,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testJointureSave9
      */
-    public function testJointureSave10()
+    public function testJointureSave10(): void
     {
         $userDao = new UserDao($this->tdbmService);
         $user = $userDao->getById(1);
@@ -649,7 +649,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindOrderBy()
+    public function testFindOrderBy(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByAlphabeticalOrder();
@@ -671,7 +671,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindFromSqlOrderBy()
+    public function testFindFromSqlOrderBy(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersFromSqlByAlphabeticalOrder();
@@ -693,7 +693,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindFromSqlOrderByOnInheritedBean()
+    public function testFindFromSqlOrderByOnInheritedBean(): void
     {
         $articleDao = new TestArticleDao($this->tdbmService);
         $articles = $articleDao->getArticlesByUserLogin();
@@ -708,7 +708,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindFromSqlOrderByJoinRole()
+    public function testFindFromSqlOrderByJoinRole(): void
     {
         $roleDao = new TestRoleDao($this->tdbmService);
         $roles = $roleDao->getRolesByRightCanSing('roles.name DESC');
@@ -721,7 +721,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindFromRawSqlOrderByUserCount()
+    public function testFindFromRawSqlOrderByUserCount(): void
     {
         $countryDao = new TestCountryDao($this->tdbmService);
         $countries = $countryDao->getCountriesByUserCount();
@@ -735,7 +735,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindFromRawSqlWithUnion()
+    public function testFindFromRawSqlWithUnion(): void
     {
         $countryDao = new TestCountryDao($this->tdbmService);
         $countries = $countryDao->getCountriesUsingUnion();
@@ -747,7 +747,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindFromRawSqlWithSimpleQuery()
+    public function testFindFromRawSqlWithSimpleQuery(): void
     {
         $countryDao = new TestCountryDao($this->tdbmService);
         $countries = $countryDao->getCountriesUsingSimpleQuery();
@@ -759,7 +759,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindFromRawSqlWithDistinctQuery()
+    public function testFindFromRawSqlWithDistinctQuery(): void
     {
         $countryDao = new TestCountryDao($this->tdbmService);
         $countries = $countryDao->getCountriesUsingDistinctQuery();
@@ -771,7 +771,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindFilters()
+    public function testFindFilters(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByLoginStartingWith('bill');
@@ -784,7 +784,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      * @expectedException \TheCodingMachine\TDBM\TDBMException
      * @depends testDaoGeneration
      */
-    public function testFindMode()
+    public function testFindMode(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByLoginStartingWith('bill', TDBMService::MODE_CURSOR);
@@ -795,7 +795,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindAll()
+    public function testFindAll(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->findAll();
@@ -806,7 +806,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindOne()
+    public function testFindOne(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $user = $userDao->getUserByLogin('bill.shakespeare');
@@ -817,7 +817,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJsonEncodeBean()
+    public function testJsonEncodeBean(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $user = $userDao->getUserByLogin('bill.shakespeare');
@@ -844,7 +844,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testNullableForeignKey()
+    public function testNullableForeignKey(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $user = $userDao->getUserByLogin('john.smith');
@@ -862,7 +862,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      *
      * @depends testDaoGeneration
      */
-    public function testSetToNullForeignKey()
+    public function testSetToNullForeignKey(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $user = $userDao->getUserByLogin('john.smith');
@@ -881,7 +881,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      * @expectedException \Mouf\Database\SchemaAnalyzer\SchemaAnalyzerTableNotFoundException
      * @expectedExceptionMessage Could not find table 'contacts'. Did you mean 'contact'?
      */
-    public function testQueryOnWrongTableName()
+    public function testQueryOnWrongTableName(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersWrongTableName();
@@ -891,7 +891,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    /*public function testQueryNullForeignKey()
+    /*public function testQueryNullForeignKey(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByManagerId(null);
@@ -901,7 +901,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testInnerJsonEncode()
+    public function testInnerJsonEncode(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $user = $userDao->getUserByLogin('bill.shakespeare');
@@ -915,7 +915,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testArrayJsonEncode()
+    public function testArrayJsonEncode(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByLoginStartingWith('bill');
@@ -929,7 +929,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCursorJsonEncode()
+    public function testCursorJsonEncode(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByLoginStartingWith('bill', TDBMService::MODE_CURSOR);
@@ -943,7 +943,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testPageJsonEncode()
+    public function testPageJsonEncode(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByLoginStartingWith('bill');
@@ -957,7 +957,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFirst()
+    public function testFirst(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByLoginStartingWith('bill');
@@ -969,7 +969,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFirstNull()
+    public function testFirstNull(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByLoginStartingWith('mike');
@@ -981,7 +981,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCloneBeanAttachedBean()
+    public function testCloneBeanAttachedBean(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $user = $userDao->getUserByLogin('bill.shakespeare');
@@ -1011,7 +1011,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCloneNewBean()
+    public function testCloneNewBean(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
         $roleDao = new RoleDao($this->tdbmService);
@@ -1034,7 +1034,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCascadeDelete()
+    public function testCascadeDelete(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $countryDao = new CountryDao($this->tdbmService);
@@ -1066,7 +1066,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testDiscardChanges()
+    public function testDiscardChanges(): void
     {
         $contactDao = new ContactDao($this->tdbmService);
         $contactBean = $contactDao->getById(1);
@@ -1084,7 +1084,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      * @expectedException \TheCodingMachine\TDBM\TDBMException
      * @depends testDaoGeneration
      */
-    public function testDiscardChangesOnNewBeanFails()
+    public function testDiscardChangesOnNewBeanFails(): void
     {
         $person = new PersonBean('John Foo', new \DateTimeImmutable());
         $person->discardChanges();
@@ -1094,7 +1094,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      * @expectedException \TheCodingMachine\TDBM\TDBMException
      * @depends testDaoGeneration
      */
-    public function testDiscardChangesOnDeletedBeanFails()
+    public function testDiscardChangesOnDeletedBeanFails(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $countryDao = new CountryDao($this->tdbmService);
@@ -1112,7 +1112,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testUniqueIndexBasedSearch()
+    public function testUniqueIndexBasedSearch(): void
     {
         $userDao = new UserDao($this->tdbmService);
         $user = $userDao->findOneByLogin('bill.shakespeare');
@@ -1124,7 +1124,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindOneByRetunsNull()
+    public function testFindOneByRetunsNull(): void
     {
         // Let's assert that the findOneBy... methods can return null.
         $userDao = new UserDao($this->tdbmService);
@@ -1136,7 +1136,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testMultiColumnsIndexBasedSearch()
+    public function testMultiColumnsIndexBasedSearch(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
         $userDao = new UserDao($this->tdbmService);
@@ -1148,7 +1148,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testPartialMultiColumnsIndexBasedSearch()
+    public function testPartialMultiColumnsIndexBasedSearch(): void
     {
         $userDao = new UserDao($this->tdbmService);
         $users = $userDao->findByStatusAndCountry('on');
@@ -1159,7 +1159,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCreationInNullableDate()
+    public function testCreationInNullableDate(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
 
@@ -1172,7 +1172,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testUpdateInNullableDate()
+    public function testUpdateInNullableDate(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
 
@@ -1187,7 +1187,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindFromSql()
+    public function testFindFromSql(): void
     {
         $roleDao = new TestRoleDao($this->tdbmService);
 
@@ -1199,7 +1199,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindOneFromSql()
+    public function testFindOneFromSql(): void
     {
         $roleDao = new TestRoleDao($this->tdbmService);
 
@@ -1210,7 +1210,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCreateEmptyExtendedBean()
+    public function testCreateEmptyExtendedBean(): void
     {
         // This test cases checks issue https://github.com/thecodingmachine/database.tdbm/issues/92
 
@@ -1227,7 +1227,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testCreateEmptyExtendedBean
      */
-    public function testFetchEmptyExtendedBean()
+    public function testFetchEmptyExtendedBean(): void
     {
         // This test cases checks issue https://github.com/thecodingmachine/database.tdbm/issues/92
 
@@ -1242,7 +1242,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testTwoBranchesHierarchy()
+    public function testTwoBranchesHierarchy(): void
     {
         // This test cases checks issue https://github.com/thecodingmachine/mouf/issues/131
 
@@ -1259,7 +1259,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testTwoBranchesHierarchy
      */
-    public function testFetchTwoBranchesHierarchy()
+    public function testFetchTwoBranchesHierarchy(): void
     {
         // This test cases checks issue https://github.com/thecodingmachine/mouf/issues/131
 
@@ -1278,7 +1278,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testExceptionOnGetById()
+    public function testExceptionOnGetById(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
         $this->expectException(\TypeError::class);
@@ -1288,7 +1288,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testDisconnectedManyToOne()
+    public function testDisconnectedManyToOne(): void
     {
         // This test cases checks issue https://github.com/thecodingmachine/database.tdbm/issues/99
 
@@ -1303,7 +1303,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testOrderByExternalCol()
+    public function testOrderByExternalCol(): void
     {
         // This test cases checks issue https://github.com/thecodingmachine/database.tdbm/issues/106
 
@@ -1316,7 +1316,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testResultIteratorSort()
+    public function testResultIteratorSort(): void
     {
         $userDao = new UserDao($this->tdbmService);
         $users = $userDao->findAll()->withOrder('country.label DESC');
@@ -1330,7 +1330,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testResultIteratorWithParameters()
+    public function testResultIteratorWithParameters(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByLoginStartingWith()->withParameters(['login' => 'bill%']);
@@ -1343,7 +1343,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testOrderByExpression()
+    public function testOrderByExpression(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByReversedCountryName();
@@ -1354,7 +1354,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testOrderByException()
+    public function testOrderByException(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByInvalidOrderBy();
@@ -1365,7 +1365,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testOrderByProtectedColumn()
+    public function testOrderByProtectedColumn(): void
     {
         $animalDao = new AnimalDao($this->tdbmService);
         $animals = $animalDao->findAll();
@@ -1383,7 +1383,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testGetOnAllNullableValues()
+    public function testGetOnAllNullableValues(): void
     {
         // Tests that a get performed on a column that has only nullable fields succeeds.
         $allNullable = new AllNullableBean();
@@ -1395,7 +1395,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testExceptionOnMultipleInheritance()
+    public function testExceptionOnMultipleInheritance(): void
     {
         $connection = self::getConnection();
         self::insert($connection, 'animal', [
@@ -1425,7 +1425,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testReferenceNotSaved()
+    public function testReferenceNotSaved(): void
     {
         $boatDao = new BoatDao($this->tdbmService);
 
@@ -1439,7 +1439,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testReferenceNotSaved
      */
-    public function testUniqueIndexOnForeignKeyThenScalar()
+    public function testUniqueIndexOnForeignKeyThenScalar(): void
     {
         $boatDao = new BoatDao($this->tdbmService);
         $countryDao = new CountryDao($this->tdbmService);
@@ -1453,7 +1453,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testReferenceDeleted()
+    public function testReferenceDeleted(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
         $boatDao = new BoatDao($this->tdbmService);
@@ -1471,7 +1471,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCyclicReferenceWithInheritance()
+    public function testCyclicReferenceWithInheritance(): void
     {
         $userDao = new UserDao($this->tdbmService);
 
@@ -1487,7 +1487,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCyclicReference()
+    public function testCyclicReference(): void
     {
         $categoryDao = new CategoryDao($this->tdbmService);
 
@@ -1502,7 +1502,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCorrectTypeForPrimaryKeyAfterSave()
+    public function testCorrectTypeForPrimaryKeyAfterSave(): void
     {
         // PosqtgreSQL does not particularly like empty inserts (i.e.: "INSERT INTO all_nullable () VALUES ()" )
         $this->onlyMySql();
@@ -1518,7 +1518,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testPSR2Compliance()
+    public function testPSR2Compliance(): void
     {
         $process = new Process('vendor/bin/php-cs-fixer fix src/Test/  --dry-run --diff --rules=@PSR2');
         $process->run();
@@ -1534,7 +1534,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFindOneByGeneration()
+    public function testFindOneByGeneration(): void
     {
         $reflectionMethod = new \ReflectionMethod(UserBaseDao::class, 'findOneByLogin');
         $parameters = $reflectionMethod->getParameters();
@@ -1547,7 +1547,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testUuid()
+    public function testUuid(): void
     {
         $article = new ArticleBean('content');
         $this->assertSame('content', $article->getContent());
@@ -1559,7 +1559,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testUuidv4()
+    public function testUuidv4(): void
     {
         $article = new Article2Bean('content');
         $this->assertSame('content', $article->getContent());
@@ -1571,7 +1571,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testTypeHintedConstructors()
+    public function testTypeHintedConstructors(): void
     {
         $userBaseBeanReflectionConstructor = new \ReflectionMethod(UserBaseBean::class, '__construct');
         $nameParam = $userBaseBeanReflectionConstructor->getParameters()[0];
@@ -1582,7 +1582,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testSaveTransaction()
+    public function testSaveTransaction(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
 
@@ -1608,7 +1608,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testSaveTransaction
      */
-    public function testSaveTransaction2()
+    public function testSaveTransaction2(): void
     {
         $boatDao = new BoatDao($this->tdbmService);
         $boatBean = $boatDao->getById(1);
@@ -1620,7 +1620,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testForeignKeyPointingToNonPrimaryKey()
+    public function testForeignKeyPointingToNonPrimaryKey(): void
     {
         $dao = new RefNoPrimKeyDao($this->tdbmService);
         $bean = $dao->getById(1);
@@ -1638,7 +1638,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCloningUuidBean()
+    public function testCloningUuidBean(): void
     {
         $article = new ArticleBean('content');
         $this->assertNotEmpty($article->getId());
@@ -1650,7 +1650,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testRecursiveSave()
+    public function testRecursiveSave(): void
     {
         $categoryDao = new CategoryDao($this->tdbmService);
 
@@ -1674,7 +1674,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testBlob()
+    public function testBlob(): void
     {
         $fp = fopen(__FILE__, 'r');
         $file = new FileBean($fp);
@@ -1696,7 +1696,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testBlob
      */
-    public function testReadBlob()
+    public function testReadBlob(): void
     {
         $fileDao = new FileDao($this->tdbmService);
         $loadedFile = $fileDao->getById(1);
@@ -1716,7 +1716,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testReadBlob
      */
-    public function testReadAndSaveBlob()
+    public function testReadAndSaveBlob(): void
     {
         $fileDao = new FileDao($this->tdbmService);
         $loadedFile = $fileDao->getById(1);
@@ -1730,7 +1730,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testReadBlob
      */
-    public function testProtectedGetterSetter()
+    public function testProtectedGetterSetter(): void
     {
         $md5Getter = new ReflectionMethod(FileBaseBean::class, 'getMd5');
         $md5Setter = new ReflectionMethod(FileBaseBean::class, 'setMd5');
@@ -1759,7 +1759,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testBlobResourceException()
+    public function testBlobResourceException(): void
     {
         $this->expectException(TDBMInvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid argument passed to \'TheCodingMachine\\TDBM\\Test\\Dao\\Bean\\Generated\\FileBaseBean::setFile\'. Expecting a resource. Got a string.');
@@ -1769,7 +1769,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testFilterBag()
+    public function testFilterBag(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $countryDao = new CountryDao($this->tdbmService);
@@ -1786,7 +1786,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testDecimalIsMappedToString()
+    public function testDecimalIsMappedToString(): void
     {
         $reflectionClass = new \ReflectionClass(BoatBaseBean::class);
         $this->assertSame('string', (string) $reflectionClass->getMethod('getLength')->getReturnType());
@@ -1795,7 +1795,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testNoGetByIdOnMultiPrimaryKeys()
+    public function testNoGetByIdOnMultiPrimaryKeys(): void
     {
         $reflectionClass = new \ReflectionClass(StateDao::class);
         $this->assertFalse($reflectionClass->hasMethod('getById'));
@@ -1804,7 +1804,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testInsertMultiPrimaryKeysBean()
+    public function testInsertMultiPrimaryKeysBean(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
 
@@ -1820,7 +1820,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testInsertMultiPrimaryKeysBean
      */
-    public function testDeleteMultiPrimaryKeysBean()
+    public function testDeleteMultiPrimaryKeysBean(): void
     {
         $stateDao = new StateDao($this->tdbmService);
 
@@ -1833,7 +1833,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testSortOnInheritedTable()
+    public function testSortOnInheritedTable(): void
     {
         $animalDao = new AnimalDao($this->tdbmService);
 
@@ -1850,7 +1850,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJsonKey()
+    public function testJsonKey(): void
     {
         $node = new NodeBean('foo.html');
         $json = $node->jsonSerialize();
@@ -1861,7 +1861,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJsonIgnore()
+    public function testJsonIgnore(): void
     {
         $nodeDao = new NodeDao($this->tdbmService);
         $index = $nodeDao->getById(6);
@@ -1881,7 +1881,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJsonInclude()
+    public function testJsonInclude(): void
     {
         $nodeDao = new NodeDao($this->tdbmService);
         $index = $nodeDao->getById(6);
@@ -1896,7 +1896,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJsonRecursive()
+    public function testJsonRecursive(): void
     {
         $nodeDao = new NodeDao($this->tdbmService);
         $index = $nodeDao->getById(8);
@@ -1915,7 +1915,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJsonFormat()
+    public function testJsonFormat(): void
     {
         $nodeDao = new NodeDao($this->tdbmService);
         $index = $nodeDao->getById(6);
@@ -1938,7 +1938,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testJsonCollection()
+    public function testJsonCollection(): void
     {
         $artists = new ArtistDao($this->tdbmService);
         $pinkFloyd = $artists->getById(1);
@@ -1963,7 +1963,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testAddInterfaceAnnotation()
+    public function testAddInterfaceAnnotation(): void
     {
         if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             // See https://github.com/doctrine/dbal/pull/3512
@@ -1977,7 +1977,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testAddInterfaceOnDaoAnnotation()
+    public function testAddInterfaceOnDaoAnnotation(): void
     {
         if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             // See https://github.com/doctrine/dbal/pull/3512
@@ -1991,7 +1991,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testTrait()
+    public function testTrait(): void
     {
         if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             // See https://github.com/doctrine/dbal/pull/3512
@@ -2011,7 +2011,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testNonInstantiableAbstractDaosAndBeans()
+    public function testNonInstantiableAbstractDaosAndBeans(): void
     {
         $refClass = new ReflectionClass(UserBaseDao::class);
         $this->assertFalse($refClass->isInstantiable());
@@ -2023,7 +2023,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testCanNullifyBlob()
+    public function testCanNullifyBlob(): void
     {
         $article = new ArticleBean('content');
         $fp = fopen(__FILE__, 'r');

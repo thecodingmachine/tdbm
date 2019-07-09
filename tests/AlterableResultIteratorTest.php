@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 class AlterableResultIteratorTest extends TestCase
 {
-    public function testUnalteredResultSet()
+    public function testUnalteredResultSet(): void
     {
         $a = (object) ['a' => 'a'];
         $b = (object) ['b' => 'c'];
@@ -26,7 +26,7 @@ class AlterableResultIteratorTest extends TestCase
         $this->assertEquals($a, $alterableResultIterator->first());
     }
 
-    public function testEmptyResultSet()
+    public function testEmptyResultSet(): void
     {
         $alterableResultIterator = new AlterableResultIterator();
 
@@ -36,7 +36,7 @@ class AlterableResultIteratorTest extends TestCase
         $this->assertNull($alterableResultIterator->first());
     }
 
-    public function testAlterEmptyResultSet()
+    public function testAlterEmptyResultSet(): void
     {
         $alterableResultIterator = new AlterableResultIterator();
 
@@ -52,7 +52,7 @@ class AlterableResultIteratorTest extends TestCase
         $this->assertEquals([$a], $alterableResultIterator->toArray());
     }
 
-    public function testAlterFilledResultSet()
+    public function testAlterFilledResultSet(): void
     {
         $a = (object) ['a' => 'a'];
         $b = (object) ['b' => 'c'];
@@ -69,7 +69,7 @@ class AlterableResultIteratorTest extends TestCase
         $this->assertEquals([$c], iterator_to_array($alterableResultIterator->take(1, 1)));
     }
 
-    public function testAddAfterToArray()
+    public function testAddAfterToArray(): void
     {
         $a = (object) ['a' => 'a'];
         $b = (object) ['b' => 'c'];
@@ -87,7 +87,7 @@ class AlterableResultIteratorTest extends TestCase
         $this->assertEquals([$a, $c], $alterableResultIterator->toArray());
     }
 
-    public function testGetIterator()
+    public function testGetIterator(): void
     {
         $a = (object) ['a' => 'a'];
         $b = (object) ['b' => 'c'];
@@ -106,21 +106,21 @@ class AlterableResultIteratorTest extends TestCase
         $this->assertInstanceOf(\ArrayIterator::class, $alterableResultIterator->getIterator());
     }
 
-    public function testSetException()
+    public function testSetException(): void
     {
         $alterableResultIterator = new AlterableResultIterator();
         $this->expectException(TDBMInvalidOperationException::class);
         $alterableResultIterator[0] = 'foo';
     }
 
-    public function testUnsetException()
+    public function testUnsetException(): void
     {
         $alterableResultIterator = new AlterableResultIterator();
         $this->expectException(TDBMInvalidOperationException::class);
         unset($alterableResultIterator[0]);
     }
 
-    public function testMap()
+    public function testMap(): void
     {
         $a = (object) ['foo' => 'bar'];
 
@@ -135,7 +135,7 @@ class AlterableResultIteratorTest extends TestCase
         $this->assertEquals(['bar'], iterator_to_array($map));
     }
 
-    public function testSetIterator()
+    public function testSetIterator(): void
     {
         $alterableResultIterator = new AlterableResultIterator();
 

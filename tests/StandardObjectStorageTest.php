@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class StandardObjectStorageTest extends TestCase
 {
-    public function testObjectStorage()
+    public function testObjectStorage(): void
     {
         $objectStorage = new StandardObjectStorage();
         $this->assertNull($objectStorage->get('foo', 42));
