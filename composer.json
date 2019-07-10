@@ -41,7 +41,7 @@
         "ext-filter": "*"
     },
     "require-dev" : {
-        "phpunit/phpunit": "^7.4.4",
+        "phpunit/phpunit": "^7.4.4 || ^8.0.0",
         "satooshi/php-coveralls": "^1.0.1",
         "wa72/simplelogger" : "^1.0",
         "friendsofphp/php-cs-fixer": "^2.5",
@@ -49,8 +49,7 @@
         "thecodingmachine/tdbm-fluid-schema-builder": "^1.0.0",
         "phpstan/phpstan": "^0.11.5",
         "thecodingmachine/phpstan-strict-rules": "^0.11.0",
-        "bamarni/composer-bin-plugin": "^1.2",
-        "nette/bootstrap": "^2.4.6"
+        "bamarni/composer-bin-plugin": "^1.2"
     },
     "conflict": {
         "mouf/database.tdbm": "~5.0.0"

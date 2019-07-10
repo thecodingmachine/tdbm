@@ -10,7 +10,7 @@ use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 
 class DirectForeignKeyMethodDescriptorTest extends TestCase
 {
-    public function testGetForeignKey()
+    public function testGetForeignKey(): void
     {
         $fk = $this->createMock(ForeignKeyConstraint::class);
         $table = $this->createMock(Table::class);

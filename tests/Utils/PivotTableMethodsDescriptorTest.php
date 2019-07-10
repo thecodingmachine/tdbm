@@ -11,7 +11,7 @@ use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 class PivotTableMethodsDescriptorTest extends TestCase
 {
 
-    public function testGetters()
+    public function testGetters(): void
     {
         $table = $this->createMock(Table::class);
         $localFk = $this->createMock(ForeignKeyConstraint::class);

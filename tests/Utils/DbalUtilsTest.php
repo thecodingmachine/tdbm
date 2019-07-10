@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 class DbalUtilsTest extends TestCase
 {
 
-    public function testGenerateArrayTypes()
+    public function testGenerateArrayTypes(): void
     {
         $params = [
             'key1' => 'foo',

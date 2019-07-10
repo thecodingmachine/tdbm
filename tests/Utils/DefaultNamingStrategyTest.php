@@ -46,7 +46,7 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
         return new DefaultNamingStrategy(AnnotationParser::buildWithDefaultAnnotations([]), $stubSchemaManager);
     }
 
-    public function testGetBeanName()
+    public function testGetBeanName(): void
     {
         $strategy = $this->getDefaultNamingStrategy();
         $strategy->setBeanPrefix('');
@@ -63,7 +63,7 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
         $this->assertSame('UserCountryBean', $strategy2->getBeanClassName("users countries"));
     }
 
-    public function testGetBaseBeanName()
+    public function testGetBaseBeanName(): void
     {
         $strategy = $this->getDefaultNamingStrategy();
         $strategy->setBaseBeanPrefix('');
@@ -71,7 +71,7 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
         $this->assertSame('UserBaseBean', $strategy->getBaseBeanClassName("users"));
     }
 
-    public function testGetDaoName()
+    public function testGetDaoName(): void
     {
         $strategy = $this->getDefaultNamingStrategy();
         $strategy->setDaoPrefix('');
@@ -79,7 +79,7 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
         $this->assertSame('UserDao', $strategy->getDaoClassName("users"));
     }
 
-    public function testGetBaseDaoName()
+    public function testGetBaseDaoName(): void
     {
         $strategy = $this->getDefaultNamingStrategy();
         $strategy->setBaseDaoPrefix('');
@@ -87,38 +87,38 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
         $this->assertSame('UserBaseDao', $strategy->getBaseDaoClassName("users"));
     }
 
-    public function testGetBeanNameDefault()
+    public function testGetBeanNameDefault(): void
     {
         $strategy = $this->getDefaultNamingStrategy();
 
         $this->assertSame('User', $strategy->getBeanClassName("users"));
     }
 
-    public function testGetBaseBeanNameDefault()
+    public function testGetBaseBeanNameDefault(): void
     {
         $strategy = $this->getDefaultNamingStrategy();
         $this->assertSame('AbstractUser', $strategy->getBaseBeanClassName("users"));
     }
 
-    public function testGetDaoNameDefault()
+    public function testGetDaoNameDefault(): void
     {
         $strategy = $this->getDefaultNamingStrategy();
         $this->assertSame('UserDao', $strategy->getDaoClassName("users"));
     }
 
-    public function testGetBaseDaoNameDefault()
+    public function testGetBaseDaoNameDefault(): void
     {
         $strategy = $this->getDefaultNamingStrategy();
         $this->assertSame('AbstractUserDao', $strategy->getBaseDaoClassName("users"));
     }
 
-    public function testGetDaoFactory()
+    public function testGetDaoFactory(): void
     {
         $strategy = $this->getDefaultNamingStrategy();
         $this->assertSame('DaoFactory', $strategy->getDaoFactoryClassName());
     }
 
-    public function testExceptions()
+    public function testExceptions(): void
     {
         $table = new Table('chevaux');
         $strategy = $this->getDefaultNamingStrategyWithStubTables([$table]);
@@ -128,14 +128,14 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
         $this->assertSame('ChevalDao', $strategy->getDaoClassName('chevaux'));
     }
 
-    public function testBeanAnnotation()
+    public function testBeanAnnotation(): void
     {
         $table = new Table('chevaux', [], [], [], 0, ['comment'=>'@Bean(name="Cheval")']);
         $strategy = $this->getDefaultNamingStrategyWithStubTables([$table]);
         $this->assertSame('ChevalDao', $strategy->getDaoClassName('chevaux'));
     }
 
-    public function testUppercaseNames()
+    public function testUppercaseNames(): void
     {
         $strategy = $this->getDefaultNamingStrategy();
         $strategy->setDaoPrefix('');

@@ -19,7 +19,7 @@ class GenerateCommandTest extends TDBMAbstractServiceTest
         ]);
     }
 
-    public function testCall()
+    public function testCall(): void
     {
         $input = new ArrayInput([
         ], self::getInputDefinition());

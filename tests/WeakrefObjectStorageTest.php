@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class WeakrefObjectStorageTest extends TestCase
 {
-    public function testObjectStorage()
+    public function testObjectStorage(): void
     {
         if (!\class_exists(\WeakRef::class)) {
             $this->markTestSkipped('No weakref extension detected');
@@ -21,7 +21,7 @@ class WeakrefObjectStorageTest extends TestCase
         $this->assertNull($objectStorage->get('foo', 42));
     }
 
-    public function testDanglingPointers()
+    public function testDanglingPointers(): void
     {
         if (!\class_exists(\WeakRef::class)) {
             $this->markTestSkipped('No weakref extension detected');

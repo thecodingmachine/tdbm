@@ -14,7 +14,7 @@ use Psr\Log\NullLogger;
 
 class AlteredConfigurationTest extends TestCase
 {
-    public function testAlteredConfiguration()
+    public function testAlteredConfiguration(): void
     {
         $connection = $this->getMockBuilder(Connection::class)->disableOriginalConstructor()->getMock();
         $namingStrategy = $this->getMockBuilder(NamingStrategyInterface::class)->disableOriginalConstructor()->getMock();

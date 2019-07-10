@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 class OrderByAnalyzerTest extends TestCase
 {
-    public function testAnalyzeOrderBy()
+    public function testAnalyzeOrderBy(): void
     {
         $analyzer = new OrderByAnalyzer(new VoidCache(), '');
         $results = $analyzer->analyzeOrderBy('`a`, b desc, rand() DESC, masc, mytable.mycol');
@@ -46,7 +46,7 @@ class OrderByAnalyzerTest extends TestCase
         ], $results[4]);
     }
 
-    public function testExprWithAsc()
+    public function testExprWithAsc(): void
     {
         $analyzer = new OrderByAnalyzer(new VoidCache(), '');
         $results = $analyzer->analyzeOrderBy('foodesc + barasc');
@@ -59,7 +59,7 @@ class OrderByAnalyzerTest extends TestCase
         ], $results[0]);
     }
 
-    public function testCache()
+    public function testCache(): void
     {
         $analyzer = new OrderByAnalyzer(new ArrayCache(), '');
         $results = $analyzer->analyzeOrderBy('foo');
