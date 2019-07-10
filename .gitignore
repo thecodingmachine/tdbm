@@ -13,3 +13,4 @@ vendor/*
 /.travis/
 /vendor-bin/require-checker/vendor/
 /vendor-bin/couscous/vendor/
+.phpunit.result.cache
