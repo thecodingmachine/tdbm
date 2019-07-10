@@ -781,7 +781,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      * @depends testDaoGeneration
      */
     public function testFindMode(): void
@@ -789,6 +788,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByLoginStartingWith('bill', TDBMService::MODE_CURSOR);
 
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $users[0];
     }
 
@@ -878,13 +878,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     /**
      * @depends testDaoGeneration
-     * @expectedException \Mouf\Database\SchemaAnalyzer\SchemaAnalyzerTableNotFoundException
-     * @expectedExceptionMessage Could not find table 'contacts'. Did you mean 'contact'?
      */
     public function testQueryOnWrongTableName(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersWrongTableName();
+        $this->expectException('Mouf\Database\SchemaAnalyzer\SchemaAnalyzerTableNotFoundException');
+        $this->expectExceptionMessage('Could not find table \'contacts\'. Did you mean \'contact\'?');
         $users->count();
     }
 
@@ -1081,17 +1081,16 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      * @depends testDaoGeneration
      */
     public function testDiscardChangesOnNewBeanFails(): void
     {
         $person = new PersonBean('John Foo', new \DateTimeImmutable());
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $person->discardChanges();
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      * @depends testDaoGeneration
      */
     public function testDiscardChangesOnDeletedBeanFails(): void
@@ -1105,6 +1104,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $userDao->delete($sanchez);
 
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         // Cannot discard changes on a bean that is already deleted.
         $sanchez->discardChanges();
     }
@@ -1688,7 +1688,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $resource = $loadedFile->getFile();
         $result = fseek($resource, 0);
         $this->assertSame(0, $result);
-        $this->assertInternalType('resource', $resource);
+        $this->assertIsResource($resource);
         $firstLine = fgets($resource);
         $this->assertSame("<?php\n", $firstLine);
     }
@@ -1702,7 +1702,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $loadedFile = $fileDao->getById(1);
 
         $resource = $loadedFile->getFile();
-        $this->assertInternalType('resource', $resource);
+        $this->assertIsResource($resource);
         $firstLine = fgets($resource);
         $this->assertSame("<?php\n", $firstLine);
 

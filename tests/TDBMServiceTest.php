@@ -47,22 +47,22 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testGetPrimaryKeysFromIndexedPrimaryKeysException(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $this->tdbmService->_getPrimaryKeysFromIndexedPrimaryKeys('users', [5, 4]);
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testGetLinkBetweenInheritedTablesExceptions(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $this->tdbmService->_getLinkBetweenInheritedTables(['contact', 'country']);
     }
 
@@ -156,12 +156,12 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMInvalidOperationException
      *
      * @throws TDBMInvalidOperationException
      */
     public function testCannotDeleteDetachedObjects(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMInvalidOperationException');
         $object = new TDBMObject('rights');
         $object->setProperty('label', 'CAN_DELETE');
 
@@ -338,36 +338,36 @@ SQL;
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMInvalidOffsetException
      *
      * @throws TDBMInvalidOffsetException
      */
     public function testArrayAccessException(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMInvalidOffsetException');
         $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         $beans[-1];
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMInvalidOffsetException
      *
      * @throws TDBMInvalidOffsetException
      */
     public function testArrayAccessException2(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMInvalidOffsetException');
         $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         $beans['foo'];
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testBeanGetException(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
         $bean = $beans[0];
 
@@ -376,12 +376,12 @@ SQL;
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testBeanSetException(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
         $bean = $beans[0];
 
@@ -464,48 +464,48 @@ SQL;
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testUnsetException(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         unset($beans[0]);
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testSetException(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
 
         $beans[0] = 'foo';
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testPageUnsetException(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
         $page = $beans->take(0, 1);
         unset($page[0]);
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testPageSetException(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
         $page = $beans->take(0, 1);
         $page[0] = 'foo';
@@ -570,32 +570,32 @@ SQL;
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testInvalidSetFetchMode(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $this->tdbmService->setFetchMode(99);
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testCursorModeException(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], 99);
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testTableNameException(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $beans = $this->tdbmService->findObjects('foo bar');
     }
 
@@ -612,12 +612,12 @@ SQL;
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\NoBeanFoundException
      *
      * @throws NoBeanFoundException
      */
     public function testFindObjectOrFail(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\NoBeanFoundException');
         $bean = $this->tdbmService->findObjectOrFail('contact', 'contact.id = :id', ['id' => -42], [], TDBMObject::class);
     }
 
@@ -651,13 +651,13 @@ SQL;
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      * @throws TDBMInvalidOperationException
      */
     public function testBeanWithoutStatus(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $reflectionClass = new \ReflectionClass(TDBMObject::class);
         $object = $reflectionClass->newInstanceWithoutConstructor();
         $object->_getStatus();
@@ -677,12 +677,12 @@ SQL;
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testFindObjectsFromSqlBadTableName(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $this->tdbmService->findObjectsFromSql(
             '#{azerty',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
@@ -693,12 +693,12 @@ SQL;
     }
 
     /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
      *
      * @throws TDBMException
      */
     public function testFindObjectsFromSqlGroupBy(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $roles = $this->tdbmService->findObjectsFromSql(
             'roles',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',

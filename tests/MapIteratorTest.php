@@ -25,21 +25,17 @@ use PHPUnit\Framework\TestCase;
 
 class MapIteratorTest extends TestCase
 {
-    /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
-     */
     public function testConstructorException1(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $mapIterator = new MapIterator(new \DateTime(), function ($item) {
             return $item;
         });
     }
 
-    /**
-     * @expectedException \TheCodingMachine\TDBM\TDBMException
-     */
     public function testConstructorException2(): void
     {
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $mapIterator = new MapIterator(array(1, 2, 3), function () {
             return $item;
         });
