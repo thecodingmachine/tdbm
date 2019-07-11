@@ -16,7 +16,6 @@ use Zend\Code\Generator\MethodGenerator;
  */
 class BaseCodeGeneratorListener implements CodeGeneratorListenerInterface
 {
-
     public function onBaseBeanGenerated(FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
     {
         return $fileGenerator;

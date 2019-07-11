@@ -3,7 +3,6 @@
 
 namespace TheCodingMachine\TDBM;
 
-
 use function array_combine;
 use function error_get_last;
 use RuntimeException;

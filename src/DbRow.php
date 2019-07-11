@@ -296,13 +296,16 @@ class DbRow
                 $values[] = $this->dbRow[$column];
             }
 
-            $filter = SafeFunctions::arrayCombine($fk->getUnquotedForeignColumns(), $values);
+            $foreignColumns = $fk->getUnquotedForeignColumns();
+            $foreignTableName = $fk->getForeignTableName();
+
+            $filter = SafeFunctions::arrayCombine($foreignColumns, $values);
 
             // If the foreign key points to the primary key, let's use findObjectByPk
-            if ($this->tdbmService->getPrimaryKeyColumns($fk->getForeignTableName()) === $fk->getUnquotedForeignColumns()) {
-                return $this->tdbmService->findObjectByPk($fk->getForeignTableName(), $filter, [], true);
+            if ($this->tdbmService->getPrimaryKeyColumns($foreignTableName) === $foreignColumns) {
+                return $this->tdbmService->findObjectByPk($foreignTableName, $filter, [], true);
             } else {
-                return $this->tdbmService->findObject($fk->getForeignTableName(), $filter);
+                return $this->tdbmService->findObject($foreignTableName, $filter);
             }
         }
     }

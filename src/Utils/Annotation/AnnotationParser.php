@@ -70,7 +70,9 @@ class AnnotationParser
 
         // Let's add * in front of the line (otherwise, parsing is failing)
         $lines = explode("\n", $comment);
-        $lines = array_map(function(string $line) { return '* '.$line; }, $lines);
+        $lines = array_map(function (string $line) {
+            return '* '.$line;
+        }, $lines);
         $comment = implode("\n", $lines);
 
         $annotations = $this->docParser->parse($comment, $context);

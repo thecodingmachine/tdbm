@@ -9,7 +9,6 @@ use TheCodingMachine\TDBM\Utils\GeneratorListenerInterface;
 
 class AddTraitTest extends TestCase
 {
-
     public function testConstruct(): void
     {
         $this->expectException(BadMethodCallException::class);

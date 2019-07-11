@@ -3,7 +3,6 @@
 
 namespace TheCodingMachine\TDBM\Fixtures\Traits;
 
-
 use function password_verify;
 
 trait TestUserTrait

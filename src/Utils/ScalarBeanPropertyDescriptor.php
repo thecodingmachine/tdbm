@@ -239,9 +239,11 @@ EOF;
 
         $getter->setReturnType($paramType);
 
-        $getter->setBody(sprintf('return $this->get(%s, %s);',
+        $getter->setBody(sprintf(
+            'return $this->get(%s, %s);',
             var_export($this->column->getName(), true),
-            var_export($this->table->getName(), true)));
+            var_export($this->table->getName(), true)
+        ));
 
         if ($this->isGetterProtected()) {
             $getter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
@@ -260,12 +262,14 @@ EOF;
         $setter->setParameter($parameter);
         $setter->setReturnType('void');
 
-        $setter->setBody(sprintf('%s
+        $setter->setBody(sprintf(
+            '%s
 $this->set(%s, $%s, %s);',
             $resourceTypeCheck,
             var_export($this->column->getName(), true),
             $this->column->getName(),
-            var_export($this->table->getName(), true)));
+            var_export($this->table->getName(), true)
+        ));
 
         if ($this->isSetterProtected()) {
             $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
@@ -308,6 +312,7 @@ $this->set(%s, $%s, %s);',
                 } else {
                     return "\$array['$index'] = (\$date = \$this->$getter()) ? \$date->format('$format') : null;";
                 }
+                // no break
             case 'int':
             case 'float':
                 /** @var Annotation\JsonFormat|null $jsonFormat */
@@ -332,6 +337,7 @@ $this->set(%s, $%s, %s);',
                         return "\$array['$index'] = \$this->$getter() !== null ? number_format(\$this->$getter()$args)$unit : null;";
                     }
                 }
+                // no break
             default:
                 return "\$array['$index'] = \$this->$getter();";
         }

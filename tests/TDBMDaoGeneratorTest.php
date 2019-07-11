@@ -1827,7 +1827,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $state = $stateDao->findAll()[0];
         $stateDao->delete($state);
         $this->assertCount(0, $stateDao->findAll());
-
     }
 
     /**
@@ -2036,7 +2035,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testLazyLoad(): void 
+    public function testLazyLoad(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
         $roleBean = $roleDao->getById(1, true);

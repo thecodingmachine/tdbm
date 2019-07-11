@@ -33,7 +33,7 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
 
     protected function compute(): void
     {
-        $key = 'FindObjectsQueryFactory_'.$this->mainTable.'__'.implode('_/_',$this->additionalTablesFetch).'__'.$this->filterString.'__'.$this->orderBy;
+        $key = 'FindObjectsQueryFactory_'.$this->mainTable.'__'.implode('_/_', $this->additionalTablesFetch).'__'.$this->filterString.'__'.$this->orderBy;
         if ($this->cache->contains($key)) {
             [
                 $this->magicSql,

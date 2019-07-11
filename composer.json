@@ -72,7 +72,9 @@
         "phpstan": "php -d memory_limit=3G vendor/bin/phpstan analyse src -c phpstan.neon --level=7 --no-progress -vvv",
         "require-checker": "composer-require-checker check --config-file=composer-require-checker.json",
         "test": "phpunit",
-        "ci": ["@phpstan", "@test", "@require-checker"],
+        "csfix": "php-cs-fixer fix src/ && php-cs-fixer fix tests/",
+        "cscheck": "php-cs-fixer fix src/ --dry-run --stop-on-violation && php-cs-fixer fix tests/ --dry-run --stop-on-violation ",
+        "ci": ["@cscheck", "@phpstan", "@test", "@require-checker"],
         "post-install-cmd": ["@composer bin all install --ansi"],
         "post-update-cmd": ["@composer bin all update --ansi"]
     },
