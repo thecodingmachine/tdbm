@@ -263,14 +263,17 @@ class $className extends $baseClassName
      */
     private function psr2Fix(string $content): string
     {
-        return str_replace([
+        return str_replace(
+            [
                 "\n\n}\n",
                 "{\n\n    use",
             ],
             [
                 '}',
                 "{\n    use",
-            ], $content);
+            ],
+            $content
+        );
     }
 
     /**

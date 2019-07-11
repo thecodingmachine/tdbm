@@ -2,7 +2,6 @@
 
 namespace TheCodingMachine\TDBM\Utils;
 
-
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
 use PHPUnit\Framework\TestCase;

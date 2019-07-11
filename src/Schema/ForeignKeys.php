@@ -3,7 +3,6 @@
 
 namespace TheCodingMachine\TDBM\Schema;
 
-
 class ForeignKeys
 {
     /**
@@ -32,5 +31,4 @@ class ForeignKeys
         }
         return $this->foreignKey[$fkName];
     }
-
 }

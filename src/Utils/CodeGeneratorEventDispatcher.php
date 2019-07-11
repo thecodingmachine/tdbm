@@ -3,7 +3,6 @@
 
 namespace TheCodingMachine\TDBM\Utils;
 
-
 use Doctrine\DBAL\Schema\Index;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 use Zend\Code\Generator\ClassGenerator;

@@ -2,7 +2,6 @@
 
 namespace TheCodingMachine\TDBM\Utils;
 
-
 use Doctrine\DBAL\Schema\Index;
 use PHPUnit\Framework\TestCase;
 use TheCodingMachine\TDBM\ConfigurationInterface;

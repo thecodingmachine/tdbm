@@ -3,7 +3,6 @@
 
 namespace TheCodingMachine\TDBM\Schema;
 
-
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 
 class ForeignKey
@@ -12,17 +11,22 @@ class ForeignKey
     public const LOCAL_COLUMNS = 'localColumns';
     public const FOREIGN_COLUMNS = 'foreignColumns';
 
-    /**
-     * @var array<string, string|array<string>>
-     */
-    private $foreignKey;
+    /** @var string */
+    private $foreignTable;
+    /** @var string[] */
+    private $localColumns;
+    /** @var string[] */
+    private $foreignColumns;
+
 
     /**
      * @param array<string, string|array<string>> $foreignKey
      */
     public function __construct(array $foreignKey)
     {
-        $this->foreignKey = $foreignKey;
+        $this->foreignTable = $foreignKey[self::FOREIGN_TABLE];
+        $this->localColumns = $foreignKey[self::LOCAL_COLUMNS];
+        $this->foreignColumns = $foreignKey[self::FOREIGN_COLUMNS];
     }
 
     public static function createFromFk(ForeignKeyConstraint $fk): self
@@ -39,7 +43,7 @@ class ForeignKey
      */
     public function getUnquotedLocalColumns(): array
     {
-        return $this->foreignKey[self::LOCAL_COLUMNS];
+        return $this->localColumns;
     }
 
     /**
@@ -47,16 +51,20 @@ class ForeignKey
      */
     public function getUnquotedForeignColumns(): array
     {
-        return $this->foreignKey[self::FOREIGN_COLUMNS];
+        return $this->foreignColumns;
     }
 
     public function getForeignTableName(): string
     {
-        return $this->foreignKey[self::FOREIGN_TABLE];
+        return $this->foreignTable;
     }
 
+    private $cacheKey;
     public function getCacheKey(): string
     {
-        return 'from__'.implode(',', $this->getUnquotedLocalColumns()) . '__to__table__' . $this->getForeignTableName() . '__columns__' . implode(',', $this->getUnquotedForeignColumns());
+        if ($this->cacheKey === null) {
+            $this->cacheKey = 'from__' . implode(',', $this->getUnquotedLocalColumns()) . '__to__table__' . $this->getForeignTableName() . '__columns__' . implode(',', $this->getUnquotedForeignColumns());
+        }
+        return $this->cacheKey;
     }
 }

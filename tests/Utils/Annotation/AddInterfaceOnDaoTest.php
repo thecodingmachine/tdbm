@@ -8,7 +8,6 @@ use TheCodingMachine\TDBM\Utils\GeneratorListenerInterface;
 
 class AddInterfaceOnDaoTest extends TestCase
 {
-
     public function testConstruct(): void
     {
         $this->expectException(BadMethodCallException::class);

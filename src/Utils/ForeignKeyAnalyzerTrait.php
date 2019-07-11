@@ -3,7 +3,6 @@
 
 namespace TheCodingMachine\TDBM\Utils;
 
-
 use Doctrine\DBAL\Schema\Column;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
 
