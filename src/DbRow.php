@@ -219,7 +219,9 @@ class DbRow
      */
     public function get(string $var)
     {
-        $this->_dbLoadIfNotLoaded();
+        if (!isset($this->primaryKeys[$var])) {
+            $this->_dbLoadIfNotLoaded();
+        }
 
         return $this->dbRow[$var] ?? null;
     }
@@ -445,7 +447,7 @@ class DbRow
 
     /**
      * Sets the values of the primary key.
-     * This is set when the object is in "loaded" state.
+     * This is set when the object is in "loaded" or "not loaded" state.
      *
      * @param mixed[] $primaryKeys
      */
