@@ -159,7 +159,7 @@ class DbRow
     /**
      * Sets the state of the TDBM Object
      * One of TDBMObjectStateEnum::STATE_NEW, TDBMObjectStateEnum::STATE_NOT_LOADED, TDBMObjectStateEnum::STATE_LOADED, TDBMObjectStateEnum::STATE_DELETED.
-     * $status = TDBMObjectStateEnum::STATE_NEW when a new object is created with DBMObject:getNewObject.
+     * $status = TDBMObjectStateEnum::STATE_NEW when a new object is created with the "new" keyword.
      * $status = TDBMObjectStateEnum::STATE_NOT_LOADED when the object has been retrieved with getObject but when no data has been accessed in it yet.
      * $status = TDBMObjectStateEnum::STATE_LOADED when the object is cached in memory.
      *

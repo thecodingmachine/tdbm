@@ -2032,4 +2032,17 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNull($article->getAttachment(null));
         fclose($fp);
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testLazyLoad(): void 
+    {
+        $roleDao = new RoleDao($this->tdbmService);
+        $roleBean = $roleDao->getById(1, true);
+
+        $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $roleBean->_getDbRows()['roles']->_getStatus());
+        $roleBean->getId();
+        $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $roleBean->_getDbRows()['roles']->_getStatus());
+    }
 }
