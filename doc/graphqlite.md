@@ -49,18 +49,22 @@ Open a terminal in your current project directory and run:
 $ composer require thecodingmachine/tdbm-graphql-bundle
 ```
 
-Enable the library by adding it to the list of registered bundles in the `config/bundles.php` file
-(`app/AppKernel.php` for Symfony 3.x):
+If you are using Flex, you are done. Jump to the [Annotating your DB model](#annotating-your-db-model) section.
+
+Not using Flex? Enable the library by adding it to the list of registered bundles in the `config/bundles.php` file:
 
 **config/bundles.php**
 ```php
 return [
     // ...
-    'TheCodingMachine\\Tdbm\Graphql\\Bundle\\TdbmGraphqlBundle' => ['all' => true],
+    'TheCodingMachine\\Tdbm\Graphql\\Bundle\\TheCodingMachineTdbmGraphqlBundle' => ['all' => true],
 }
 ```
 
 ### Configuration
+
+<div class="alert alert-warning">Configuration is only needed for tdbm-graphql-bundle version 3.x.
+Starting with tdbm-graphql-bundle v4, there is no configuration necessary, you can completely skip this part.</div>
 
 The parameters are stored in the `config/packages/tdbm-graphql.yaml` file.
 
