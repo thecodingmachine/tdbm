@@ -27,7 +27,7 @@
         "beberlei/porpaginas": "~1.0",
         "mouf/classname-mapper": "~1.0",
         "doctrine/cache": "^1.6",
-        "greenlion/php-sql-parser": "^4.1.2",
+        "greenlion/php-sql-parser": "^4.3.0",
         "phlib/logger": "^3.0.1",
         "symfony/console": "^2 || ^3 || ^4",
         "mouf/utils.log.psr.multi-logger": "^1.0",
