@@ -418,14 +418,16 @@ these annotations in the beans and DAOs.</p>
 <h3 id="installation-for-symfony">Installation for Symfony</h3>
 <p>Open a terminal in your current project directory and run:</p>
 <pre><code class="language-bash">$ composer require thecodingmachine/tdbm-graphql-bundle</code></pre>
-<p>Enable the library by adding it to the list of registered bundles in the <code>config/bundles.php</code> file
-(<code>app/AppKernel.php</code> for Symfony 3.x):</p>
+<p>If you are using Flex, you are done. Jump to the <a href="#annotating-your-db-model">Annotating your DB model</a> section.</p>
+<p>Not using Flex? Enable the library by adding it to the list of registered bundles in the <code>config/bundles.php</code> file:</p>
 <p><strong>config/bundles.php</strong></p>
 <pre><code class="language-php">return [
     // ...
-    'TheCodingMachine\\Tdbm\Graphql\\Bundle\\TdbmGraphqlBundle' =&gt; ['all' =&gt; true],
+    'TheCodingMachine\\Tdbm\Graphql\\Bundle\\TheCodingMachineTdbmGraphqlBundle' =&gt; ['all' =&gt; true],
 }</code></pre>
 <h3 id="configuration">Configuration</h3>
+<div class="alert alert-warning">Configuration is only needed for tdbm-graphql-bundle version 3.x.
+Starting with tdbm-graphql-bundle v4, there is no configuration necessary, you can completely skip this part.</div>
 <p>The parameters are stored in the <code>config/packages/tdbm-graphql.yaml</code> file.</p>
 <p>By default, generated types will go into <code>App\Types</code>.</p>
 <div class="alert alert-warning">
