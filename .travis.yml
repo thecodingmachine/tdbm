@@ -68,7 +68,7 @@ before_script:
 script:
 # Let's run the Oracle script only when the password is available (it is not available in forks unfortunately)
 - |
-  if [[ "$COVERALLS" -ne "true" ]] ; then export NO_COVERAGE="--no-coverage"; fi;
+  if [[ "$COVERALLS" != "true" ]] ; then export NO_COVERAGE="--no-coverage"; fi;
   if [ "$DB" == "oracle" ] ; then
     docker run -v $(pwd):/app -v $(pwd)/tests/Fixtures/oracle-startup.sql:/docker-entrypoint-initdb.d/oracle-startup.sql moufmouf/oracle-xe-php vendor/bin/phpunit $PHPUNITFILE $NO_COVERAGE;
   elif [ "$DB" == "mysql8" ] ; then
