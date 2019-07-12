@@ -11,7 +11,7 @@ docker run --rm --name mysql8-tdbm-test -p 3306:3306 -p 33060:33060 -e MYSQL_ROO
 # Let's wait for MySQL 8 to start
 sleep 20
 
-vendor/bin/phpunit -c phpunit.mysql8.xml
+vendor/bin/phpunit -c phpunit.mysql8.xml $NO_COVERAGE
 RESULT_CODE=$?
 
 docker stop mysql8-tdbm-test
