@@ -81,5 +81,5 @@ script:
 - composer phpstan
 - composer require-checker
 after_script:
-- if [ "$COVERALLS" = "true" ] ; then ./vendor/bin/coveralls -v; fi
+- if [ "$COVERALLS" = "true" ] ; then ./vendor/bin/php-coveralls -v; fi
 - if [ "$COVERALLS" = "true" ] ; then vendor/bin/couscous travis-auto-deploy --php-version=7.1 -vvv; fi
