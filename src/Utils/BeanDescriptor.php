@@ -1159,9 +1159,10 @@ You should not put an alias on the main table name. So your \$from variable shou
         $parameters = [];
         //$functionParameters = [];
         $first = true;
+        /** @var AbstractBeanPropertyDescriptor $element */
         foreach ($elements as $element) {
             $parameter = new ParameterGenerator(ltrim($element->getVariableName(), '$'));
-            if (!$first) {
+            if (!$first && !($element->isCompulsory() && $index->isUnique())) {
                 $parameterType = '?';
             //$functionParameter = '?';
             } else {
@@ -1170,7 +1171,7 @@ You should not put an alias on the main table name. So your \$from variable shou
             }
             $parameterType .= $element->getPhpType();
             $parameter->setType($parameterType);
-            if (!$first) {
+            if (!$first && !($element->isCompulsory() && $index->isUnique())) {
                 $parameter->setDefaultValue(null);
             }
             //$functionParameter .= $element->getPhpType();
@@ -1208,7 +1209,7 @@ You should not put an alias on the main table name. So your \$from variable shou
                 foreach ($columns as $localColumn => $foreignColumn) {
                     // TODO: a foreign key could point to another foreign key. In this case, there is no getter for the pointed column. We don't support this case.
                     $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy, $this->annotationParser);
-                    if ($first) {
+                    if ($first || $element->isCompulsory() && $index->isUnique()) {
                         // First parameter for index is not nullable
                         $filterArrayCode .= '            '.var_export($localColumn, true).' => '.$element->getVariableName().'->'.$targetedElement->getGetterName()."(),\n";
                     } else {
