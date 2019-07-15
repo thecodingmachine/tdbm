@@ -421,7 +421,10 @@ abstract class TDBMAbstractServiceTest extends TestCase
         $db->table('albums')
             ->column('id')->integer()->primaryKey()->autoIncrement()
             ->column('artist_id')->references('artists')->comment('@JsonCollection(key="discography")')
-            ->column('title')->string();
+            ->column('account_id')->references('accounts')
+            ->column('node_id')->references('nodes')->null()
+            ->column('title')->string()
+            ->then()->unique(['artist_id', 'account_id'])->unique(['artist_id', 'node_id']);
 
         $db->table('tracks')
             ->column('id')->integer()->primaryKey()->autoIncrement()
@@ -682,6 +685,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         self::insert($connection, 'albums', [
             'id' => 1,
             'artist_id' => 1,
+            'account_id' => 1,
             'title' => 'Animals'
         ]);
 

@@ -36,14 +36,17 @@ use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
+use TheCodingMachine\TDBM\Test\Dao\AlbumDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\ArtistDao;
+use TheCodingMachine\TDBM\Test\Dao\Bean\AccountBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AnimalBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArrayBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Article2Bean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArticleBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\ArtistBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\BoatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CategoryBean;
@@ -2030,6 +2033,33 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $article->setAttachment(null);
         $this->assertNull($article->getAttachment(null));
         fclose($fp);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testOptionnalParametersCanBeNullInFindOneBy()
+    {
+        $albumDao = new AlbumDao($this->tdbmService);
+        $artist = new ArtistBean('Marcel');
+
+        $albumDao->findOneByArtistAndNode($artist, null);
+        $this->assertEquals(1, 1);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testRequiredParametersCannotBeNullInFindOneBy()
+    {
+        $albumDao = new AlbumDao($this->tdbmService);
+        $artist = new ArtistBean('Marcel');
+        $account = new AccountBean('Jamie');
+
+        $albumDao->findOneByArtistAndAccount($artist, $account);
+
+        $this->expectException('TypeError');
+        $albumDao->findOneByArtistAndAccount($artist, null);
     }
 
     /**
