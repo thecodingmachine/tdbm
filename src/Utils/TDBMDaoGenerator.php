@@ -313,6 +313,14 @@ namespace {$daoNamespace}\\Generated;
  */
 class $daoFactoryClassName
 {
+    private \$container;
+
+    public function __construct(ContainerInterface \$container)
+    {
+        \$this->container = \$container;
+    }
+
+
 ";
 
         foreach ($tableList as $table) {
@@ -332,11 +340,15 @@ class $daoFactoryClassName
      */
     public function get'.$daoClassName.'() : '.$daoClassName.'
     {
+         if (!$this->'.$daoInstanceName.') {
+            $this->'.$daoInstanceName.' = $this->container->get('.$daoClassName.'::class);
+        }
+    
         return $this->'.$daoInstanceName.';
     }
 
     /**
-     * Sets the instance of the '.$daoClassName.' class that will be returned by the factory getter.
+     * Override the instance of the '.$daoClassName.' class that will be returned by the factory getter.
      *
      * @param '.$daoClassName.' $'.$daoInstanceName.'
      */
