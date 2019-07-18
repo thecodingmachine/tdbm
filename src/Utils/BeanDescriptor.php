@@ -1102,6 +1102,9 @@ You should not put an alias on the main table name. So your \$from variable shou
                 }
             }
         }
+        usort($methods, static function (MethodGenerator $methodA, MethodGenerator $methodB) {
+            return $methodA->getName() <=> $methodB->getName();
+        });
 
         return $methods;
     }
