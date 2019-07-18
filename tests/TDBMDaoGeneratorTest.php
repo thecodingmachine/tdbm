@@ -2086,7 +2086,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $objectBaseDao = new ObjectBaseDao($this->tdbmService);
         $objectInheritedDao = new ObjectInheritedDao($this->tdbmService);
-        $objectBase = new ObjectBaseBean();
+        $objectBase = new ObjectBaseBean('label');
         $objectBaseDao->save($objectBase);
         $this->assertNull($objectBase->getObjectInherited());
         $objectInherited = new ObjectInheritedBean($objectBase);
