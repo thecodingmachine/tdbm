@@ -441,7 +441,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('id')->integer()->primaryKey()->autoIncrement();
         $db->table('object_inherited')
             ->column('id')->integer()->primaryKey()->autoIncrement()
-            ->column('object_base_id')->references('object_base')->unique();
+            ->column('object_base_id')->references('object_base')->unique()->comment('@JsonCollection');
 
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 

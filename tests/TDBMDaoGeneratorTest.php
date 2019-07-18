@@ -2079,6 +2079,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $roleBean->_getDbRows()['roles']->_getStatus());
     }
 
+    /**
+     * @depends testDaoGeneration
+     */
     public function testOneToOneInverseRelationGetter(): void
     {
         $objectBaseDao = new ObjectBaseDao($this->tdbmService);
@@ -2089,5 +2092,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $objectInherited = new ObjectInheritedBean($objectBase);
         $objectInheritedDao->save($objectInherited);
         $this->assertInstanceOf(ObjectInheritedBean::class, $objectBase->getObjectInherited());
+        $this->assertEquals(1, $objectBase->jsonSerialize()['objectInherited']['id']);
     }
 }
