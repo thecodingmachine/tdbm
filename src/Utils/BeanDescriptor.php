@@ -1119,7 +1119,11 @@ You should not put an alias on the main table name. So your \$from variable shou
     {
         $indexesByKey = [];
         foreach ($indexes as $index) {
-            $indexesByKey[implode('__`__', $index->getUnquotedColumns())] = $index;
+            $key = implode('__`__', $index->getUnquotedColumns());
+            // Unique Index have precedence over non unique one
+            if (!isset($indexesByKey[$key]) || $index->isUnique()) {
+                $indexesByKey[$key] = $index;
+            }
         }
 
         return array_values($indexesByKey);

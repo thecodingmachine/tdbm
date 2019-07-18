@@ -59,6 +59,8 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\BoatBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\FileBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\NodeBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\ObjectBaseBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\ObjectInheritedBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RefNoPrimKeyBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RoleBean;
@@ -74,6 +76,8 @@ use TheCodingMachine\TDBM\Test\Dao\FileDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\ContactBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\NodeDao;
+use TheCodingMachine\TDBM\Test\Dao\ObjectBaseDao;
+use TheCodingMachine\TDBM\Test\Dao\ObjectInheritedDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
 use TheCodingMachine\TDBM\Test\Dao\StateDao;
@@ -2073,5 +2077,17 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $roleBean->_getDbRows()['roles']->_getStatus());
         $roleBean->getId();
         $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $roleBean->_getDbRows()['roles']->_getStatus());
+    }
+
+    public function testOneToOneInverseRelationGetter(): void
+    {
+        $objectBaseDao = new ObjectBaseDao($this->tdbmService);
+        $objectInheritedDao = new ObjectInheritedDao($this->tdbmService);
+        $objectBase = new ObjectBaseBean();
+        $objectBaseDao->save($objectBase);
+        $this->assertNull($objectBase->getObjectInherited());
+        $objectInherited = new ObjectInheritedBean($objectBase);
+        $objectInheritedDao->save($objectInherited);
+        $this->assertInstanceOf(ObjectInheritedBean::class, $objectBase->getObjectInherited());
     }
 }
