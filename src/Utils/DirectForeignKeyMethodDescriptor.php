@@ -180,8 +180,8 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         foreach ($this->getForeignKey()->getLocalTable()->getIndexes() as $index) {
             if (
                 $index->isUnique()
-                && count($index->getColumns()) === count($this->getForeignKey()->getLocalColumns())
-                && !array_diff($index->getColumns(), $this->getForeignKey()->getLocalColumns()) // Check for permuted columns too
+                && count($index->getUnquotedColumns()) === count($this->getForeignKey()->getUnquotedLocalColumns())
+                && !array_diff($index->getUnquotedColumns(), $this->getForeignKey()->getUnquotedLocalColumns()) // Check for permuted columns too
             ) {
                 return true;
             }
