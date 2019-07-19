@@ -1802,15 +1802,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testNoGetByIdOnMultiPrimaryKeys(): void
-    {
-        $reflectionClass = new \ReflectionClass(StateDao::class);
-        $this->assertFalse($reflectionClass->hasMethod('getById'));
-    }
-
-    /**
-     * @depends testDaoGeneration
-     */
     public function testInsertMultiPrimaryKeysBean(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
@@ -1834,6 +1825,18 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $state = $stateDao->findAll()[0];
         $stateDao->delete($state);
         $this->assertCount(0, $stateDao->findAll());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCompositePrimaryKeyGetter(): void
+    {
+        $stateDao = new StateDao($this->tdbmService);
+        $country = new CountryBean('USA');
+        $stateBean = new StateBean($country, 'CA', 'California');
+        $stateDao->save($stateBean);
+        $this->assertSame($stateBean, $stateDao->getById($country->getId(), 'CA'));
     }
 
     /**
@@ -2091,7 +2094,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNull($objectBase->getObjectInherited());
         $objectInherited = new ObjectInheritedBean($objectBase);
         $objectInheritedDao->save($objectInherited);
-        $this->assertInstanceOf(ObjectInheritedBean::class, $objectBase->getObjectInherited());
+        $this->assertSame($objectInherited, $objectBase->getObjectInherited());
         $this->assertEquals(1, $objectBase->jsonSerialize()['objectInherited']['id']);
     }
 }
