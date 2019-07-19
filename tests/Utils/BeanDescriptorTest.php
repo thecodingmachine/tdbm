@@ -24,6 +24,7 @@ namespace TheCodingMachine\TDBM\Utils;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\Type;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\TDBMAbstractServiceTest;
 use TheCodingMachine\TDBM\TDBMException;
@@ -96,6 +97,23 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
         $this->expectException(TDBMException::class);
         $this->expectExceptionMessage('Table "no_primary_key" does not have any primary key');
         new BeanDescriptor($table, 'Foo\\Bar', 'Foo\\Generated\\Bar', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration());
+    }
+
+    public function testTableWithLazyLoadingColumn(): void
+    {
+        $table = $this->schema->createTable('lazy_loading');
+        $table->addColumn('lazyLoading', Type::BOOLEAN);
+        $table->setPrimaryKey(['lazyLoading']);
+        $sqlStmts = $this->schema->getMigrateFromSql($this->getConnection()->getSchemaManager()->createSchema(), $this->getConnection()->getDatabasePlatform());
+
+        foreach ($sqlStmts as $sqlStmt) {
+            $this->getConnection()->exec($sqlStmt);
+        }
+
+        $this->expectException(TDBMException::class);
+        $this->expectExceptionMessage('Primary Column name `lazyLoading` is not allowed.');
+        $beanDescriptor = new BeanDescriptor($table, 'Foo\\Bar', 'Foo\\Generated\\Bar', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration());
+        $beanDescriptor->generateDaoPhpCode();
     }
 
     /*public function testGeneratePhpCode() {
