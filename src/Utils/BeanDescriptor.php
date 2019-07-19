@@ -103,8 +103,20 @@ class BeanDescriptor implements BeanDescriptorInterface
      */
     private $configuration;
 
-    public function __construct(Table $table, string $beanNamespace, string $generatedBeanNamespace, string $daoNamespace, string $generatedDaoNamespace, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy, AnnotationParser $annotationParser, CodeGeneratorListenerInterface $codeGeneratorListener, ConfigurationInterface $configuration)
-    {
+    public function __construct(
+        Table $table,
+        string $beanNamespace,
+        string $generatedBeanNamespace,
+        string $daoNamespace,
+        string $generatedDaoNamespace,
+        SchemaAnalyzer $schemaAnalyzer,
+        Schema $schema,
+        TDBMSchemaAnalyzer $tdbmSchemaAnalyzer,
+        NamingStrategyInterface $namingStrategy,
+        AnnotationParser $annotationParser,
+        CodeGeneratorListenerInterface $codeGeneratorListener,
+        ConfigurationInterface $configuration
+    ) {
         $this->table = $table;
         $this->beanNamespace = $beanNamespace;
         $this->generatedBeanNamespace = $generatedBeanNamespace;
@@ -779,27 +791,35 @@ EOF;
             $class->addMethodFromGenerator($findAllMethod);
         }
 
-        if (count($primaryKeyColumns) === 1) {
-            $primaryKeyColumn = $primaryKeyColumns[0];
-            $primaryKeyPhpType = TDBMDaoGenerator::dbalTypeToPhpType($this->table->getColumn($primaryKeyColumn)->getType());
+        if (count($primaryKeyColumns) > 0) {
+            $lazyLoadingParameterName = 'lazyLoading';
+            $parameters = [];
+            $parametersTag = [];
+            $primaryKeyFilter = [];
+
+            foreach ($primaryKeyColumns as $primaryKeyColumn) {
+                if ($primaryKeyColumn === $lazyLoadingParameterName) {
+                    throw new TDBMException('Primary Column name `' . $lazyLoadingParameterName . '` is not allowed.');
+                }
+                $phpType = TDBMDaoGenerator::dbalTypeToPhpType($this->table->getColumn($primaryKeyColumn)->getType());
+                $parameters[] = new ParameterGenerator($primaryKeyColumn, $phpType);
+                $parametersTag[] = new ParamTag($primaryKeyColumn, [$phpType]);
+                $primaryKeyFilter[] = "'$primaryKeyColumn' => \$$primaryKeyColumn";
+            }
+            $parameters[] = new ParameterGenerator($lazyLoadingParameterName, 'bool', false);
+            $parametersTag[] = new ParamTag($lazyLoadingParameterName, ['bool'], 'If set to true, the object will not be loaded right away. Instead, it will be loaded when you first try to access a method of the object.');
+            $parametersTag[] = new ReturnTag(['\\'.$beanClassName]);
+            $parametersTag[] = new ThrowsTag('\\'.TDBMException::class);
 
             $getByIdMethod = new MethodGenerator(
                 'getById',
-                [
-                    new ParameterGenerator('id', $primaryKeyPhpType),
-                    new ParameterGenerator('lazyLoading', 'bool', false)
-                ],
+                $parameters,
                 MethodGenerator::FLAG_PUBLIC,
-                "return \$this->tdbmService->findObjectByPk('$tableName', ['$primaryKeyColumn' => \$id], [], \$lazyLoading);",
+                "return \$this->tdbmService->findObjectByPk('$tableName', [" . implode(', ', $primaryKeyFilter) . "], [], \$$lazyLoadingParameterName);",
                 (new DocBlockGenerator(
                     "Get $beanClassWithoutNameSpace specified by its ID (its primary key).",
                     'If the primary key does not exist, an exception is thrown.',
-                    [
-                        new ParamTag('id', [$primaryKeyPhpType]),
-                        new ParamTag('lazyLoading', ['bool'], 'If set to true, the object will not be loaded right away. Instead, it will be loaded when you first try to access a method of the object.'),
-                        new ReturnTag(['\\'.$beanClassName]),
-                        new ThrowsTag('\\'.TDBMException::class)
-                    ]
+                    $parametersTag
                 ))->setWordWrap(false)
             );
             $getByIdMethod->setReturnType($beanClassName);
