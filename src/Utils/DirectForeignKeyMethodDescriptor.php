@@ -73,10 +73,14 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      */
     public function getName() : string
     {
+        $name = $this->foreignKey->getLocalTableName();
+        if ($this->hasLocalUniqueIndex()) {
+            $name = TDBMDaoGenerator::toSingular($name);
+        }
         if (!$this->useAlternateName) {
-            return 'get'.TDBMDaoGenerator::toCamelCase($this->foreignKey->getLocalTableName());
+            return 'get'.TDBMDaoGenerator::toCamelCase($name);
         } else {
-            $methodName = 'get'.TDBMDaoGenerator::toCamelCase($this->foreignKey->getLocalTableName()).'By';
+            $methodName = 'get'.TDBMDaoGenerator::toCamelCase($name).'By';
 
             $camelizedColumns = array_map([TDBMDaoGenerator::class, 'toCamelCase'], $this->foreignKey->getUnquotedLocalColumns());
 
