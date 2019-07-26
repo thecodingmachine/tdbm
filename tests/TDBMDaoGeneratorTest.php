@@ -68,6 +68,7 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\UserBean;
 use TheCodingMachine\TDBM\Test\Dao\BoatDao;
 use TheCodingMachine\TDBM\Test\Dao\CatDao;
 use TheCodingMachine\TDBM\Test\Dao\CategoryDao;
+use TheCodingMachine\TDBM\Test\Dao\CompositeFkSourceDao;
 use TheCodingMachine\TDBM\Test\Dao\ContactDao;
 use TheCodingMachine\TDBM\Test\Dao\CountryDao;
 use TheCodingMachine\TDBM\Test\Dao\DogDao;
@@ -2148,5 +2149,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $json = $albumBean->jsonSerialize(true);
         $this->assertArrayHasKey('id', $json['artist']);
         $this->assertArrayNotHasKey('name', $json['artist']);
+    }
+
+    public function testLazyStopRecursionOnCompositeForeignKey(): void
+    {
+        $compositeFkSourceDao = new CompositeFkSourceDao($this->tdbmService);
+        $compositeFkSourceBean = $compositeFkSourceDao->getById(1);
+        $json = $compositeFkSourceBean->jsonSerialize(true);
+        $this->assertEquals(1, $json['compositeFkTarget']['id1']);
+        $this->assertEquals(1, $json['compositeFkTarget']['id2']);
     }
 }

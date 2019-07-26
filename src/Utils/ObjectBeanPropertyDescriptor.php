@@ -245,8 +245,10 @@ PHP;
     {
         $rows = [];
         foreach ($this->getForeignKey()->getUnquotedForeignColumns() as $column) {
-            $columnGetterName = 'get' . TDBMDaoGenerator::toCamelCase($column);
-            $rows[] = "'$column' => $propertyAccess->$columnGetterName()";
+            $camelColumn = TDBMDaoGenerator::toCamelCase($column);
+            $indexName = lcfirst($camelColumn);
+            $columnGetterName = 'get' . $camelColumn;
+            $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
         }
         return '[' . implode(', ', $rows) . ']';
     }

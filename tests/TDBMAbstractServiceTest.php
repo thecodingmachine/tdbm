@@ -451,6 +451,17 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('id')->integer()->primaryKey()->autoIncrement()
             ->column('base_object_id')->references('base_objects')->unique()->comment('@JsonCollection');
 
+        $targetTable = $db->table('composite_fk_target')
+            ->column('id_1')->integer()
+            ->column('id_2')->integer()
+            ->then()->primaryKey(['id_1', 'id_2']);
+        $db->table('composite_fk_source')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('fk_1')->integer()
+            ->column('fk_2')->integer()
+            ->then()->addForeignKeyConstraint($targetTable, ['fk_1', 'fk_2'], ['id_1', 'id_2']);
+
+
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
@@ -770,6 +781,15 @@ abstract class TDBMAbstractServiceTest extends TestCase
         self::insert($connection, 'person_boats', [
             'person_id' => 1,
             'boat_id' => 1,
+        ]);
+        self::insert($connection, 'composite_fk_target', [
+            'id_1' => 1,
+            'id_2' => 1
+        ]);
+        self::insert($connection, 'composite_fk_source', [
+            'id' => 1,
+            'fk_1' => 1,
+            'fk_2' => 1
         ]);
     }
 
