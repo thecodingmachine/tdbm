@@ -2140,4 +2140,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame($objectInherited, $objectBase->getInheritedObject());
         $this->assertEquals(1, $objectBase->jsonSerialize()['inheritedObject']['id']);
     }
+
+    public function testLazyStopRecursion(): void
+    {
+        $albumDao = new AlbumDao($this->tdbmService);
+        $albumBean = $albumDao->getById(1);
+        $json = $albumBean->jsonSerialize(true);
+        $this->assertArrayHasKey('id', $json['artist']);
+        $this->assertArrayNotHasKey('name', $json['artist']);
+    }
 }
