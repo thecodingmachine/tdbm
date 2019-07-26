@@ -372,15 +372,17 @@ class BeanDescriptor implements BeanDescriptorInterface
             // There are exactly 2 FKs since this is a pivot table.
             $fks = array_values($table->getForeignKeys());
 
+            //todo auto pivot case?
             if ($fks[0]->getForeignTableName() === $this->table->getName()) {
                 list($localFk, $remoteFk) = $fks;
-            } elseif ($fks[1]->getForeignTableName() === $this->table->getName()) {
+                $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
+            }
+            if ($fks[1]->getForeignTableName() === $this->table->getName()) {
                 list($remoteFk, $localFk) = $fks;
-            } else {
-                continue;
+                $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
             }
 
-            $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
+
         }
 
         return $descs;

@@ -1959,6 +1959,25 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         self::assertEquals('Roger Waters', $json['tracks'][0]['feat'][0]['name']);
     }
 
+    public function testFloydHasNoParent(): void
+    {
+        $artists = new ArtistDao($this->tdbmService);
+        $pinkFloyd = $artists->getById(1);
+        $parents = $pinkFloyd->getArtistsByArtistsRelationsViaChildId();
+
+        $this->assertEquals([], $parents);
+    }
+
+    public function testFloydHasOneChild(): void
+    {
+        $artists = new ArtistDao($this->tdbmService);
+        $pinkFloyd = $artists->getById(1);
+        $children = $pinkFloyd->getArtistsByArtistsRelationsViaParentId();
+
+        $this->assertEquals(1, count($children));
+        $this->assertEquals(2, $children[0]->getId());
+    }
+
     /**
      * @depends testDaoGeneration
      */

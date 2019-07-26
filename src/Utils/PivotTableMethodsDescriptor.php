@@ -85,11 +85,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     public function getName() : string
     {
-        if (!$this->useAlternateName) {
-            return 'get'.TDBMDaoGenerator::toCamelCase($this->remoteFk->getForeignTableName());
-        } else {
-            return 'get'.TDBMDaoGenerator::toCamelCase($this->remoteFk->getForeignTableName()).'By'.TDBMDaoGenerator::toCamelCase($this->pivotTable->getName());
-        }
+        return 'get'.$this->getPluralName();
     }
 
     /**
@@ -109,11 +105,14 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     private function getPluralName() : string
     {
-        if (!$this->useAlternateName) {
-            return TDBMDaoGenerator::toCamelCase($this->remoteFk->getForeignTableName());
+        if($this->isAutoPivot()) {
+            $name = $this->remoteFk->getForeignTableName().'By_'.$this->pivotTable->getName().'Via_'.implode('And_',$this->localFk->getUnquotedLocalColumns());
+        } else if (!$this->useAlternateName) {
+            $name = $this->remoteFk->getForeignTableName();
         } else {
-            return TDBMDaoGenerator::toCamelCase($this->remoteFk->getForeignTableName()).'By'.TDBMDaoGenerator::toCamelCase($this->pivotTable->getName());
+            $name = $this->remoteFk->getForeignTableName().'By_'.$this->pivotTable->getName();
         }
+        return TDBMDaoGenerator::toCamelCase($name);
     }
 
     /**
@@ -123,13 +122,39 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     private function getSingularName() : string
     {
-        if (!$this->useAlternateName) {
-            return TDBMDaoGenerator::toCamelCase(TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()));
+        if($this->isAutoPivot()) {
+            $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()).'By_'.$this->pivotTable->getName().'Via_'.implode('And_',$this->localFk->getUnquotedLocalColumns());
+        } else if (!$this->useAlternateName) {
+            $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName());
         } else {
-            return TDBMDaoGenerator::toCamelCase(TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName())).'By'.TDBMDaoGenerator::toCamelCase($this->pivotTable->getName());
+            $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()).'By_'.$this->pivotTable->getName();
         }
+        return TDBMDaoGenerator::toCamelCase($name);
     }
 
+    private function isAutoPivot(): bool
+    {
+        return $this->localFk->getForeignTableName() === $this->remoteFk->getForeignTableName();
+    }
+
+
+    /**
+     * return the list of couples tableName.columnName needed for the sql query
+     */
+    private function getAutoPivotFrom(): string
+    {
+        $mainTable = $this->remoteFk->getForeignTableName();
+        $pivotTable = $this->remoteFk->getLocalTableName();
+
+        return $mainTable.' JOIN '.$pivotTable.'  pivot ON '.$mainTable.'.'.$this->remoteFk->getUnquotedForeignColumns()[0].' = pivot.'.$this->remoteFk->getUnquotedLocalColumns()[0];
+            //.' JOIN '.$mainTable.' second ON pivot.'.$this->localFk->getUnquotedLocalColumns()[0].' = second.'.$this->localFk->getUnquotedForeignColumns()[0];
+
+    }
+    private function getAutoPivotWhere(): string
+    {
+        return ' pivot.'.$this->localFk->getUnquotedLocalColumns()[0].' = ';
+
+    }
     /**
      * Returns the code of the method.
      *
@@ -148,7 +173,11 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
         $getter->setDocBlock(sprintf('Returns the list of %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
         $getter->getDocBlock()->setTag(new ReturnTag([ $fqcnRemoteBeanName.'[]' ]));
         $getter->setReturnType('array');
-        $getter->setBody(sprintf('return $this->_getRelationships(%s);', var_export($this->remoteFk->getLocalTableName(), true)));
+        if ($this->isAutoPivot()) {
+            $getter->setBody(sprintf('return $this->_getRelationships(%s, %s, %s);', var_export($this->remoteFk->getLocalTableName(), true), var_export($this->getAutoPivotFrom(), true), var_export($this->getAutoPivotWhere(), true)));
+        } else {
+            $getter->setBody(sprintf('return $this->_getRelationships(%s);', var_export($this->remoteFk->getLocalTableName(), true)));
+        }
 
 
         $adder = new MethodGenerator('add'.$singularName);

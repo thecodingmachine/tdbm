@@ -689,6 +689,10 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'artist_id' => 1,
             'title' => 'Animals'
         ]);
+        self::insert($connection, 'artists_relations', [
+            'parent_id' => 1,
+            'child_id' => 2
+        ]);
 
         $timeType = Type::getType(Type::TIME_IMMUTABLE);
 

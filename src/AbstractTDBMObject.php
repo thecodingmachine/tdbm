@@ -383,14 +383,14 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return \SplObjectStorage
      */
-    private function retrieveRelationshipsStorage(string $pivotTableName): \SplObjectStorage
+    private function retrieveRelationshipsStorage(string $pivotTableName, ?string $from = null, ?string $where = null): \SplObjectStorage
     {
         $storage = $this->getRelationshipStorage($pivotTableName);
         if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || (isset($this->loadedRelationships[$pivotTableName]) && $this->loadedRelationships[$pivotTableName])) {
             return $storage;
         }
 
-        $beans = $this->tdbmService->_getRelatedBeans($pivotTableName, $this);
+        $beans = $this->tdbmService->_getRelatedBeans($pivotTableName, $this, $from, $where);
         $this->loadedRelationships[$pivotTableName] = true;
 
         foreach ($beans as $bean) {
@@ -414,9 +414,9 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return AbstractTDBMObject[]
      */
-    public function _getRelationships(string $pivotTableName): array
+    public function _getRelationships(string $pivotTableName, ?string $from = null, ?string $where = null): array
     {
-        return $this->relationshipStorageToArray($this->retrieveRelationshipsStorage($pivotTableName));
+        return $this->relationshipStorageToArray($this->retrieveRelationshipsStorage($pivotTableName, $from, $where));
     }
 
     /**

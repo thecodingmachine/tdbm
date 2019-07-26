@@ -1436,7 +1436,7 @@ class TDBMService
      *
      * @return AbstractTDBMObject[]|ResultIterator
      */
-    public function _getRelatedBeans(string $pivotTableName, AbstractTDBMObject $bean): ResultIterator
+    public function _getRelatedBeans(string $pivotTableName, AbstractTDBMObject $bean, ?string $from = null, ?string $where = null): ResultIterator
     {
         list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $bean);
         /* @var $localFk ForeignKeyConstraint */
@@ -1444,13 +1444,20 @@ class TDBMService
         $remoteTable = $remoteFk->getForeignTableName();
 
         $primaryKeys = $this->getPrimaryKeyValues($bean);
-        $columnNames = array_map(function ($name) use ($pivotTableName) {
-            return $pivotTableName.'.'.$name;
-        }, $localFk->getUnquotedLocalColumns());
 
-        $filter = SafeFunctions::arrayCombine($columnNames, $primaryKeys);
+        if ($from && $where) {
+            $where .= $primaryKeys[0];
 
-        return $this->findObjects($remoteTable, $filter);
+            return $this->findObjectsFromSql($remoteTable, $from, $where);
+        } else {
+
+            $columnNames = array_map(function ($name) use ($pivotTableName) {
+                return $pivotTableName.'.'.$name;
+            }, $localFk->getUnquotedLocalColumns());
+
+            $filter = SafeFunctions::arrayCombine($columnNames, $primaryKeys);
+            return $this->findObjects($remoteTable, $filter);
+        }
     }
 
     /**
