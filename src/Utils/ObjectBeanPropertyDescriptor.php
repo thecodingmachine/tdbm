@@ -202,7 +202,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
                 return '';
             }
             $isIncluded = false;
-            $format = "jsonSerialize(true)";
+            $format = 'jsonSerialize(true)';
         } else {
             $isIncluded = $this->findAnnotation(Annotation\JsonInclude::class) !== null;
             /** @var Annotation\JsonFormat|null $jsonFormat */
@@ -220,18 +220,35 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $index = $jsonKey ? $jsonKey->key : $this->namingStrategy->getJsonProperty($this);
         $getter = $this->getGetterName();
         if (!$this->isCompulsory()) {
-            $code = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->$format : null;";
+            $recursiveCode = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->$format : null;";
+            $lazyCode = "\$array['$index'] = (\$object = \$this->$getter()) ? {$this->getLazySerializeCode('$object')} : null;";
         } else {
-            $code = "\$array['$index'] = \$this->$getter()->$format;";
+            $recursiveCode = "\$array['$index'] = \$this->$getter()->$format;";
+            $lazyCode = "\$array['$index'] = {$this->getLazySerializeCode("\$this->$getter()")};";
         }
-        if (!$isIncluded) {
+
+        if ($isIncluded) {
+            $code = $recursiveCode;
+        } else {
             $code = <<<PHP
-if (!\$stopRecursion) {
-    $code
-};
+if (\$stopRecursion) {
+    $lazyCode
+} else {
+    $recursiveCode
+}
 PHP;
         }
         return $code;
+    }
+
+    private function getLazySerializeCode(string $propertyAccess): string
+    {
+        $rows = [];
+        foreach ($this->getForeignKey()->getUnquotedForeignColumns() as $column) {
+            $columnGetterName = 'get' . TDBMDaoGenerator::toCamelCase($column);
+            $rows[] = "'$column' => $propertyAccess->$columnGetterName()";
+        }
+        return '[' . implode(', ', $rows) . ']';
     }
 
     /**
