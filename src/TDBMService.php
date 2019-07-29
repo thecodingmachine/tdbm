@@ -39,6 +39,7 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsFromSqlQueryFactory;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsQueryFactory;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsFromRawSqlQueryFactory;
+use TheCodingMachine\TDBM\Utils\ManyToManyRelationshipPathDescriptor;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Phlib\Logger\Decorator\LevelFilter;
@@ -312,10 +313,11 @@ class TDBMService
     {
         foreach ($object->_getDbRows() as $tableName => $dbRow) {
             $pivotTables = $this->tdbmSchemaAnalyzer->getPivotTableLinkedToTable($tableName);
-            foreach ($pivotTables as $pivotTable) {
-                $remoteBeans = $object->_getRelationships($pivotTable);
+            foreach ($object->_getRelationshipsPathKeys() as $pathKey) {
+                $pathModel = $object->_getRelationshipModelFromKey($pathKey);
+                $remoteBeans = $object->_getRelationshipsFromModel($pathModel);
                 foreach ($remoteBeans as $remoteBean) {
-                    $object->_removeRelationship($pivotTable, $remoteBean);
+                    $object->_removeRelationship($pathModel->getPivotName(), $remoteBean);
                 }
             }
         }
@@ -1431,33 +1433,11 @@ class TDBMService
     }
 
     /**
-     * @param string $pivotTableName
-     * @param AbstractTDBMObject $bean
-     *
      * @return AbstractTDBMObject[]|ResultIterator
      */
-    public function _getRelatedBeans(string $pivotTableName, AbstractTDBMObject $bean, ?string $from = null, ?string $where = null): ResultIterator
+    public function _getRelatedBeans(ManyToManyRelationshipPathDescriptor $pathDescriptor, AbstractTDBMObject $bean): ResultIterator
     {
-        list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $bean);
-        /* @var $localFk ForeignKeyConstraint */
-        /* @var $remoteFk ForeignKeyConstraint */
-        $remoteTable = $remoteFk->getForeignTableName();
-
-        $primaryKeys = $this->getPrimaryKeyValues($bean);
-
-        if ($from && $where) {
-            $where .= $primaryKeys[0];
-
-            return $this->findObjectsFromSql($remoteTable, $from, $where);
-        } else {
-
-            $columnNames = array_map(function ($name) use ($pivotTableName) {
-                return $pivotTableName.'.'.$name;
-            }, $localFk->getUnquotedLocalColumns());
-
-            $filter = SafeFunctions::arrayCombine($columnNames, $primaryKeys);
-            return $this->findObjects($remoteTable, $filter);
-        }
+        return $this->findObjectsFromSql($pathDescriptor->getTargetName(), $pathDescriptor->getPivotFrom(), $pathDescriptor->getPivotWhere(), $pathDescriptor->getPivotParams($this->getPrimaryKeyValues($bean)));
     }
 
     /**
