@@ -341,7 +341,7 @@ class $daoFactoryClassName
      */
     public function get'.$daoClassName.'() : '.$daoClassName.'
     {
-         if (!$this->'.$daoInstanceName.') {
+        if (!$this->'.$daoInstanceName.') {
             $this->'.$daoInstanceName.' = $this->container->get('.$daoClassName.'::class);
         }
     
