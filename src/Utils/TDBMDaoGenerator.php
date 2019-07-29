@@ -299,6 +299,7 @@ declare(strict_types=1);
 
 namespace {$daoNamespace}\\Generated;
 
+use Psr\Container\ContainerInterface;
 ";
         foreach ($tableList as $table) {
             $tableName = $table->getName();
