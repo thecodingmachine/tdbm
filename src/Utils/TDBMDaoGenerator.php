@@ -330,7 +330,7 @@ class $daoFactoryClassName
             $daoInstanceName = self::toVariableName($daoClassName);
 
             $str .= '    /**
-     * @var '.$daoClassName.'
+     * @var '.$daoClassName.'|null
      */
     private $'.$daoInstanceName.';
 
