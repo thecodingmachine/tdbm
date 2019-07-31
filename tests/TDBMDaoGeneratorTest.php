@@ -964,6 +964,17 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testInnerResultIteratorCountAfterFetch(): void
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByLoginStartingWith('j')->take(0, 4);
+        $users->toArray(); // We force to fetch
+        $this->assertEquals(3, $users->count());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testFirst(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
