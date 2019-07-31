@@ -1941,9 +1941,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         self::assertEquals('index.html', $json['alias']['alias']['basename']);
         // ... each alias even serializes its parents, ...
         self::assertTrue(isset($json['alias']['alias']['parent']['parent']));
-        // ... however, parents aliases chains are not serialized, as parents are serialized with $stopRecursion=true
-        self::assertTrue(!isset($json['alias']['alias']['parent']['parent']['alias']));
-        self::assertNotNull($index->getAlias()->getAlias()->getParent()->getParent()->getAlias());
+        // ... however, parents aliases chains have just their foreign key (id), as parents are serialized with $stopRecursion=true
+        self::assertEquals(3, $json['alias']['alias']['parent']['parent']['alias']['id']);
+        self::assertCount(1 , $json['alias']['alias']['parent']['parent']['alias']);
     }
 
     /**
@@ -1981,8 +1981,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // Collection name properly handled ('discography' instead of default 'albums')
         self::assertTrue(isset($json['discography']));
         self::assertEquals($animals->getTitle(), $json['discography'][0]['title']);
-        // Make sure top object is not its own grandfather
-        self::assertTrue(!isset($json['discography'][0]['artist']));
+        // Make sure top object have just its primary key
+        self::assertEquals(1, $json['discography'][0]['artist']['id']);
+        self::assertCount(1, $json['discography'][0]['artist']);
         $json = $animals->jsonSerialize();
         // Nevertheless, artist should be serialized in album as top object...
         self::assertTrue(isset($json['artist']));

@@ -459,7 +459,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('id')->integer()->primaryKey()->autoIncrement()
             ->column('fk_1')->integer()
             ->column('fk_2')->integer()
-            ->then()->addForeignKeyConstraint($targetTable, ['fk_1', 'fk_2'], ['id_1', 'id_2']);
+            ->then()->getDbalTable()->addForeignKeyConstraint($targetTable->getDbalTable(), ['fk_1', 'fk_2'], ['id_1', 'id_2']);
 
 
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
