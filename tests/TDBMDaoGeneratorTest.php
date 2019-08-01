@@ -36,14 +36,17 @@ use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
+use TheCodingMachine\TDBM\Test\Dao\AlbumDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\ArtistDao;
+use TheCodingMachine\TDBM\Test\Dao\Bean\AccountBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AnimalBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArrayBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Article2Bean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArticleBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\ArtistBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\BoatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CategoryBean;
@@ -56,6 +59,8 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\BoatBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\FileBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\NodeBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\ObjectBaseBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\ObjectInheritedBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RefNoPrimKeyBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RoleBean;
@@ -71,6 +76,8 @@ use TheCodingMachine\TDBM\Test\Dao\FileDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\ContactBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\NodeDao;
+use TheCodingMachine\TDBM\Test\Dao\ObjectBaseDao;
+use TheCodingMachine\TDBM\Test\Dao\ObjectInheritedDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
 use TheCodingMachine\TDBM\Test\Dao\StateDao;
@@ -973,6 +980,17 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testInnerResultIteratorCountAfterFetch(): void
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->getUsersByLoginStartingWith('j')->take(0, 4);
+        $users->toArray(); // We force to fetch
+        $this->assertEquals(3, $users->count());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testFirst(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
@@ -1811,15 +1829,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testNoGetByIdOnMultiPrimaryKeys(): void
-    {
-        $reflectionClass = new \ReflectionClass(StateDao::class);
-        $this->assertFalse($reflectionClass->hasMethod('getById'));
-    }
-
-    /**
-     * @depends testDaoGeneration
-     */
     public function testInsertMultiPrimaryKeysBean(): void
     {
         $countryDao = new CountryDao($this->tdbmService);
@@ -1843,6 +1852,18 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $state = $stateDao->findAll()[0];
         $stateDao->delete($state);
         $this->assertCount(0, $stateDao->findAll());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCompositePrimaryKeyGetter(): void
+    {
+        $stateDao = new StateDao($this->tdbmService);
+        $country = new CountryBean('USA');
+        $stateBean = new StateBean($country, 'CA', 'California');
+        $stateDao->save($stateBean);
+        $this->assertSame($stateBean, $stateDao->getById($country->getId(), 'CA'));
     }
 
     /**
@@ -2070,6 +2091,33 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testOptionnalParametersCanBeNullInFindOneBy()
+    {
+        $albumDao = new AlbumDao($this->tdbmService);
+        $artist = new ArtistBean('Marcel');
+
+        $albumDao->findOneByArtistAndNode($artist, null);
+        $this->assertEquals(1, 1);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testRequiredParametersCannotBeNullInFindOneBy()
+    {
+        $albumDao = new AlbumDao($this->tdbmService);
+        $artist = new ArtistBean('Marcel');
+        $account = new AccountBean('Jamie');
+
+        $albumDao->findOneByArtistAndAccount($artist, $account);
+
+        $this->expectException('TypeError');
+        $albumDao->findOneByArtistAndAccount($artist, null);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testLazyLoad(): void
     {
         $roleDao = new RoleDao($this->tdbmService);
@@ -2078,5 +2126,21 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $roleBean->_getDbRows()['roles']->_getStatus());
         $roleBean->getId();
         $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $roleBean->_getDbRows()['roles']->_getStatus());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testOneToOneInverseRelationGetter(): void
+    {
+        $objectBaseDao = new ObjectBaseDao($this->tdbmService);
+        $objectInheritedDao = new ObjectInheritedDao($this->tdbmService);
+        $objectBase = new ObjectBaseBean('label');
+        $objectBaseDao->save($objectBase);
+        $this->assertNull($objectBase->getObjectInherited());
+        $objectInherited = new ObjectInheritedBean($objectBase);
+        $objectInheritedDao->save($objectInherited);
+        $this->assertSame($objectInherited, $objectBase->getObjectInherited());
+        $this->assertEquals(1, $objectBase->jsonSerialize()['objectInherited']['id']);
     }
 }

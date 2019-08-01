@@ -222,6 +222,9 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function count()
     {
+        if ($this->resultIterator instanceof \Countable && $this->alterations->count() === 0) {
+            return $this->resultIterator->count();
+        }
         return count($this->toArray());
     }
 

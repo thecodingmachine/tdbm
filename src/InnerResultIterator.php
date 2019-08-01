@@ -102,6 +102,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
         $this->fetchStarted = true;
     }
 
+    private $count = null;
     /**
      * Counts found records (this is the number of records fetched, taking into account the LIMIT and OFFSET settings).
      *
@@ -113,29 +114,13 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
             return $this->count;
         }
 
-        if ($this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+        if ($this->fetchStarted && $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             // Optimisation: we don't need a separate "count" SQL request in MySQL.
-            return $this->getRowCountViaRowCountFunction();
-        } else {
-            return $this->getRowCountViaSqlQuery();
+            $this->count = $this->statement->rowCount();
+            return $this->count;
         }
+        return $this->getRowCountViaSqlQuery();
     }
-
-    private $count = null;
-
-    /**
-     * Get the row count from the rowCount function (only works with MySQL)
-     */
-    private function getRowCountViaRowCountFunction(): int
-    {
-        if (!$this->fetchStarted) {
-            $this->executeQuery();
-        }
-
-        $this->count = $this->statement->rowCount();
-        return $this->count;
-    }
-
 
     /**
      * Makes a separate SQL query to compute the row count.
@@ -147,7 +132,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
         $this->logger->debug('Running count SQL request: '.$countSql);
 
-        $this->count = $this->tdbmService->getConnection()->fetchColumn($countSql, $this->parameters);
+        $this->count = (int) $this->tdbmService->getConnection()->fetchColumn($countSql, $this->parameters);
         return $this->count;
     }
 

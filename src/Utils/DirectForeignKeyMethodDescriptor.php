@@ -40,18 +40,30 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      * @var AnnotationParser
      */
     private $annotationParser;
+    /**
+     * @var string
+     */
+    private $beanNamespace;
 
     /**
      * @param ForeignKeyConstraint $fk The foreign key pointing to our bean
      * @param Table $mainTable The main table that is pointed to
      * @param NamingStrategyInterface $namingStrategy
+     * @param AnnotationParser $annotationParser
+     * @param string $beanNamespace
      */
-    public function __construct(ForeignKeyConstraint $fk, Table $mainTable, NamingStrategyInterface $namingStrategy, AnnotationParser $annotationParser)
-    {
+    public function __construct(
+        ForeignKeyConstraint $fk,
+        Table $mainTable,
+        NamingStrategyInterface $namingStrategy,
+        AnnotationParser $annotationParser,
+        string $beanNamespace
+    ) {
         $this->foreignKey = $fk;
         $this->mainTable = $mainTable;
         $this->namingStrategy = $namingStrategy;
         $this->annotationParser = $annotationParser;
+        $this->beanNamespace = $beanNamespace;
     }
 
     /**
@@ -100,23 +112,37 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
     public function getCode() : array
     {
         $beanClass = $this->getBeanClassName();
-
-        $getter = new MethodGenerator($this->getName());
-        $getter->setDocBlock(sprintf('Returns the list of %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
-        $getter->getDocBlock()->setTag(new ReturnTag([
-            $beanClass.'[]',
-            '\\'.AlterableResultIterator::class
-        ]));
-        $getter->setReturnType(AlterableResultIterator::class);
-
         $tdbmFk = ForeignKey::createFromFk($this->foreignKey);
 
-        $code = sprintf(
-            'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s);',
-            var_export($this->foreignKey->getLocalTableName(), true),
-            var_export($tdbmFk->getCacheKey(), true),
-            $this->getFilters($this->foreignKey)
-        );
+        $getter = new MethodGenerator($this->getName());
+
+        if ($this->hasLocalUniqueIndex()) {
+            $getter->setDocBlock(sprintf('Returns the %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
+            $classType = '\\' . $this->beanNamespace . '\\' . $beanClass;
+            $getter->getDocBlock()->setTag(new ReturnTag([$classType . '|null']));
+            $getter->setReturnType('?' . $classType);
+
+            $code = sprintf(
+                'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s)->first();',
+                var_export($this->foreignKey->getLocalTableName(), true),
+                var_export($tdbmFk->getCacheKey(), true),
+                $this->getFilters($this->foreignKey)
+            );
+        } else {
+            $getter->setDocBlock(sprintf('Returns the list of %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
+            $getter->getDocBlock()->setTag(new ReturnTag([
+                $beanClass . '[]',
+                '\\' . AlterableResultIterator::class
+            ]));
+            $getter->setReturnType(AlterableResultIterator::class);
+
+            $code = sprintf(
+                'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s);',
+                var_export($this->foreignKey->getLocalTableName(), true),
+                var_export($tdbmFk->getCacheKey(), true),
+                $this->getFilters($this->foreignKey)
+            );
+        }
 
         $getter->setBody($code);
 
@@ -142,6 +168,25 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         $parametersCode = '['.implode(', ', $parameters).']';
 
         return $parametersCode;
+    }
+
+    /**
+     * Check if the ForeignKey have an unique index
+     *
+     * @return bool
+     */
+    private function hasLocalUniqueIndex(): bool
+    {
+        foreach ($this->getForeignKey()->getLocalTable()->getIndexes() as $index) {
+            if (
+                $index->isUnique()
+                && count($index->getUnquotedColumns()) === count($this->getForeignKey()->getUnquotedLocalColumns())
+                && !array_diff($index->getUnquotedColumns(), $this->getForeignKey()->getUnquotedLocalColumns()) // Check for permuted columns too
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -181,17 +226,21 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         $class = $this->getBeanClassName();
         $variableName = '$' . TDBMDaoGenerator::toVariableName($class);
         $getter = $this->getName();
-        $code = <<<PHP
+        if ($this->hasLocalUniqueIndex()) {
+            $code = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->$format : null;";
+        } else {
+            $code = <<<PHP
 \$array['$index'] = array_map(function ($class $variableName) {
     return ${variableName}->$format;
 }, \$this->$getter()->toArray());
 PHP;
+        }
         if (!$isIncluded) {
             $code = preg_replace('(\n)', '\0    ', $code);
             $code = <<<PHP
 if (!\$stopRecursion) {
     $code
-};
+}
 PHP;
         }
         return $code;

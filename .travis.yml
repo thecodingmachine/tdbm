@@ -8,12 +8,20 @@ matrix:
   include:
     - php: 7.2
       env: PREFER_LOWEST="" DB=mysql RUN_PHPSTAN=1 RUN_CSCHECK=1 RUN_REQUIRECHECKER=1
+      services:
+        - mysql
     - php: 7.3
       env: PREFER_LOWEST="" DB=mysql NO_WEAKREF=1
+      services:
+        - mysql
     - php: 7.1
       env: PREFER_LOWEST="" DB=mysql COVERALLS=true
+      services:
+        - mysql
     - php: 7.1
       env: PREFER_LOWEST="--prefer-lowest" DB=mysql
+      services:
+        - mysql
     - php: 7.1
       env: PREFER_LOWEST="" DB=mysql8
       sudo: required
@@ -22,11 +30,11 @@ matrix:
     - php: 7.1
       env: PREFER_LOWEST="" DB=mariadb
       addons:
-        mariadb: '10.0'
+        mariadb: '10.3'
     - php: 7.1
       env: PREFER_LOWEST="--prefer-lowest" DB=mariadb
       addons:
-        mariadb: '10.0'
+        mariadb: '10.3'
     - php: 7.1
       env: PREFER_LOWEST="--prefer-lowest" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
       sudo: required

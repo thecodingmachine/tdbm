@@ -107,8 +107,20 @@ class BeanDescriptor implements BeanDescriptorInterface
      */
     private $configuration;
 
-    public function __construct(Table $table, string $beanNamespace, string $generatedBeanNamespace, string $daoNamespace, string $generatedDaoNamespace, SchemaAnalyzer $schemaAnalyzer, Schema $schema, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer, NamingStrategyInterface $namingStrategy, AnnotationParser $annotationParser, CodeGeneratorListenerInterface $codeGeneratorListener, ConfigurationInterface $configuration)
-    {
+    public function __construct(
+        Table $table,
+        string $beanNamespace,
+        string $generatedBeanNamespace,
+        string $daoNamespace,
+        string $generatedDaoNamespace,
+        SchemaAnalyzer $schemaAnalyzer,
+        Schema $schema,
+        TDBMSchemaAnalyzer $tdbmSchemaAnalyzer,
+        NamingStrategyInterface $namingStrategy,
+        AnnotationParser $annotationParser,
+        CodeGeneratorListenerInterface $codeGeneratorListener,
+        ConfigurationInterface $configuration
+    ) {
         $this->table = $table;
         $this->beanNamespace = $beanNamespace;
         $this->generatedBeanNamespace = $generatedBeanNamespace;
@@ -360,7 +372,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         $descriptors = [];
 
         foreach ($fks as $fk) {
-            $descriptors[] = new DirectForeignKeyMethodDescriptor($fk, $this->table, $this->namingStrategy, $this->annotationParser);
+            $descriptors[] = new DirectForeignKeyMethodDescriptor($fk, $this->table, $this->namingStrategy, $this->annotationParser, $this->beanNamespace);
         }
 
         return $descriptors;
@@ -795,27 +807,35 @@ EOF;
             $class->addMethodFromGenerator($findAllMethod);
         }
 
-        if (count($primaryKeyColumns) === 1) {
-            $primaryKeyColumn = $primaryKeyColumns[0];
-            $primaryKeyPhpType = TDBMDaoGenerator::dbalTypeToPhpType($this->table->getColumn($primaryKeyColumn)->getType());
+        if (count($primaryKeyColumns) > 0) {
+            $lazyLoadingParameterName = 'lazyLoading';
+            $parameters = [];
+            $parametersTag = [];
+            $primaryKeyFilter = [];
+
+            foreach ($primaryKeyColumns as $primaryKeyColumn) {
+                if ($primaryKeyColumn === $lazyLoadingParameterName) {
+                    throw new TDBMException('Primary Column name `' . $lazyLoadingParameterName . '` is not allowed.');
+                }
+                $phpType = TDBMDaoGenerator::dbalTypeToPhpType($this->table->getColumn($primaryKeyColumn)->getType());
+                $parameters[] = new ParameterGenerator($primaryKeyColumn, $phpType);
+                $parametersTag[] = new ParamTag($primaryKeyColumn, [$phpType]);
+                $primaryKeyFilter[] = "'$primaryKeyColumn' => \$$primaryKeyColumn";
+            }
+            $parameters[] = new ParameterGenerator($lazyLoadingParameterName, 'bool', false);
+            $parametersTag[] = new ParamTag($lazyLoadingParameterName, ['bool'], 'If set to true, the object will not be loaded right away. Instead, it will be loaded when you first try to access a method of the object.');
+            $parametersTag[] = new ReturnTag(['\\'.$beanClassName]);
+            $parametersTag[] = new ThrowsTag('\\'.TDBMException::class);
 
             $getByIdMethod = new MethodGenerator(
                 'getById',
-                [
-                    new ParameterGenerator('id', $primaryKeyPhpType),
-                    new ParameterGenerator('lazyLoading', 'bool', false)
-                ],
+                $parameters,
                 MethodGenerator::FLAG_PUBLIC,
-                "return \$this->tdbmService->findObjectByPk('$tableName', ['$primaryKeyColumn' => \$id], [], \$lazyLoading);",
+                "return \$this->tdbmService->findObjectByPk('$tableName', [" . implode(', ', $primaryKeyFilter) . "], [], \$$lazyLoadingParameterName);",
                 (new DocBlockGenerator(
                     "Get $beanClassWithoutNameSpace specified by its ID (its primary key).",
                     'If the primary key does not exist, an exception is thrown.',
-                    [
-                        new ParamTag('id', [$primaryKeyPhpType]),
-                        new ParamTag('lazyLoading', ['bool'], 'If set to true, the object will not be loaded right away. Instead, it will be loaded when you first try to access a method of the object.'),
-                        new ReturnTag(['\\'.$beanClassName]),
-                        new ThrowsTag('\\'.TDBMException::class)
-                    ]
+                    $parametersTag
                 ))->setWordWrap(false)
             );
             $getByIdMethod->setReturnType($beanClassName);
@@ -1118,6 +1138,9 @@ You should not put an alias on the main table name. So your \$from variable shou
                 }
             }
         }
+        usort($methods, static function (MethodGenerator $methodA, MethodGenerator $methodB) {
+            return $methodA->getName() <=> $methodB->getName();
+        });
 
         return $methods;
     }
@@ -1132,7 +1155,11 @@ You should not put an alias on the main table name. So your \$from variable shou
     {
         $indexesByKey = [];
         foreach ($indexes as $index) {
-            $indexesByKey[implode('__`__', $index->getUnquotedColumns())] = $index;
+            $key = implode('__`__', $index->getUnquotedColumns());
+            // Unique Index have precedence over non unique one
+            if (!isset($indexesByKey[$key]) || $index->isUnique()) {
+                $indexesByKey[$key] = $index;
+            }
         }
 
         return array_values($indexesByKey);
@@ -1175,9 +1202,10 @@ You should not put an alias on the main table name. So your \$from variable shou
         $parameters = [];
         //$functionParameters = [];
         $first = true;
+        /** @var AbstractBeanPropertyDescriptor $element */
         foreach ($elements as $element) {
             $parameter = new ParameterGenerator(ltrim($element->getVariableName(), '$'));
-            if (!$first) {
+            if (!$first && !($element->isCompulsory() && $index->isUnique())) {
                 $parameterType = '?';
             //$functionParameter = '?';
             } else {
@@ -1186,7 +1214,7 @@ You should not put an alias on the main table name. So your \$from variable shou
             }
             $parameterType .= $element->getPhpType();
             $parameter->setType($parameterType);
-            if (!$first) {
+            if (!$first && !($element->isCompulsory() && $index->isUnique())) {
                 $parameter->setDefaultValue(null);
             }
             //$functionParameter .= $element->getPhpType();
@@ -1224,7 +1252,7 @@ You should not put an alias on the main table name. So your \$from variable shou
                 foreach ($columns as $localColumn => $foreignColumn) {
                     // TODO: a foreign key could point to another foreign key. In this case, there is no getter for the pointed column. We don't support this case.
                     $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy, $this->annotationParser);
-                    if ($first) {
+                    if ($first || $element->isCompulsory() && $index->isUnique()) {
                         // First parameter for index is not nullable
                         $filterArrayCode .= '            '.var_export($localColumn, true).' => '.$element->getVariableName().'->'.$targetedElement->getGetterName()."(),\n";
                     } else {
