@@ -4,14 +4,40 @@ namespace TheCodingMachine\TDBM\Utils;
 
 
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use function var_export;
 
 class ManyToManyRelationshipPathDescriptor
 {
+
+    /**
+     * @var string
+     */
     private $targetTable;
+    /**
+     * @var string
+     */
     private $pivotTable;
+    /**
+     * @var array
+     */
     private $joinForeignKeys;
+    /**
+     * @var array
+     */
     private $joinLocalKeys;
+    /**
+     * @var array
+     */
     private $whereKeys;
+
+    public function __construct(string $targetTable, string $pivotTable, array $joinForeignKeys, array $joinLocalKeys, array $whereKeys)
+    {
+        $this->targetTable = $targetTable;
+        $this->pivotTable = $pivotTable;
+        $this->joinForeignKeys = $joinForeignKeys;
+        $this->joinLocalKeys = $joinLocalKeys;
+        $this->whereKeys = $whereKeys;
+    }
 
     /**
      * @return mixed[]
@@ -40,10 +66,6 @@ class ManyToManyRelationshipPathDescriptor
         $obj->whereKeys = $modelArray[4];
 
         return $obj;
-    }
-
-    private function __construct()
-    {
     }
 
     public function getPivotName(): string

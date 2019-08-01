@@ -6,6 +6,7 @@ namespace TheCodingMachine\TDBM\Utils;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
+use function implode;
 use function sprintf;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
@@ -13,6 +14,7 @@ use Zend\Code\Generator\DocBlock\Tag\ParamTag;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
+use function var_export;
 
 class PivotTableMethodsDescriptor implements MethodDescriptorInterface
 {
@@ -148,41 +150,32 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
         return $this->localFk->getForeignTableName() === $this->remoteFk->getForeignTableName();
     }
 
-
-    /**
-     * return the list of couples tableName.columnName needed for the sql query
-     */
-    private function getAutoPivotFrom(): string
+    public function getManyToManyRelationshipInstantiationCode(): string
     {
-        $mainTable = $this->remoteFk->getForeignTableName();
-        $pivotTable = $this->remoteFk->getLocalTableName();
-
-        $join = [];
-        foreach ($this->remoteFk->getUnquotedForeignColumns() as $key => $column) {
-            $join[] = $mainTable.'.'.$column.' = pivot.'.$this->remoteFk->getUnquotedLocalColumns()[$key];
-        }
-
-        return $mainTable.' JOIN '.$pivotTable.' pivot ON '.implode(' AND ', $join);
-
-    }
-    private function getAutoPivotWhere(): string
-    {
-        $paramList = [];
-        foreach ($this->localFk->getUnquotedLocalColumns() as $key => $column) {
-            $paramList[] = ' pivot.'.$column." = :param$key";
-        }
-        return implode(" AND ", $paramList);
-
+        return 'new \TheCodingMachine\TDBM\Utils\ManyToManyRelationshipPathDescriptor('.var_export($this->remoteFk->getForeignTableName(), true).
+            ', '.var_export($this->remoteFk->getLocalTableName(), true).
+            ', '.$this->getArrayInlineCode($this->remoteFk->getUnquotedForeignColumns()).
+            ', '.$this->getArrayInlineCode($this->remoteFk->getUnquotedLocalColumns()).
+            ', '.$this->getArrayInlineCode($this->localFk->getUnquotedLocalColumns()).
+            ')';
     }
 
     /**
-     * Return
-     *
-     * @return mixed[]
+     * @param string[] $values
+     * @return string
      */
-    public function getRelationshipPathDescriptor(): array
+    private function getArrayInlineCode(array $values): string
     {
-        return [$this->pathKey, $this->pathModel];
+        $items = [];
+        foreach ($values as $value) {
+            $items[] = var_export($value, true);
+        }
+        return '['.implode(', ', $items).']';
+    }
+
+    public function getManyToManyRelationshipKey(): string
+    {
+        return $this->remoteFk->getLocalTableName().".".implode("__", $this->localFk->getUnquotedLocalColumns());
     }
 
     /**

@@ -313,8 +313,8 @@ class TDBMService
     {
         foreach ($object->_getDbRows() as $tableName => $dbRow) {
             $pivotTables = $this->tdbmSchemaAnalyzer->getPivotTableLinkedToTable($tableName);
-            foreach ($object->_getRelationshipsPathKeys() as $pathKey) {
-                $pathModel = $object->_getRelationshipModelFromKey($pathKey);
+            foreach ($object->_getManyToManyRelationshipDescriptorKeys() as $pathKey) {
+                $pathModel = $object->_getManyToManyRelationshipDescriptor($pathKey);
                 $remoteBeans = $object->_getRelationshipsFromModel($pathModel);
                 foreach ($remoteBeans as $remoteBean) {
                     $object->_removeRelationship($pathModel->getPivotName(), $remoteBean);

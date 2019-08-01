@@ -320,7 +320,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      */
     protected function hasRelationship(string $pathKey, AbstractTDBMObject $remoteBean): bool
     {
-        $pathModel = $this->_getRelationshipModelFromKey($pathKey);
+        $pathModel = $this->_getManyToManyRelationshipDescriptor($pathKey);
         $storage = $this->retrieveRelationshipsStorage($pathModel);
 
         if ($storage->contains($remoteBean)) {
@@ -356,7 +356,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      */
     protected function setRelationships(string $pathKey, array $remoteBeans): void
     {
-        $pathModel = $this->_getRelationshipModelFromKey($pathKey);
+        $pathModel = $this->_getManyToManyRelationshipDescriptor($pathKey);
         $pivotTableName = $pathModel->getPivotName();
         $storage = $this->retrieveRelationshipsStorage($pathModel);
 
@@ -414,7 +414,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      */
     public function _getRelationships(string $pathKey): array
     {
-        $pathModel = $this->_getRelationshipModelFromKey($pathKey);
+        $pathModel = $this->_getManyToManyRelationshipDescriptor($pathKey);
         return $this->_getRelationshipsFromModel($pathModel);
     }
 
@@ -661,21 +661,16 @@ abstract class AbstractTDBMObject implements JsonSerializable
         return new ForeignKeys([]);
     }
 
-    /**
-     * @return mixed[]
-     */
-    abstract protected function _getRelationshipPathArray(): array;
-
-    public function _getRelationshipModelFromKey(string $pathKey): ManyToManyRelationshipPathDescriptor
+    public function _getManyToManyRelationshipDescriptor(string $pathKey): ManyToManyRelationshipPathDescriptor
     {
-        return ManyToManyRelationshipPathDescriptor::createFromModelArray($this->_getRelationshipPathArray()[$pathKey]);
+        throw new TDBMException('Could not find many to many relationship descriptor key for "'.$pathKey.'"');
     }
 
     /**
      * @return string[]
      */
-    public function _getRelationshipsPathKeys(): array
+    public function _getManyToManyRelationshipDescriptorKeys(): array
     {
-        return array_keys($this->_getRelationshipPathArray());
+        return [];
     }
 }

@@ -30,6 +30,8 @@ use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\ClassGenerator;
+use Zend\Code\Generator\DocBlock\Tag;
+use Zend\Code\Generator\DocBlock\Tag\GenericTag;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\DocBlock\Tag\ThrowsTag;
@@ -39,6 +41,8 @@ use Zend\Code\Generator\FileGenerator;
 use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
 use Zend\Code\Generator\PropertyGenerator;
+use function implode;
+use function var_export;
 
 /**
  * This class represents a bean.
@@ -575,7 +579,7 @@ EOF
             }
         }
 
-        $relationshipsPathModel = [];
+        $pivotTableMethodsDescriptors = [];
         foreach ($this->getMethodDescriptors() as $methodDescriptor) {
             if ($methodDescriptor instanceof DirectForeignKeyMethodDescriptor) {
                 [$method] = $methodDescriptor->getCode();
@@ -584,8 +588,7 @@ EOF
                     $class->addMethodFromGenerator($method);
                 }
             } elseif ($methodDescriptor instanceof PivotTableMethodsDescriptor) {
-                [$index, $value] = $methodDescriptor->getRelationshipPathDescriptor();
-                $relationshipsPathModel[$index] = $value;
+                $pivotTableMethodsDescriptors[] = $methodDescriptor;
                 [ $getter, $adder, $remover, $has, $setter ] = $methodDescriptor->getCode();
                 $methods = $this->codeGeneratorListener->onBaseBeanManyToManyGenerated($getter, $adder, $remover, $has, $setter, $methodDescriptor, $this, $this->configuration, $class);
                 foreach ($methods as $method) {
@@ -598,8 +601,14 @@ EOF
             }
         }
 
-        $pathCode = $this->generatePathModelCode($relationshipsPathModel);
-        $class->addMethodFromGenerator($pathCode);
+        $manyToManyRelationshipCode = $this->generateGetManyToManyRelationshipDescriptorCode($pivotTableMethodsDescriptors);
+        if ($manyToManyRelationshipCode !== null) {
+            $class->addMethodFromGenerator($manyToManyRelationshipCode);
+        }
+        $manyToManyRelationshipKeysCode = $this->generateGetManyToManyRelationshipDescriptorKeysCode($pivotTableMethodsDescriptors);
+        if ($manyToManyRelationshipKeysCode !== null) {
+            $class->addMethodFromGenerator($manyToManyRelationshipKeysCode);
+        }
 
         $foreignKeysProperty = new PropertyGenerator('foreignKeys');
         $foreignKeysProperty->setStatic(true);
@@ -1327,17 +1336,64 @@ return $tables;', var_export($this->table->getName(), true));
     }
 
     /**
-     * @param mixed[] $data
+     * @param PivotTableMethodsDescriptor[] $pivotTableMethodsDescriptors
      * @return MethodGenerator
      */
-    private function generatePathModelCode(array $data): MethodGenerator
+    private function generateGetManyToManyRelationshipDescriptorCode(array $pivotTableMethodsDescriptors): ?MethodGenerator
     {
-        $method = new MethodGenerator('_getRelationshipPathArray');
-        $method->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
-        $method->setReturnType('array');
+        if (empty($pivotTableMethodsDescriptors)) {
+            return null;
+        }
+
+        $method = new MethodGenerator('_getManyToManyRelationshipDescriptor');
+        $method->setVisibility(AbstractMemberGenerator::VISIBILITY_PUBLIC);
         $method->setDocBlock('Get the paths used for many to many relationships methods.');
-        $method->getDocBlock()->setTag(new ReturnTag(['mixed[]']));
-        $method->setBody('return ' . $this->psr2VarExport($data).';');
+        $method->getDocBlock()->setTag(new GenericTag('internal'));
+        $method->setReturnType(ManyToManyRelationshipPathDescriptor::class);
+
+        $parameter = new ParameterGenerator('pathKey');
+        $parameter->setType('string');
+        $method->setParameter($parameter);
+
+        $code = 'switch ($pathKey) {'."\n";
+        foreach ($pivotTableMethodsDescriptors as $pivotTableMethodsDescriptor) {
+            $code .= '    case '.var_export($pivotTableMethodsDescriptor->getManyToManyRelationshipKey(), true).":\n";
+            $code .= '        return '.$pivotTableMethodsDescriptor->getManyToManyRelationshipInstantiationCode().";\n";
+        }
+        $code .= "    default:\n";
+        $code .= "        return parent::_getManyToManyRelationshipDescriptor(\$pathKey);\n";
+        $code .= "}\n";
+
+        $method->setBody($code);
+
+        return $method;
+    }
+
+    /**
+     * @param PivotTableMethodsDescriptor[] $pivotTableMethodsDescriptors
+     * @return MethodGenerator
+     */
+    private function generateGetManyToManyRelationshipDescriptorKeysCode(array $pivotTableMethodsDescriptors): ?MethodGenerator
+    {
+        if (empty($pivotTableMethodsDescriptors)) {
+            return null;
+        }
+
+        $method = new MethodGenerator('_getManyToManyRelationshipDescriptorKeys');
+        $method->setVisibility(AbstractMemberGenerator::VISIBILITY_PUBLIC);
+        $method->setReturnType('array');
+        $method->setDocBlock('Returns the list of keys supported for many to many relationships');
+        $method->getDocBlock()->setTag(new GenericTag('internal'));
+        $method->getDocBlock()->setTag(new ReturnTag('string[]'));
+
+        $keys = [];
+        foreach ($pivotTableMethodsDescriptors as $pivotTableMethodsDescriptor) {
+            $keys[] = var_export($pivotTableMethodsDescriptor->getManyToManyRelationshipKey(), true);
+        }
+
+        $code = 'return array_merge(parent::_getManyToManyRelationshipDescriptorKeys(), ['.implode(', ', $keys).']);';
+
+        $method->setBody($code);
 
         return $method;
     }
