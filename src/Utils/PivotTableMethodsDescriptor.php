@@ -113,9 +113,9 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     private function getPluralName() : string
     {
-        if($this->isAutoPivot()) {
-            $name = $this->remoteFk->getForeignTableName().'By_'.$this->pivotTable->getName().'Via_'.implode('And_',$this->localFk->getUnquotedLocalColumns());
-        } else if (!$this->useAlternateName) {
+        if ($this->isAutoPivot()) {
+            $name = $this->remoteFk->getForeignTableName().'By_'.$this->pivotTable->getName().'Via_'.implode('And_', $this->localFk->getUnquotedLocalColumns());
+        } elseif (!$this->useAlternateName) {
             $name = $this->remoteFk->getForeignTableName();
         } else {
             $name = $this->remoteFk->getForeignTableName().'By_'.$this->pivotTable->getName();
@@ -130,9 +130,9 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     private function getSingularName() : string
     {
-        if($this->isAutoPivot()) {
-            $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()).'By_'.$this->pivotTable->getName().'Via_'.implode('And_',$this->localFk->getUnquotedLocalColumns());
-        } else if (!$this->useAlternateName) {
+        if ($this->isAutoPivot()) {
+            $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()).'By_'.$this->pivotTable->getName().'Via_'.implode('And_', $this->localFk->getUnquotedLocalColumns());
+        } elseif (!$this->useAlternateName) {
             $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName());
         } else {
             $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()).'By_'.$this->pivotTable->getName();

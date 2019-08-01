@@ -2,7 +2,6 @@
 
 namespace TheCodingMachine\TDBM\Utils;
 
-
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use function var_export;
 
@@ -73,7 +72,6 @@ class ManyToManyRelationshipPathDescriptor
         }
 
         return $mainTable.' JOIN '.$pivotTable.' pivot ON '.implode(' AND ', $join);
-
     }
 
     public function getPivotWhere(): string
@@ -83,7 +81,6 @@ class ManyToManyRelationshipPathDescriptor
             $paramList[] = ' pivot.'.$column." = :param$key";
         }
         return implode(" AND ", $paramList);
-
     }
 
     /**
@@ -97,7 +94,5 @@ class ManyToManyRelationshipPathDescriptor
             $params["param$key"] = $primaryKeyValue;
         }
         return $params;
-
     }
-
 }
