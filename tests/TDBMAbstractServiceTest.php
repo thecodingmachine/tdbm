@@ -439,6 +439,8 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('parent_id')->references('artists')
             ->column('child_id')->references('artists');
 
+        $db->junctionTable('person', 'boats');
+
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
@@ -745,6 +747,18 @@ abstract class TDBMAbstractServiceTest extends TestCase
         self::insert($connection, 'featuring', [
             'track_id' => 5,
             'artist_id' => 2
+        ]);
+
+        self::insert($connection, 'boats', [
+            'name' => 'RoseBud',
+            'anchorage_country' => 1,
+            'current_country' => 1,
+            'length' => '13.5',
+        ]);
+
+        self::insert($connection, 'person_boats', [
+            'person_id' => 1,
+            'boat_id' => 1,
         ]);
     }
 
