@@ -59,10 +59,6 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      * @var string
      */
     private $pathKey;
-    /**
-     * @var array
-     */
-    private $pathModel;
 
     /**
      * @param Table $pivotTable The pivot table
@@ -80,7 +76,6 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
         $this->annotationParser = $annotationParser;
 
         $this->pathKey = ManyToManyRelationshipPathDescriptor::generateModelKey($this->remoteFk, $this->localFk);
-        $this->pathModel = ManyToManyRelationshipPathDescriptor::generateModelArray($this->remoteFk, $this->localFk);
     }
 
     /**

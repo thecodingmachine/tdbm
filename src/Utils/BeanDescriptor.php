@@ -388,7 +388,6 @@ class BeanDescriptor implements BeanDescriptorInterface
             // There are exactly 2 FKs since this is a pivot table.
             $fks = array_values($table->getForeignKeys());
 
-            //todo auto pivot case?
             if ($fks[0]->getForeignTableName() === $this->table->getName()) {
                 list($localFk, $remoteFk) = $fks;
                 $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
@@ -397,8 +396,6 @@ class BeanDescriptor implements BeanDescriptorInterface
                 list($remoteFk, $localFk) = $fks;
                 $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
             }
-
-
         }
 
         return $descs;
@@ -642,7 +639,7 @@ EOF
         if ($onDeleteCode) {
             $class->addMethodFromGenerator($onDeleteCode);
         }
-        $cloneCode = $this->generateCloneCode();
+        $cloneCode = $this->generateCloneCode($pivotTableMethodsDescriptors);
         $cloneCode = $this->codeGeneratorListener->onBaseBeanCloneGenerated($cloneCode, $this, $this->configuration, $class);
         if ($cloneCode) {
             $class->addMethodFromGenerator($cloneCode);
@@ -1426,7 +1423,11 @@ return $tables;', var_export($this->table->getName(), true));
         return $method;
     }
 
-    private function generateCloneCode(): MethodGenerator
+    /**
+     * @param PivotTableMethodsDescriptor[] $pivotTableMethodsDescriptors
+     * @return MethodGenerator
+     */
+    private function generateCloneCode(array $pivotTableMethodsDescriptors): MethodGenerator
     {
         $precode = '';
         $postcode = '';
@@ -1436,7 +1437,7 @@ return $tables;', var_export($this->table->getName(), true));
         }
 
         //cloning many to many relationships
-        foreach ($this->getPivotTableDescriptors() as $beanMethodDescriptor) {
+        foreach ($pivotTableMethodsDescriptors as $beanMethodDescriptor) {
             $precode .= $beanMethodDescriptor->getCloneRule()."\n";
         }
 

@@ -30,6 +30,14 @@ class ManyToManyRelationshipPathDescriptor
      */
     private $whereKeys;
 
+    /**
+     * ManyToManyRelationshipPathDescriptor constructor.
+     * @param string $targetTable
+     * @param string $pivotTable
+     * @param string[] $joinForeignKeys
+     * @param string[] $joinLocalKeys
+     * @param string[] $whereKeys
+     */
     public function __construct(string $targetTable, string $pivotTable, array $joinForeignKeys, array $joinLocalKeys, array $whereKeys)
     {
         $this->targetTable = $targetTable;
@@ -39,33 +47,9 @@ class ManyToManyRelationshipPathDescriptor
         $this->whereKeys = $whereKeys;
     }
 
-    /**
-     * @return mixed[]
-     */
-    public static function generateModelArray(ForeignKeyConstraint $remoteFk, ForeignKeyConstraint $localFk): array
-    {
-        return [$remoteFk->getForeignTableName(), $remoteFk->getLocalTableName(), $remoteFk->getUnquotedForeignColumns(), $remoteFk->getUnquotedLocalColumns(), $localFk->getUnquotedLocalColumns()];
-    }
-
     public static function generateModelKey(ForeignKeyConstraint $remoteFk, ForeignKeyConstraint $localFk): string
     {
         return $remoteFk->getLocalTableName().".".implode("__", $localFk->getUnquotedLocalColumns());
-    }
-
-    /**
-     * @param mixed[] $modelArray
-     */
-    public static function createFromModelArray(array $modelArray): self
-    {
-        $obj = new self();
-        $obj->targetTable = $modelArray[0];
-        $obj->pivotTable = $modelArray[1];
-
-        $obj->joinForeignKeys = $modelArray[2];
-        $obj->joinLocalKeys= $modelArray[3];
-        $obj->whereKeys = $modelArray[4];
-
-        return $obj;
     }
 
     public function getPivotName(): string
@@ -102,6 +86,10 @@ class ManyToManyRelationshipPathDescriptor
 
     }
 
+    /**
+     * @param string[] $primaryKeys
+     * @return string[]
+     */
     public function getPivotParams(array $primaryKeys): array
     {
         $params = [];
