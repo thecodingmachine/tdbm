@@ -6,7 +6,6 @@ use PHPUnit\Framework\TestCase;
 
 class TDBMObjectTest extends TestCase
 {
-
     public function testJsonSerialize()
     {
         $object = new TDBMObject();

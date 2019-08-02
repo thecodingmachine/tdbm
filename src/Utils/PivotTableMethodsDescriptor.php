@@ -115,7 +115,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
     private function getPluralName() : string
     {
         if ($this->isAutoPivot()) {
-            $name = Inflector::pluralize($this->namingStrategy->getAutopivotEntityNameFrom($this->remoteFk, false));
+            $name = Inflector::pluralize($this->namingStrategy->getAutoPivotEntityName($this->remoteFk, false));
             if ($this->useAlternateName) {
                 $name .= 'By_'.$this->pivotTable->getName();
             }
@@ -135,11 +135,11 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
     private function getSingularName() : string
     {
         if ($this->isAutoPivot()) {
-            $name = $this->namingStrategy->getAutopivotEntityNameFrom($this->remoteFk, false);
+            $name = $this->namingStrategy->getAutoPivotEntityName($this->remoteFk, false);
             if ($this->useAlternateName) {
                 $name .= 'By_'.$this->pivotTable->getName();
             }
-        } else if (!$this->useAlternateName) {
+        } elseif (!$this->useAlternateName) {
             $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName());
         } else {
             $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()).'By_'.$this->pivotTable->getName();

@@ -6,7 +6,6 @@ use PHPUnit\Framework\TestCase;
 
 class AbstractTDBMObjectTest extends TestCase
 {
-
     public function testGetManyToManyRelationshipDescriptor()
     {
         $object = new TDBMObject();
