@@ -81,12 +81,4 @@ class TDBMObject extends AbstractTDBMObject
 
         return $tableNames;
     }
-
-    /**
-     * @return mixed[]
-     */
-    protected function _getRelationshipPathArray(): array
-    {
-        return [];
-    }
 }
