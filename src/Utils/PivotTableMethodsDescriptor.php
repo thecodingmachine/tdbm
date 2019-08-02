@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use Doctrine\Common\Inflector\Inflector;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
+use function implode;
 use function sprintf;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
@@ -13,6 +15,7 @@ use Zend\Code\Generator\DocBlock\Tag\ParamTag;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
+use function var_export;
 
 class PivotTableMethodsDescriptor implements MethodDescriptorInterface
 {
@@ -53,6 +56,10 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      * @var array
      */
     private $remoteAnnotations;
+    /**
+     * @var string
+     */
+    private $pathKey;
 
     /**
      * @param Table $pivotTable The pivot table
@@ -68,6 +75,8 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
         $this->namingStrategy = $namingStrategy;
         $this->beanNamespace = $beanNamespace;
         $this->annotationParser = $annotationParser;
+
+        $this->pathKey = ManyToManyRelationshipPathDescriptor::generateModelKey($this->remoteFk, $this->localFk);
     }
 
     /**
@@ -85,11 +94,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     public function getName() : string
     {
-        if (!$this->useAlternateName) {
-            return 'get'.TDBMDaoGenerator::toCamelCase($this->remoteFk->getForeignTableName());
-        } else {
-            return 'get'.TDBMDaoGenerator::toCamelCase($this->remoteFk->getForeignTableName()).'By'.TDBMDaoGenerator::toCamelCase($this->pivotTable->getName());
-        }
+        return 'get'.$this->getPluralName();
     }
 
     /**
@@ -109,11 +114,17 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     private function getPluralName() : string
     {
-        if (!$this->useAlternateName) {
-            return TDBMDaoGenerator::toCamelCase($this->remoteFk->getForeignTableName());
+        if ($this->isAutoPivot()) {
+            $name = Inflector::pluralize($this->namingStrategy->getAutoPivotEntityName($this->remoteFk, false));
+            if ($this->useAlternateName) {
+                $name .= 'By_'.$this->pivotTable->getName();
+            }
+        } elseif (!$this->useAlternateName) {
+            $name = $this->remoteFk->getForeignTableName();
         } else {
-            return TDBMDaoGenerator::toCamelCase($this->remoteFk->getForeignTableName()).'By'.TDBMDaoGenerator::toCamelCase($this->pivotTable->getName());
+            $name = $this->remoteFk->getForeignTableName().'By_'.$this->pivotTable->getName();
         }
+        return TDBMDaoGenerator::toCamelCase($name);
     }
 
     /**
@@ -123,11 +134,50 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
      */
     private function getSingularName() : string
     {
-        if (!$this->useAlternateName) {
-            return TDBMDaoGenerator::toCamelCase(TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()));
+        if ($this->isAutoPivot()) {
+            $name = $this->namingStrategy->getAutoPivotEntityName($this->remoteFk, false);
+            if ($this->useAlternateName) {
+                $name .= 'By_'.$this->pivotTable->getName();
+            }
+        } elseif (!$this->useAlternateName) {
+            $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName());
         } else {
-            return TDBMDaoGenerator::toCamelCase(TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName())).'By'.TDBMDaoGenerator::toCamelCase($this->pivotTable->getName());
+            $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()).'By_'.$this->pivotTable->getName();
         }
+        return TDBMDaoGenerator::toCamelCase($name);
+    }
+
+    private function isAutoPivot(): bool
+    {
+        return $this->localFk->getForeignTableName() === $this->remoteFk->getForeignTableName();
+    }
+
+    public function getManyToManyRelationshipInstantiationCode(): string
+    {
+        return 'new \TheCodingMachine\TDBM\Utils\ManyToManyRelationshipPathDescriptor('.var_export($this->remoteFk->getForeignTableName(), true).
+            ', '.var_export($this->remoteFk->getLocalTableName(), true).
+            ', '.$this->getArrayInlineCode($this->remoteFk->getUnquotedForeignColumns()).
+            ', '.$this->getArrayInlineCode($this->remoteFk->getUnquotedLocalColumns()).
+            ', '.$this->getArrayInlineCode($this->localFk->getUnquotedLocalColumns()).
+            ')';
+    }
+
+    /**
+     * @param string[] $values
+     * @return string
+     */
+    private function getArrayInlineCode(array $values): string
+    {
+        $items = [];
+        foreach ($values as $value) {
+            $items[] = var_export($value, true);
+        }
+        return '['.implode(', ', $items).']';
+    }
+
+    public function getManyToManyRelationshipKey(): string
+    {
+        return $this->remoteFk->getLocalTableName().".".implode("__", $this->localFk->getUnquotedLocalColumns());
     }
 
     /**
@@ -144,11 +194,15 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
         $fqcnRemoteBeanName = '\\'.$this->beanNamespace.'\\'.$remoteBeanName;
         $pluralVariableName = $variableName.'s';
 
-        $getter = new MethodGenerator('get'.$pluralName);
+        $pathKey = var_export($this->pathKey, true);
+
+        $localTableName = var_export($this->remoteFk->getLocalTableName(), true);
+
+        $getter = new MethodGenerator($this->getName());
         $getter->setDocBlock(sprintf('Returns the list of %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
         $getter->getDocBlock()->setTag(new ReturnTag([ $fqcnRemoteBeanName.'[]' ]));
         $getter->setReturnType('array');
-        $getter->setBody(sprintf('return $this->_getRelationships(%s);', var_export($this->remoteFk->getLocalTableName(), true)));
+        $getter->setBody(sprintf('return $this->_getRelationships(%s);', $pathKey));
 
 
         $adder = new MethodGenerator('add'.$singularName);
@@ -156,14 +210,14 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
         $adder->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
         $adder->setReturnType('void');
         $adder->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
-        $adder->setBody(sprintf('$this->addRelationship(%s, $%s);', var_export($this->remoteFk->getLocalTableName(), true), $variableName));
+        $adder->setBody(sprintf('$this->addRelationship(%s, $%s);', $localTableName, $variableName));
 
         $remover = new MethodGenerator('remove'.$singularName);
         $remover->setDocBlock(sprintf('Deletes the relationship with %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
         $remover->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
         $remover->setReturnType('void');
         $remover->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
-        $remover->setBody(sprintf('$this->_removeRelationship(%s, $%s);', var_export($this->remoteFk->getLocalTableName(), true), $variableName));
+        $remover->setBody(sprintf('$this->_removeRelationship(%s, $%s);', $localTableName, $variableName));
 
         $has = new MethodGenerator('has'.$singularName);
         $has->setDocBlock(sprintf('Returns whether this bean is associated with %s via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
@@ -171,7 +225,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
         $has->getDocBlock()->setTag(new ReturnTag([ 'bool' ]));
         $has->setReturnType('bool');
         $has->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
-        $has->setBody(sprintf('return $this->hasRelationship(%s, $%s);', var_export($this->remoteFk->getLocalTableName(), true), $variableName));
+        $has->setBody(sprintf('return $this->hasRelationship(%s, $%s);', $pathKey, $variableName));
 
         $setter = new MethodGenerator('set'.$pluralName);
         $setter->setDocBlock(sprintf('Sets all relationships with %s associated to this bean via the %s pivot table.
@@ -180,7 +234,7 @@ Exiting relationships will be removed and replaced by the provided relationships
         $setter->getDocBlock()->setTag(new ReturnTag([ 'void' ]));
         $setter->setReturnType('void');
         $setter->setParameter(new ParameterGenerator($pluralVariableName, 'array'));
-        $setter->setBody(sprintf('$this->setRelationships(%s, $%s);', var_export($this->remoteFk->getLocalTableName(), true), $pluralVariableName));
+        $setter->setBody(sprintf('$this->setRelationships(%s, $%s);', $pathKey, $pluralVariableName));
 
         return [ $getter, $adder, $remover, $has, $setter ];
     }
@@ -340,5 +394,10 @@ PHP;
             $columns[] = $table->getColumn($column);
         }
         return $columns;
+    }
+
+    public function getCloneRule(): string
+    {
+        return sprintf("\$this->%s();\n", $this->getName());
     }
 }

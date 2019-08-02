@@ -92,4 +92,13 @@ interface NamingStrategyInterface
      * @return string
      */
     public function getFindByIndexMethodName(Index $index, array $elements): string;
+
+    /**
+     * Returns the prefix used when naming auto-pivot getters/setters.
+     *
+     * @param ForeignKeyConstraint $constraint
+     * @param bool $useAlternativeName
+     * @return string
+     */
+    public function getAutoPivotEntityName(ForeignKeyConstraint $constraint, bool $useAlternativeName): string;
 }

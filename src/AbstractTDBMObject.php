@@ -23,6 +23,7 @@ namespace TheCodingMachine\TDBM;
 
 use JsonSerializable;
 use TheCodingMachine\TDBM\Schema\ForeignKeys;
+use TheCodingMachine\TDBM\Utils\ManyToManyRelationshipPathDescriptor;
 
 /**
  * Instances of this class represent a "bean". Usually, a bean is mapped to a row of one table.
@@ -315,14 +316,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
     /**
      * Returns true if there is a relationship to this bean.
      *
-     * @param string             $pivotTableName
-     * @param AbstractTDBMObject $remoteBean
-     *
      * @return bool
      */
-    protected function hasRelationship(string $pivotTableName, AbstractTDBMObject $remoteBean): bool
+    protected function hasRelationship(string $pathKey, AbstractTDBMObject $remoteBean): bool
     {
-        $storage = $this->retrieveRelationshipsStorage($pivotTableName);
+        $pathModel = $this->_getManyToManyRelationshipDescriptor($pathKey);
+        $storage = $this->retrieveRelationshipsStorage($pathModel);
 
         if ($storage->contains($remoteBean)) {
             if ($storage[$remoteBean]['status'] !== 'delete') {
@@ -353,12 +352,13 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * Sets many to many relationships for this bean.
      * Adds new relationships and removes unused ones.
      *
-     * @param string $pivotTableName
      * @param AbstractTDBMObject[] $remoteBeans
      */
-    protected function setRelationships(string $pivotTableName, array $remoteBeans): void
+    protected function setRelationships(string $pathKey, array $remoteBeans): void
     {
-        $storage = $this->retrieveRelationshipsStorage($pivotTableName);
+        $pathModel = $this->_getManyToManyRelationshipDescriptor($pathKey);
+        $pivotTableName = $pathModel->getPivotName();
+        $storage = $this->retrieveRelationshipsStorage($pathModel);
 
         foreach ($storage as $oldRemoteBean) {
             /* @var $oldRemoteBean AbstractTDBMObject */
@@ -379,18 +379,18 @@ abstract class AbstractTDBMObject implements JsonSerializable
     /**
      * Returns the list of objects linked to this bean via $pivotTableName.
      *
-     * @param string $pivotTableName
-     *
      * @return \SplObjectStorage
      */
-    private function retrieveRelationshipsStorage(string $pivotTableName): \SplObjectStorage
+    private function retrieveRelationshipsStorage(ManyToManyRelationshipPathDescriptor $pathModel): \SplObjectStorage
     {
-        $storage = $this->getRelationshipStorage($pivotTableName);
+        $pivotTableName = $pathModel->getPivotName();
+
+        $storage = $this->getRelationshipStorage($pathModel->getPivotName());
         if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || (isset($this->loadedRelationships[$pivotTableName]) && $this->loadedRelationships[$pivotTableName])) {
             return $storage;
         }
 
-        $beans = $this->tdbmService->_getRelatedBeans($pivotTableName, $this);
+        $beans = $this->tdbmService->_getRelatedBeans($pathModel, $this);
         $this->loadedRelationships[$pivotTableName] = true;
 
         foreach ($beans as $bean) {
@@ -410,13 +410,20 @@ abstract class AbstractTDBMObject implements JsonSerializable
     /**
      * Internal TDBM method. Returns the list of objects linked to this bean via $pivotTableName.
      *
-     * @param string $pivotTableName
-     *
      * @return AbstractTDBMObject[]
      */
-    public function _getRelationships(string $pivotTableName): array
+    public function _getRelationships(string $pathKey): array
     {
-        return $this->relationshipStorageToArray($this->retrieveRelationshipsStorage($pivotTableName));
+        $pathModel = $this->_getManyToManyRelationshipDescriptor($pathKey);
+        return $this->_getRelationshipsFromModel($pathModel);
+    }
+
+    /**
+     * @return AbstractTDBMObject[]
+     */
+    public function _getRelationshipsFromModel(ManyToManyRelationshipPathDescriptor $pathModel): array
+    {
+        return $this->relationshipStorageToArray($this->retrieveRelationshipsStorage($pathModel));
     }
 
     /**
@@ -577,25 +584,6 @@ abstract class AbstractTDBMObject implements JsonSerializable
      */
     public function __clone()
     {
-        // Let's clone the many to many relationships
-        if ($this->status === TDBMObjectStateEnum::STATE_DETACHED) {
-            $pivotTableList = array_keys($this->relationships);
-        } else {
-            $pivotTableList = $this->tdbmService->_getPivotTablesLinkedToBean($this);
-        }
-
-        foreach ($pivotTableList as $pivotTable) {
-            $storage = $this->retrieveRelationshipsStorage($pivotTable);
-
-            // Let's duplicate the reverse side of the relationship // This is useless: already done by "retrieveRelationshipsStorage"!!!
-            /*foreach ($storage as $remoteBean) {
-                $metadata = $storage[$remoteBean];
-
-                $remoteStorage = $remoteBean->getRelationshipStorage($pivotTable);
-                $remoteStorage->attach($this, ['status' => $metadata['status'], 'reverse' => !$metadata['reverse']]);
-            }*/
-        }
-
         // Let's clone each row
         foreach ($this->dbRows as $key => &$dbRow) {
             $dbRow = clone $dbRow;
@@ -671,5 +659,18 @@ abstract class AbstractTDBMObject implements JsonSerializable
     protected static function getForeignKeys(string $tableName): ForeignKeys
     {
         return new ForeignKeys([]);
+    }
+
+    public function _getManyToManyRelationshipDescriptor(string $pathKey): ManyToManyRelationshipPathDescriptor
+    {
+        throw new TDBMException('Could not find many to many relationship descriptor key for "'.$pathKey.'"');
+    }
+
+    /**
+     * @return string[]
+     */
+    public function _getManyToManyRelationshipDescriptorKeys(): array
+    {
+        return [];
     }
 }

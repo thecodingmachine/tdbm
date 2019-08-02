@@ -39,6 +39,7 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsFromSqlQueryFactory;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsQueryFactory;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsFromRawSqlQueryFactory;
+use TheCodingMachine\TDBM\Utils\ManyToManyRelationshipPathDescriptor;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Phlib\Logger\Decorator\LevelFilter;
@@ -311,11 +312,11 @@ class TDBMService
     private function deleteManyToManyRelationships(AbstractTDBMObject $object): void
     {
         foreach ($object->_getDbRows() as $tableName => $dbRow) {
-            $pivotTables = $this->tdbmSchemaAnalyzer->getPivotTableLinkedToTable($tableName);
-            foreach ($pivotTables as $pivotTable) {
-                $remoteBeans = $object->_getRelationships($pivotTable);
+            foreach ($object->_getManyToManyRelationshipDescriptorKeys() as $pathKey) {
+                $pathModel = $object->_getManyToManyRelationshipDescriptor($pathKey);
+                $remoteBeans = $object->_getRelationshipsFromModel($pathModel);
                 foreach ($remoteBeans as $remoteBean) {
-                    $object->_removeRelationship($pivotTable, $remoteBean);
+                    $object->_removeRelationship($pathModel->getPivotName(), $remoteBean);
                 }
             }
         }
@@ -1431,26 +1432,11 @@ class TDBMService
     }
 
     /**
-     * @param string $pivotTableName
-     * @param AbstractTDBMObject $bean
-     *
      * @return AbstractTDBMObject[]|ResultIterator
      */
-    public function _getRelatedBeans(string $pivotTableName, AbstractTDBMObject $bean): ResultIterator
+    public function _getRelatedBeans(ManyToManyRelationshipPathDescriptor $pathDescriptor, AbstractTDBMObject $bean): ResultIterator
     {
-        list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $bean);
-        /* @var $localFk ForeignKeyConstraint */
-        /* @var $remoteFk ForeignKeyConstraint */
-        $remoteTable = $remoteFk->getForeignTableName();
-
-        $primaryKeys = $this->getPrimaryKeyValues($bean);
-        $columnNames = array_map(function ($name) use ($pivotTableName) {
-            return $pivotTableName.'.'.$name;
-        }, $localFk->getUnquotedLocalColumns());
-
-        $filter = SafeFunctions::arrayCombine($columnNames, $primaryKeys);
-
-        return $this->findObjects($remoteTable, $filter);
+        return $this->findObjectsFromSql($pathDescriptor->getTargetName(), $pathDescriptor->getPivotFrom(), $pathDescriptor->getPivotWhere(), $pathDescriptor->getPivotParams($this->getPrimaryKeyValues($bean)));
     }
 
     /**
@@ -1478,31 +1464,6 @@ class TDBMService
         } else {
             throw new TDBMException("Unexpected bean type in getPivotTableForeignKeys. Awaiting beans from table {$table1} and {$table2} for pivot table {$pivotTableName}");
         }
-    }
-
-    /**
-     * Returns a list of pivot tables linked to $bean.
-     *
-     * @param AbstractTDBMObject $bean
-     *
-     * @return string[]
-     */
-    public function _getPivotTablesLinkedToBean(AbstractTDBMObject $bean): array
-    {
-        $junctionTables = [];
-        $allJunctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
-        foreach ($bean->_getDbRows() as $dbRow) {
-            foreach ($allJunctionTables as $table) {
-                // There are exactly 2 FKs since this is a pivot table.
-                $fks = array_values($table->getForeignKeys());
-
-                if ($fks[0]->getForeignTableName() === $dbRow->_getDbTableName() || $fks[1]->getForeignTableName() === $dbRow->_getDbTableName()) {
-                    $junctionTables[] = $table->getName();
-                }
-            }
-        }
-
-        return $junctionTables;
     }
 
     /**

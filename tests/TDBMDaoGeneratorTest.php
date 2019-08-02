@@ -651,6 +651,22 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     }
 
     /**
+     * Test jointure in a parent table in an inheritance relationship
+     *
+     * @depends testDaoGeneration
+     */
+    public function testJointureInParentTable(): void
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $user = $userDao->getById(1);
+
+        $boats = $user->getBoats();
+
+        $this->assertCount(1, $boats);
+        $this->assertEquals(1, $boats[0]->getId());
+    }
+
+    /**
      * @depends testDaoGeneration
      */
     public function testFindOrderBy(): void
@@ -1975,6 +1991,25 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // ... and, ultimately, list of featuring artists, since feat is included
         self::assertTrue(isset($json['tracks'][0]['feat'][0]));
         self::assertEquals('Roger Waters', $json['tracks'][0]['feat'][0]['name']);
+    }
+
+    public function testFloydHasNoParent(): void
+    {
+        $artists = new ArtistDao($this->tdbmService);
+        $pinkFloyd = $artists->getById(1);
+        $parents = $pinkFloyd->getParents();
+
+        $this->assertEquals([], $parents);
+    }
+
+    public function testFloydHasOneChild(): void
+    {
+        $artists = new ArtistDao($this->tdbmService);
+        $pinkFloyd = $artists->getById(1);
+        $children = $pinkFloyd->getChildren();
+
+        $this->assertEquals(1, count($children));
+        $this->assertEquals(2, $children[0]->getId());
     }
 
     /**

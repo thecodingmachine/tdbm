@@ -437,6 +437,13 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('track_id')->references('tracks')
             ->column('artist_id')->references('artists')->comment('@JsonKey("feat") @JsonInclude');
 
+        $db->table('artists_relations')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('parent_id')->references('artists')
+            ->column('child_id')->references('artists');
+
+        $db->junctionTable('person', 'boats');
+
         $db->table('base_objects')
             ->column('id')->integer()->primaryKey()->autoIncrement()
             ->column('label')->string();
@@ -695,6 +702,10 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'account_id' => 1,
             'title' => 'Animals'
         ]);
+        self::insert($connection, 'artists_relations', [
+            'parent_id' => 1,
+            'child_id' => 2
+        ]);
 
         $timeType = Type::getType(Type::TIME_IMMUTABLE);
 
@@ -747,6 +758,18 @@ abstract class TDBMAbstractServiceTest extends TestCase
         self::insert($connection, 'featuring', [
             'track_id' => 5,
             'artist_id' => 2
+        ]);
+
+        self::insert($connection, 'boats', [
+            'name' => 'RoseBud',
+            'anchorage_country' => 1,
+            'current_country' => 1,
+            'length' => '13.5',
+        ]);
+
+        self::insert($connection, 'person_boats', [
+            'person_id' => 1,
+            'boat_id' => 1,
         ]);
     }
 

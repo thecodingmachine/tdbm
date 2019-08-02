@@ -12,8 +12,10 @@ class PivotTableMethodsDescriptorTest extends TestCase
     public function testGetters(): void
     {
         $table = $this->createMock(Table::class);
-        $localFk = $this->createMock(ForeignKeyConstraint::class);
-        $remoteFk = $this->createMock(ForeignKeyConstraint::class);
+        $localFk = new ForeignKeyConstraint(['foo'], new Table('table1'), ['lol']);
+        $localFk->setLocalTable(new Table('table3'));
+        $remoteFk = new ForeignKeyConstraint(['foo2'], new Table('table2'), ['lol2']);
+        $remoteFk->setLocalTable(new Table('table3'));
         $ns = $this->createMock(DefaultNamingStrategy::class);
         $descriptor = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $ns, 'Bean\Namespace', AnnotationParser::buildWithDefaultAnnotations([]));
 
