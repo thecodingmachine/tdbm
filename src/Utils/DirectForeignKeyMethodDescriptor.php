@@ -74,9 +74,9 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
     public function getName() : string
     {
         if (!$this->useAlternateName) {
-            return 'get'.TDBMDaoGenerator::toCamelCase($this->foreignKey->getLocalTableName());
+            return 'get' . $this->getPropertyName();
         } else {
-            $methodName = 'get'.TDBMDaoGenerator::toCamelCase($this->foreignKey->getLocalTableName()).'By';
+            $methodName = 'get' . $this->getPropertyName() . 'By';
 
             $camelizedColumns = array_map([TDBMDaoGenerator::class, 'toCamelCase'], $this->foreignKey->getUnquotedLocalColumns());
 
@@ -84,6 +84,20 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
 
             return $methodName;
         }
+    }
+
+    /**
+     * Returns the property name in CamelCase taking into account singularization
+     *
+     * @return string
+     */
+    private function getPropertyName() : string
+    {
+        $name = $this->foreignKey->getLocalTableName();
+        if ($this->hasLocalUniqueIndex()) {
+            $name = TDBMDaoGenerator::toSingular($name);
+        }
+        return TDBMDaoGenerator::toCamelCase($name);
     }
 
     /**
@@ -170,6 +184,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         return $parametersCode;
     }
 
+    private $hasLocalUniqueIndex;
     /**
      * Check if the ForeignKey have an unique index
      *
@@ -177,15 +192,20 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      */
     private function hasLocalUniqueIndex(): bool
     {
+        if ($this->hasLocalUniqueIndex !== null) {
+            return $this->hasLocalUniqueIndex;
+        }
         foreach ($this->getForeignKey()->getLocalTable()->getIndexes() as $index) {
             if (
                 $index->isUnique()
                 && count($index->getUnquotedColumns()) === count($this->getForeignKey()->getUnquotedLocalColumns())
                 && !array_diff($index->getUnquotedColumns(), $this->getForeignKey()->getUnquotedLocalColumns()) // Check for permuted columns too
             ) {
+                $this->hasLocalUniqueIndex = true;
                 return true;
             }
         }
+        $this->hasLocalUniqueIndex = false;
         return false;
     }
 
@@ -222,7 +242,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
             $format = "jsonSerialize($stopRecursion)";
         }
         $isIncluded = $this->findAnnotation(Annotation\JsonInclude::class) !== null;
-        $index = $jsonCollection->key ?: lcfirst(TDBMDaoGenerator::toCamelCase($this->foreignKey->getLocalTableName()));
+        $index = $jsonCollection->key ?: lcfirst($this->getPropertyName());
         $class = $this->getBeanClassName();
         $variableName = '$' . TDBMDaoGenerator::toVariableName($class);
         $getter = $this->getName();
