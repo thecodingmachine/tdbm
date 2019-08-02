@@ -292,9 +292,6 @@ class CodeGeneratorEventDispatcher implements CodeGeneratorListenerInterface
         return $methodGenerator;
     }
 
-    /**
-     * @param BeanDescriptor[] $beanDescriptor
-     */
     public function onDaoFactoryGetterGenerated(MethodGenerator $methodGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator
     {
         foreach ($this->listeners as $listener) {
@@ -306,9 +303,6 @@ class CodeGeneratorEventDispatcher implements CodeGeneratorListenerInterface
         return $methodGenerator;
     }
 
-    /**
-     * @param BeanDescriptor[] $beanDescriptor
-     */
     public function onDaoFactorySetterGenerated(MethodGenerator $methodGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator
     {
         foreach ($this->listeners as $listener) {

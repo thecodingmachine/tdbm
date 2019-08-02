@@ -90,13 +90,7 @@ interface CodeGeneratorListenerInterface
      */
     public function onDaoFactoryConstructorGenerated(MethodGenerator $methodGenerator, array $beanDescriptors, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator;
 
-    /**
-     * @param BeanDescriptor[] $beanDescriptor
-     */
     public function onDaoFactoryGetterGenerated(MethodGenerator $methodGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator;
 
-    /**
-     * @param BeanDescriptor[] $beanDescriptor
-     */
     public function onDaoFactorySetterGenerated(MethodGenerator $methodGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator;
 }

@@ -152,17 +152,11 @@ class BaseCodeGeneratorListener implements CodeGeneratorListenerInterface
         return $methodGenerator;
     }
 
-    /**
-     * @param BeanDescriptor[] $beanDescriptor
-     */
     public function onDaoFactoryGetterGenerated(MethodGenerator $methodGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator
     {
         return $methodGenerator;
     }
 
-    /**
-     * @param BeanDescriptor[] $beanDescriptor
-     */
     public function onDaoFactorySetterGenerated(MethodGenerator $methodGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator
     {
         return $methodGenerator;

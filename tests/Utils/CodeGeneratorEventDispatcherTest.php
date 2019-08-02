@@ -322,5 +322,4 @@ class CodeGeneratorEventDispatcherTest extends TestCase
         $this->assertSame($this->method1, $this->dispatcher->onDaoFactorySetterGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onDaoFactorySetterGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
-
 }
