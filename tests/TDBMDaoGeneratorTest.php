@@ -1997,7 +1997,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $artists = new ArtistDao($this->tdbmService);
         $pinkFloyd = $artists->getById(1);
-        $parents = $pinkFloyd->getArtistsByArtistsRelationsViaChildId();
+        $parents = $pinkFloyd->getParents();
 
         $this->assertEquals([], $parents);
     }
@@ -2006,7 +2006,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $artists = new ArtistDao($this->tdbmService);
         $pinkFloyd = $artists->getById(1);
-        $children = $pinkFloyd->getArtistsByArtistsRelationsViaParentId();
+        $children = $pinkFloyd->getChildren();
 
         $this->assertEquals(1, count($children));
         $this->assertEquals(2, $children[0]->getId());

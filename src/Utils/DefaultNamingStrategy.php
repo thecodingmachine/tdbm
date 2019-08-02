@@ -326,4 +326,9 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
         }
         return $this->schema;
     }
+
+    public function getAutopivotEntityNameFrom(ForeignKeyConstraint $constraint, bool $useAlternativeName): string
+    {
+        return $this->getForeignKeyUpperCamelCaseName($constraint, $useAlternativeName);
+    }
 }

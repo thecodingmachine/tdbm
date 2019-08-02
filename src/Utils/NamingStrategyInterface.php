@@ -92,4 +92,6 @@ interface NamingStrategyInterface
      * @return string
      */
     public function getFindByIndexMethodName(Index $index, array $elements): string;
+
+    public function getAutopivotEntityNameFrom(ForeignKeyConstraint $constraint, bool $useAlternativeName): string;
 }
