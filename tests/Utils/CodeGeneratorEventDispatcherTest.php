@@ -131,6 +131,38 @@ class CodeGeneratorEventDispatcherTest extends TestCase
             {
                 return null;
             }
+
+            /**
+             * @param BeanDescriptor[] $beanDescriptors
+             */
+            public function onDaoFactoryGenerated(FileGenerator $fileGenerator, array $beanDescriptors, ConfigurationInterface $configuration): ?FileGenerator
+            {
+                return null;
+            }
+
+            /**
+             * @param BeanDescriptor[] $beanDescriptors
+             */
+            public function onDaoFactoryConstructorGenerated(MethodGenerator $methodGenerator, array $beanDescriptors, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator
+            {
+                return null;
+            }
+
+            /**
+             * @param BeanDescriptor[] $beanDescriptor
+             */
+            public function onDaoFactoryGetterGenerated(MethodGenerator $methodGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator
+            {
+                return null;
+            }
+
+            /**
+             * @param BeanDescriptor[] $beanDescriptor
+             */
+            public function onDaoFactorySetterGenerated(MethodGenerator $methodGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator
+            {
+                return null;
+            }
         }]);
         $this->method1 = new MethodGenerator();
         $this->method2 = new MethodGenerator();
@@ -265,5 +297,29 @@ class CodeGeneratorEventDispatcherTest extends TestCase
         $index = $this->getMockBuilder(Index::class)->disableOriginalConstructor()->getMock();
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoFindByIndexGenerated($this->method1, $index, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoFindByIndexGenerated($this->method1, $index, $this->beanDescriptor, $this->configuration, $this->class));
+    }
+
+    public function testOnDaoFactoryGenerated(): void
+    {
+        $this->assertSame($this->file, $this->dispatcher->onDaoFactoryGenerated($this->file, [], $this->configuration));
+        $this->assertSame(null, $this->nullDispatcher->onDaoFactoryGenerated($this->file, [], $this->configuration));
+    }
+
+    public function testOnDaoFactoryConstructorGenerated(): void
+    {
+        $this->assertSame($this->method1, $this->dispatcher->onDaoFactoryConstructorGenerated($this->method1, [], $this->configuration, $this->class));
+        $this->assertSame(null, $this->nullDispatcher->onDaoFactoryConstructorGenerated($this->method1, [], $this->configuration, $this->class));
+    }
+
+    public function testOnDaoFactoryGetterGenerated(): void
+    {
+        $this->assertSame($this->method1, $this->dispatcher->onDaoFactoryGetterGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
+        $this->assertSame(null, $this->nullDispatcher->onDaoFactoryGetterGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
+    }
+
+    public function testOnDaoFactorySetterGenerated(): void
+    {
+        $this->assertSame($this->method1, $this->dispatcher->onDaoFactorySetterGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
+        $this->assertSame(null, $this->nullDispatcher->onDaoFactorySetterGenerated($this->method1, $this->beanDescriptor, $this->configuration, $this->class));
     }
 }
