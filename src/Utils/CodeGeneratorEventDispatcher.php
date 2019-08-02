@@ -263,4 +263,60 @@ class CodeGeneratorEventDispatcher implements CodeGeneratorListenerInterface
         }
         return $methodGenerator;
     }
+
+    /**
+     * @param BeanDescriptor[] $beanDescriptors
+     */
+    public function onDaoFactoryGenerated(FileGenerator $fileGenerator, array $beanDescriptors, ConfigurationInterface $configuration): ?FileGenerator
+    {
+        foreach ($this->listeners as $listener) {
+            $fileGenerator = $listener->onDaoFactoryGenerated($fileGenerator, $beanDescriptors, $configuration);
+            if ($fileGenerator === null) {
+                break;
+            }
+        }
+        return $fileGenerator;
+    }
+
+    /**
+     * @param BeanDescriptor[] $beanDescriptors
+     */
+    public function onDaoFactoryConstructorGenerated(MethodGenerator $methodGenerator, array $beanDescriptors, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator
+    {
+        foreach ($this->listeners as $listener) {
+            $methodGenerator = $listener->onDaoFactoryConstructorGenerated($methodGenerator, $beanDescriptors, $configuration, $classGenerator);
+            if ($methodGenerator === null) {
+                break;
+            }
+        }
+        return $methodGenerator;
+    }
+
+    /**
+     * @param BeanDescriptor[] $beanDescriptor
+     */
+    public function onDaoFactoryGetterGenerated(MethodGenerator $methodGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator
+    {
+        foreach ($this->listeners as $listener) {
+            $methodGenerator = $listener->onDaoFactoryGetterGenerated($methodGenerator, $beanDescriptor, $configuration, $classGenerator);
+            if ($methodGenerator === null) {
+                break;
+            }
+        }
+        return $methodGenerator;
+    }
+
+    /**
+     * @param BeanDescriptor[] $beanDescriptor
+     */
+    public function onDaoFactorySetterGenerated(MethodGenerator $methodGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator
+    {
+        foreach ($this->listeners as $listener) {
+            $methodGenerator = $listener->onDaoFactorySetterGenerated($methodGenerator, $beanDescriptor, $configuration, $classGenerator);
+            if ($methodGenerator === null) {
+                break;
+            }
+        }
+        return $methodGenerator;
+    }
 }
