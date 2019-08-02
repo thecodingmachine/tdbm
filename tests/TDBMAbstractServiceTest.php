@@ -437,12 +437,12 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('track_id')->references('tracks')
             ->column('artist_id')->references('artists')->comment('@JsonKey("feat") @JsonInclude');
 
-        $db->table('object_base')
+        $db->table('base_objects')
             ->column('id')->integer()->primaryKey()->autoIncrement()
             ->column('label')->string();
-        $db->table('object_inherited')
+        $db->table('inherited_objects')
             ->column('id')->integer()->primaryKey()->autoIncrement()
-            ->column('object_base_id')->references('object_base')->unique()->comment('@JsonCollection');
+            ->column('base_object_id')->references('base_objects')->unique()->comment('@JsonCollection');
 
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 

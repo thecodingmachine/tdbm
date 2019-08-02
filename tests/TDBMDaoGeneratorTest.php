@@ -40,27 +40,26 @@ use TheCodingMachine\TDBM\Test\Dao\AlbumDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\ArtistDao;
+use TheCodingMachine\TDBM\Test\Dao\BaseObjectDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AccountBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AnimalBean;
-use TheCodingMachine\TDBM\Test\Dao\Bean\ArrayBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Article2Bean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArticleBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ArtistBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\BaseObjectBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\BoatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CatBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CategoryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
-use TheCodingMachine\TDBM\Test\Dao\Bean\DateArrayBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\DogBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\FileBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\ArticleBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\BoatBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\FileBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\InheritedObjectBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\NodeBean;
-use TheCodingMachine\TDBM\Test\Dao\Bean\ObjectBaseBean;
-use TheCodingMachine\TDBM\Test\Dao\Bean\ObjectInheritedBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RefNoPrimKeyBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RoleBean;
@@ -73,11 +72,9 @@ use TheCodingMachine\TDBM\Test\Dao\ContactDao;
 use TheCodingMachine\TDBM\Test\Dao\CountryDao;
 use TheCodingMachine\TDBM\Test\Dao\DogDao;
 use TheCodingMachine\TDBM\Test\Dao\FileDao;
-use TheCodingMachine\TDBM\Test\Dao\Generated\ContactBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
+use TheCodingMachine\TDBM\Test\Dao\InheritedObjectDao;
 use TheCodingMachine\TDBM\Test\Dao\NodeDao;
-use TheCodingMachine\TDBM\Test\Dao\ObjectBaseDao;
-use TheCodingMachine\TDBM\Test\Dao\ObjectInheritedDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
 use TheCodingMachine\TDBM\Test\Dao\StateDao;
@@ -2098,14 +2095,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testOneToOneInverseRelationGetter(): void
     {
-        $objectBaseDao = new ObjectBaseDao($this->tdbmService);
-        $objectInheritedDao = new ObjectInheritedDao($this->tdbmService);
-        $objectBase = new ObjectBaseBean('label');
+        $objectBaseDao = new BaseObjectDao($this->tdbmService);
+        $objectInheritedDao = new InheritedObjectDao($this->tdbmService);
+        $objectBase = new BaseObjectBean('label');
         $objectBaseDao->save($objectBase);
-        $this->assertNull($objectBase->getObjectInherited());
-        $objectInherited = new ObjectInheritedBean($objectBase);
+        $this->assertNull($objectBase->getInheritedObject());
+        $objectInherited = new InheritedObjectBean($objectBase);
         $objectInheritedDao->save($objectInherited);
-        $this->assertSame($objectInherited, $objectBase->getObjectInherited());
-        $this->assertEquals(1, $objectBase->jsonSerialize()['objectInherited']['id']);
+        $this->assertSame($objectInherited, $objectBase->getInheritedObject());
+        $this->assertEquals(1, $objectBase->jsonSerialize()['inheritedObject']['id']);
     }
 }
