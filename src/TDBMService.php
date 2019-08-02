@@ -312,7 +312,6 @@ class TDBMService
     private function deleteManyToManyRelationships(AbstractTDBMObject $object): void
     {
         foreach ($object->_getDbRows() as $tableName => $dbRow) {
-            $pivotTables = $this->tdbmSchemaAnalyzer->getPivotTableLinkedToTable($tableName);
             foreach ($object->_getManyToManyRelationshipDescriptorKeys() as $pathKey) {
                 $pathModel = $object->_getManyToManyRelationshipDescriptor($pathKey);
                 $remoteBeans = $object->_getRelationshipsFromModel($pathModel);
@@ -1465,31 +1464,6 @@ class TDBMService
         } else {
             throw new TDBMException("Unexpected bean type in getPivotTableForeignKeys. Awaiting beans from table {$table1} and {$table2} for pivot table {$pivotTableName}");
         }
-    }
-
-    /**
-     * Returns a list of pivot tables linked to $bean.
-     *
-     * @param AbstractTDBMObject $bean
-     *
-     * @return string[]
-     */
-    public function _getPivotTablesLinkedToBean(AbstractTDBMObject $bean): array
-    {
-        $junctionTables = [];
-        $allJunctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
-        foreach ($bean->_getDbRows() as $dbRow) {
-            foreach ($allJunctionTables as $table) {
-                // There are exactly 2 FKs since this is a pivot table.
-                $fks = array_values($table->getForeignKeys());
-
-                if ($fks[0]->getForeignTableName() === $dbRow->_getDbTableName() || $fks[1]->getForeignTableName() === $dbRow->_getDbTableName()) {
-                    $junctionTables[] = $table->getName();
-                }
-            }
-        }
-
-        return $junctionTables;
     }
 
     /**
