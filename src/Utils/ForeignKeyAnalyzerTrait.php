@@ -4,6 +4,7 @@
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Column;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
 
 trait ForeignKeyAnalyzerTrait
@@ -16,6 +17,10 @@ trait ForeignKeyAnalyzerTrait
      * @var Column[]
      */
     private $localColumns;
+    /**
+     * @var AnnotationParser
+     */
+    private $annotationParser;
 
     /**
      * @return Column[]
