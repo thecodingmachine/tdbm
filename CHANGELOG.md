@@ -1,7 +1,7 @@
 5.1
 ===
 
-New features:
+**New features:**
 
 - \#96: New @Bean annotation in table comments to alter the name of a bean
 - \#95: Table and column annotations are now parsed using doctrine/annotations lexer/parser
@@ -10,6 +10,25 @@ New features:
 - \#125: New @ProtectedGetter, @ProtectedSetter and @ProtectedOneToMany annotations (to be used in the DB column comments) enable generating beans with protected getters and setters
 - \#126: New @AddInterface, @AddInterfaceOnDao, @AddTrait, @AddTraitOnDao (to be used in the DB table comments) to automatically implement interface or use traits in Beans / DAOs
 - \#132: New @JsonKey, @JsonFormat, @JsonIgnore, @JsonInclude, @JsonRecursive and @JsonCollection annotations (to be used in the DB column comments) enable controlling the JSON serialization of beans
+
+**Improvements:**
+
+- Added autopivot support (when a pivot table points twice on the same target table) [\#131](https://github.com/thecodingmachine/tdbm/issues/131) [\#146](https://github.com/thecodingmachine/tdbm/pull/146) [@Kharhamel](https://github.com/Kharhamel)
+- Improved OneToOne inverse relationship code generation (when a unique index is also a foreign key) [\#150](https://github.com/thecodingmachine/tdbm/issues/150) [\#151](https://github.com/thecodingmachine/tdbm/pull/151) [\#154](https://github.com/thecodingmachine/tdbm/pull/154) [@homersimpsons](https://github.com/homersimpsons)
+- `getById` is now also generated for composite primary keys [\#100](https://github.com/thecodingmachine/tdbm/issues/100) [\#153](https://github.com/thecodingmachine/tdbm/pull/153) [@homersimpsons](https://github.com/homersimpsons)
+- Made base DAOs and beans abstract [\#138](https://github.com/thecodingmachine/tdbm/pull/138) [@moufmouf](https://github.com/moufmouf)
+- Add the possibility to give a null parameter if the column of type "resource" is nullable [\#137](https://github.com/thecodingmachine/tdbm/pull/137) [@TheoBiron](https://github.com/TheoBiron)
+- Improvement in code generation: made the code "stable" from one generation to another [\#149](https://github.com/thecodingmachine/tdbm/pull/149) [@homersimpsons](https://github.com/homersimpsons)
+
+**Performance improvements:**
+
+- Improved DAOFactory performance by lazy loading services [\#58](https://github.com/thecodingmachine/tdbm/issues/58) [\#147](https://github.com/thecodingmachine/tdbm/pull/147) [@Kharhamel](https://github.com/Kharhamel)
+- Adding cache for results of FindObjectsQueryFactory::compute [\#133](https://github.com/thecodingmachine/tdbm/pull/133) [@moufmouf](https://github.com/moufmouf)
+- InnerResultIterator: Improve count() performance of non-executed query [\#156](https://github.com/thecodingmachine/tdbm/pull/156) [@homersimpsons](https://github.com/homersimpsons)
+
+**DBMS support:**
+
+- Added official support for MySQL 8 [\#113](https://github.com/thecodingmachine/tdbm/pull/113) [@moufmouf](https://github.com/moufmouf)
 
 5.0
 ===
