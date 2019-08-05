@@ -28,24 +28,35 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @var string
      */
     private $beanNamespace;
-
     /**
-     * @var AnnotationParser
+     * @var BeanDescriptor
      */
-    private $annotationParser;
+    private $foreignBeanDescriptor;
 
     /**
      * ObjectBeanPropertyDescriptor constructor.
      * @param Table $table
      * @param ForeignKeyConstraint $foreignKey
      * @param NamingStrategyInterface $namingStrategy
+     * @param string $beanNamespace
+     * @param AnnotationParser $annotationParser
+     * @param BeanDescriptor $foreignBeanDescriptor The BeanDescriptor of FK foreign table
      */
-    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, NamingStrategyInterface $namingStrategy, string $beanNamespace, AnnotationParser $annotationParser)
-    {
+    public function __construct(
+        Table $table,
+        ForeignKeyConstraint $foreignKey,
+        NamingStrategyInterface $namingStrategy,
+        string $beanNamespace,
+        AnnotationParser $annotationParser,
+        BeanDescriptor $foreignBeanDescriptor
+    ) {
         parent::__construct($table, $namingStrategy);
         $this->foreignKey = $foreignKey;
         $this->beanNamespace = $beanNamespace;
         $this->annotationParser = $annotationParser;
+        $this->table = $table;
+        $this->namingStrategy = $namingStrategy;
+        $this->foreignBeanDescriptor = $foreignBeanDescriptor;
     }
 
     /**
@@ -245,12 +256,22 @@ PHP;
     {
         $rows = [];
         foreach ($this->getForeignKey()->getUnquotedForeignColumns() as $column) {
-            $camelColumn = TDBMDaoGenerator::toCamelCase($column);
-            $indexName = lcfirst($camelColumn);
-            $columnGetterName = 'get' . $camelColumn;
+            $descriptor = $this->getBeanPropertyDescriptor($column);
+            $indexName = ltrim($descriptor->getVariableName(), '$');
+            $columnGetterName = $descriptor->getGetterName();
             $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
         }
         return '[' . implode(', ', $rows) . ']';
+    }
+
+    private function getBeanPropertyDescriptor(string $column): AbstractBeanPropertyDescriptor
+    {
+        foreach ($this->foreignBeanDescriptor->getBeanPropertyDescriptors() as $descriptor) {
+            if ($descriptor instanceof ScalarBeanPropertyDescriptor && $descriptor->getColumnName() === $column) {
+                return $descriptor;
+            }
+        }
+        throw new TDBMException('PropertyDescriptor for `'.$this->table->getName().'`.`' . $column . '` not found in `' . $this->foreignBeanDescriptor->getTable()->getName() . '`');
     }
 
     /**

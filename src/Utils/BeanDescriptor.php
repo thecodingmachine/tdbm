@@ -106,6 +106,10 @@ class BeanDescriptor implements BeanDescriptorInterface
      * @var ConfigurationInterface
      */
     private $configuration;
+    /**
+     * @var BeanRegistry
+     */
+    private $registry;
 
     public function __construct(
         Table $table,
@@ -119,7 +123,8 @@ class BeanDescriptor implements BeanDescriptorInterface
         NamingStrategyInterface $namingStrategy,
         AnnotationParser $annotationParser,
         CodeGeneratorListenerInterface $codeGeneratorListener,
-        ConfigurationInterface $configuration
+        ConfigurationInterface $configuration,
+        BeanRegistry $registry
     ) {
         $this->table = $table;
         $this->beanNamespace = $beanNamespace;
@@ -133,10 +138,10 @@ class BeanDescriptor implements BeanDescriptorInterface
         $this->annotationParser = $annotationParser;
         $this->codeGeneratorListener = $codeGeneratorListener;
         $this->configuration = $configuration;
-        $this->initBeanPropertyDescriptors();
+        $this->registry = $registry;
     }
 
-    private function initBeanPropertyDescriptors(): void
+    public function initBeanPropertyDescriptors(): void
     {
         $this->beanPropertyDescriptors = $this->getProperties($this->table);
     }
@@ -282,7 +287,7 @@ class BeanDescriptor implements BeanDescriptorInterface
                     continue;
                 }
 
-                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
+                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser, $this->registry->getBeanForTableName($fk->getForeignTableName()));
             } else {
                 $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column, $this->namingStrategy, $this->annotationParser);
             }
@@ -327,6 +332,7 @@ class BeanDescriptor implements BeanDescriptorInterface
 
         $constructor = new MethodGenerator('__construct', [], MethodGenerator::FLAG_PUBLIC);
         $constructor->setDocBlock('The constructor takes all compulsory arguments.');
+        $constructor->getDocBlock()->setWordWrap(false);
 
         $assigns = [];
         $parentConstructorArguments = [];
@@ -761,13 +767,13 @@ EOF
             [ new ParameterGenerator('obj', $beanClassName) ],
             MethodGenerator::FLAG_PUBLIC,
             '$this->tdbmService->save($obj);',
-            new DocBlockGenerator(
+            (new DocBlockGenerator(
                 "Persist the $beanClassWithoutNameSpace instance.",
                 null,
                 [
                     new ParamTag('obj', [$beanClassWithoutNameSpace], 'The bean to save.')
                 ]
-            )
+            ))->setWordWrap(false)
         );
         $saveMethod->setReturnType('void');
 
@@ -1035,7 +1041,7 @@ EOF;
             ],
             MethodGenerator::FLAG_PROTECTED,
             $findOneFromSqlMethodBody,
-            new DocBlockGenerator(
+            (new DocBlockGenerator(
                 "Get a single $beanClassWithoutNameSpace specified by its filters.",
                 "Unlike the `findOne` method that guesses the FROM part of the statement, here you can pass the \$from part.
 
@@ -1048,7 +1054,7 @@ You should not put an alias on the main table name. So your \$from variable shou
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the filter'),
                     new ReturnTag(['\\'.$beanClassName, 'null'])
                 ]
-            )
+            ))->setWordWrap(false)
         );
         $findOneFromSqlMethod->setReturnType("?$beanClassName");
         $findOneFromSqlMethod = $this->codeGeneratorListener->onBaseDaoFindOneFromSqlGenerated($findOneFromSqlMethod, $this, $this->configuration, $class);
@@ -1183,13 +1189,14 @@ You should not put an alias on the main table name. So your \$from variable shou
         foreach ($columns as $column) {
             $fk = $this->isPartOfForeignKey($this->table, $this->table->getColumn($column));
             if ($fk !== null) {
-                if (!in_array($fk, $elements)) {
-                    $elements[] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
+                if (!isset($elements[$fk->getName()])) {
+                    $elements[$fk->getName()] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser, $this->registry->getBeanForTableName($fk->getForeignTableName()));
                 }
             } else {
                 $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column), $this->namingStrategy, $this->annotationParser);
             }
         }
+        $elements = array_values($elements);
 
         // If the index is actually only a foreign key, let's bypass it entirely.
         if (count($elements) === 1 && $elements[0] instanceof ObjectBeanPropertyDescriptor) {

@@ -235,7 +235,7 @@ EOF;
         if ($isNullable) {
             $types[] = 'null';
         }
-        $getter->getDocBlock()->setTag(new ReturnTag($types));
+        $getter->getDocBlock()->setTag(new ReturnTag($types))->setWordWrap(false);
 
         $getter->setReturnType($paramType);
 
@@ -256,7 +256,7 @@ EOF;
         if ($isNullable) {
             $types[] = 'null';
         }
-        $setter->getDocBlock()->setTag(new ParamTag($this->column->getName(), $types));
+        $setter->getDocBlock()->setTag(new ParamTag($this->column->getName(), $types))->setWordWrap(false);
 
         $parameter = new ParameterGenerator($this->column->getName(), $paramType);
         $setter->setParameter($parameter);

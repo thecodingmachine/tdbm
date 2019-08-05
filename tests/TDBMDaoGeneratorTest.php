@@ -1943,7 +1943,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         self::assertTrue(isset($json['alias']['alias']['parent']['parent']));
         // ... however, parents aliases chains have just their foreign key (id), as parents are serialized with $stopRecursion=true
         self::assertEquals(3, $json['alias']['alias']['parent']['parent']['alias']['id']);
-        self::assertCount(1 , $json['alias']['alias']['parent']['parent']['alias']);
+        self::assertCount(1, $json['alias']['alias']['parent']['parent']['alias']);
     }
 
     /**

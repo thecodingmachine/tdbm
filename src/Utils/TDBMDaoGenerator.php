@@ -90,17 +90,24 @@ class TDBMDaoGenerator
         }, $junctionTables);
 
         $tableList = array_filter($tableList, function (Table $table) use ($junctionTableNames) {
-            return !in_array($table->getName(), $junctionTableNames);
+            return !in_array($table->getName(), $junctionTableNames, true);
         });
 
         $this->cleanUpGenerated();
 
         $beanDescriptors = [];
 
+        $beanRegistry = new BeanRegistry($this->configuration, $this->schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy);
         foreach ($tableList as $table) {
-            $beanDescriptors[] = $this->generateDaoAndBean($table);
+            $beanDescriptors[] = $beanRegistry->addBeanForTable($table);
         }
-
+        foreach ($beanDescriptors as $beanDescriptor) {
+            $beanDescriptor->initBeanPropertyDescriptors();
+        }
+        foreach ($beanDescriptors as $beanDescriptor) {
+            $this->generateBean($beanDescriptor);
+            $this->generateDao($beanDescriptor);
+        }
 
         $this->generateFactory($beanDescriptors);
 
@@ -131,39 +138,17 @@ class TDBMDaoGenerator
     }
 
     /**
-     * Generates in one method call the daos and the beans for one table.
-     *
-     * @param Table $table
-     *
-     * @return BeanDescriptor
-     * @throws TDBMException
-     */
-    private function generateDaoAndBean(Table $table) : BeanDescriptor
-    {
-        $tableName = $table->getName();
-        $daoName = $this->namingStrategy->getDaoClassName($tableName);
-        $beanName = $this->namingStrategy->getBeanClassName($tableName);
-        $baseBeanName = $this->namingStrategy->getBaseBeanClassName($tableName);
-        $baseDaoName = $this->namingStrategy->getBaseDaoClassName($tableName);
-
-        $beanDescriptor = new BeanDescriptor($table, $this->configuration->getBeanNamespace(), $this->configuration->getBeanNamespace().'\\Generated', $this->configuration->getDaoNamespace(), $this->configuration->getDaoNamespace().'\\Generated', $this->configuration->getSchemaAnalyzer(), $this->schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy, $this->configuration->getAnnotationParser(), $this->configuration->getCodeGeneratorListener(), $this->configuration);
-        $this->generateBean($beanDescriptor, $beanName, $baseBeanName, $table);
-        $this->generateDao($beanDescriptor, $daoName, $baseDaoName, $beanName, $table);
-        return $beanDescriptor;
-    }
-
-    /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
      * @param BeanDescriptor  $beanDescriptor
-     * @param string          $className       The name of the class
-     * @param string          $baseClassName   The name of the base class which will be extended (name only, no directory)
-     * @param Table           $table           The table
      *
      * @throws TDBMException
      */
-    public function generateBean(BeanDescriptor $beanDescriptor, string $className, string $baseClassName, Table $table): void
+    public function generateBean(BeanDescriptor $beanDescriptor): void
     {
+        $className = $beanDescriptor->getBeanClassName();
+        $baseClassName = $beanDescriptor->getBaseBeanClassName();
+        $table = $beanDescriptor->getTable();
         $beannamespace = $this->configuration->getBeanNamespace();
         $file = $beanDescriptor->generatePhpCode();
         if ($file === null) {
@@ -214,15 +199,15 @@ class $className extends $baseClassName
      * Writes the PHP bean DAO with simple functions to create/get/save objects.
      *
      * @param BeanDescriptor  $beanDescriptor
-     * @param string          $className       The name of the class
-     * @param string          $baseClassName
-     * @param string          $beanClassName
-     * @param Table           $table
      *
      * @throws TDBMException
      */
-    private function generateDao(BeanDescriptor $beanDescriptor, string $className, string $baseClassName, string $beanClassName, Table $table): void
+    private function generateDao(BeanDescriptor $beanDescriptor): void
     {
+        $className = $beanDescriptor->getDaoClassName();
+        $baseClassName = $beanDescriptor->getBaseDaoClassName();
+        $beanClassName = $beanDescriptor->getBeanClassName();
+        $table = $beanDescriptor->getTable();
         $file = $beanDescriptor->generateDaoPhpCode();
         if ($file === null) {
             return;
