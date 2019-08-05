@@ -19,6 +19,7 @@
 - Made base DAOs and beans abstract [\#138](https://github.com/thecodingmachine/tdbm/pull/138) [@moufmouf](https://github.com/moufmouf)
 - Add the possibility to give a null parameter if the column of type "resource" is nullable [\#137](https://github.com/thecodingmachine/tdbm/pull/137) [@TheoBiron](https://github.com/TheoBiron)
 - Improvement in code generation: made the code "stable" from one generation to another [\#149](https://github.com/thecodingmachine/tdbm/pull/149) [@homersimpsons](https://github.com/homersimpsons)
+- Improved JSON serialization: when `$stopRecursion` equals true, the key of the foreign objects are included by default \#152 \#155 @homersimpsons
 
 **Performance improvements:**
 
