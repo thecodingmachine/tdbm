@@ -389,7 +389,7 @@
             <div class="row">
                 <div class="col-xs-12">
                                         <h1 id="51">5.1</h1>
-<p>New features:</p>
+<p><strong>New features:</strong></p>
 <ul>
 <li>#96: New @Bean annotation in table comments to alter the name of a bean</li>
 <li>#95: Table and column annotations are now parsed using doctrine/annotations lexer/parser</li>
@@ -398,6 +398,25 @@
 <li>#125: New @ProtectedGetter, @ProtectedSetter and @ProtectedOneToMany annotations (to be used in the DB column comments) enable generating beans with protected getters and setters</li>
 <li>#126: New @AddInterface, @AddInterfaceOnDao, @AddTrait, @AddTraitOnDao (to be used in the DB table comments) to automatically implement interface or use traits in Beans / DAOs</li>
 <li>#132: New @JsonKey, @JsonFormat, @JsonIgnore, @JsonInclude, @JsonRecursive and @JsonCollection annotations (to be used in the DB column comments) enable controlling the JSON serialization of beans</li>
+</ul>
+<p><strong>Improvements:</strong></p>
+<ul>
+<li>Added autopivot support (when a pivot table points twice on the same target table) <a href="https://github.com/thecodingmachine/tdbm/issues/131">#131</a> <a href="https://github.com/thecodingmachine/tdbm/pull/146">#146</a> <a href="https://github.com/Kharhamel">@Kharhamel</a></li>
+<li>Improved OneToOne inverse relationship code generation (when a unique index is also a foreign key) <a href="https://github.com/thecodingmachine/tdbm/issues/150">#150</a> <a href="https://github.com/thecodingmachine/tdbm/pull/151">#151</a> <a href="https://github.com/thecodingmachine/tdbm/pull/154">#154</a> <a href="https://github.com/homersimpsons">@homersimpsons</a></li>
+<li><code>getById</code> is now also generated for composite primary keys <a href="https://github.com/thecodingmachine/tdbm/issues/100">#100</a> <a href="https://github.com/thecodingmachine/tdbm/pull/153">#153</a> <a href="https://github.com/homersimpsons">@homersimpsons</a></li>
+<li>Made base DAOs and beans abstract <a href="https://github.com/thecodingmachine/tdbm/pull/138">#138</a> <a href="https://github.com/moufmouf">@moufmouf</a></li>
+<li>Add the possibility to give a null parameter if the column of type &quot;resource&quot; is nullable <a href="https://github.com/thecodingmachine/tdbm/pull/137">#137</a> <a href="https://github.com/TheoBiron">@TheoBiron</a></li>
+<li>Improvement in code generation: made the code &quot;stable&quot; from one generation to another <a href="https://github.com/thecodingmachine/tdbm/pull/149">#149</a> <a href="https://github.com/homersimpsons">@homersimpsons</a></li>
+</ul>
+<p><strong>Performance improvements:</strong></p>
+<ul>
+<li>Improved DAOFactory performance by lazy loading services <a href="https://github.com/thecodingmachine/tdbm/issues/58">#58</a> <a href="https://github.com/thecodingmachine/tdbm/pull/147">#147</a> <a href="https://github.com/Kharhamel">@Kharhamel</a></li>
+<li>Adding cache for results of FindObjectsQueryFactory::compute <a href="https://github.com/thecodingmachine/tdbm/pull/133">#133</a> <a href="https://github.com/moufmouf">@moufmouf</a></li>
+<li>InnerResultIterator: Improve count() performance of non-executed query <a href="https://github.com/thecodingmachine/tdbm/pull/156">#156</a> <a href="https://github.com/homersimpsons">@homersimpsons</a></li>
+</ul>
+<p><strong>DBMS support:</strong></p>
+<ul>
+<li>Added official support for MySQL 8 <a href="https://github.com/thecodingmachine/tdbm/pull/113">#113</a> <a href="https://github.com/moufmouf">@moufmouf</a></li>
 </ul>
 <h1 id="50">5.0</h1>
 <p>Breaking changes:</p>
