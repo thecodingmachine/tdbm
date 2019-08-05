@@ -200,28 +200,28 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
 
         $getter = new MethodGenerator($this->getName());
         $getter->setDocBlock(sprintf('Returns the list of %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
-        $getter->getDocBlock()->setTag(new ReturnTag([ $fqcnRemoteBeanName.'[]' ]));
+        $getter->getDocBlock()->setTag(new ReturnTag([ $fqcnRemoteBeanName.'[]' ]))->setWordWrap(false);
         $getter->setReturnType('array');
         $getter->setBody(sprintf('return $this->_getRelationships(%s);', $pathKey));
 
 
         $adder = new MethodGenerator('add'.$singularName);
         $adder->setDocBlock(sprintf('Adds a relationship with %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
-        $adder->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
+        $adder->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]))->setWordWrap(false);
         $adder->setReturnType('void');
         $adder->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
         $adder->setBody(sprintf('$this->addRelationship(%s, $%s);', $localTableName, $variableName));
 
         $remover = new MethodGenerator('remove'.$singularName);
         $remover->setDocBlock(sprintf('Deletes the relationship with %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
-        $remover->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
+        $remover->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]))->setWordWrap(false);
         $remover->setReturnType('void');
         $remover->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
         $remover->setBody(sprintf('$this->_removeRelationship(%s, $%s);', $localTableName, $variableName));
 
         $has = new MethodGenerator('has'.$singularName);
         $has->setDocBlock(sprintf('Returns whether this bean is associated with %s via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
-        $has->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
+        $has->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]))->setWordWrap(false);
         $has->getDocBlock()->setTag(new ReturnTag([ 'bool' ]));
         $has->setReturnType('bool');
         $has->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
@@ -230,7 +230,7 @@ class PivotTableMethodsDescriptor implements MethodDescriptorInterface
         $setter = new MethodGenerator('set'.$pluralName);
         $setter->setDocBlock(sprintf('Sets all relationships with %s associated to this bean via the %s pivot table.
 Exiting relationships will be removed and replaced by the provided relationships.', $remoteBeanName, $this->pivotTable->getName()));
-        $setter->getDocBlock()->setTag(new ParamTag($pluralVariableName, [ $fqcnRemoteBeanName.'[]' ]));
+        $setter->getDocBlock()->setTag(new ParamTag($pluralVariableName, [ $fqcnRemoteBeanName.'[]' ]))->setWordWrap(false)->setWordWrap(false);
         $setter->getDocBlock()->setTag(new ReturnTag([ 'void' ]));
         $setter->setReturnType('void');
         $setter->setParameter(new ParameterGenerator($pluralVariableName, 'array'));

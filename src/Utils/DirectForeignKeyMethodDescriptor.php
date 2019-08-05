@@ -37,10 +37,6 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
      */
     private $namingStrategy;
     /**
-     * @var AnnotationParser
-     */
-    private $annotationParser;
-    /**
      * @var string
      */
     private $beanNamespace;
@@ -133,7 +129,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
         if ($this->hasLocalUniqueIndex()) {
             $getter->setDocBlock(sprintf('Returns the %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
             $classType = '\\' . $this->beanNamespace . '\\' . $beanClass;
-            $getter->getDocBlock()->setTag(new ReturnTag([$classType . '|null']));
+            $getter->getDocBlock()->setTag(new ReturnTag([$classType . '|null']))->setWordWrap(false);
             $getter->setReturnType('?' . $classType);
 
             $code = sprintf(
@@ -147,7 +143,7 @@ class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
             $getter->getDocBlock()->setTag(new ReturnTag([
                 $beanClass . '[]',
                 '\\' . AlterableResultIterator::class
-            ]));
+            ]))->setWordWrap(false);
             $getter->setReturnType(AlterableResultIterator::class);
 
             $code = sprintf(

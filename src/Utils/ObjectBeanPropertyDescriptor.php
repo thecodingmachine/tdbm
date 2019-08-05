@@ -28,24 +28,35 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @var string
      */
     private $beanNamespace;
-
     /**
-     * @var AnnotationParser
+     * @var BeanDescriptor
      */
-    private $annotationParser;
+    private $foreignBeanDescriptor;
 
     /**
      * ObjectBeanPropertyDescriptor constructor.
      * @param Table $table
      * @param ForeignKeyConstraint $foreignKey
      * @param NamingStrategyInterface $namingStrategy
+     * @param string $beanNamespace
+     * @param AnnotationParser $annotationParser
+     * @param BeanDescriptor $foreignBeanDescriptor The BeanDescriptor of FK foreign table
      */
-    public function __construct(Table $table, ForeignKeyConstraint $foreignKey, NamingStrategyInterface $namingStrategy, string $beanNamespace, AnnotationParser $annotationParser)
-    {
+    public function __construct(
+        Table $table,
+        ForeignKeyConstraint $foreignKey,
+        NamingStrategyInterface $namingStrategy,
+        string $beanNamespace,
+        AnnotationParser $annotationParser,
+        BeanDescriptor $foreignBeanDescriptor
+    ) {
         parent::__construct($table, $namingStrategy);
         $this->foreignKey = $foreignKey;
         $this->beanNamespace = $beanNamespace;
         $this->annotationParser = $annotationParser;
+        $this->table = $table;
+        $this->namingStrategy = $namingStrategy;
+        $this->foreignBeanDescriptor = $foreignBeanDescriptor;
     }
 
     /**
@@ -202,7 +213,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
                 return '';
             }
             $isIncluded = false;
-            $format = "jsonSerialize(true)";
+            $format = 'jsonSerialize(true)';
         } else {
             $isIncluded = $this->findAnnotation(Annotation\JsonInclude::class) !== null;
             /** @var Annotation\JsonFormat|null $jsonFormat */
@@ -220,18 +231,47 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $index = $jsonKey ? $jsonKey->key : $this->namingStrategy->getJsonProperty($this);
         $getter = $this->getGetterName();
         if (!$this->isCompulsory()) {
-            $code = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->$format : null;";
+            $recursiveCode = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->$format : null;";
+            $lazyCode = "\$array['$index'] = (\$object = \$this->$getter()) ? {$this->getLazySerializeCode('$object')} : null;";
         } else {
-            $code = "\$array['$index'] = \$this->$getter()->$format;";
+            $recursiveCode = "\$array['$index'] = \$this->$getter()->$format;";
+            $lazyCode = "\$array['$index'] = {$this->getLazySerializeCode("\$this->$getter()")};";
         }
-        if (!$isIncluded) {
+
+        if ($isIncluded) {
+            $code = $recursiveCode;
+        } else {
             $code = <<<PHP
-if (!\$stopRecursion) {
-    $code
-};
+if (\$stopRecursion) {
+    $lazyCode
+} else {
+    $recursiveCode
+}
 PHP;
         }
         return $code;
+    }
+
+    private function getLazySerializeCode(string $propertyAccess): string
+    {
+        $rows = [];
+        foreach ($this->getForeignKey()->getUnquotedForeignColumns() as $column) {
+            $descriptor = $this->getBeanPropertyDescriptor($column);
+            $indexName = ltrim($descriptor->getVariableName(), '$');
+            $columnGetterName = $descriptor->getGetterName();
+            $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
+        }
+        return '[' . implode(', ', $rows) . ']';
+    }
+
+    private function getBeanPropertyDescriptor(string $column): AbstractBeanPropertyDescriptor
+    {
+        foreach ($this->foreignBeanDescriptor->getBeanPropertyDescriptors() as $descriptor) {
+            if ($descriptor instanceof ScalarBeanPropertyDescriptor && $descriptor->getColumnName() === $column) {
+                return $descriptor;
+            }
+        }
+        throw new TDBMException('PropertyDescriptor for `'.$this->table->getName().'`.`' . $column . '` not found in `' . $this->foreignBeanDescriptor->getTable()->getName() . '`');
     }
 
     /**
