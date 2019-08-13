@@ -10,7 +10,7 @@ use Zend\Code\Generator\MethodGenerator;
 /**
  * This class represent a property in a bean (a property has a getter, a setter, etc...).
  */
-abstract class AbstractBeanPropertyDescriptor
+abstract class AbstractBeanPropertyDescriptor implements MethodDescriptorInterface
 {
     /**
      * @var Table
@@ -78,6 +78,14 @@ abstract class AbstractBeanPropertyDescriptor
     public function getSetterName(): string
     {
         return $this->namingStrategy->getSetterName($this);
+    }
+
+    /**
+     * Alias of the method getGetterName(). Used to validate MethodDescriptorInterface
+     */
+    public function getName(): string
+    {
+        return $this->getGetterName();
     }
 
     public function getGetterName(): string

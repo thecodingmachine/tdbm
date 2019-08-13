@@ -110,6 +110,18 @@ class BeanDescriptor implements BeanDescriptorInterface
      * @var BeanRegistry
      */
     private $registry;
+    /**
+     * @var MethodDescriptorInterface[][]
+     */
+    private $descriptorsByMethodName = [];
+    /**
+     * @var DirectForeignKeyMethodDescriptor[]|null
+     */
+    private $directForeignKeysDescriptors = null;
+    /**
+     * @var PivotTableMethodsDescriptor[]|null
+     */
+    private $pivotTableDescriptors = null;
 
     public function __construct(
         Table $table,
@@ -144,6 +156,11 @@ class BeanDescriptor implements BeanDescriptorInterface
     public function initBeanPropertyDescriptors(): void
     {
         $this->beanPropertyDescriptors = $this->getProperties($this->table);
+
+        //init the list of method names with regular properties names
+        foreach ($this->beanPropertyDescriptors as $beanPropertyDescriptor) {
+            $this->checkForDuplicate($beanPropertyDescriptor);
+        }
     }
 
     /**
@@ -373,15 +390,21 @@ class BeanDescriptor implements BeanDescriptorInterface
      */
     private function getDirectForeignKeysDescriptors(): array
     {
+        if ($this->directForeignKeysDescriptors !== null) {
+            return $this->directForeignKeysDescriptors;
+        }
         $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys($this->table->getName());
 
         $descriptors = [];
 
         foreach ($fks as $fk) {
-            $descriptors[] = new DirectForeignKeyMethodDescriptor($fk, $this->table, $this->namingStrategy, $this->annotationParser, $this->beanNamespace);
+            $desc = new DirectForeignKeyMethodDescriptor($fk, $this->table, $this->namingStrategy, $this->annotationParser, $this->beanNamespace);
+            $this->checkForDuplicate($desc);
+            $descriptors[] = $desc;
         }
 
-        return $descriptors;
+        $this->directForeignKeysDescriptors = $descriptors;
+        return $this->directForeignKeysDescriptors;
     }
 
     /**
@@ -389,6 +412,9 @@ class BeanDescriptor implements BeanDescriptorInterface
      */
     private function getPivotTableDescriptors(): array
     {
+        if ($this->pivotTableDescriptors !== null) {
+            return $this->pivotTableDescriptors;
+        }
         $descs = [];
         foreach ($this->schemaAnalyzer->detectJunctionTables(true) as $table) {
             // There are exactly 2 FKs since this is a pivot table.
@@ -396,45 +422,50 @@ class BeanDescriptor implements BeanDescriptorInterface
 
             if ($fks[0]->getForeignTableName() === $this->table->getName()) {
                 list($localFk, $remoteFk) = $fks;
-                $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
+                $desc = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
+                $this->checkForDuplicate($desc);
+                $descs[] = $desc;
             }
             if ($fks[1]->getForeignTableName() === $this->table->getName()) {
                 list($remoteFk, $localFk) = $fks;
-                $descs[] = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
+                $desc = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
+                $this->checkForDuplicate($desc);
+                $descs[] = $desc;
             }
         }
 
-        return $descs;
+        $this->pivotTableDescriptors = $descs;
+        return $this->pivotTableDescriptors;
+    }
+
+    /**
+     * Check the method name isn't already used and flag the associated descriptors to use their alternative names if it is the case
+     */
+    private function checkForDuplicate(MethodDescriptorInterface $descriptor): void
+    {
+        $name = $descriptor->getName();
+        if (!isset($this->descriptorsByMethodName[$name])) {
+            $this->descriptorsByMethodName[$name] = [];
+        }
+        $this->descriptorsByMethodName[$name][] = $descriptor;
+        if (count($this->descriptorsByMethodName[$name]) > 1) {
+            foreach ($this->descriptorsByMethodName[$name] as $duplicateDescriptor) {
+                $duplicateDescriptor->useAlternativeName();
+            }
+        }
     }
 
     /**
      * Returns the list of method descriptors (and applies the alternative name if needed).
      *
-     * @return MethodDescriptorInterface[]
+     * @return RelationshipMethodDescriptorInterface[]
      */
     public function getMethodDescriptors(): array
     {
         $directForeignKeyDescriptors = $this->getDirectForeignKeysDescriptors();
         $pivotTableDescriptors = $this->getPivotTableDescriptors();
 
-        $descriptors = array_merge($directForeignKeyDescriptors, $pivotTableDescriptors);
-
-        // Descriptors by method names
-        $descriptorsByMethodName = [];
-
-        foreach ($descriptors as $descriptor) {
-            $descriptorsByMethodName[$descriptor->getName()][] = $descriptor;
-        }
-
-        foreach ($descriptorsByMethodName as $descriptorsForMethodName) {
-            if (count($descriptorsForMethodName) > 1) {
-                foreach ($descriptorsForMethodName as $descriptor) {
-                    $descriptor->useAlternativeName();
-                }
-            }
-        }
-
-        return $descriptors;
+        return array_merge($directForeignKeyDescriptors, $pivotTableDescriptors);
     }
 
     public function generateJsonSerialize(): MethodGenerator

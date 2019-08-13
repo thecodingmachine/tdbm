@@ -2008,7 +2008,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $artists = new ArtistDao($this->tdbmService);
         $pinkFloyd = $artists->getById(1);
-        $children = $pinkFloyd->getChildren();
+        $children = $pinkFloyd->getChildrenByArtistsRelations();
 
         $this->assertEquals(1, count($children));
         $this->assertEquals(2, $children[0]->getId());
@@ -2159,5 +2159,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $json = $compositeFkSourceBean->jsonSerialize(true);
         $this->assertEquals(1, $json['compositeFkTarget']['id1']);
         $this->assertEquals(1, $json['compositeFkTarget']['id2']);
+    }
+
+    public function testMethodNameConflictsBetweenRegularAndAutoPivotProperties()
+    {
+        $artist = new ArtistBean('Super');
+        $artist->getChildren(); // regular property
+        $artist->getChildrenByArtistId(); // one-to-may relationship
+        $artist->getChildrenByArtistsRelations(); // auto-pivot relationship
+        $this->assertEquals(1, 1);
     }
 }

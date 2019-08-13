@@ -17,7 +17,7 @@ use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
 use function var_export;
 
-class PivotTableMethodsDescriptor implements MethodDescriptorInterface
+class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterface
 {
     /**
      * @var Table
