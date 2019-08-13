@@ -416,7 +416,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         $db->table('artists')
             ->column('id')->integer()->primaryKey()->autoIncrement()
-            ->column('children')->array()->null()
+            ->column('children')->array()->null() //used to test conflicts with autopivot
             ->column('name')->string();
 
         $db->table('albums')
@@ -438,10 +438,14 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('track_id')->references('tracks')
             ->column('artist_id')->references('artists')->comment('@JsonKey("feat") @JsonInclude');
 
-        $db->table('artists_relations')
+        $db->table('artists_relations') //used to test the auto pivot case
             ->column('id')->integer()->primaryKey()->autoIncrement()
             ->column('parent_id')->references('artists')
             ->column('child_id')->references('artists');
+
+        $db->table('children') //used to test conflicts with autopivot
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('artist_id')->references('artists');
 
         $db->junctionTable('person', 'boats');
 

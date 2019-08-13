@@ -2164,8 +2164,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testMethodNameConflictsBetweenRegularAndAutoPivotProperties()
     {
         $artist = new ArtistBean('Super');
-        $artist->getChildren();
-        $artist->getChildrenByArtistsRelations();
+        $artist->getChildren(); // regular property
+        $artist->getChildrenByArtistId(); // one-to-may relationship
+        $artist->getChildrenByArtistsRelations(); // auto-pivot relationship
         $this->assertEquals(1, 1);
     }
 }
