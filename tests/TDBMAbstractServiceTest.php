@@ -416,6 +416,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         $db->table('artists')
             ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('children')->array()->null()
             ->column('name')->string();
 
         $db->table('albums')
