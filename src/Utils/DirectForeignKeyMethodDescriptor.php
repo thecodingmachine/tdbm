@@ -18,7 +18,7 @@ use Zend\Code\Generator\MethodGenerator;
 /**
  * Represents a method to get a list of beans from a direct foreign key pointing to our bean.
  */
-class DirectForeignKeyMethodDescriptor implements MethodDescriptorInterface
+class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorInterface
 {
     use ForeignKeyAnalyzerTrait;
 
