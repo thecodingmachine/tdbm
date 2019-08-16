@@ -34,8 +34,18 @@ abstract class AbstractQueryFactory implements QueryFactory
      */
     protected $orderBy;
 
+    /**
+     * @var string|null
+     */
     protected $magicSql;
+    /**
+     * @var string|null
+     */
     protected $magicSqlCount;
+    /**
+     * @var string|null
+     */
+    protected $magicSqlSubQuery;
     protected $columnDescList;
 
     /**
@@ -212,6 +222,15 @@ abstract class AbstractQueryFactory implements QueryFactory
         }
 
         return $this->magicSqlCount;
+    }
+
+    public function getMagicSqlSubQuery() : string
+    {
+        if ($this->magicSqlSubQuery === null) {
+            $this->compute();
+        }
+
+        return $this->magicSqlSubQuery;
     }
 
     public function getColumnDescriptors() : array

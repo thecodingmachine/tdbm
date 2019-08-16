@@ -8,6 +8,7 @@ use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
 use TheCodingMachine\TDBM\TDBMService;
+use function implode;
 
 /**
  * This class is in charge of creating the MagicQuery SQL based on parameters passed to findObjects method.
@@ -52,15 +53,18 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
             return $this->tdbmService->getConnection()->quoteIdentifier($this->mainTable).'.'.$this->tdbmService->getConnection()->quoteIdentifier($pkColumn);
         }, $pkColumnNames);
 
+        $subQuery = 'SELECT DISTINCT '.implode(', ', $pkColumnNames).' FROM MAGICJOIN('.$this->mainTable.')';
+
         if (count($pkColumnNames) === 1 || $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM MAGICJOIN('.$this->mainTable.')';
         } else {
-            $countSql = 'SELECT COUNT(*) FROM (SELECT DISTINCT '.implode(', ', $pkColumnNames).' FROM MAGICJOIN('.$this->mainTable.')) tmp';
+            $countSql = 'SELECT COUNT(*) FROM ('.$subQuery.') tmp';
         }
 
         if (!empty($this->filterString)) {
             $sql .= ' WHERE '.$this->filterString;
             $countSql .= ' WHERE '.$this->filterString;
+            $subQuery .= ' WHERE '.$this->filterString;
         }
 
         if (!empty($orderString)) {
@@ -69,6 +73,7 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
 
         $this->magicSql = $sql;
         $this->magicSqlCount = $countSql;
+        $this->magicSqlSubQuery = $subQuery;
         $this->columnDescList = $columnDescList;
 
         $this->cache->save($key, [
