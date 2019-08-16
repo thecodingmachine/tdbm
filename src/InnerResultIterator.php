@@ -124,7 +124,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Makes a separate SQL query to compute the row count.
-     * (not needed in MySQL)
+     * (not needed in MySQL if fetch is already done)
      */
     private function getRowCountViaSqlQuery(): int
     {
@@ -132,7 +132,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
         $this->logger->debug('Running count SQL request: '.$countSql);
 
-        $this->count = (int) $this->tdbmService->getConnection()->fetchColumn($countSql, $this->parameters);
+        $this->count = (int) $this->tdbmService->getConnection()->fetchColumn($countSql, $this->parameters, 0, DbalUtils::generateArrayTypes($this->parameters));
         return $this->count;
     }
 
