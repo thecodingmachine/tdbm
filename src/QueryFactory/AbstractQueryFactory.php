@@ -47,6 +47,11 @@ abstract class AbstractQueryFactory implements QueryFactory
      */
     protected $magicSqlSubQuery;
     protected $columnDescList;
+    protected $subQueryColumnDescList;
+    /**
+     * @var string
+     */
+    protected $mainTable;
 
     /**
      * @param TDBMService $tdbmService
@@ -54,12 +59,13 @@ abstract class AbstractQueryFactory implements QueryFactory
      * @param OrderByAnalyzer $orderByAnalyzer
      * @param string|UncheckedOrderBy|null $orderBy
      */
-    public function __construct(TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, $orderBy)
+    public function __construct(TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, string $mainTable, $orderBy)
     {
         $this->tdbmService = $tdbmService;
         $this->schema = $schema;
         $this->orderByAnalyzer = $orderByAnalyzer;
         $this->orderBy = $orderBy;
+        $this->mainTable = $mainTable;
     }
 
     /**
@@ -241,6 +247,27 @@ abstract class AbstractQueryFactory implements QueryFactory
 
         return $this->columnDescList;
     }
+
+    /**
+     * @return string[][] An array of column descriptors. Value is an array with those keys: table, column
+     */
+    public function getSubQueryColumnDescriptors() : array
+    {
+        if ($this->subQueryColumnDescList === null) {
+            $columns = $this->tdbmService->getPrimaryKeyColumns($this->mainTable);
+            $descriptors = [];
+            foreach ($columns as $column) {
+                $descriptors[] = [
+                    'table' => $this->mainTable,
+                    'column' => $column
+                ];
+            }
+            $this->subQueryColumnDescList = $descriptors;
+        }
+
+        return $this->subQueryColumnDescList;
+    }
+
 
     /**
      * Sets the ORDER BY directive executed in SQL.

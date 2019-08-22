@@ -7,6 +7,7 @@ use Psr\Log\NullLogger;
 use function array_map;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
+use function array_pop;
 use function is_array;
 use function is_int;
 use Mouf\Database\MagicQuery;
@@ -353,5 +354,25 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         $clone->totalCount = null;
 
         return $clone;
+    }
+
+    /**
+     * @internal
+     * @return string
+     */
+    public function _getSubQuery(): string
+    {
+        $sql = $this->magicQuery->build($this->queryFactory->getMagicSqlSubQuery(), $this->parameters);
+        $primaryKeyColumnDescs = $this->queryFactory->getSubQueryColumnDescriptors();
+
+        if (count($primaryKeyColumnDescs) > 1) {
+            throw new TDBMException('You cannot use in a sub-query a table that has a primary key on more that 1 column.');
+        }
+
+        $pkDesc = array_pop($primaryKeyColumnDescs);
+
+        $sql = $this->tdbmService->getConnection()->quoteIdentifier($pkDesc['table']).'.'.$this->tdbmService->getConnection()->quoteIdentifier($pkDesc['column']).' IN ('.$sql.')';
+
+        return $sql;
     }
 }

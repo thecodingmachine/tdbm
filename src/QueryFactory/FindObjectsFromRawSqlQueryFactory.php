@@ -406,4 +406,12 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
     {
         throw new TDBMException('Using resultset generated from findFromRawSql as subqueries is unsupported for now.');
     }
+
+    /**
+     * @return string[][] An array of column descriptors. Value is an array with those keys: table, column
+     */
+    public function getSubQueryColumnDescriptors(): array
+    {
+        throw new TDBMException('Using resultset generated from findFromRawSql as subqueries is unsupported for now.');
+    }
 }

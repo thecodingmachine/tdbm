@@ -18,7 +18,6 @@ use function implode;
  */
 class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 {
-    private $mainTable;
     private $from;
     private $filterString;
     private $cache;
@@ -27,8 +26,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
     public function __construct(string $mainTable, string $from, $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, SchemaAnalyzer $schemaAnalyzer, Cache $cache, string $cachePrefix)
     {
-        parent::__construct($tdbmService, $schema, $orderByAnalyzer, $orderBy);
-        $this->mainTable = $mainTable;
+        parent::__construct($tdbmService, $schema, $orderByAnalyzer, $mainTable, $orderBy);
         $this->from = $from;
         $this->filterString = $filterString;
         $this->schemaAnalyzer = $schemaAnalyzer;

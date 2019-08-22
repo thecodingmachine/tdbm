@@ -15,7 +15,6 @@ use function implode;
  */
 class FindObjectsQueryFactory extends AbstractQueryFactory
 {
-    private $mainTable;
     private $additionalTablesFetch;
     private $filterString;
     /**
@@ -25,8 +24,7 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
 
     public function __construct(string $mainTable, array $additionalTablesFetch, $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, Cache $cache)
     {
-        parent::__construct($tdbmService, $schema, $orderByAnalyzer, $orderBy);
-        $this->mainTable = $mainTable;
+        parent::__construct($tdbmService, $schema, $orderByAnalyzer, $mainTable, $orderBy);
         $this->additionalTablesFetch = $additionalTablesFetch;
         $this->filterString = $filterString;
         $this->cache = $cache;
