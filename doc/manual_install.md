@@ -12,6 +12,16 @@ Depending [on the framework you are using](install.md) (and the integration pack
 
 Hopefully, if your framework is not supported yet (or if you use no framework), setting up TDBM yourself is quite easy to do.
 
+## Installing TDBM
+
+Simply run:
+
+```php
+$ composer require thecodingmachine/tdbm ^5.1
+```
+
+## Instantiating the TDBMService
+
 At minimum, you need a [Doctrine database `Connection`](http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html) and a [Doctrine cache object](http://doctrine-orm.readthedocs.io/projects/doctrine-orm/en/latest/reference/caching.html).
 
 We strongly advise to use the `APCuCache` from Doctrine that will yield the best performances.
@@ -35,9 +45,6 @@ $dbConnection = Doctrine\DBAL\DriverManager::getConnection($connectionParams, $c
 $beanNamespace = 'MyApp\\Beans';
 $daoNamespace = 'MyApp\\Daos';
 
-// The naming strategy used to define the classname of DAOs and beans.
-$namingStrategy = new TheCodingMachine\TDBM\Utils\DefaultNamingStrategy();
-
 $cache = new Doctrine\Common\Cache\ApcuCache();
 
 $logger = new Monolog\Logger(); // $logger must be a PSR-3 compliant logger (optional).
@@ -47,7 +54,7 @@ $configuration = new TheCodingMachine\TDBM\Configuration(
     $beanNamespace,
     $daoNamespace,
     $dbConnection,
-    $namingStrategy,
+    null,    // An optional "naming strategy" if you want to change the way beans/DAOs are named
     $cache,
     null,    // An optional SchemaAnalyzer instance
     $logger, // An optional logger
@@ -95,6 +102,13 @@ $userDao = new UserDao($tdbmService);
 $user = $userDao->getById(42);
 echo $user->getLogin();
 ```
+
+## Integrating TDBM in your own framework
+
+The code samples above are here to help you understand the way `TDBMService` is instantiated.
+
+Of course, in a real application, you will want to put the `TDBMService` and every generated DAOs in a container.
+You will typically inject the DAOs in your code and will seldom use the `TDBMService` directly.
 
 ## Next step
 
