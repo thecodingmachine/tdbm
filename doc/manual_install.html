@@ -392,6 +392,10 @@
 <p>The <code>TDBMService</code> constructor takes a <code>Configuration</code> object that contains all the configuration needed by TDBM.</p>
 <p>Depending <a href="install.html">on the framework you are using</a> (and the integration package you chose), the way the <code>Configuration</code> object is set-up will vary.</p>
 <p>Hopefully, if your framework is not supported yet (or if you use no framework), setting up TDBM yourself is quite easy to do.</p>
+<h2 id="installing-tdbm">Installing TDBM</h2>
+<p>Simply run:</p>
+<pre><code class="language-php">$ composer require thecodingmachine/tdbm ^5.1</code></pre>
+<h2 id="instantiating-the-tdbmservice">Instantiating the TDBMService</h2>
 <p>At minimum, you need a <a href="http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html">Doctrine database <code>Connection</code></a> and a <a href="http://doctrine-orm.readthedocs.io/projects/doctrine-orm/en/latest/reference/caching.html">Doctrine cache object</a>.</p>
 <p>We strongly advise to use the <code>APCuCache</code> from Doctrine that will yield the best performances.</p>
 <p>Without using any framework, a working TDBM setup could look like this:</p>
@@ -411,9 +415,6 @@ $dbConnection = Doctrine\DBAL\DriverManager::getConnection($connectionParams, $c
 $beanNamespace = 'MyApp\\Beans';
 $daoNamespace = 'MyApp\\Daos';
 
-// The naming strategy used to define the classname of DAOs and beans.
-$namingStrategy = new TheCodingMachine\TDBM\Utils\DefaultNamingStrategy();
-
 $cache = new Doctrine\Common\Cache\ApcuCache();
 
 $logger = new Monolog\Logger(); // $logger must be a PSR-3 compliant logger (optional).
@@ -423,7 +424,7 @@ $configuration = new TheCodingMachine\TDBM\Configuration(
     $beanNamespace,
     $daoNamespace,
     $dbConnection,
-    $namingStrategy,
+    null,    // An optional "naming strategy" if you want to change the way beans/DAOs are named
     $cache,
     null,    // An optional SchemaAnalyzer instance
     $logger, // An optional logger
@@ -452,6 +453,10 @@ $application-&gt;add($command);</code></pre>
 
 $user = $userDao-&gt;getById(42);
 echo $user-&gt;getLogin();</code></pre>
+<h2 id="integrating-tdbm-in-your-own-framework">Integrating TDBM in your own framework</h2>
+<p>The code samples above are here to help you understand the way <code>TDBMService</code> is instantiated.</p>
+<p>Of course, in a real application, you will want to put the <code>TDBMService</code> and every generated DAOs in a container.
+You will typically inject the DAOs in your code and will seldom use the <code>TDBMService</code> directly.</p>
 <h2 id="next-step">Next step</h2>
 <p>Let's now learn how to <a href="quickstart.html">access the database</a>.</p>
 
