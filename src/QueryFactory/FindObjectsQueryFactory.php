@@ -47,8 +47,9 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
         $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$this->mainTable.')';
 
         $pkColumnNames = $this->tdbmService->getPrimaryKeyColumns($this->mainTable);
-        $pkColumnNames = array_map(function ($pkColumn) {
-            return $this->tdbmService->getConnection()->quoteIdentifier($this->mainTable).'.'.$this->tdbmService->getConnection()->quoteIdentifier($pkColumn);
+        $mysqlPlatform = new MySqlPlatform();
+        $pkColumnNames = array_map(function ($pkColumn) use ($mysqlPlatform) {
+            return $mysqlPlatform->quoteIdentifier($this->mainTable).'.'.$mysqlPlatform->quoteIdentifier($pkColumn);
         }, $pkColumnNames);
 
         $subQuery = 'SELECT DISTINCT '.implode(', ', $pkColumnNames).' FROM MAGICJOIN('.$this->mainTable.')';

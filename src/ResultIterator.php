@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Psr\Log\NullLogger;
 use function array_map;
 use Doctrine\DBAL\Connection;
@@ -371,7 +372,8 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
         $pkDesc = array_pop($primaryKeyColumnDescs);
 
-        $sql = $this->tdbmService->getConnection()->quoteIdentifier($pkDesc['table']).'.'.$this->tdbmService->getConnection()->quoteIdentifier($pkDesc['column']).' IN ('.$sql.')';
+        $mysqlPlatform = new MySqlPlatform();
+        $sql = $mysqlPlatform->quoteIdentifier($pkDesc['table']).'.'.$mysqlPlatform->quoteIdentifier($pkDesc['column']).' IN ('.$sql.')';
 
         return $sql;
     }
