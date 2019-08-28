@@ -2169,4 +2169,19 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $artist->getChildrenByArtistsRelations(); // auto-pivot relationship
         $this->assertEquals(1, 1);
     }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testSQLCountWithArray(): void
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $countryDao = new CountryDao($this->tdbmService);
+
+        $country = $countryDao->getById(2);
+
+        // Let's test filter bags by bean and filter bag with many values.
+        $users = $userDao->getUsersByComplexFilterBag($country, ['John Doe', 'John Smith'])->take(0, 1);
+        $this->assertEquals(1, $users->count());
+    }
 }
