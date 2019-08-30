@@ -189,7 +189,7 @@ abstract class AbstractQueryFactory implements QueryFactory
                     'tableGroup' => $tableGroups[$table],
                 ];
                 $columnsList[] = $mysqlPlatform->quoteIdentifier($table).'.'.$mysqlPlatform->quoteIdentifier($columnName).' as '.
-                    $mysqlPlatform->quoteIdentifier($table.'____'.$columnName);
+                    $connection->quoteIdentifier($table.'____'.$columnName);
             }
         }
 
