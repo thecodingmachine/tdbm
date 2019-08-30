@@ -68,27 +68,37 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
     protected $count = null;
 
+    private function __construct()
+    {
+    }
+
     /**
      * @param mixed[] $parameters
      * @param array[] $columnDescriptors
      */
-    public function __construct(?string $magicSql, ?array $parameters, ?int $limit, ?int $offset, ?array $columnDescriptors, ?ObjectStorageInterface $objectStorage, ?string $className, ?TDBMService $tdbmService, ?MagicQuery $magicQuery, ?LoggerInterface $logger)
+    public static function createInnerResultIterator(string $magicSql, array $parameters, ?int $limit, ?int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger): self
     {
-        if (!$magicSql) {
-            $this->count = 0;
-        } else {
-            $this->magicSql = $magicSql;
-            $this->objectStorage = $objectStorage;
-            $this->className = $className;
-            $this->tdbmService = $tdbmService;
-            $this->parameters = $parameters;
-            $this->limit = $limit;
-            $this->offset = $offset;
-            $this->columnDescriptors = $columnDescriptors;
-            $this->magicQuery = $magicQuery;
-            $this->databasePlatform = $this->tdbmService ? $this->tdbmService->getConnection()->getDatabasePlatform() : null;
-        }
-        $this->logger = $logger ?? new NullLogger();
+        $iterator =  new static();
+        $iterator->magicSql = $magicSql;
+        $iterator->objectStorage = $objectStorage;
+        $iterator->className = $className;
+        $iterator->tdbmService = $tdbmService;
+        $iterator->parameters = $parameters;
+        $iterator->limit = $limit;
+        $iterator->offset = $offset;
+        $iterator->columnDescriptors = $columnDescriptors;
+        $iterator->magicQuery = $magicQuery;
+        $iterator->databasePlatform = $iterator->tdbmService->getConnection()->getDatabasePlatform();
+        $iterator->logger = $logger;
+        return $iterator;
+    }
+
+    public static function createEmpyIterator(): self
+    {
+        $iterator = new static();
+        $iterator->count = 0;
+        $iterator->logger = new NullLogger();
+        return $iterator;
     }
 
     private function getQuery(): string
