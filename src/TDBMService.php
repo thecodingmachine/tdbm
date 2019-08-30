@@ -1137,7 +1137,7 @@ class TDBMService
 
         $queryFactory = new FindObjectsQueryFactory($mainTable, $additionalTablesFetch, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer, $this->cache);
 
-        return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
+        return ResultIterator::createResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**
@@ -1170,7 +1170,7 @@ class TDBMService
 
         $queryFactory = new FindObjectsFromSqlQueryFactory($mainTable, $from, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer, $this->schemaAnalyzer, $this->cache, $this->cachePrefix);
 
-        return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
+        return ResultIterator::createResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**
@@ -1334,7 +1334,7 @@ class TDBMService
 
         $queryFactory = new FindObjectsFromRawSqlQueryFactory($this, $this->tdbmSchemaAnalyzer->getSchema(), $mainTable, $sql, $sqlCount);
 
-        return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
+        return ResultIterator::createResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**

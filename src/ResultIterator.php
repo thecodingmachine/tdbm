@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
+use Psr\Log\NullLogger;
 use function array_map;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
@@ -66,23 +67,37 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     private $logger;
 
+    private function __construct()
+    {
+    }
+
     /**
      * @param mixed[] $parameters
      */
-    public function __construct(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger)
+    public static function createResultIterator(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): self
     {
+        $iterator =  new self();
         if ($mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
             throw new TDBMException("Unknown fetch mode: '".$mode."'");
         }
 
-        $this->queryFactory = $queryFactory;
-        $this->objectStorage = $objectStorage;
-        $this->className = $className;
-        $this->tdbmService = $tdbmService;
-        $this->parameters = $parameters;
-        $this->magicQuery = $magicQuery;
-        $this->mode = $mode;
-        $this->logger = $logger;
+        $iterator->queryFactory = $queryFactory;
+        $iterator->objectStorage = $objectStorage;
+        $iterator->className = $className;
+        $iterator->tdbmService = $tdbmService;
+        $iterator->parameters = $parameters;
+        $iterator->magicQuery = $magicQuery;
+        $iterator->mode = $mode;
+        $iterator->logger = $logger;
+        return $iterator;
+    }
+
+    public static function createEmpyIterator(): self
+    {
+        $iterator = new self();
+        $iterator->totalCount = 0;
+        $iterator->logger = new NullLogger();
+        return $iterator;
     }
 
     protected function executeCountQuery(): void
@@ -113,6 +128,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function toArray(): array
     {
+        if ($this->totalCount === 0) {
+            return [];
+        }
         return iterator_to_array($this->getIterator());
     }
 
@@ -125,6 +143,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function map(callable $callable): MapIterator
     {
+        if ($this->totalCount === 0) {
+            return new MapIterator([], $callable);
+        }
         return new MapIterator($this->getIterator(), $callable);
     }
 
@@ -141,10 +162,12 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     public function getIterator()
     {
         if ($this->innerResultIterator === null) {
-            if ($this->mode === TDBMService::MODE_CURSOR) {
-                $this->innerResultIterator = new InnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+            if ($this->totalCount === 0) {
+                $this->innerResultIterator = InnerResultArray::createEmpyIterator();
+            } elseif ($this->mode === TDBMService::MODE_CURSOR) {
+                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             } else {
-                $this->innerResultIterator = new InnerResultArray($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             }
         }
 
@@ -159,7 +182,10 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function take($offset, $limit)
     {
-        return new PageIterator($this, $this->queryFactory->getMagicSql(), $this->parameters, $limit, $offset, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger);
+        if ($this->totalCount === 0) {
+            return PageIterator::createEmpyIterator($this);
+        }
+        return PageIterator::createResultIterator($this, $this->queryFactory->getMagicSql(), $this->parameters, $limit, $offset, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger);
     }
 
     /**
@@ -265,12 +291,15 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function first()
     {
+        if ($this->totalCount === 0) {
+            return null;
+        }
         $page = $this->take(0, 1);
         foreach ($page as $bean) {
             return $bean;
         }
 
-        return;
+        return null;
     }
 
     /**
@@ -292,6 +321,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     public function withOrder($orderBy) : ResultIterator
     {
         $clone = clone $this;
+        if ($this->totalCount === 0) {
+            return $clone;
+        }
         $clone->queryFactory = clone $this->queryFactory;
         $clone->queryFactory->sort($orderBy);
         $clone->innerResultIterator = null;
@@ -313,6 +345,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     public function withParameters(array $parameters) : ResultIterator
     {
         $clone = clone $this;
+        if ($this->totalCount === 0) {
+            return $clone;
+        }
         $clone->parameters = $parameters;
         $clone->innerResultIterator = null;
         $clone->totalCount = null;

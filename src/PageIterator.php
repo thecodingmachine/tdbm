@@ -7,6 +7,7 @@ use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use Porpaginas\Page;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /*
  Copyright (C) 2006-2017 David Négrier - THE CODING MACHINE
@@ -67,24 +68,38 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      */
     private $logger;
 
+    private function __construct()
+    {
+    }
+
     /**
      * @param mixed[] $parameters
      * @param array[] $columnDescriptors
      */
-    public function __construct(ResultIterator $parentResult, string $magicSql, array $parameters, int $limit, int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger)
+    public static function createResultIterator(ResultIterator $parentResult, string $magicSql, array $parameters, int $limit, int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): self
     {
-        $this->parentResult = $parentResult;
-        $this->magicSql = $magicSql;
-        $this->objectStorage = $objectStorage;
-        $this->className = $className;
-        $this->tdbmService = $tdbmService;
-        $this->parameters = $parameters;
-        $this->limit = $limit;
-        $this->offset = $offset;
-        $this->columnDescriptors = $columnDescriptors;
-        $this->magicQuery = $magicQuery;
-        $this->mode = $mode;
-        $this->logger = $logger;
+        $iterator =  new self();
+        $iterator->parentResult = $parentResult;
+        $iterator->magicSql = $magicSql;
+        $iterator->objectStorage = $objectStorage;
+        $iterator->className = $className;
+        $iterator->tdbmService = $tdbmService;
+        $iterator->parameters = $parameters;
+        $iterator->limit = $limit;
+        $iterator->offset = $offset;
+        $iterator->columnDescriptors = $columnDescriptors;
+        $iterator->magicQuery = $magicQuery;
+        $iterator->mode = $mode;
+        $iterator->logger = $logger;
+        return $iterator;
+    }
+
+    public static function createEmpyIterator(ResultIterator $parentResult): self
+    {
+        $iterator = new self();
+        $iterator->parentResult = $parentResult;
+        $iterator->logger = new NullLogger();
+        return $iterator;
     }
 
     /**
@@ -100,10 +115,12 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
     public function getIterator()
     {
         if ($this->innerResultIterator === null) {
-            if ($this->mode === TDBMService::MODE_CURSOR) {
-                $this->innerResultIterator = new InnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+            if ($this->parentResult->count() === 0) {
+                $this->innerResultIterator = InnerResultIterator::createEmpyIterator();
+            } elseif ($this->mode === TDBMService::MODE_CURSOR) {
+                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             } else {
-                $this->innerResultIterator = new InnerResultArray($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             }
         }
 
@@ -173,6 +190,9 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      */
     public function map(callable $callable): MapIterator
     {
+        if ($this->count() === 0) {
+            return new MapIterator([], $callable);
+        }
         return new MapIterator($this->getIterator(), $callable);
     }
 

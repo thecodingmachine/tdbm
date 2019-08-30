@@ -7,6 +7,7 @@ use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use TheCodingMachine\TDBM\Utils\DbalUtils;
 
 /*
@@ -65,23 +66,39 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     private $logger;
 
+    protected $count = null;
+
+    private function __construct()
+    {
+    }
+
     /**
      * @param mixed[] $parameters
      * @param array[] $columnDescriptors
      */
-    public function __construct(string $magicSql, array $parameters, ?int $limit, ?int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger)
+    public static function createInnerResultIterator(string $magicSql, array $parameters, ?int $limit, ?int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger): self
     {
-        $this->magicSql = $magicSql;
-        $this->objectStorage = $objectStorage;
-        $this->className = $className;
-        $this->tdbmService = $tdbmService;
-        $this->parameters = $parameters;
-        $this->limit = $limit;
-        $this->offset = $offset;
-        $this->columnDescriptors = $columnDescriptors;
-        $this->magicQuery = $magicQuery;
-        $this->databasePlatform = $this->tdbmService->getConnection()->getDatabasePlatform();
-        $this->logger = $logger;
+        $iterator =  new static();
+        $iterator->magicSql = $magicSql;
+        $iterator->objectStorage = $objectStorage;
+        $iterator->className = $className;
+        $iterator->tdbmService = $tdbmService;
+        $iterator->parameters = $parameters;
+        $iterator->limit = $limit;
+        $iterator->offset = $offset;
+        $iterator->columnDescriptors = $columnDescriptors;
+        $iterator->magicQuery = $magicQuery;
+        $iterator->databasePlatform = $iterator->tdbmService->getConnection()->getDatabasePlatform();
+        $iterator->logger = $logger;
+        return $iterator;
+    }
+
+    public static function createEmpyIterator(): self
+    {
+        $iterator = new static();
+        $iterator->count = 0;
+        $iterator->logger = new NullLogger();
+        return $iterator;
     }
 
     private function getQuery(): string
@@ -102,7 +119,6 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
         $this->fetchStarted = true;
     }
 
-    private $count = null;
     /**
      * Counts found records (this is the number of records fetched, taking into account the LIMIT and OFFSET settings).
      *
@@ -242,6 +258,9 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     public function rewind()
     {
+        if ($this->count === 0) {
+            return;
+        }
         $this->executeQuery();
         $this->key = -1;
         $this->next();
@@ -253,6 +272,9 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     public function valid()
     {
+        if ($this->count === 0) {
+            return false;
+        }
         return $this->current !== null;
     }
 
@@ -311,7 +333,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     public function offsetSet($offset, $value)
     {
-        throw new TDBMInvalidOperationException('You can set values in a TDBM result set.');
+        throw new TDBMInvalidOperationException('You cannot set values in a TDBM result set.');
     }
 
     /**
@@ -327,6 +349,6 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     public function offsetUnset($offset)
     {
-        throw new TDBMInvalidOperationException('You can unset values in a TDBM result set.');
+        throw new TDBMInvalidOperationException('You cannot unset values in a TDBM result set.');
     }
 }
