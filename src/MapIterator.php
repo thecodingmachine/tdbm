@@ -55,7 +55,7 @@ class MapIterator implements Iterator, \JsonSerializable
      * Alters the current item with $this->callable and returns a new item.
      * Be careful with your types as we can't do static type checking here!
      *
-     * @return mixed
+     * @return mixed|null
      */
     public function current()
     {

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
+use Psr\Log\NullLogger;
 use function array_map;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
@@ -69,20 +70,29 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * @param mixed[] $parameters
      */
-    public function __construct(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger)
+    public function __construct(?QueryFactory $queryFactory, ?array $parameters, ?ObjectStorageInterface $objectStorage, ?string $className, ?TDBMService $tdbmService, ?MagicQuery $magicQuery, int $mode, ?LoggerInterface $logger)
     {
         if ($mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
             throw new TDBMException("Unknown fetch mode: '".$mode."'");
         }
 
-        $this->queryFactory = $queryFactory;
-        $this->objectStorage = $objectStorage;
-        $this->className = $className;
-        $this->tdbmService = $tdbmService;
-        $this->parameters = $parameters;
-        $this->magicQuery = $magicQuery;
-        $this->mode = $mode;
-        $this->logger = $logger;
+        if (!$queryFactory) {
+            $this->totalCount = 0;
+        } else {
+            $this->queryFactory = $queryFactory;
+            $this->objectStorage = $objectStorage;
+            $this->className = $className;
+            $this->tdbmService = $tdbmService;
+            $this->parameters = $parameters;
+            $this->magicQuery = $magicQuery;
+            $this->mode = $mode;
+        }
+        $this->logger = $logger ?? new NullLogger();
+    }
+
+    public static function createEmpyIterator(): self
+    {
+        return new self(null, null, null, null, null, null, TDBMService::MODE_ARRAY, null);
     }
 
     protected function executeCountQuery(): void
@@ -113,6 +123,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function toArray(): array
     {
+        if ($this->totalCount === 0) {
+            return [];
+        }
         return iterator_to_array($this->getIterator());
     }
 
@@ -125,6 +138,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function map(callable $callable): MapIterator
     {
+        if ($this->totalCount === 0) {
+            return new MapIterator([], $callable);
+        }
         return new MapIterator($this->getIterator(), $callable);
     }
 
@@ -141,7 +157,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     public function getIterator()
     {
         if ($this->innerResultIterator === null) {
-            if ($this->mode === TDBMService::MODE_CURSOR) {
+            if ($this->totalCount === 0) {
+                $this->innerResultIterator = new InnerResultArray(null, null, null, null, null, null, null, null, null, null);
+            } elseif ($this->mode === TDBMService::MODE_CURSOR) {
                 $this->innerResultIterator = new InnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             } else {
                 $this->innerResultIterator = new InnerResultArray($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
@@ -159,6 +177,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function take($offset, $limit)
     {
+        if ($this->totalCount === 0) {
+            return new PageIterator($this, null, [], null, null, null, null, null, null, null, null, null);
+        }
         return new PageIterator($this, $this->queryFactory->getMagicSql(), $this->parameters, $limit, $offset, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger);
     }
 
@@ -265,12 +286,15 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function first()
     {
+        if ($this->totalCount === 0) {
+            return null;
+        }
         $page = $this->take(0, 1);
         foreach ($page as $bean) {
             return $bean;
         }
 
-        return;
+        return null;
     }
 
     /**
@@ -292,6 +316,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     public function withOrder($orderBy) : ResultIterator
     {
         $clone = clone $this;
+        if ($this->totalCount === 0) {
+            return $clone;
+        }
         $clone->queryFactory = clone $this->queryFactory;
         $clone->queryFactory->sort($orderBy);
         $clone->innerResultIterator = null;
@@ -313,6 +340,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     public function withParameters(array $parameters) : ResultIterator
     {
         $clone = clone $this;
+        if ($this->totalCount === 0) {
+            return $clone;
+        }
         $clone->parameters = $parameters;
         $clone->innerResultIterator = null;
         $clone->totalCount = null;
