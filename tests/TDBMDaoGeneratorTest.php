@@ -2189,7 +2189,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testSubQueryWithFind()
+    public function testSubQueryWithFind(): void
     {
         $userDao = new TestUserDao($this->tdbmService);
         $articleDao = new TestArticleSubQueryDao($this->tdbmService, $userDao);
@@ -2203,5 +2203,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->assertCount(1, $results);
         $this->assertSame('Foo', $results[0]->getContent());
+    }
+
+    public function testSubQueryExceptionOnPrimaryKeysWithMultipleColumns(): void
+    {
+        $stateDao = new StateDao($this->tdbmService);
+        $states = $stateDao->findAll();
+        $this->expectException(TDBMException::class);
+        $this->expectExceptionMessage('You cannot use in a sub-query a table that has a primary key on more that 1 column.');
+        $states->_getSubQuery();
     }
 }
