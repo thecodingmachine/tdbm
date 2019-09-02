@@ -49,8 +49,14 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     private $objectStorage;
     private $className;
 
+    /**
+     * @var TDBMService
+     */
     private $tdbmService;
     private $parameters;
+    /**
+     * @var MagicQuery
+     */
     private $magicQuery;
 
     /**
@@ -363,7 +369,12 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function _getSubQuery(): string
     {
-        $sql = $this->magicQuery->build($this->queryFactory->getMagicSqlSubQuery(), $this->parameters);
+        $this->magicQuery->setOutputDialect(new MySqlPlatform());
+        try {
+            $sql = $this->magicQuery->build($this->queryFactory->getMagicSqlSubQuery(), $this->parameters);
+        } finally {
+            $this->magicQuery->setOutputDialect($this->tdbmService->getConnection()->getDatabasePlatform());
+        }
         $primaryKeyColumnDescs = $this->queryFactory->getSubQueryColumnDescriptors();
 
         if (count($primaryKeyColumnDescs) > 1) {
