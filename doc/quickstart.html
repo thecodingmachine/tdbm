@@ -687,6 +687,44 @@ foreach ($userList as $user)
     /* @var $user User */
     echo $user-&gt;getName().'&lt;br/&gt;';
 }</code></pre>
+<h3 id="filtering-by-sub-query">Filtering by sub-query</h3>
+<p><code>find</code> can also accept a result iterator (the result of a <code>find</code> method) as a filter.</p>
+<pre><code class="language-php">class CountryDao extends AbstractCountryDao {
+    /**
+     * Returns the list of countries whose country name starts by "$countryName"
+     *
+     * @param string $countryName
+     * @return Country[]
+     */
+    public function findByCountryName($countryName) {
+        return $this-&gt;find("name LIKE :country", [ 'country' =&gt; $countryName.'%' ] );
+    }
+}
+
+class UserDao extends AbstractUserDao {
+    /**
+     * @var TestCountryDao
+     */
+    private $countryDao;
+
+    public function __construct(TDBMService $tdbmService, TestCountryDao $countryDao)
+    {
+        parent::__construct($tdbmService);
+        $this-&gt;countryDao = $countryDao;
+    }
+
+    /**
+     * Returns the list of users whose country name starts by "$countryName"
+     *
+     * @param string $countryName
+     * @return User[]
+     */
+    public function getUsersByCountryName($countryName) {
+        return $this-&gt;find($this-&gt;countryDao-&gt;findByCountryName($countryName));
+    }
+}</code></pre>
+<p>See? The <code>UserDao::getUsersByCountryName</code> method is making use of the <code>CountryDao::findByCountryName</code> method.
+It essentially says: &quot;find all the users related to the result iterator of the countries starting with 'XXX'&quot;.</p>
 <h3 id="complex-joins">Complex joins</h3>
 <p><img src="images/user_role_right.png" alt="Users, roles and rights" /></p>
 <p>So now, what if I want to find what rights the user &quot;Robert Marley&quot; has?</p>
