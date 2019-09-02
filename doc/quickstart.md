@@ -459,6 +459,50 @@ foreach ($userList as $user)
 }
 ```
 
+###Filtering by sub-query
+
+`find` can also accept a result iterator (the result of a `find` method) as a filter.
+
+```php
+class CountryDao extends AbstractCountryDao {
+	/**
+	 * Returns the list of countries whose country name starts by "$countryName"
+	 *
+	 * @param string $countryName
+	 * @return Country[]
+	 */
+	public function findByCountryName($countryName) {
+		return $this->find("name LIKE :country", [ 'country' => $countryName.'%' ] );
+	}
+}
+
+class UserDao extends AbstractUserDao {
+    /**
+     * @var TestCountryDao
+     */
+    private $countryDao;
+
+    public function __construct(TDBMService $tdbmService, TestCountryDao $countryDao)
+    {
+        parent::__construct($tdbmService);
+        $this->countryDao = $countryDao;
+    }
+
+	/**
+	 * Returns the list of users whose country name starts by "$countryName"
+	 *
+	 * @param string $countryName
+	 * @return User[]
+	 */
+	public function getUsersByCountryName($countryName) {
+		return $this->find($this->countryDao->findByCountryName($countryName));
+	}
+}
+```
+
+See? The `UserDao::getUsersByCountryName` method is making use of the `CountryDao::findByCountryName` method.
+It essentially says: "find all the users related to the result iterator of the countries starting with 'XXX'".
+
 ###Complex joins
 
 ![Users, roles and rights](images/user_role_right.png)
