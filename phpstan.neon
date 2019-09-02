@@ -1,4 +1,6 @@
 parameters:
+    level: 7
+    inferPrivatePropertyTypeFromConstructor: true
     ignoreErrors:
      - "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
      - "#Method .*::.* should return .* but returns .*TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject#"
@@ -8,13 +10,13 @@ parameters:
      - "#Call to an undefined method object::#"
      - "#expects TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject, object given.#"
      - "#should return array<TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject> but returns array<int, object>#"
-     - "#expects array<string>, array<int, int|string> given.#"
+     #- "#expects array<string>, array<int, int|string> given.#"
      - "/Parameter #. \\$types of method Doctrine\\\\DBAL\\\\Connection::.*() expects array<int|string>, array<int, Doctrine\\\\DBAL\\\\Types\\\\Type> given./"
      - "#Method TheCodingMachine\\\\TDBM\\\\Schema\\\\ForeignKey::.*() should return .* but returns array<string>|string.#"
      -
         message: '#Result of && is always false.#'
         path: src/Test/Dao/Bean/Generated/ArticleBaseBean.php
-    reportUnmatchedIgnoredErrors: false
+    #reportUnmatchedIgnoredErrors: false
 includes:
     - vendor/thecodingmachine/phpstan-strict-rules/phpstan-strict-rules.neon
 

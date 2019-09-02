@@ -70,7 +70,7 @@
         }
     },
     "scripts": {
-        "phpstan": "php -d memory_limit=3G vendor/bin/phpstan analyse src -c phpstan.neon --level=7 --no-progress -vvv",
+        "phpstan": "php -d memory_limit=3G vendor/bin/phpstan analyse src -c phpstan.neon --no-progress -vvv",
         "require-checker": "composer-require-checker check --config-file=composer-require-checker.json",
         "test": "phpunit",
         "csfix": "php-cs-fixer fix src/ && php-cs-fixer fix tests/",

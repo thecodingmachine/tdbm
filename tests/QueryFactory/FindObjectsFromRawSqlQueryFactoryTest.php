@@ -8,7 +8,6 @@ use TheCodingMachine\TDBM\TDBMException;
 
 class FindObjectsFromRawSqlQueryFactoryTest extends TDBMAbstractServiceTest
 {
-
     public function testGetSubQueryColumnDescriptors(): void
     {
         $queryFactory = new FindObjectsFromRawSqlQueryFactory($this->tdbmService, $this->tdbmService->getConnection()->getSchemaManager()->createSchema(), 'country', 'SELECT country.* FROM country');
@@ -21,6 +20,5 @@ class FindObjectsFromRawSqlQueryFactoryTest extends TDBMAbstractServiceTest
         $queryFactory = new FindObjectsFromRawSqlQueryFactory($this->tdbmService, $this->tdbmService->getConnection()->getSchemaManager()->createSchema(), 'country', 'SELECT country.* FROM country');
         $this->expectException(TDBMException::class);
         $queryFactory->getMagicSqlSubQuery();
-
     }
 }
