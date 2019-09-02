@@ -23,6 +23,7 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\Utils\ImmutableCaster;
 
 class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
 {
@@ -36,6 +37,26 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         parent::setUp();
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer);
+    }
+
+    public function testSchemaLock(): void
+    {
+        $schemaFromConnec = self::getConnection()->getSchemaManager()->createSchema();
+        $tableNames = [];
+        //lock file doesn't save the database name so we have to replace it manually.
+        foreach ($schemaFromConnec->getTableNames() as $tableName) {
+            $tableNames[] = str_replace('tdbm_testcase', 'public', $tableName);
+        }
+        ImmutableCaster::castSchemaToImmutable($schemaFromConnec);
+
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $cache = new ArrayCache();
+        $tdbmSchemaAnalyzer1 = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
+
+        $schemaFromAnalyser = $tdbmSchemaAnalyzer1->getSchema(true);
+        $schemaFromAnalyserCached = $tdbmSchemaAnalyzer1->getSchema();
+        $this->assertEquals($tableNames, $schemaFromAnalyser->getTableNames());
+        $this->assertEquals($schemaFromAnalyser->getTableNames(), $schemaFromAnalyserCached->getTableNames());
     }
 
     public function testGetSchema(): void

@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
+use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
 
 class GenerateCommandTest extends TDBMAbstractServiceTest
 {
@@ -24,9 +25,16 @@ class GenerateCommandTest extends TDBMAbstractServiceTest
         $input = new ArrayInput([
         ], self::getInputDefinition());
 
+        //let's delete the lock file
+        $schemaFilePath = TDBMSchemaAnalyzer::getLockFilePath();
+        if (file_exists($schemaFilePath)) {
+            unlink($schemaFilePath);
+        }
         $result = $this->callCommand(new GenerateCommand($this->getConfiguration()), $input);
 
         $this->assertContains('Finished regenerating DAOs and beans', $result);
+        //Check that the lock file was generated
+        $this->assertFileExists($schemaFilePath);
     }
 
     /**

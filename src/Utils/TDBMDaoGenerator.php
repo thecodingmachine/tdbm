@@ -34,11 +34,6 @@ use function var_export;
 class TDBMDaoGenerator
 {
     /**
-     * @var Schema
-     */
-    private $schema;
-
-    /**
      * @var TDBMSchemaAnalyzer
      */
     private $tdbmSchemaAnalyzer;
@@ -66,7 +61,6 @@ class TDBMDaoGenerator
     public function __construct(ConfigurationInterface $configuration, TDBMSchemaAnalyzer $tdbmSchemaAnalyzer)
     {
         $this->configuration = $configuration;
-        $this->schema = $tdbmSchemaAnalyzer->getSchema();
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
         $this->namingStrategy = $configuration->getNamingStrategy();
         $this->eventDispatcher = $configuration->getGeneratorEventDispatcher();
@@ -79,9 +73,11 @@ class TDBMDaoGenerator
      */
     public function generateAllDaosAndBeans(): void
     {
-        // TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
+        $this->tdbmSchemaAnalyzer->generateLockFile();
+        $schema = $this->tdbmSchemaAnalyzer->getSchema();
 
-        $tableList = $this->schema->getTables();
+        // TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
+        $tableList = $schema->getTables();
 
         // Remove all beans and daos from junction tables
         $junctionTables = $this->configuration->getSchemaAnalyzer()->detectJunctionTables(true);
@@ -97,7 +93,7 @@ class TDBMDaoGenerator
 
         $beanDescriptors = [];
 
-        $beanRegistry = new BeanRegistry($this->configuration, $this->schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy);
+        $beanRegistry = new BeanRegistry($this->configuration, $schema, $this->tdbmSchemaAnalyzer, $this->namingStrategy);
         foreach ($tableList as $table) {
             $beanDescriptors[] = $beanRegistry->addBeanForTable($table);
         }

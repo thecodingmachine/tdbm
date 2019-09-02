@@ -114,9 +114,18 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         touch($dummyFile);
         $this->assertFileExists($dummyFile);
 
+        //let's delete the lock file
+        $schemaFilePath = TDBMSchemaAnalyzer::getLockFilePath();
+        if (file_exists($schemaFilePath)) {
+            unlink($schemaFilePath);
+        }
+
         $this->tdbmDaoGenerator->generateAllDaosAndBeans();
 
         $this->assertFileNotExists($dummyFile);
+
+        //Check that the lock file was generated
+        $this->assertFileExists($schemaFilePath);
 
         // Let's require all files to check they are valid PHP!
         // Test the daoFactory
