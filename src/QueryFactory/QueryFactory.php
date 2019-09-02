@@ -31,7 +31,20 @@ interface QueryFactory
     public function getMagicSqlCount() : string;
 
     /**
-     * @return mixed[][] An array of column descriptors. The key is in the form "$tableName____$columnName". Value is an array with those keys: as, table, colum, type, tableGroup
+     * Returns a sub-query to be used in another query.
+     * A sub-query is similar to a query except it returns only the primary keys of the table (to be used as filters)
+     *
+     * @return string
+     */
+    public function getMagicSqlSubQuery() : string;
+
+    /**
+     * @return mixed[][] An array of column descriptors. The key is in the form "$tableName____$columnName". Value is an array with those keys: as, table, column, type, tableGroup
      */
     public function getColumnDescriptors() : array;
+
+    /**
+     * @return string[][] An array of column descriptors. Value is an array with those keys: table, column
+     */
+    public function getSubQueryColumnDescriptors() : array;
 }

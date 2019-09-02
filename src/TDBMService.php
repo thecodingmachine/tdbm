@@ -414,6 +414,9 @@ class TDBMService
             }
 
             return ['(' . implode(') AND (', $sqlParts) . ')', $parameters, $counter];
+        } elseif ($filter_bag instanceof ResultIterator) {
+            $subQuery = $filter_bag->_getSubQuery();
+            return [$subQuery, [], $counter];
         } elseif ($filter_bag instanceof AbstractTDBMObject) {
             $sqlParts = [];
             $parameters = [];
@@ -433,6 +436,7 @@ class TDBMService
 
             return [implode(' AND ', $sqlParts), $parameters, $counter];
         } elseif ($filter_bag instanceof \Iterator) {
+            // TODO: we could instead check if is_iterable($filter_bag). That would remove useless code here.
             return $this->buildFilterFromFilterBag(iterator_to_array($filter_bag), $platform, $counter);
         } else {
             throw new TDBMException('Error in filter. An object has been passed that is neither a SQL string, nor an array, nor a bean, nor null.');

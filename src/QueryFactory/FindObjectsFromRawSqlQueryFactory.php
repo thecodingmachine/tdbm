@@ -395,4 +395,23 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         sort($relatedTables);
         return implode('_``_', $relatedTables);
     }
+
+    /**
+     * Returns a sub-query to be used in another query.
+     * A sub-query is similar to a query except it returns only the primary keys of the table (to be used as filters)
+     *
+     * @return string
+     */
+    public function getMagicSqlSubQuery(): string
+    {
+        throw new TDBMException('Using resultset generated from findFromRawSql as subqueries is unsupported for now.');
+    }
+
+    /**
+     * @return string[][] An array of column descriptors. Value is an array with those keys: table, column
+     */
+    public function getSubQueryColumnDescriptors(): array
+    {
+        throw new TDBMException('Using resultset generated from findFromRawSql as subqueries is unsupported for now.');
+    }
 }

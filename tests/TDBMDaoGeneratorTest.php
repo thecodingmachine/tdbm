@@ -31,6 +31,7 @@ use Ramsey\Uuid\Uuid;
 use ReflectionClass;
 use ReflectionMethod;
 use TheCodingMachine\TDBM\Dao\TestArticleDao;
+use TheCodingMachine\TDBM\Dao\TestArticleSubQueryDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
@@ -2183,5 +2184,33 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // Let's test filter bags by bean and filter bag with many values.
         $users = $userDao->getUsersByComplexFilterBag($country, ['John Doe', 'John Smith'])->take(0, 1);
         $this->assertEquals(1, $users->count());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testSubQueryWithFind(): void
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $articleDao = new TestArticleSubQueryDao($this->tdbmService, $userDao);
+
+        $bill = $userDao->getById(4);
+        $article = new ArticleBean('Foo');
+        $article->setAuthor($bill);
+        $articleDao->save($article);
+
+        $results = $articleDao->getArticlesByUserLoginStartingWith('bill');
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Foo', $results[0]->getContent());
+    }
+
+    public function testSubQueryExceptionOnPrimaryKeysWithMultipleColumns(): void
+    {
+        $stateDao = new StateDao($this->tdbmService);
+        $states = $stateDao->findAll();
+        $this->expectException(TDBMException::class);
+        $this->expectExceptionMessage('You cannot use in a sub-query a table that has a primary key on more that 1 column.');
+        $states->_getSubQuery();
     }
 }

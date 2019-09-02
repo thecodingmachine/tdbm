@@ -11,13 +11,13 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMService;
+use function implode;
 
 /**
  * This class is in charge of creating the MagicQuery SQL based on parameters passed to findObjectsFromSql method.
  */
 class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 {
-    private $mainTable;
     private $from;
     private $filterString;
     private $cache;
@@ -26,8 +26,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
     public function __construct(string $mainTable, string $from, $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, SchemaAnalyzer $schemaAnalyzer, Cache $cache, string $cachePrefix)
     {
-        parent::__construct($tdbmService, $schema, $orderByAnalyzer, $orderBy);
-        $this->mainTable = $mainTable;
+        parent::__construct($tdbmService, $schema, $orderByAnalyzer, $mainTable, $orderBy);
         $this->from = $from;
         $this->filterString = $filterString;
         $this->schemaAnalyzer = $schemaAnalyzer;
@@ -55,6 +54,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         }, $pkColumnNames);
 
         $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM '.$this->from;
+        $subQuery = 'SELECT DISTINCT '.implode(', ', $pkColumnNames).' FROM '.$this->from;
 
         // Add joins on inherited tables if necessary
         if (count($allFetchedTables) > 1) {
@@ -89,6 +89,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         if (!empty($this->filterString)) {
             $sql .= ' WHERE '.$this->filterString;
             $countSql .= ' WHERE '.$this->filterString;
+            $subQuery .= ' WHERE '.$this->filterString;
         }
 
         if (!empty($orderString)) {
@@ -101,6 +102,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
         $this->magicSql = $sql;
         $this->magicSqlCount = $countSql;
+        $this->magicSqlSubQuery = $subQuery;
         $this->columnDescList = $columnDescList;
     }
 
