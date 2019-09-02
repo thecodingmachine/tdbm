@@ -3,23 +3,22 @@
 namespace TheCodingMachine\TDBM\QueryFactory;
 
 use Doctrine\DBAL\Schema\Schema;
-use PHPUnit\Framework\TestCase;
 use TheCodingMachine\TDBM\TDBMAbstractServiceTest;
 use TheCodingMachine\TDBM\TDBMException;
 
 class FindObjectsFromRawSqlQueryFactoryTest extends TDBMAbstractServiceTest
 {
 
-    public function testGetSubQueryColumnDescriptors()
+    public function testGetSubQueryColumnDescriptors(): void
     {
-        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this->tdbmService, $this->createMock(Schema::class), 'foo', 'bar');
+        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this->tdbmService, $this->tdbmService->getConnection()->getSchemaManager()->createSchema(), 'country', 'SELECT country.* FROM country');
         $this->expectException(TDBMException::class);
         $queryFactory->getSubQueryColumnDescriptors();
     }
 
-    public function testGetMagicSqlSubQuery()
+    public function testGetMagicSqlSubQuery(): void
     {
-        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this->tdbmService, $this->createMock(Schema::class), 'foo', 'bar');
+        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this->tdbmService, $this->tdbmService->getConnection()->getSchemaManager()->createSchema(), 'country', 'SELECT country.* FROM country');
         $this->expectException(TDBMException::class);
         $queryFactory->getMagicSqlSubQuery();
 
