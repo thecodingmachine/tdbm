@@ -2205,6 +2205,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame('Foo', $results[0]->getContent());
     }
 
+    /**
+     * @depends testDaoGeneration
+     */
     public function testSubQueryExceptionOnPrimaryKeysWithMultipleColumns(): void
     {
         $stateDao = new StateDao($this->tdbmService);
@@ -2212,5 +2215,26 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->expectException(TDBMException::class);
         $this->expectExceptionMessage('You cannot use in a sub-query a table that has a primary key on more that 1 column.');
         $states->_getSubQuery();
+    }
+
+    public function testManyToOneEagerLoading(): void
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $users = $userDao->findAll();
+        $countryIds = [];
+        foreach ($users as $user) {
+            $countryIds[] = $user->getCountry()->getId();
+        }
+
+        $this->assertFalse($users->getIterator()->hasManyToOneDataLoader('__country_id'));
+        $this->assertSame([2, 1, 3, 2, 2, 4], $countryIds);
+
+        $countryNames = [];
+        foreach ($users as $user) {
+            $countryNames[] = $user->getCountry()->getLabel();
+        }
+
+        $this->assertTrue($users->getIterator()->hasManyToOneDataLoader('__country_id'));
+        $this->assertSame(['UK', 'France', 'Jamaica', 'UK', 'UK', 'Mexico'], $countryNames);
     }
 }

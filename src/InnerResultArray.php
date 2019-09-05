@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-use Doctrine\DBAL\Statement;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\ManyToOneDataLoader;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNodeTrait;
 
 /*
  Copyright (C) 2006-2017 David Négrier - THE CODING MACHINE
@@ -26,8 +28,10 @@ use Doctrine\DBAL\Statement;
 /**
  * Iterator used to retrieve results. It behaves like an array.
  */
-class InnerResultArray extends InnerResultIterator
+class InnerResultArray extends InnerResultIterator implements StorageNode
 {
+    use StorageNodeTrait;
+
     /**
      * The list of results already fetched.
      *
