@@ -5,6 +5,7 @@ namespace TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query;
 
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Mouf\Database\MagicQuery;
 use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
@@ -68,7 +69,9 @@ class StaticPartialQuery implements PartialQuery
             $sql .= implode(', ', $tables);
             $sql .= ' '.$this->queryFrom;
 
+            $this->magicQuery->setOutputDialect($mysqlPlatform);
             $sql = $this->magicQuery->build($sql, $this->parameters);
+            $this->magicQuery->setOutputDialect(null);
             $fromIndex = strpos($sql, 'FROM');
             if ($fromIndex === false) {
                 throw new TDBMException('Expected smart eager loader query to contain a "FROM"');
