@@ -3,7 +3,6 @@
 
 namespace TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query;
 
-
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;

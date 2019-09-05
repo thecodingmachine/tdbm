@@ -3,7 +3,6 @@
 
 namespace TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad;
 
-
 trait StorageNodeTrait
 {
     /**

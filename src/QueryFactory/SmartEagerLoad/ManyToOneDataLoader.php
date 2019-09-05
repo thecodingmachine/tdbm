@@ -3,7 +3,6 @@
 
 namespace TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad;
 
-
 use Doctrine\DBAL\Connection;
 use TheCodingMachine\TDBM\TDBMException;
 

@@ -27,6 +27,7 @@ use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
 use TheCodingMachine\TDBM\Schema\ForeignKeys;
 use function array_pop;
 use function count;
+use function var_export;
 
 /**
  * Instances of this class represent a row in a database.
@@ -231,12 +232,13 @@ class DbRow
                 $row = $result->fetch(\PDO::FETCH_ASSOC);
 
                 $result->closeCursor();
+
+                if ($row === false) {
+                    throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \".$sql_where.\" with data \"".var_export($parameters, true)."\".");
+                }
             }
 
 
-            if ($row === false) {
-                throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \".$sql_where.\" with data \"".var_export($parameters, true)."\".");
-            }
 
             $this->dbRow = [];
             $types = $this->tdbmService->_getColumnTypesForTable($this->dbTableName);

@@ -3,7 +3,6 @@
 
 namespace TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad;
 
-
 use Mouf\Database\MagicQuery;
 use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query\PartialQuery;
 
