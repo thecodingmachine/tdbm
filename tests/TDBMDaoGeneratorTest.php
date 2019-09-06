@@ -2250,9 +2250,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $lazyBean = $countryDao->getById(-1, true);
 
         $this->expectException(NoBeanFoundException::class);
-        $this->expectExceptionMessage("Could not retrieve object from table \"country\" using filter \"(`id` = :tdbmparam1)\" with data \"array (
-  'tdbmparam1' => -1,
-)\".");
+        $this->expectExceptionMessage("Could not retrieve object from table");
         $lazyBean->getLabel();
     }
 }

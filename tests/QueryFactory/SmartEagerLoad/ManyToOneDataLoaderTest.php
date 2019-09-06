@@ -8,7 +8,6 @@ use TheCodingMachine\TDBM\TDBMException;
 
 class ManyToOneDataLoaderTest extends TestCase
 {
-
     public function testGet()
     {
         $connection = $this->createMock(Connection::class);

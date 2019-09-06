@@ -10,7 +10,6 @@ use TheCodingMachine\TDBM\TDBMException;
 
 class StaticPartialQueryTest extends TestCase
 {
-
     public function testRegisterDataLoader()
     {
         $query = new StaticPartialQuery('FROM users', ['foo'=>42], ['users'], $this->createMock(StorageNode::class), new MagicQuery());
