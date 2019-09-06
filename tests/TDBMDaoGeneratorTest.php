@@ -104,6 +104,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         //$this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
     }
 
+    public function testGetSchemaCrashWithoutLock()
+    {
+        //let's delete the lock file
+        $schemaFilePath = TDBMSchemaAnalyzer::getLockFilePath();
+        if (file_exists($schemaFilePath)) {
+            unlink($schemaFilePath);
+        }
+        //let's check we cannot call get schema without a lock file
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer);
+        $this->expectException('TheCodingMachine\TDBM\TDBMException');
+        $schema1 = $tdbmSchemaAnalyzer->getSchema(true);
+    }
+
     public function testDaoGeneration(): void
     {
         // Remove all previously generated files.
