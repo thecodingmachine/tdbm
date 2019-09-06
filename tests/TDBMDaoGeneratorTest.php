@@ -2220,7 +2220,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testManyToOneEagerLoading(): void
     {
         $userDao = new UserDao($this->tdbmService);
-        $users = $userDao->findAll();
+        $users = $userDao->findAll()->withOrder('id asc');
         $countryIds = [];
         foreach ($users as $user) {
             $countryIds[] = $user->getCountry()->getId();
