@@ -8,7 +8,8 @@
     "TheCodingMachine\\TDBM\\Fixtures\\Traits\\TestUserDaoTrait",
     "TheCodingMachine\\TDBM\\Fixtures\\Interfaces\\TestUserInterface",
     "TheCodingMachine\\TDBM\\Fixtures\\Traits\\TestUserTrait",
-    "TheCodingMachine\\TDBM\\Fixtures\\Traits\\TestOtherUserTrait"
+    "TheCodingMachine\\TDBM\\Fixtures\\Traits\\TestOtherUserTrait",
+    "Composer\\Autoload\\ClassLoader"
   ],
   "php-core-extensions" : [
     "Core",
