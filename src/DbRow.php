@@ -217,7 +217,7 @@ class DbRow
                 $dataLoader = $this->partialQuery->getStorageNode()->getManyToOneDataLoader($this->partialQuery->getKey());
 
                 if (count($this->primaryKeys) !== 1) {
-                    throw new \RuntimeException('Dataloader patterns only supports primary keys on one columns. Table "'.$this->dbTableName.'" has a PK on '.count($this->primaryKeys). ' columns');
+                    throw new \RuntimeException('Data-loader patterns only supports primary keys on one column. Table "'.$this->dbTableName.'" has a PK on '.count($this->primaryKeys). ' columns'); // @codeCoverageIgnore
                 }
                 $pks = $this->primaryKeys;
                 $pkId = array_pop($pks);
@@ -234,7 +234,7 @@ class DbRow
                 $result->closeCursor();
 
                 if ($row === false) {
-                    throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \".$sql_where.\" with data \"".var_export($parameters, true)."\".");
+                    throw new NoBeanFoundException("Could not retrieve object from table \"$this->dbTableName\" using filter \"$sql_where\" with data \"".var_export($parameters, true). '".');
                 }
             }
 

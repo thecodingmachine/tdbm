@@ -73,7 +73,7 @@ class StaticPartialQuery implements PartialQuery
             $this->magicQuery->setOutputDialect(null);
             $fromIndex = strpos($sql, 'FROM');
             if ($fromIndex === false) {
-                throw new TDBMException('Expected smart eager loader query to contain a "FROM"');
+                throw new TDBMException('Expected smart eager loader query to contain a "FROM"'); // @codeCoverageIgnore
             }
             $this->magicFrom = substr($sql, $fromIndex);
         }

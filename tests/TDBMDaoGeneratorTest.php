@@ -2217,6 +2217,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $states->_getSubQuery();
     }
 
+    /**
+     * @depends testDaoGeneration
+     */
     public function testManyToOneEagerLoading(): void
     {
         $userDao = new UserDao($this->tdbmService);
@@ -2236,5 +2239,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->assertTrue($users->getIterator()->hasManyToOneDataLoader('__country_id'));
         $this->assertSame(['UK', 'France', 'Jamaica', 'UK', 'UK', 'Mexico'], $countryNames);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testLazyLoadBadIdException(): void
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $lazyBean = $countryDao->getById(-1, true);
+
+        $this->expectException(NoBeanFoundException::class);
+        $this->expectExceptionMessage("Could not retrieve object from table \"country\" using filter \"(`id` = :tdbmparam1)\" with data \"array (
+  'tdbmparam1' => -1,
+)\".");
+        $lazyBean->getLabel();
     }
 }
