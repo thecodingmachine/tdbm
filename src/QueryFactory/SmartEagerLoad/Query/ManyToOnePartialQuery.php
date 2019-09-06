@@ -5,6 +5,7 @@ namespace TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Mouf\Database\MagicQuery;
 use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\ManyToOneDataLoader;
 use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
 
@@ -13,15 +14,7 @@ class ManyToOnePartialQuery implements PartialQuery
     /**
      * @var string
      */
-    private $queryFrom;
-    /**
-     * @var string
-     */
     private $mainTable;
-    /**
-     * @var StorageNode
-     */
-    private $storageNode;
     /**
      * @var string
      */
@@ -30,18 +23,28 @@ class ManyToOnePartialQuery implements PartialQuery
      * @var string
      */
     private $pk;
+    /**
+     * @var PartialQuery
+     */
+    private $partialQuery;
+    /**
+     * @var string
+     */
+    private $originTableName;
+    /**
+     * @var string
+     */
+    private $columnName;
 
     public function __construct(PartialQuery $partialQuery, string $originTableName, string $tableName, string $pk, string $columnName)
     {
         // TODO: move this in a separate function. The constructor is called for every bean.
-        $mysqlPlatform = new MySqlPlatform();
-        $this->queryFrom = 'FROM ' .$mysqlPlatform->quoteIdentifier($tableName).
-            ' WHERE ' .$mysqlPlatform->quoteIdentifier($tableName).'.'.$mysqlPlatform->quoteIdentifier($pk).' IN '.
-            '(SELECT '.$mysqlPlatform->quoteIdentifier($originTableName).'.'.$mysqlPlatform->quoteIdentifier($columnName).' '.$partialQuery->getQueryFrom().')';
+        $this->partialQuery = $partialQuery;
         $this->mainTable = $tableName;
-        $this->storageNode = $partialQuery->getStorageNode();
         $this->key = $partialQuery->getKey().'__'.$columnName;
         $this->pk = $pk;
+        $this->originTableName = $originTableName;
+        $this->columnName = $columnName;
     }
 
     /**
@@ -49,15 +52,10 @@ class ManyToOnePartialQuery implements PartialQuery
      */
     public function getQueryFrom(): string
     {
-        return $this->queryFrom;
-    }
-
-    /**
-     * Returns the name of the main table (main objects returned by this query)
-     */
-    public function getMainTable(): string
-    {
-        return $this->mainTable;
+        $mysqlPlatform = new MySqlPlatform();
+        return 'FROM ' .$mysqlPlatform->quoteIdentifier($this->mainTable).
+            ' WHERE ' .$mysqlPlatform->quoteIdentifier($this->mainTable).'.'.$mysqlPlatform->quoteIdentifier($this->pk).' IN '.
+            '(SELECT '.$mysqlPlatform->quoteIdentifier($this->originTableName).'.'.$mysqlPlatform->quoteIdentifier($this->columnName).' '.$this->partialQuery->getQueryFrom().')';
     }
 
     /**
@@ -65,7 +63,7 @@ class ManyToOnePartialQuery implements PartialQuery
      */
     public function getStorageNode(): StorageNode
     {
-        return $this->storageNode;
+        return $this->partialQuery->getStorageNode();
     }
 
     /**
@@ -81,13 +79,24 @@ class ManyToOnePartialQuery implements PartialQuery
      */
     public function registerDataLoader(Connection $connection): void
     {
-        if ($this->storageNode->hasManyToOneDataLoader($this->key)) {
+        $storageNode = $this->getStorageNode();
+        if ($storageNode->hasManyToOneDataLoader($this->key)) {
             return;
         }
 
         $mysqlPlatform = new MySqlPlatform();
-        $sql = 'SELECT DISTINCT ' .$mysqlPlatform->quoteIdentifier($this->mainTable).'.* '.$this->queryFrom;
+        $sql = 'SELECT DISTINCT ' .$mysqlPlatform->quoteIdentifier($this->mainTable).'.* '.$this->getQueryFrom();
 
-        $this->storageNode->setManyToOneDataLoader($this->key, new ManyToOneDataLoader($connection, $sql, $this->pk));
+        if (!$connection->getDatabasePlatform() instanceof MySqlPlatform) {
+            // We need to convert the query from MySQL dialect to something else
+            $sql = $this->getMagicQuery()->buildPreparedStatement($sql);
+        }
+
+        $storageNode->setManyToOneDataLoader($this->key, new ManyToOneDataLoader($connection, $sql, $this->pk));
+    }
+
+    public function getMagicQuery(): MagicQuery
+    {
+        return $this->partialQuery->getMagicQuery();
     }
 }

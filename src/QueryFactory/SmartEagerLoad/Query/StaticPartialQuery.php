@@ -111,4 +111,9 @@ class StaticPartialQuery implements PartialQuery
     {
         return $this->parameters;
     }
+
+    public function getMagicQuery(): MagicQuery
+    {
+        return $this->magicQuery;
+    }
 }

@@ -4,6 +4,7 @@
 namespace TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query;
 
 use Doctrine\DBAL\Connection;
+use Mouf\Database\MagicQuery;
 use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
 
 /**
@@ -31,4 +32,6 @@ interface PartialQuery
      * Returns the object in charge of storing the dataloader associated to this query.
      */
     public function getStorageNode(): StorageNode;
+
+    public function getMagicQuery(): MagicQuery;
 }
