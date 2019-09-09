@@ -120,7 +120,7 @@ class ManyToOneBench
         return false;
     }
 
-    private function getConnection(): Connection
+    private static function getConnection(): Connection
     {
         return ConnectionFactory::createConnection(
             getenv('DB_DRIVER') ?: null,
