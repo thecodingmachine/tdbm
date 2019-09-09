@@ -100,7 +100,7 @@ script:
   fi
 - |
   if [ "$RUN_PERF_TEST" == "1" ] ; then
-    ./phpbench.sh run --tag=current_pr --store
+    ./phpbench.dist.sh run --tag=current_pr --store
   fi
 after_success:
   - |
@@ -108,9 +108,9 @@ after_success:
       git fetch --unshallow && \
       git checkout master && \
       composer update && \\
-      ./phpbench.sh run --tag=master --store
+      ./phpbench.dist.sh run --tag=master --store
 
-      ./phpbench report --uuid=tag:current_pr --uuid=tag:master --report='{extends: compare, compare: tag}'
+      ./phpbench.dist.sh report --uuid=tag:current_pr --uuid=tag:master --report='{extends: compare, compare: tag}'
 
 
       #REMOTE_URL="$(git config --get remote.origin.url)";
