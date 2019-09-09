@@ -7,7 +7,7 @@ cache:
 matrix:
   include:
     - php: 7.2
-      env: PREFER_LOWEST="" DB=mysql RUN_PHPSTAN=1 RUN_CSCHECK=1 RUN_REQUIRECHECKER=1
+      env: PREFER_LOWEST="" DB=mysql RUN_PHPSTAN=1 RUN_CSCHECK=1 RUN_REQUIRECHECKER=1 RUN_PERF_TEST=1
       services:
         - mysql
     - php: 7.3
@@ -98,6 +98,34 @@ script:
   if [ "$RUN_REQUIRECHECKER" == "1" ] ; then
     composer require-checker
   fi
+- |
+  if [ "$RUN_PERF_TEST" == "1" ] ; then
+    ./phpbench.sh run --tag=current_pr --store
+  fi
+after_success:
+  - |
+    if [ "$RUN_PERF_TEST" == "1" ] && [ "${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}" != "master" ] ; then
+      git fetch --unshallow && \
+      git checkout master && \
+      composer update && \\
+      ./phpbench.sh run --tag=master --store
+
+      ./phpbench report --uuid=tag:current_pr --uuid=tag:master --report='{extends: compare, compare: tag}'
+
+
+      #REMOTE_URL="$(git config --get remote.origin.url)";
+      # Clone the repository fresh..for some reason checking out master fails
+      # from a normal PR build's provided directory
+      #cd ${TRAVIS_BUILD_DIR}/.. && \
+      #git clone ${REMOTE_URL} "${TRAVIS_REPO_SLUG}-bench" && \
+      #cd  "${TRAVIS_REPO_SLUG}-bench" && \
+      ## Bench master
+      #git checkout master && \
+      #cargo bench > benches-control && \
+      ## Bench variable
+      #git checkout ${TRAVIS_COMMIT} && \
+
+    fi
 after_script:
 - if [ "$COVERALLS" = "true" ] ; then ./vendor/bin/php-coveralls -v; fi
 - if [ "$COVERALLS" = "true" ] ; then vendor/bin/couscous travis-auto-deploy --php-version=7.1 -vvv; fi
