@@ -100,7 +100,7 @@ script:
   fi
 - |
   if [ "$RUN_PERF_TEST" == "1" ] ; then
-    echo "***** Running PHPBENCH on current branch *****" \
+    echo "***** Running PHPBENCH on current branch *****" && \
     ./phpbench.dist.sh run --tag=current_pr --store
   fi
 after_success:
@@ -109,8 +109,8 @@ after_success:
       git fetch --unshallow && \
       git checkout master && \
       composer update && \
-      echo "***** Running PHPBENCH on master branch for comparison *****" \
-      ./phpbench.dist.sh run --tag=master --store \
+      echo "***** Running PHPBENCH on master branch for comparison *****" && \
+      ./phpbench.dist.sh run --tag=master --store && \
       ./phpbench.dist.sh report --uuid=tag:current_pr --uuid=tag:master --report='{extends: compare, compare: tag}'
     fi
 after_script:
