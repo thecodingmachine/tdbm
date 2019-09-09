@@ -8,4 +8,4 @@ export DB_USERNAME=root
 export DB_PASSWORD=
 export DB_NAME=tdbm_benchmark
 
-vendor/bin/phpbench
+vendor/bin/phpbench "$@"
