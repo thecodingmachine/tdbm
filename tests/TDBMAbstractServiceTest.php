@@ -75,53 +75,15 @@ abstract class TDBMAbstractServiceTest extends TestCase
     {
         self::resetConnection();
 
-        $config = new \Doctrine\DBAL\Configuration();
-
-        $dbDriver = $GLOBALS['db_driver'];
-
-        if ($dbDriver === 'pdo_sqlite') {
-            $dbConnection = self::getConnection();
-            $dbConnection->exec('PRAGMA foreign_keys = ON;');
-        } elseif ($dbDriver === 'oci8') {
-            $connectionParams = array(
-                'servicename' => 'XE',
-                'user' => $GLOBALS['db_admin_username'],
-                // Because of issues in DBAL, admin and normal user password have to be the same.
-                'password' => $GLOBALS['db_password'],
-                'host' => $GLOBALS['db_host'],
-                'port' => $GLOBALS['db_port'],
-                'driver' => $GLOBALS['db_driver'],
-                'dbname' => $GLOBALS['db_admin_username'],
-                'charset' => 'AL32UTF8',
-            );
-
-            $adminConn = DriverManager::getConnection($connectionParams, $config);
-
-            // When dropAndCreateDatabase is run several times, Oracle can have some issues releasing the TDBM user.
-            // Let's forcefully delete the connection!
-            $adminConn->exec("select 'alter system kill session ''' || sid || ',' || serial# || ''';' from v\$session where username = '".strtoupper($GLOBALS['db_name'])."'");
-
-            $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
-
-            $dbConnection = self::getConnection();
-        } else {
-            $connectionParams = array(
-                'user' => $GLOBALS['db_username'],
-                'password' => $GLOBALS['db_password'],
-                'host' => $GLOBALS['db_host'],
-                'port' => $GLOBALS['db_port'],
-                'driver' => $dbDriver,
-            );
-
-            $adminConn = DriverManager::getConnection($connectionParams, $config);
-
-            $adminConn->getSchemaManager()->dropAndCreateDatabase($GLOBALS['db_name']);
-
-            $connectionParams['dbname'] = $GLOBALS['db_name'];
-
-            $dbConnection = DriverManager::getConnection($connectionParams, $config);
-        }
-
+        $dbConnection = ConnectionFactory::resetDatabase(
+            $GLOBALS['db_driver'],
+            $GLOBALS['db_host'] ?? null,
+            $GLOBALS['db_port'] ?? null,
+            $GLOBALS['db_username'] ?? null,
+            $GLOBALS['db_admin_username'] ?? null,
+            $GLOBALS['db_password'] ?? null,
+            $GLOBALS['db_name'] ?? null
+        );
 
         self::initSchema($dbConnection);
     }
@@ -137,47 +99,14 @@ abstract class TDBMAbstractServiceTest extends TestCase
     protected static function getConnection(): Connection
     {
         if (self::$dbConnection === null) {
-            $config = new \Doctrine\DBAL\Configuration();
-
-            $dbDriver = $GLOBALS['db_driver'];
-
-            if ($dbDriver === 'pdo_sqlite') {
-                $connectionParams = array(
-                    'memory' => true,
-                    'driver' => 'pdo_sqlite',
-                );
-                self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
-            } elseif ($dbDriver === 'oci8') {
-                $evm = new EventManager();
-                $evm->addEventSubscriber(new OracleSessionInit(array(
-                    'NLS_TIME_FORMAT' => 'HH24:MI:SS',
-                    'NLS_DATE_FORMAT' => 'YYYY-MM-DD HH24:MI:SS',
-                    'NLS_TIMESTAMP_FORMAT' => 'YYYY-MM-DD HH24:MI:SS',
-                )));
-
-                $connectionParams = array(
-                    'servicename' => 'XE',
-                    'user' => $GLOBALS['db_username'],
-                    'password' => $GLOBALS['db_password'],
-                    'host' => $GLOBALS['db_host'],
-                    'port' => $GLOBALS['db_port'],
-                    'driver' => $GLOBALS['db_driver'],
-                    'dbname' => $GLOBALS['db_name'],
-                    'charset' => 'AL32UTF8',
-                );
-                self::$dbConnection = DriverManager::getConnection($connectionParams, $config, $evm);
-                self::$dbConnection->setAutoCommit(true);
-            } else {
-                $connectionParams = array(
-                    'user' => $GLOBALS['db_username'],
-                    'password' => $GLOBALS['db_password'],
-                    'host' => $GLOBALS['db_host'],
-                    'port' => $GLOBALS['db_port'],
-                    'driver' => $GLOBALS['db_driver'],
-                    'dbname' => $GLOBALS['db_name'],
-                );
-                self::$dbConnection = DriverManager::getConnection($connectionParams, $config);
-            }
+            self::$dbConnection = ConnectionFactory::createConnection(
+                $GLOBALS['db_driver'],
+                $GLOBALS['db_host'] ?? null,
+                $GLOBALS['db_port'] ?? null,
+                $GLOBALS['db_username'] ?? null,
+                $GLOBALS['db_password'] ?? null,
+                $GLOBALS['db_name'] ?? null
+            );
         }
         return self::$dbConnection;
     }
@@ -798,7 +727,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         ]);
     }
 
-    protected static function insert(Connection $connection, string $tableName, array $data): void
+    public static function insert(Connection $connection, string $tableName, array $data): void
     {
         $quotedData = [];
         foreach ($data as $id => $value) {
