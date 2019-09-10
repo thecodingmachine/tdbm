@@ -1596,7 +1596,7 @@ if (\$tableName === %s) {
 }
 return parent::getForeignKeys(\$tableName);
 EOF;
-        $code = sprintf($code, var_export($this->getTable()->getName(), true), $this->psr2VarExport($fkArray, '    '));
+        $code = sprintf($code, var_export($this->getTable()->getName(), true), $this->psr2VarExport($fkArray, '        '));
 
         $method = new MethodGenerator('getForeignKeys');
         $method->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
