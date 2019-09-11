@@ -22,8 +22,11 @@ namespace TheCodingMachine\TDBM;
  */
 
 use JsonSerializable;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query\PartialQuery;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
 use TheCodingMachine\TDBM\Schema\ForeignKeys;
 use TheCodingMachine\TDBM\Utils\ManyToManyRelationshipPathDescriptor;
+use function array_combine;
 
 /**
  * Instances of this class represent a "bean". Usually, a bean is mapped to a row of one table.
@@ -78,6 +81,13 @@ abstract class AbstractTDBMObject implements JsonSerializable
     private $manyToOneRelationships = [];
 
     /**
+     * If this bean originates from a ResultArray, this points back to the result array to build smart eager load queries.
+     *
+     * @var PartialQuery|null
+     */
+    private $partialQuery;
+
+    /**
      * Used with $primaryKeys when we want to retrieve an existing object
      * and $primaryKeys=[] if we want a new object.
      *
@@ -113,12 +123,13 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param array[]     $beanData    array<table, array<column, value>>
      * @param TDBMService $tdbmService
      */
-    public function _constructFromData(array $beanData, TDBMService $tdbmService): void
+    public function _constructFromData(array $beanData, TDBMService $tdbmService, ?PartialQuery $partialQuery): void
     {
         $this->tdbmService = $tdbmService;
+        $this->partialQuery = $partialQuery;
 
         foreach ($beanData as $table => $columns) {
-            $this->dbRows[$table] = new DbRow($this, $table, static::getForeignKeys($table), $tdbmService->_getPrimaryKeysFromObjectData($table, $columns), $tdbmService, $columns);
+            $this->dbRows[$table] = new DbRow($this, $table, static::getForeignKeys($table), $tdbmService->_getPrimaryKeysFromObjectData($table, $columns), $tdbmService, $columns, $partialQuery);
         }
 
         $this->status = TDBMObjectStateEnum::STATE_LOADED;
@@ -131,11 +142,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param mixed[]     $primaryKeys
      * @param TDBMService $tdbmService
      */
-    public function _constructLazy(string $tableName, array $primaryKeys, TDBMService $tdbmService): void
+    public function _constructLazy(string $tableName, array $primaryKeys, TDBMService $tdbmService, ?PartialQuery $partialQuery): void
     {
         $this->tdbmService = $tdbmService;
+        $this->partialQuery = $partialQuery;
 
-        $this->dbRows[$tableName] = new DbRow($this, $tableName, static::getForeignKeys($tableName), $primaryKeys, $tdbmService);
+        $this->dbRows[$tableName] = new DbRow($this, $tableName, static::getForeignKeys($tableName), $primaryKeys, $tdbmService, [], $partialQuery);
 
         $this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
     }
@@ -179,7 +191,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
     {
         $this->status = $state;
 
-        // The dirty state comes form the db_row itself so there is no need to set it from the called.
+        // The dirty state comes from the db_row itself so there is no need to set it from the called.
         if ($state !== TDBMObjectStateEnum::STATE_DIRTY) {
             foreach ($this->dbRows as $dbRow) {
                 $dbRow->_setStatus($state);
@@ -520,18 +532,28 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @param string $tableName
      * @param string $foreignKeyName
-     * @param mixed[] $searchFilter
-     * @param string $orderString     The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column). WARNING : This parameter is not kept when there is an additionnal or removal object !
+     * @param array<int, string> $localColumns
+     * @param array<int, string> $foreignColumns
+     * @param string $foreignTableName
+     * @param string $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column). WARNING : This parameter is not kept when there is an additional or removal object !
      *
      * @return AlterableResultIterator
+     * @throws TDBMException
      */
-    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, array $searchFilter, string $orderString = null) : AlterableResultIterator
+    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, array $localColumns, array $foreignColumns, string $foreignTableName, string $orderString = null) : AlterableResultIterator
     {
         $key = $tableName.'___'.$foreignKeyName;
         $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
         if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || (isset($this->manyToOneRelationships[$key]) && $this->manyToOneRelationships[$key]->getUnderlyingResultIterator() !== null)) {
             return $alterableResultIterator;
         }
+
+        $ids = [];
+        foreach ($foreignColumns as $foreignColumn) {
+            $ids[] = $this->get($foreignColumn, $foreignTableName);
+        }
+
+        $searchFilter = array_combine($localColumns, $ids);
 
         $unalteredResultIterator = $this->tdbmService->findObjects($tableName, $searchFilter, [], $orderString);
 
@@ -558,6 +580,20 @@ abstract class AbstractTDBMObject implements JsonSerializable
         }
 
         $this->_setStatus(TDBMObjectStateEnum::STATE_NOT_LOADED);
+        foreach ($this->dbRows as $row) {
+            $row->disableSmartEagerLoad();
+        }
+        $this->partialQuery = null;
+    }
+
+    /**
+     * Prevents smart eager loading of related entities.
+     * If this bean was loaded through a result iterator, smart eager loading loads all entities of related beans at once.
+     * You can disable it with this function.
+     */
+    public function disableSmartEagerLoad(): void
+    {
+        $this->partialQuery = null;
     }
 
     /**

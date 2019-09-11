@@ -1596,7 +1596,7 @@ if (\$tableName === %s) {
 }
 return parent::getForeignKeys(\$tableName);
 EOF;
-        $code = sprintf($code, var_export($this->getTable()->getName(), true), $this->psr2VarExport($fkArray, '    '));
+        $code = sprintf($code, var_export($this->getTable()->getName(), true), Psr2Utils::psr2VarExport($fkArray, '    '));
 
         $method = new MethodGenerator('getForeignKeys');
         $method->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
@@ -1612,25 +1612,5 @@ EOF;
         $method->setBody($code);
 
         return $method;
-    }
-
-    /**
-     * @param mixed $var
-     * @param string $indent
-     * @return string
-     */
-    private function psr2VarExport($var, string $indent=''): string
-    {
-        if (is_array($var)) {
-            $indexed = array_keys($var) === range(0, count($var) - 1);
-            $r = [];
-            foreach ($var as $key => $value) {
-                $r[] = "$indent    "
-                    . ($indexed ? '' : $this->psr2VarExport($key) . ' => ')
-                    . $this->psr2VarExport($value, "$indent    ");
-            }
-            return "[\n" . implode(",\n", $r) . "\n" . $indent . ']';
-        }
-        return var_export($var, true);
     }
 }

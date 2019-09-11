@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace TheCodingMachine\TDBM;
 
+use Author;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -40,6 +41,7 @@ use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
 use TheCodingMachine\TDBM\Test\Dao\AlbumDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
+use TheCodingMachine\TDBM\Test\Dao\ArticleDao;
 use TheCodingMachine\TDBM\Test\Dao\ArtistDao;
 use TheCodingMachine\TDBM\Test\Dao\BaseObjectDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AccountBean;
@@ -2205,6 +2207,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame('Foo', $results[0]->getContent());
     }
 
+    /**
+     * @depends testDaoGeneration
+     */
     public function testSubQueryExceptionOnPrimaryKeysWithMultipleColumns(): void
     {
         $stateDao = new StateDao($this->tdbmService);
@@ -2212,5 +2217,58 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->expectException(TDBMException::class);
         $this->expectExceptionMessage('You cannot use in a sub-query a table that has a primary key on more that 1 column.');
         $states->_getSubQuery();
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testManyToOneEagerLoading(): void
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $users = $userDao->findAll()->withOrder('id asc');
+        $countryIds = [];
+        foreach ($users as $user) {
+            $countryIds[] = $user->getCountry()->getId();
+        }
+
+        $this->assertFalse($users->getIterator()->hasManyToOneDataLoader('__mto__country_id'));
+        $this->assertSame([2, 1, 3, 2, 2, 4], $countryIds);
+
+        $countryNames = [];
+        foreach ($users as $user) {
+            $countryNames[] = $user->getCountry()->getLabel();
+        }
+
+        $this->assertTrue($users->getIterator()->hasManyToOneDataLoader('__mto__country_id'));
+        $this->assertSame(['UK', 'France', 'Jamaica', 'UK', 'UK', 'Mexico'], $countryNames);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testManyToOneEagerLoadingOnTableWithInheritance(): void
+    {
+        $articleDao = new ArticleDao($this->tdbmService);
+        /** @var ArticleBean[] $articles */
+        $articles = $articleDao->findAll()->withOrder('id asc');
+        $names = [];
+        foreach ($articles as $article) {
+            $names[] = $article->getAuthor()->getName();
+        }
+        $this->assertCount(1, $names);
+        $this->assertSame('Bill Shakespeare', $names[0]);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testLazyLoadBadIdException(): void
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $lazyBean = $countryDao->getById(-1, true);
+
+        $this->expectException(NoBeanFoundException::class);
+        $this->expectExceptionMessage("Could not retrieve object from table");
+        $lazyBean->getLabel();
     }
 }

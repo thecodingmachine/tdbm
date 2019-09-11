@@ -5,6 +5,7 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Psr\Log\NullLogger;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\PartialQueryFactory;
 use function array_map;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
@@ -172,10 +173,13 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         if ($this->innerResultIterator === null) {
             if ($this->totalCount === 0) {
                 $this->innerResultIterator = InnerResultArray::createEmpyIterator();
-            } elseif ($this->mode === TDBMService::MODE_CURSOR) {
-                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             } else {
-                $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $partialQueryFactory = $this->queryFactory instanceof PartialQueryFactory ? $this->queryFactory : null;
+                if ($this->mode === TDBMService::MODE_CURSOR) {
+                    $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger, $partialQueryFactory);
+                } else {
+                    $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger, $partialQueryFactory);
+                }
             }
         }
 
@@ -193,7 +197,8 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         if ($this->totalCount === 0) {
             return PageIterator::createEmpyIterator($this);
         }
-        return PageIterator::createResultIterator($this, $this->queryFactory->getMagicSql(), $this->parameters, $limit, $offset, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger);
+        $partialQueryFactory = $this->queryFactory instanceof PartialQueryFactory ? $this->queryFactory : null;
+        return PageIterator::createResultIterator($this, $this->queryFactory->getMagicSql(), $this->parameters, $limit, $offset, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger, $partialQueryFactory);
     }
 
     /**

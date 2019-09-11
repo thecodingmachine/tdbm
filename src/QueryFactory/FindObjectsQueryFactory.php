@@ -6,14 +6,20 @@ namespace TheCodingMachine\TDBM\QueryFactory;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
+use Mouf\Database\MagicQuery;
+use TheCodingMachine\TDBM\InnerResultArray;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\PartialQueryFactory;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query\PartialQuery;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query\StaticPartialQuery;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
 use TheCodingMachine\TDBM\TDBMService;
 use function implode;
 
 /**
  * This class is in charge of creating the MagicQuery SQL based on parameters passed to findObjects method.
  */
-class FindObjectsQueryFactory extends AbstractQueryFactory
+class FindObjectsQueryFactory extends AbstractQueryFactory implements PartialQueryFactory
 {
     private $additionalTablesFetch;
     private $filterString;
@@ -37,7 +43,8 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
             [
                 $this->magicSql,
                 $this->magicSqlCount,
-                $this->columnDescList
+                $this->columnDescList,
+                $this->magicSqlSubQuery
             ] = $this->cache->fetch($key);
             return;
         }
@@ -79,6 +86,31 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
             $this->magicSql,
             $this->magicSqlCount,
             $this->columnDescList,
+            $this->magicSqlSubQuery,
         ]);
+    }
+
+    /**
+     * Generates a SQL query to be used as a sub-query.
+     * @param array<string, mixed> $parameters
+     */
+    public function getPartialQuery(StorageNode $storageNode, MagicQuery $magicQuery, array $parameters): PartialQuery
+    {
+        $mysqlPlatform = new MySqlPlatform();
+
+        // Special case: if the main table is part of an inheritance relationship, we need to get all related tables
+        $relatedTables = $this->tdbmService->_getRelatedTablesByInheritance($this->mainTable);
+        if (count($relatedTables) === 1) {
+            $sql = 'FROM '.$mysqlPlatform->quoteIdentifier($this->mainTable);
+        } else {
+            // Let's use MagicQuery to build the query
+            $sql = 'FROM MAGICJOIN('.$this->mainTable.')';
+        }
+
+        if (!empty($this->filterString)) {
+            $sql .= ' WHERE '.$this->filterString;
+        }
+
+        return new StaticPartialQuery($sql, $parameters, $relatedTables, $storageNode, $magicQuery);
     }
 }

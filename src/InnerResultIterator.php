@@ -8,6 +8,9 @@ use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\PartialQueryFactory;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query\PartialQuery;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
 use TheCodingMachine\TDBM\Utils\DbalUtils;
 
 /*
@@ -65,8 +68,14 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      * @var LoggerInterface
      */
     private $logger;
-
-    protected $count = null;
+    /**
+     * @var PartialQuery|null
+     */
+    private $partialQuery;
+    /**
+     * @var int|null
+     */
+    protected $count;
 
     private function __construct()
     {
@@ -76,7 +85,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      * @param mixed[] $parameters
      * @param array[] $columnDescriptors
      */
-    public static function createInnerResultIterator(string $magicSql, array $parameters, ?int $limit, ?int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger): self
+    public static function createInnerResultIterator(string $magicSql, array $parameters, ?int $limit, ?int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger, ?PartialQueryFactory $partialQueryFactory): self
     {
         $iterator =  new static();
         $iterator->magicSql = $magicSql;
@@ -90,6 +99,11 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
         $iterator->magicQuery = $magicQuery;
         $iterator->databasePlatform = $iterator->tdbmService->getConnection()->getDatabasePlatform();
         $iterator->logger = $logger;
+        $partialQuery = null;
+        if ($iterator instanceof StorageNode && $partialQueryFactory !== null) {
+            $iterator->partialQuery = $partialQueryFactory->getPartialQuery($iterator, $magicQuery, $parameters);
+        }
+
         return $iterator;
     }
 
@@ -236,8 +250,9 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
                         $reflectionClassCache[$actualClassName] = new \ReflectionClass($actualClassName);
                     }
                     // Let's bypass the constructor when creating the bean!
+                    /** @var AbstractTDBMObject $bean */
                     $bean = $reflectionClassCache[$actualClassName]->newInstanceWithoutConstructor();
-                    $bean->_constructFromData($beanData, $this->tdbmService);
+                    $bean->_constructFromData($beanData, $this->tdbmService, $this->partialQuery);
                 }
 
                 // The first bean is the one containing the main table.

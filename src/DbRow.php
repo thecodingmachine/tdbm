@@ -21,7 +21,13 @@ namespace TheCodingMachine\TDBM;
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query\ManyToOnePartialQuery;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query\PartialQuery;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
 use TheCodingMachine\TDBM\Schema\ForeignKeys;
+use function array_pop;
+use function count;
+use function var_export;
 
 /**
  * Instances of this class represent a row in a database.
@@ -77,7 +83,7 @@ class DbRow
 
     /**
      * The values of the primary key.
-     * This is set when the object is in "loaded" state.
+     * This is set when the object is in "loaded" or "not loaded" state.
      *
      * @var array An array of column => value
      */
@@ -100,6 +106,10 @@ class DbRow
      * @var ForeignKeys
      */
     private $foreignKeys;
+    /**
+     * @var PartialQuery|null
+     */
+    private $partialQuery;
 
     /**
      * You should never call the constructor directly. Instead, you should use the
@@ -115,11 +125,12 @@ class DbRow
      * @param mixed[] $dbRow
      * @throws TDBMException
      */
-    public function __construct(AbstractTDBMObject $object, string $tableName, ForeignKeys $foreignKeys, array $primaryKeys = array(), TDBMService $tdbmService = null, array $dbRow = [])
+    public function __construct(AbstractTDBMObject $object, string $tableName, ForeignKeys $foreignKeys, array $primaryKeys = array(), TDBMService $tdbmService = null, array $dbRow = [], ?PartialQuery $partialQuery = null)
     {
         $this->object = $object;
         $this->dbTableName = $tableName;
         $this->foreignKeys = $foreignKeys;
+        $this->partialQuery = $partialQuery;
 
         $this->status = TDBMObjectStateEnum::STATE_DETACHED;
 
@@ -176,6 +187,15 @@ class DbRow
     }
 
     /**
+     * When discarding a bean, we expect to reload data from the DB, not the cache.
+     * Hence, we must disable smart eager load.
+     */
+    public function disableSmartEagerLoad(): void
+    {
+        $this->partialQuery = null;
+    }
+
+    /**
      * This is an internal method. You should not call this method yourself. The TDBM library will do it for you.
      * If the object is in state 'not loaded', this method performs a query in database to load the object.
      *
@@ -190,16 +210,35 @@ class DbRow
             }
             $connection = $this->tdbmService->getConnection();
 
-            list($sql_where, $parameters) = $this->tdbmService->buildFilterFromFilterBag($this->primaryKeys, $connection->getDatabasePlatform());
+            if ($this->partialQuery !== null) {
+                $this->partialQuery->registerDataLoader($connection);
 
-            $sql = 'SELECT * FROM '.$connection->quoteIdentifier($this->dbTableName).' WHERE '.$sql_where;
-            $result = $connection->executeQuery($sql, $parameters);
+                // Let's get the data loader.
+                $dataLoader = $this->partialQuery->getStorageNode()->getManyToOneDataLoader($this->partialQuery->getKey());
 
-            $row = $result->fetch(\PDO::FETCH_ASSOC);
+                if (count($this->primaryKeys) !== 1) {
+                    throw new \RuntimeException('Data-loader patterns only supports primary keys on one column. Table "'.$this->dbTableName.'" has a PK on '.count($this->primaryKeys). ' columns'); // @codeCoverageIgnore
+                }
+                $pks = $this->primaryKeys;
+                $pkId = array_pop($pks);
 
-            if ($row === false) {
-                throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \".$sql_where.\" with data \"".var_export($parameters, true)."\".");
+                $row = $dataLoader->get((string) $pkId);
+            } else {
+                list($sql_where, $parameters) = $this->tdbmService->buildFilterFromFilterBag($this->primaryKeys, $connection->getDatabasePlatform());
+
+                $sql = 'SELECT * FROM '.$connection->quoteIdentifier($this->dbTableName).' WHERE '.$sql_where;
+                $result = $connection->executeQuery($sql, $parameters);
+
+                $row = $result->fetch(\PDO::FETCH_ASSOC);
+
+                $result->closeCursor();
+
+                if ($row === false) {
+                    throw new NoBeanFoundException("Could not retrieve object from table \"$this->dbTableName\" using filter \"$sql_where\" with data \"".var_export($parameters, true). '".');
+                }
             }
+
+
 
             $this->dbRow = [];
             $types = $this->tdbmService->_getColumnTypesForTable($this->dbTableName);
@@ -207,8 +246,6 @@ class DbRow
             foreach ($row as $key => $value) {
                 $this->dbRow[$key] = $types[$key]->convertToPHPValue($value, $connection->getDatabasePlatform());
             }
-
-            $result->closeCursor();
 
             $this->status = TDBMObjectStateEnum::STATE_LOADED;
         }
@@ -289,7 +326,8 @@ class DbRow
             $fk = $this->foreignKeys->getForeignKey($foreignKeyName);
 
             $values = [];
-            foreach ($fk->getUnquotedLocalColumns() as $column) {
+            $localColumns = $fk->getUnquotedLocalColumns();
+            foreach ($localColumns as $column) {
                 if (!isset($this->dbRow[$column])) {
                     return null;
                 }
@@ -303,10 +341,18 @@ class DbRow
 
             // If the foreign key points to the primary key, let's use findObjectByPk
             if ($this->tdbmService->getPrimaryKeyColumns($foreignTableName) === $foreignColumns) {
-                return $this->tdbmService->findObjectByPk($foreignTableName, $filter, [], true);
+                if ($this->partialQuery !== null && count($foreignColumns) === 1) {
+                    // Optimisation: let's build the smart eager load query we need to fetch more than one object at once.
+                    $newPartialQuery = new ManyToOnePartialQuery($this->partialQuery, $this->dbTableName, $fk->getForeignTableName(), $foreignColumns[0], $localColumns[0]);
+                } else {
+                    $newPartialQuery = null;
+                }
+                $ref = $this->tdbmService->findObjectByPk($foreignTableName, $filter, [], true, null, $newPartialQuery);
             } else {
-                return $this->tdbmService->findObject($foreignTableName, $filter);
+                $ref = $this->tdbmService->findObject($foreignTableName, $filter);
             }
+            $this->references[$foreignKeyName] = $ref;
+            return $ref;
         }
     }
 

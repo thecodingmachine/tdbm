@@ -8,6 +8,7 @@ use Mouf\Database\MagicQuery;
 use Porpaginas\Page;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\PartialQueryFactory;
 
 /*
  Copyright (C) 2006-2017 David Négrier - THE CODING MACHINE
@@ -49,6 +50,10 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
     private $offset;
     private $columnDescriptors;
     private $magicQuery;
+    /**
+     * @var PartialQueryFactory|null
+     */
+    private $partialQueryFactory;
 
     /**
      * The key of the current retrieved object.
@@ -76,7 +81,7 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      * @param mixed[] $parameters
      * @param array[] $columnDescriptors
      */
-    public static function createResultIterator(ResultIterator $parentResult, string $magicSql, array $parameters, int $limit, int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): self
+    public static function createResultIterator(ResultIterator $parentResult, string $magicSql, array $parameters, int $limit, int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger, ?PartialQueryFactory $partialQueryFactory): self
     {
         $iterator =  new self();
         $iterator->parentResult = $parentResult;
@@ -91,6 +96,7 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
         $iterator->magicQuery = $magicQuery;
         $iterator->mode = $mode;
         $iterator->logger = $logger;
+        $iterator->partialQueryFactory = $partialQueryFactory;
         return $iterator;
     }
 
@@ -118,9 +124,9 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
             if ($this->parentResult->count() === 0) {
                 $this->innerResultIterator = InnerResultIterator::createEmpyIterator();
             } elseif ($this->mode === TDBMService::MODE_CURSOR) {
-                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger, $this->partialQueryFactory);
             } else {
-                $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger, $this->partialQueryFactory);
             }
         }
 

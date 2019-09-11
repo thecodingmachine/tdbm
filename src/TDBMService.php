@@ -39,6 +39,8 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsFromSqlQueryFactory;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsQueryFactory;
 use TheCodingMachine\TDBM\QueryFactory\FindObjectsFromRawSqlQueryFactory;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query\PartialQuery;
+use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
 use TheCodingMachine\TDBM\Utils\ManyToManyRelationshipPathDescriptor;
 use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
@@ -1188,7 +1190,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectByPk(string $table, array $primaryKeys, array $additionalTablesFetch = array(), bool $lazy = false, string $className = null): AbstractTDBMObject
+    public function findObjectByPk(string $table, array $primaryKeys, array $additionalTablesFetch = array(), bool $lazy = false, string $className = null, ?PartialQuery $partialQuery = null): AbstractTDBMObject
     {
         $primaryKeys = $this->_getPrimaryKeysFromObjectData($table, $primaryKeys);
         $hash = $this->getObjectHash($primaryKeys);
@@ -1222,9 +1224,9 @@ class TDBMService
                     $this->reflectionClassCache[$className] = new \ReflectionClass($className);
                 }
                 // Let's bypass the constructor when creating the bean!
-                /** @var AbstractTDBMObject */
+                /** @var AbstractTDBMObject $bean */
                 $bean = $this->reflectionClassCache[$className]->newInstanceWithoutConstructor();
-                $bean->_constructLazy($table, $primaryKeys, $this);
+                $bean->_constructLazy($table, $primaryKeys, $this, $partialQuery);
 
                 return $bean;
             }
@@ -1257,7 +1259,12 @@ class TDBMService
     public function findObject(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null) : ?AbstractTDBMObject
     {
         $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
-        return $this->getAtMostOneObjectOrFail($objects, $mainTable, $filter, $parameters);
+        $object = $this->getAtMostOneObjectOrFail($objects, $mainTable, $filter, $parameters);
+        if ($object !== null) {
+            // Smart eager loading on a result set of at most one result is useless.
+            $object->disableSmartEagerLoad();
+        }
+        return $object;
     }
 
     /**
