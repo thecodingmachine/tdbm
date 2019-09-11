@@ -10,7 +10,7 @@ To install TDBM in Symfony 4.x:
 
 ```bash
 $ composer config extra.symfony.allow-contrib true
-$ composer require thecodingmachine/tdbm-bundle ^5.0
+$ composer require thecodingmachine/tdbm-bundle ^5.1
 ```
 
 <div class="alert alert-info">
