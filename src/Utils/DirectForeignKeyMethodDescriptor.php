@@ -14,6 +14,7 @@ use TheCodingMachine\TDBM\Utils\Annotation;
 use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\MethodGenerator;
+use function var_export;
 
 /**
  * Represents a method to get a list of beans from a direct foreign key pointing to our bean.
@@ -133,10 +134,12 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
             $getter->setReturnType('?' . $classType);
 
             $code = sprintf(
-                'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s)->first();',
+                'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s, %s, %s)->first();',
                 var_export($this->foreignKey->getLocalTableName(), true),
                 var_export($tdbmFk->getCacheKey(), true),
-                $this->getFilters($this->foreignKey)
+                Psr2Utils::psr2InlineVarExport($this->foreignKey->getUnquotedLocalColumns()),
+                Psr2Utils::psr2InlineVarExport($this->foreignKey->getUnquotedForeignColumns()),
+                var_export($this->foreignKey->getForeignTableName(), true)
             );
         } else {
             $getter->setDocBlock(sprintf('Returns the list of %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
@@ -147,10 +150,12 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
             $getter->setReturnType(AlterableResultIterator::class);
 
             $code = sprintf(
-                'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s);',
+                'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s, %s, %s);',
                 var_export($this->foreignKey->getLocalTableName(), true),
                 var_export($tdbmFk->getCacheKey(), true),
-                $this->getFilters($this->foreignKey)
+                Psr2Utils::psr2InlineVarExport($this->foreignKey->getUnquotedLocalColumns()),
+                Psr2Utils::psr2InlineVarExport($this->foreignKey->getUnquotedForeignColumns()),
+                var_export($this->foreignKey->getForeignTableName(), true)
             );
         }
 
@@ -161,23 +166,6 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
         }
 
         return [ $getter ];
-    }
-
-    private function getFilters(ForeignKeyConstraint $fk) : string
-    {
-        $counter = 0;
-        $parameters = [];
-
-        $fkForeignColumns = $fk->getUnquotedForeignColumns();
-
-        foreach ($fk->getUnquotedLocalColumns() as $columnName) {
-            $fkColumn = $fkForeignColumns[$counter];
-            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($fkColumn, true), var_export($this->foreignKey->getForeignTableName(), true));
-            ++$counter;
-        }
-        $parametersCode = '['.implode(', ', $parameters).']';
-
-        return $parametersCode;
     }
 
     private $hasLocalUniqueIndex;

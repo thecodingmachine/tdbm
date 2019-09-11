@@ -38,10 +38,9 @@ class ManyToOnePartialQuery implements PartialQuery
 
     public function __construct(PartialQuery $partialQuery, string $originTableName, string $tableName, string $pk, string $columnName)
     {
-        // TODO: move this in a separate function. The constructor is called for every bean.
         $this->partialQuery = $partialQuery;
         $this->mainTable = $tableName;
-        $this->key = $partialQuery->getKey().'__'.$columnName;
+        $this->key = $partialQuery->getKey().'__mto__'.$columnName;
         $this->pk = $pk;
         $this->originTableName = $originTableName;
         $this->columnName = $columnName;

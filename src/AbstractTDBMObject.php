@@ -26,6 +26,7 @@ use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\Query\PartialQuery;
 use TheCodingMachine\TDBM\QueryFactory\SmartEagerLoad\StorageNode;
 use TheCodingMachine\TDBM\Schema\ForeignKeys;
 use TheCodingMachine\TDBM\Utils\ManyToManyRelationshipPathDescriptor;
+use function array_combine;
 
 /**
  * Instances of this class represent a "bean". Usually, a bean is mapped to a row of one table.
@@ -531,18 +532,28 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @param string $tableName
      * @param string $foreignKeyName
-     * @param mixed[] $searchFilter
-     * @param string $orderString     The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column). WARNING : This parameter is not kept when there is an additionnal or removal object !
+     * @param array<int, string> $localColumns
+     * @param array<int, string> $foreignColumns
+     * @param string $foreignTableName
+     * @param string $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column). WARNING : This parameter is not kept when there is an additional or removal object !
      *
      * @return AlterableResultIterator
+     * @throws TDBMException
      */
-    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, array $searchFilter, string $orderString = null) : AlterableResultIterator
+    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, array $localColumns, array $foreignColumns, string $foreignTableName, string $orderString = null) : AlterableResultIterator
     {
         $key = $tableName.'___'.$foreignKeyName;
         $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
         if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || (isset($this->manyToOneRelationships[$key]) && $this->manyToOneRelationships[$key]->getUnderlyingResultIterator() !== null)) {
             return $alterableResultIterator;
         }
+
+        $ids = [];
+        foreach ($foreignColumns as $foreignColumn) {
+            $ids[] = $this->get($foreignColumn, $foreignTableName);
+        }
+
+        $searchFilter = array_combine($localColumns, $ids);
 
         $unalteredResultIterator = $this->tdbmService->findObjects($tableName, $searchFilter, [], $orderString);
 

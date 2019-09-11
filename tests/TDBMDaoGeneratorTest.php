@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace TheCodingMachine\TDBM;
 
+use Author;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -40,6 +41,7 @@ use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
 use TheCodingMachine\TDBM\Test\Dao\AlbumDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
+use TheCodingMachine\TDBM\Test\Dao\ArticleDao;
 use TheCodingMachine\TDBM\Test\Dao\ArtistDao;
 use TheCodingMachine\TDBM\Test\Dao\BaseObjectDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AccountBean;
@@ -2229,7 +2231,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             $countryIds[] = $user->getCountry()->getId();
         }
 
-        $this->assertFalse($users->getIterator()->hasManyToOneDataLoader('__country_id'));
+        $this->assertFalse($users->getIterator()->hasManyToOneDataLoader('__mto__country_id'));
         $this->assertSame([2, 1, 3, 2, 2, 4], $countryIds);
 
         $countryNames = [];
@@ -2237,8 +2239,24 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             $countryNames[] = $user->getCountry()->getLabel();
         }
 
-        $this->assertTrue($users->getIterator()->hasManyToOneDataLoader('__country_id'));
+        $this->assertTrue($users->getIterator()->hasManyToOneDataLoader('__mto__country_id'));
         $this->assertSame(['UK', 'France', 'Jamaica', 'UK', 'UK', 'Mexico'], $countryNames);
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testManyToOneEagerLoadingOnTableWithInheritance(): void
+    {
+        $articleDao = new ArticleDao($this->tdbmService);
+        /** @var ArticleBean[] $articles */
+        $articles = $articleDao->findAll()->withOrder('id asc');
+        $names = [];
+        foreach ($articles as $article) {
+            $names[] = $article->getAuthor()->getName();
+        }
+        $this->assertCount(1, $names);
+        $this->assertSame('Bill Shakespeare', $names[0]);
     }
 
     /**
