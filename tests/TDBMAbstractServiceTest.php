@@ -142,7 +142,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
     protected function getConfiguration() : ConfigurationInterface
     {
         if ($this->configuration === null) {
-            $this->configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), $this->getCache(), null, null, [$this->getDummyGeneratorListener()]);
+            $this->configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', 'TheCodingMachine\\TDBM\\Test\\ResultIterator', self::getConnection(), $this->getNamingStrategy(), $this->getCache(), null, null, [$this->getDummyGeneratorListener()]);
             $this->configuration->setPathFinder(new PathFinder(null, dirname(__DIR__, 4)));
         }
         return $this->configuration;

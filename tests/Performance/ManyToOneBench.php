@@ -149,7 +149,7 @@ class ManyToOneBench
 
     private static function createConfiguration(): ConfigurationInterface
     {
-        $configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), null, self::getCache(), null, null, []);
+        $configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', 'TheCodingMachine\\TDBM\\Test\\ResultIterator', self::getConnection(), null, self::getCache(), null, null, []);
         $configuration->setPathFinder(new PathFinder(null, dirname(__DIR__, 5)));
         return $configuration;
     }

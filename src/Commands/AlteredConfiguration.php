@@ -57,6 +57,14 @@ class AlteredConfiguration implements ConfigurationInterface
     }
 
     /**
+     * @return string
+     */
+    public function getResultIteratorNamespace(): string
+    {
+        return $this->configuration->getResultIteratorNamespace();
+    }
+
+    /**
      * @return Connection
      */
     public function getConnection(): Connection

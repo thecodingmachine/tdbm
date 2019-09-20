@@ -59,7 +59,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
     public function testConstructor(): void
     {
         $usersTable = $this->schema->getTable('users');
-        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
+        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated',  'Tdbm\\Test\\ResultIterators', 'Tdbm\\Test\\ResultIterators\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
         $beanDescriptor->initBeanPropertyDescriptors();
         $propertyDescriptors = $beanDescriptor->getBeanPropertyDescriptors();
         $firstElem = reset($propertyDescriptors);
@@ -76,7 +76,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
     public function testGetConstructorProperties(): void
     {
         $usersTable = $this->schema->getTable('users');
-        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
+        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', 'Tdbm\\Test\\ResultIterators', 'Tdbm\\Test\\ResultIterators\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
         $beanDescriptor->initBeanPropertyDescriptors();
         $constructorPropertyDescriptors = $beanDescriptor->getConstructorProperties();
         $this->assertArrayHasKey('$name', $constructorPropertyDescriptors);
@@ -89,14 +89,14 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
     public function testGetTable(): void
     {
         $usersTable = $this->schema->getTable('users');
-        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
+        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', 'Tdbm\\Test\\ResultIterators', 'Tdbm\\Test\\ResultIterators\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
         $this->assertSame($usersTable, $beanDescriptor->getTable());
     }
 
     public function testTableWithNoPrimaryKey(): void
     {
         $table = new Table('no_primary_key');
-        $beanDescriptor = new BeanDescriptor($table, 'Foo\\Bar', 'Foo\\Generated\\Bar', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
+        $beanDescriptor = new BeanDescriptor($table, 'Foo\\Bar', 'Foo\\Generated\\Bar', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', 'Tdbm\\Test\\ResultIterators', 'Tdbm\\Test\\ResultIterators\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
         $this->expectException(TDBMException::class);
         $this->expectExceptionMessage('Table "no_primary_key" does not have any primary key');
         $beanDescriptor->initBeanPropertyDescriptors();
@@ -115,7 +115,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
 
         $this->expectException(TDBMException::class);
         $this->expectExceptionMessage('Primary Column name `lazyLoading` is not allowed.');
-        $beanDescriptor = new BeanDescriptor($table, 'Foo\\Bar', 'Foo\\Generated\\Bar', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
+        $beanDescriptor = new BeanDescriptor($table, 'Foo\\Bar', 'Foo\\Generated\\Bar', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', 'Tdbm\\Test\\ResultIterators', 'Tdbm\\Test\\ResultIterators\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
         $beanDescriptor->generateDaoPhpCode();
     }
 

@@ -15,6 +15,7 @@ use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\AbstractTDBMObject;
 use TheCodingMachine\TDBM\AlterableResultIterator;
 use TheCodingMachine\TDBM\ConfigurationInterface;
+use TheCodingMachine\TDBM\InnerResultIterator;
 use TheCodingMachine\TDBM\ResultIterator;
 use TheCodingMachine\TDBM\SafeFunctions;
 use TheCodingMachine\TDBM\Schema\ForeignKey;
@@ -99,6 +100,14 @@ class BeanDescriptor implements BeanDescriptorInterface
      */
     private $generatedDaoNamespace;
     /**
+     * @var string
+     */
+    private $resultIteratorNamespace;
+    /**
+     * @var string
+     */
+    private $generatedResultIteratorNamespace;
+    /**
      * @var CodeGeneratorListenerInterface
      */
     private $codeGeneratorListener;
@@ -129,6 +138,8 @@ class BeanDescriptor implements BeanDescriptorInterface
         string $generatedBeanNamespace,
         string $daoNamespace,
         string $generatedDaoNamespace,
+        string $resultIteratorNamespace,
+        string $generatedResultIteratorNamespace,
         SchemaAnalyzer $schemaAnalyzer,
         Schema $schema,
         TDBMSchemaAnalyzer $tdbmSchemaAnalyzer,
@@ -143,6 +154,8 @@ class BeanDescriptor implements BeanDescriptorInterface
         $this->generatedBeanNamespace = $generatedBeanNamespace;
         $this->daoNamespace = $daoNamespace;
         $this->generatedDaoNamespace = $generatedDaoNamespace;
+        $this->resultIteratorNamespace = $resultIteratorNamespace;
+        $this->generatedResultIteratorNamespace = $generatedResultIteratorNamespace;
         $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schema = $schema;
         $this->tdbmSchemaAnalyzer = $tdbmSchemaAnalyzer;
@@ -819,7 +832,7 @@ if (\$this->defaultSort) {
 } else {
     \$orderBy = null;
 }
-return \$this->tdbmService->findObjects('$tableName', null, [], \$orderBy);
+return \$this->tdbmService->findObjects('$tableName', null, [], \$orderBy, [], null, null, \\$this->resultIteratorNamespace\\{$this->getResultIteratorClassName()}::class);
 EOF;
 
         $findAllMethod = new MethodGenerator(
@@ -827,15 +840,9 @@ EOF;
             [],
             MethodGenerator::FLAG_PUBLIC,
             $findAllBody,
-            (new DocBlockGenerator(
-                "Get all $beanClassWithoutNameSpace records.",
-                null,
-                [
-                    new ReturnTag([ '\\'.$beanClassName.'[]', '\\'.ResultIterator::class ])
-                ]
-            ))->setWordWrap(false)
+            (new DocBlockGenerator("Get all $beanClassWithoutNameSpace records."))->setWordWrap(false)
         );
-        $findAllMethod->setReturnType('\\'.ResultIterator::class);
+        $findAllMethod->setReturnType($this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName());
         $findAllMethod = $this->codeGeneratorListener->onBaseDaoFindAllGenerated($findAllMethod, $this, $this->configuration, $class);
         if ($findAllMethod !== null) {
             $class->addMethodFromGenerator($findAllMethod);
@@ -915,7 +922,7 @@ EOF;
 if (\$this->defaultSort && \$orderBy == null) {
     \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
 }
-return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderBy, \$additionalTablesFetch, \$mode);
+return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderBy, \$additionalTablesFetch, \$mode, null, \\$this->resultIteratorNamespace\\{$this->getResultIteratorClassName()}::class);
 EOF;
 
 
@@ -938,12 +945,11 @@ EOF;
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the filter'),
                     new ParamTag('orderBy', ['mixed'], 'The order string'),
                     new ParamTag('additionalTablesFetch', ['string[]'], 'A list of additional tables to fetch (for performance improvement)'),
-                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.'),
-                    new ReturnTag(['\\' . $beanClassName . '[]', '\\'.ResultIterator::class])
+                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.')
                 ]
             ))->setWordWrap(false)
         );
-        $findMethod->setReturnType('\\'.ResultIterator::class);
+        $findMethod->setReturnType($this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName());
         $findMethod = $this->codeGeneratorListener->onBaseDaoFindGenerated($findMethod, $this, $this->configuration, $class);
         if ($findMethod !== null) {
             $class->addMethodFromGenerator($findMethod);
@@ -953,7 +959,7 @@ EOF;
 if (\$this->defaultSort && \$orderBy == null) {
     \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
 }
-return \$this->tdbmService->findObjectsFromSql('$tableName', \$from, \$filter, \$parameters, \$orderBy, \$mode);
+return \$this->tdbmService->findObjectsFromSql('$tableName', \$from, \$filter, \$parameters, \$orderBy, \$mode, null, \\$this->resultIteratorNamespace\\{$this->getResultIteratorClassName()}::class);
 EOF;
 
         $findFromSqlMethod = new MethodGenerator(
@@ -981,19 +987,18 @@ You should not put an alias on the main table name. So your \$from variable shou
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the filter'),
                     new ParamTag('orderBy', ['mixed'], 'The order string'),
                     new ParamTag('additionalTablesFetch', ['string[]'], 'A list of additional tables to fetch (for performance improvement)'),
-                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.'),
-                    new ReturnTag(['\\'.$beanClassName . '[]', '\\'.ResultIterator::class])
+                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.')
                 ]
             ))->setWordWrap(false)
         );
-        $findFromSqlMethod->setReturnType('\\'.ResultIterator::class);
+        $findFromSqlMethod->setReturnType($this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName());
         $findFromSqlMethod = $this->codeGeneratorListener->onBaseDaoFindFromSqlGenerated($findFromSqlMethod, $this, $this->configuration, $class);
         if ($findFromSqlMethod !== null) {
             $class->addMethodFromGenerator($findFromSqlMethod);
         }
 
         $findFromRawSqlMethodBody = <<<EOF
-return \$this->tdbmService->findObjectsFromRawSql('$tableName', \$sql, \$parameters, \$mode, null, \$countSql);
+return \$this->tdbmService->findObjectsFromRawSql('$tableName', \$sql, \$parameters, \$mode, null, \$countSql, \\$this->resultIteratorNamespace\\{$this->getResultIteratorClassName()}::class);
 EOF;
 
         $findFromRawSqlMethod = new MethodGenerator(
@@ -1017,12 +1022,11 @@ You should not put an alias on the main table name, and select its columns using
                     new ParamTag('sql', ['string'], 'The sql query'),
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the query'),
                     new ParamTag('countSql', ['string', 'null'], 'The sql query that provides total count of rows (automatically computed if not provided)'),
-                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.'),
-                    new ReturnTag(['\\'.$beanClassName . '[]', '\\'.ResultIterator::class])
+                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.')
                 ]
             ))->setWordWrap(false)
         );
-        $findFromRawSqlMethod->setReturnType('\\'.ResultIterator::class);
+        $findFromRawSqlMethod->setReturnType($this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName());
         $findFromRawSqlMethod = $this->codeGeneratorListener->onBaseDaoFindFromRawSqlGenerated($findFromRawSqlMethod, $this, $this->configuration, $class);
         if ($findFromRawSqlMethod !== null) {
             $class->addMethodFromGenerator($findFromRawSqlMethod);
@@ -1120,6 +1124,56 @@ You should not put an alias on the main table name. So your \$from variable shou
         }
 
         $file = $this->codeGeneratorListener->onBaseDaoGenerated($file, $this, $this->configuration);
+
+        return $file;
+    }
+
+    /**
+     * Writes the representation of the PHP DAO file.
+     */
+    public function generateResultIteratorPhpCode(): ?FileGenerator
+    {
+        $file = new FileGenerator();
+        $class = new ClassGenerator();
+        $class->setAbstract(true);
+        $file->setClass($class);
+        $file->setNamespace($this->generatedResultIteratorNamespace);
+
+        $tableName = $this->table->getName();
+
+        $className = $this->namingStrategy->getResultIteratorClassName($tableName);
+        $baseClassName = $this->namingStrategy->getBaseResultIteratorClassName($tableName);
+        $beanClassWithoutNameSpace = $this->namingStrategy->getBeanClassName($tableName);
+        $beanClassName = $this->beanNamespace.'\\'.$beanClassWithoutNameSpace;
+
+        $file->setDocBlock(new DocBlockGenerator(
+            <<<EOF
+This file has been automatically generated by TDBM.
+DO NOT edit this file, as it might be overwritten.
+If you need to perform changes, edit the $className class instead!
+EOF
+        ));
+        $class->addUse(ResultIterator::class);
+        $class->setName($baseClassName);
+        $class->setExtendedClass(ResultIterator::class);
+
+        $class->setDocBlock(new DocBlockGenerator("The $baseClassName class will iterate over results of $beanClassWithoutNameSpace class."));
+
+        $getIteratorMethod = new MethodGenerator(
+            'getIterator',
+            [],
+            MethodGenerator::FLAG_PUBLIC,
+            'return parent::getIterator();',
+            (new DocBlockGenerator(
+                "Return a ResultIterator of $beanClassWithoutNameSpace instances.",
+                null,
+                [
+                    new ReturnTag(['\\' . $beanClassName . '[]', '\\' . InnerResultIterator::class])
+                ]
+            ))->setWordWrap(false)
+        );
+
+        $class->addMethodFromGenerator($getIteratorMethod);
 
         return $file;
     }
@@ -1523,6 +1577,26 @@ return $tables;', var_export($this->table->getName(), true));
     public function getBaseDaoClassName() : string
     {
         return $this->namingStrategy->getBaseDaoClassName($this->table->getName());
+    }
+
+    /**
+     * Returns the ResultIterator class name (without the namespace).
+     *
+     * @return string
+     */
+    public function getResultIteratorClassName() : string
+    {
+        return $this->namingStrategy->getResultIteratorClassName($this->table->getName());
+    }
+
+    /**
+     * Returns the base ResultIterator class name (without the namespace).
+     *
+     * @return string
+     */
+    public function getBaseResultIteratorClassName() : string
+    {
+        return $this->namingStrategy->getBaseResultIteratorClassName($this->table->getName());
     }
 
     /**
