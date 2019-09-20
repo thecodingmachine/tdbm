@@ -136,6 +136,11 @@ class BaseCodeGeneratorListener implements CodeGeneratorListenerInterface
         return $methodGenerator;
     }
 
+    public function onBaseResultIteratorGenerated(FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
+    {
+        return $fileGenerator;
+    }
+
     /**
      * @param BeanDescriptor[] $beanDescriptors
      */

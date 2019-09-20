@@ -1129,7 +1129,7 @@ You should not put an alias on the main table name. So your \$from variable shou
     }
 
     /**
-     * Writes the representation of the PHP DAO file.
+     * Writes the representation of the PHP ResultIterator file.
      */
     public function generateResultIteratorPhpCode(): ?FileGenerator
     {
@@ -1162,6 +1162,8 @@ EOF
             null,
             [new Tag\MethodTag('getIterator', ['\\' . $beanClassName . '[]'])]
         ))->setWordWrap(false));
+
+        $file = $this->codeGeneratorListener->onBaseResultIteratorGenerated($file, $this, $this->configuration);
 
         return $file;
     }
