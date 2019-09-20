@@ -32,6 +32,7 @@ class AlteredConfigurationTest extends TestCase
         $this->assertSame($logger, $alteredConfiguration->getLogger());
         $this->assertSame('FooBean', $alteredConfiguration->getBeanNamespace());
         $this->assertSame('FooDao', $alteredConfiguration->getDaoNamespace());
+        $this->assertSame('FooResultIterator', $alteredConfiguration->getResultIteratorNamespace());
         $this->assertSame($configuration->getGeneratorEventDispatcher(), $alteredConfiguration->getGeneratorEventDispatcher());
         $this->assertSame($schemaAnalyzer, $alteredConfiguration->getSchemaAnalyzer());
         $this->assertSame($configuration->getPathFinder(), $alteredConfiguration->getPathFinder());

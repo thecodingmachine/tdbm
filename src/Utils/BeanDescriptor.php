@@ -1157,23 +1157,11 @@ EOF
         $class->setName($baseClassName);
         $class->setExtendedClass(ResultIterator::class);
 
-        $class->setDocBlock(new DocBlockGenerator("The $baseClassName class will iterate over results of $beanClassWithoutNameSpace class."));
-
-        $getIteratorMethod = new MethodGenerator(
-            'getIterator',
-            [],
-            MethodGenerator::FLAG_PUBLIC,
-            'return parent::getIterator();',
-            (new DocBlockGenerator(
-                "Return a ResultIterator of $beanClassWithoutNameSpace instances.",
-                null,
-                [
-                    new ReturnTag(['\\' . $beanClassName . '[]', '\\' . InnerResultIterator::class])
-                ]
-            ))->setWordWrap(false)
-        );
-
-        $class->addMethodFromGenerator($getIteratorMethod);
+        $class->setDocBlock((new DocBlockGenerator(
+            "The $baseClassName class will iterate over results of $beanClassWithoutNameSpace class.",
+            null,
+            [new Tag\MethodTag('getIterator', ['\\' . $beanClassName . '[]'])]
+        ))->setWordWrap(false));
 
         return $file;
     }
@@ -1383,8 +1371,7 @@ return \$this->findOne(\$filter, [], \$additionalTablesFetch);
             $params[] = new ParamTag('additionalTablesFetch', [ 'string[]' ], 'A list of additional tables to fetch (for performance improvement)');
             $parameters[] = (new ParameterGenerator('mode', '?int'))->setDefaultValue(null);
             $params[] = new ParamTag('mode', [ 'int', 'null' ], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.');
-            $params[] = new ReturnTag([ '\\'.$beanNamespace.'\\'.$beanClassName.'[]', '\\'.ResultIterator::class ]);
-            $method->setReturnType('\\'.ResultIterator::class);
+            $method->setReturnType($this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName());
 
             $docBlock = new DocBlockGenerator("Get a list of $beanClassName filtered by ".implode(', ', $commentArguments).".", null, $params);
             $docBlock->setWordWrap(false);

@@ -282,7 +282,7 @@ class $className extends $baseClassName
     /**
      * Writes the PHP ResultIterator file with typed accessors.
      */
-    private function generateResultIterator(BeanDescriptor $beanDescriptor)
+    private function generateResultIterator(BeanDescriptor $beanDescriptor) : void
     {
         $resultIteratorClassName = $beanDescriptor->getResultIteratorClassName();
         $resultIteratorBaseClassName = $beanDescriptor->getBaseResultIteratorClassName();

@@ -59,7 +59,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
     public function testConstructor(): void
     {
         $usersTable = $this->schema->getTable('users');
-        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated',  'Tdbm\\Test\\ResultIterators', 'Tdbm\\Test\\ResultIterators\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
+        $beanDescriptor = new BeanDescriptor($usersTable, 'Tdbm\\Test\\Beans', 'Tdbm\\Test\\Beans\\Generated', 'Tdbm\\Test\\Daos', 'Tdbm\\Test\\Daos\\Generated', 'Tdbm\\Test\\ResultIterators', 'Tdbm\\Test\\ResultIterators\\Generated', $this->schemaAnalyzer, $this->schema, $this->tdbmSchemaAnalyzer, $this->getNamingStrategy(), AnnotationParser::buildWithDefaultAnnotations([]), new BaseCodeGeneratorListener(), $this->getConfiguration(), $this->createMock(BeanRegistry::class));
         $beanDescriptor->initBeanPropertyDescriptors();
         $propertyDescriptors = $beanDescriptor->getBeanPropertyDescriptors();
         $firstElem = reset($propertyDescriptors);
