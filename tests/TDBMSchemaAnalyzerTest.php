@@ -44,10 +44,10 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $schemaFromConnec = self::getConnection()->getSchemaManager()->createSchema();
         $tableNames = [];
         //lock file doesn't save the database name so we have to replace it manually.
-        foreach ($schemaFromConnec->getTableNames() as $tableName) {
-            $tableNames[] = str_replace('tdbm_testcase', 'public', $tableName);
-        }
         ImmutableCaster::castSchemaToImmutable($schemaFromConnec);
+        foreach ($schemaFromConnec->getTableNames() as $tableName) {
+            $tableNames[] = str_replace(['tdbm_testcase', 'postgres'], 'public', $tableName);
+        }
 
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
