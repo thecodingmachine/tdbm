@@ -91,7 +91,7 @@ class ManyToOneBench
     {
         $schemaManager = $connection->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, new ArrayCache(), $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, new ArrayCache(), $schemaAnalyzer, Configuration::getDefaultLockFilePath());
         $tdbmDaoGenerator = new TDBMDaoGenerator(self::createConfiguration(), $tdbmSchemaAnalyzer);
         $rootPath = __DIR__ . '/../';
         self::recursiveDelete(__DIR__. '/../../src/Test/Dao/');

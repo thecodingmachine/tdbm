@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Commands;
 
+use TheCodingMachine\TDBM\Configuration;
 use TheCodingMachine\TDBM\TDBMAbstractServiceTest;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -10,49 +11,25 @@ use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
-use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
 
 class GenerateCommandTest extends TDBMAbstractServiceTest
 {
-    public static function getInputDefinition()
-    {
-        return new InputDefinition([
-        ]);
-    }
-
     public function testCall(): void
     {
-        $input = new ArrayInput([
-        ], self::getInputDefinition());
+        $input = new ArrayInput([], new InputDefinition([]));
+        $output = new BufferedOutput();
+        $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
 
         //let's delete the lock file
-        $schemaFilePath = TDBMSchemaAnalyzer::getLockFilePath();
+        $schemaFilePath = Configuration::getDefaultLockFilePath();
         if (file_exists($schemaFilePath)) {
             unlink($schemaFilePath);
         }
-        $result = $this->callCommand(new GenerateCommand($this->getConfiguration()), $input);
+        (new GenerateCommand($this->getConfiguration()))->run($input, $output);
+        $result = $output->fetch();
 
         $this->assertContains('Finished regenerating DAOs and beans', $result);
         //Check that the lock file was generated
         $this->assertFileExists($schemaFilePath);
-    }
-
-    /**
-     * Calls the command passed in parameter. Returns the output.
-     *
-     * @param Command $command
-     * @param InputInterface $input
-     * @return string
-     */
-    protected function callCommand(Command $command, InputInterface $input) : string
-    {
-        $output = new BufferedOutput();
-        $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
-
-        $r = new \ReflectionMethod($command, 'execute');
-        $r->setAccessible(true);
-        $r->invoke($command, $input, $output);
-
-        return $output->fetch();
     }
 }

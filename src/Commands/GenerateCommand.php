@@ -32,8 +32,12 @@ class GenerateCommand extends Command
             ->setDescription('Generates DAOs and beans.')
             ->setHelp('Use this command to generate or regenerate the DAOs and beans for your project.')
             ->addOption(
-                'from-lock',null,InputOption::VALUE_OPTIONAL, 'Load the schema from the lock file instead of database',false
-            );
+                'from-lock',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Load the schema from the lock file instead of database',
+                false
+            )
         ;
     }
 

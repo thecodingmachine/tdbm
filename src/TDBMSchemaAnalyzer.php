@@ -14,15 +14,13 @@ use Doctrine\DBAL\Types\DateType;
 use Doctrine\DBAL\Types\Type;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\Utils\ImmutableCaster;
-use TheCodingMachine\TDBM\Utils\RootProjectLocator;
 
 /**
  * This class is used to analyze the schema and return valuable information / hints.
  */
 class TDBMSchemaAnalyzer
 {
-    const schemaFileName =  'tdbm.lock.yml';
-
+    private $lockFilePath;
     private $connection;
 
     /**
@@ -51,17 +49,19 @@ class TDBMSchemaAnalyzer
     private $schemaVersionControlService;
 
     /**
-     * @param Connection     $connection     The DBAL DB connection to use
-     * @param Cache          $cache          A cache service to be used
+     * @param Connection $connection The DBAL DB connection to use
+     * @param Cache $cache A cache service to be used
      * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
      *                                       Will be automatically created if not passed
+     * @param string $lockFilePath The path for the lock file which will store the database schema
      */
-    public function __construct(Connection $connection, Cache $cache, SchemaAnalyzer $schemaAnalyzer)
+    public function __construct(Connection $connection, Cache $cache, SchemaAnalyzer $schemaAnalyzer, string $lockFilePath)
     {
         $this->connection = $connection;
         $this->cache = $cache;
         $this->schemaAnalyzer = $schemaAnalyzer;
-        $this->schemaVersionControlService = new SchemaVersionControlService($this->connection, self::getLockFilePath());
+        $this->lockFilePath = $lockFilePath;
+        $this->schemaVersionControlService = new SchemaVersionControlService($this->connection, $this->lockFilePath);
     }
 
     /**
@@ -78,10 +78,9 @@ class TDBMSchemaAnalyzer
         return $this->cachePrefix;
     }
 
-    //todo: in config
-    public static function getLockFilePath(): string
+    public function getLockFilePath(): string
     {
-        return RootProjectLocator::getRootLocationPath().self::schemaFileName;
+        return $this->lockFilePath;
     }
 
     /**
@@ -93,7 +92,7 @@ class TDBMSchemaAnalyzer
             $cacheKey = $this->getCachePrefix().'_immutable_schema';
             if (!$ignoreCache && $this->cache->contains($cacheKey)) {
                 $this->schema = $this->cache->fetch($cacheKey);
-            } elseif (!file_exists(self::getLockFilePath())) {
+            } elseif (!file_exists($this->getLockFilePath())) {
                 throw new TDBMException('No tdbm lock file found. Please regenerate DAOs and Beans.');
             } else {
                 $this->schema = $this->schemaVersionControlService->loadSchemaFile();
@@ -108,6 +107,7 @@ class TDBMSchemaAnalyzer
     public function generateLockFile(): void
     {
         $this->schemaVersionControlService->dumpSchema();
+        \chmod($this->getLockFilePath(), 0664);
     }
 
     /**

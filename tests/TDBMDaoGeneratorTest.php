@@ -98,7 +98,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         parent::setUp();
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer, Configuration::getDefaultLockFilePath());
         $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->getConfiguration(), $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__ . '/../';
         //$this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
@@ -107,13 +107,13 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testGetSchemaCrashWithoutLock()
     {
         //let's delete the lock file
-        $schemaFilePath = TDBMSchemaAnalyzer::getLockFilePath();
+        $schemaFilePath = Configuration::getDefaultLockFilePath();
         if (file_exists($schemaFilePath)) {
             unlink($schemaFilePath);
         }
         //let's check we cannot call get schema without a lock file
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer, Configuration::getDefaultLockFilePath());
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $schema1 = $tdbmSchemaAnalyzer->getSchema(true);
     }
@@ -129,7 +129,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertFileExists($dummyFile);
 
         //let's delete the lock file
-        $schemaFilePath = TDBMSchemaAnalyzer::getLockFilePath();
+        $schemaFilePath = Configuration::getDefaultLockFilePath();
         if (file_exists($schemaFilePath)) {
             unlink($schemaFilePath);
         }
@@ -169,7 +169,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer, Configuration::getDefaultLockFilePath());
         $tdbmDaoGenerator = new TDBMDaoGenerator($configuration, $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__ . '/../../../../';
         //$tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
