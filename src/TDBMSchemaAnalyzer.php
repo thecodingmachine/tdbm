@@ -78,6 +78,7 @@ class TDBMSchemaAnalyzer
         return $this->cachePrefix;
     }
 
+    //todo: in config
     public static function getLockFilePath(): string
     {
         return RootProjectLocator::getRootLocationPath().self::schemaFileName;

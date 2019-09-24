@@ -71,9 +71,11 @@ class TDBMDaoGenerator
      *
      * @throws TDBMException
      */
-    public function generateAllDaosAndBeans(): void
+    public function generateAllDaosAndBeans(bool $fromLock = false): void
     {
-        $this->tdbmSchemaAnalyzer->generateLockFile();
+        if (!$fromLock) {
+            $this->tdbmSchemaAnalyzer->generateLockFile();
+        }
         $schema = $this->tdbmSchemaAnalyzer->getSchema();
 
         // TODO: check that no class name ends with "Base". Otherwise, there will be name clash.

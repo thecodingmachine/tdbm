@@ -527,7 +527,7 @@ class TDBMService
     /**
      * Generates all the daos and beans.
      */
-    public function generateAllDaosAndBeans() : void
+    public function generateAllDaosAndBeans(bool $fromLock = false) : void
     {
         // Purge cache before generating anything.
         if ($this->cache instanceof ClearableCache) {
@@ -535,7 +535,7 @@ class TDBMService
         }
 
         $tdbmDaoGenerator = new TDBMDaoGenerator($this->configuration, $this->tdbmSchemaAnalyzer);
-        $tdbmDaoGenerator->generateAllDaosAndBeans();
+        $tdbmDaoGenerator->generateAllDaosAndBeans($fromLock);
     }
 
     /**
