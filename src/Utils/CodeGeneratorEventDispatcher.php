@@ -264,6 +264,17 @@ class CodeGeneratorEventDispatcher implements CodeGeneratorListenerInterface
         return $methodGenerator;
     }
 
+    public function onBaseResultIteratorGenerated(FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
+    {
+        foreach ($this->listeners as $listener) {
+            $fileGenerator = $listener->onBaseResultIteratorGenerated($fileGenerator, $beanDescriptor, $configuration);
+            if ($fileGenerator === null) {
+                break;
+            }
+        }
+        return $fileGenerator;
+    }
+
     /**
      * @param BeanDescriptor[] $beanDescriptors
      */

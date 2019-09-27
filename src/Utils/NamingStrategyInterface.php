@@ -46,6 +46,22 @@ interface NamingStrategyInterface
     public function getBaseDaoClassName(string $tableName) : string;
 
     /**
+     * Returns the name of the ResultIterator class from the table name (excluding the namespace).
+     *
+     * @param string $tableName
+     * @return string
+     */
+    public function getResultIteratorClassName(string $tableName) : string;
+
+    /**
+     * Returns the name of the base ResultIterator class from the table name (excluding the namespace).
+     *
+     * @param string $tableName
+     * @return string
+     */
+    public function getBaseResultIteratorClassName(string $tableName) : string;
+
+    /**
      * Returns the class name for the DAO factory.
      *
      * @return string

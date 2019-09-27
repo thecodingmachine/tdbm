@@ -54,6 +54,8 @@ class BeanRegistry
                 $this->configuration->getBeanNamespace() . '\\Generated',
                 $this->configuration->getDaoNamespace(),
                 $this->configuration->getDaoNamespace() . '\\Generated',
+                $this->configuration->getResultIteratorNamespace(),
+                $this->configuration->getResultIteratorNamespace() . '\\Generated',
                 $this->configuration->getSchemaAnalyzer(),
                 $this->schema,
                 $this->tdbmSchemaAnalyzer,

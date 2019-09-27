@@ -38,12 +38,14 @@ TDBM is an opiniated ORM. It will not suit everybody and all needs. Here is what
 
 TDBM is a "database first" ORM. Everything starts from your database. TDBM is very good at understanding your database model and the intent behind it. It will generate PHP objects mapping your model.
 
+<!-- https://docs.google.com/drawings/d/1ZdwVgk5w1oFXnVDnDuK6d9uu_zXxNuuzYlyK409zVBE -->
 ![TDBM generates your PHP classes](doc/images/tdbm_generates_php_classes.png)
 
 TDBM **understands your database model**. From it, it will generate PHP classes that will help you access your database:
  
  - *DAOs* that are services helping you access a given table
- - and *Beans* that are classes representing a row in your database.
+ - *Beans* that are classes representing a row in your database.
+ - *ResultIterators* that are classes representing a query result.
 
 ```php
 // Daos are used to query the database
@@ -53,7 +55,7 @@ $user = $userDao->getById(42);
 $login = $user->getLogin();
 ```
 
-Because PHP objects are generated (no magic properties), you get a nice **autocompletion** in your favorite IDE (PHPStorm, Eclipse PDT, Netbeans...).
+Because PHP objects are generated (no magic properties), you get a nice **autocompletion** in your favorite IDE (PHPStorm, Eclipse PDT, NetBeans...).
 
 ## TDBM is really good at understanding your database model
 

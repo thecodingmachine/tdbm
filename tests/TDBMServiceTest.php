@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace TheCodingMachine\TDBM;
 
 use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 use Wa72\SimpleLogger\ArrayLogger;
 
 class TDBMServiceTest extends TDBMAbstractServiceTest
@@ -682,7 +683,7 @@ SQL;
      */
     public function testFindObjectsFromSqlBadTableName(): void
     {
-        $this->expectException('TheCodingMachine\TDBM\TDBMException');
+        $this->expectException(TDBMException::class);
         $this->tdbmService->findObjectsFromSql(
             '#{azerty',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
@@ -698,7 +699,7 @@ SQL;
      */
     public function testFindObjectsFromSqlGroupBy(): void
     {
-        $this->expectException('TheCodingMachine\TDBM\TDBMException');
+        $this->expectException(TDBMException::class);
         $roles = $this->tdbmService->findObjectsFromSql(
             'roles',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
@@ -707,6 +708,20 @@ SQL;
             'name DESC'
         );
         $role = $roles[0];
+    }
+
+    /**
+     *
+     * @throws TDBMException
+     */
+    public function testFindObjectsFromRawSqlBadTableName(): void
+    {
+        $this->expectException(TDBMException::class);
+        $this->tdbmService->findObjectsFromRawSql(
+            '#{azerty',
+            'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label WHERE rights.label = :right',
+            array('right' => 'CAN_SING')
+        );
     }
 
     public function testFindObjectFromSql(): void
@@ -789,5 +804,41 @@ SQL;
         $countries = $this->tdbmService->findObjectsFromSql('country', 'country LEFT JOIN users ON country.id = users.country_id', "users.status = 'on' OR users.status = 'off'");
 
         $this->assertEquals(3, $countries->count());
+    }
+
+    public function testBuildFilterFromFilterBagIterator(): void
+    {
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
+
+        [$sql, $parameters, $counter] = $tdbmService->buildFilterFromFilterBag(new \ArrayIterator(['id' => 1]), self::getConnection()->getDatabasePlatform());
+        $this->assertRegExp('/\(.id. = :tdbmparam1\)/', $sql);
+        $this->assertEquals($parameters['tdbmparam1'], 1);
+    }
+
+    public function testFindObjectsMethodWithoutResultIteratorClass(): void
+    {
+        $this->expectException(TDBMInvalidArgumentException::class);
+        $this->expectExceptionMessageRegExp('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
+
+        $tdbmService->findObjects('', null, [], null, [], null, null, self::class);
+    }
+
+    public function testFindObjectsFromSqlMethodWithoutResultIteratorClass(): void
+    {
+        $this->expectException(TDBMInvalidArgumentException::class);
+        $this->expectExceptionMessageRegExp('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
+
+        $tdbmService->findObjectsFromSql('', '', null, [], null, null, null, self::class);
+    }
+
+    public function testFindObjectsFromRawSqlMethodWithoutResultIteratorClass(): void
+    {
+        $this->expectException(TDBMInvalidArgumentException::class);
+        $this->expectExceptionMessageRegExp('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
+
+        $tdbmService->findObjectsFromRawSql('', '', [], null, null, null, self::class);
     }
 }
