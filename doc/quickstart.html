@@ -399,12 +399,18 @@ to your database and that the <a href="generating_daos.html">TDBM DAOs and beans
 <li>A user has a name and is part of a country.</li>
 </ul>
 <p><img src="images/schema1.png" alt="Database schema" /></p>
-<h2 id="daos-and-beans">DAOs and beans</h2>
-<p>When you <a href="install.html">installed TDBM</a>, you spent some time configuring a connection to your database and then, you generated the DAOs and beans.</p>
-<p>DAOs are &quot;Data Access Objects&quot;. DAOs are classes that will help you access
-the objects in your database. There is roughly <strong>one DAO per table in your database</strong>. Each DAO will return &quot;beans&quot;. Each row in your database
-will be represented by one instance of a bean.</p>
-<p>Each time your database model changes (if you add a new table, a new column, an index or a foreign key...), you will need to regenerate those DAOs and beans.</p>
+<h2 id="daos-beans-and-resultiterators">DAOs, Beans and ResultIterators</h2>
+<p>When you <a href="install.html">installed TDBM</a>, you spent some time configuring a connection to your database and then, you generated the DAOs, beans and resultIterators.</p>
+<p>There will be roughly <strong>one class (DAO, Bean, ResultIterator) per table</strong>, in fact only ManyToMany link tables won't get their classes.</p>
+<p>Each time your database model changes (if you add a new table, a new column, an index or a foreign key...), you will need to regenerate those DAOs, beans and resultIterators.</p>
+<h3 id="daos">DAOs</h3>
+<p>DAOs are &quot;Data Access Objects&quot;. DAOs are classes that will help you access the objects in your database.
+Each DAO will return a Bean or a ResultIterator (collection of Beans).</p>
+<h3 id="beans">Beans</h3>
+<p>Each row in your database will be represented by one instance of a bean.
+This instance will allow you to easily update your data using setters and getters strongly typed by TDBM or created by you.</p>
+<h3 id="resultiterators">ResultIterators</h3>
+<p>A ResultIterator object represents the result of a query. It is an iterable object. You can use it to paginate through the results, sort the results or (in the future) filter the results.</p>
 <h2 id="usage-sample">Usage sample</h2>
 <p>Let's now review a few samples:</p>
 <h3 id="creating-a-new-row-in-the-quotusersquot-table">Creating a new row in the &quot;users&quot; table:</h3>
@@ -415,16 +421,15 @@ $user = new User("myName");
 // Fill the remaining (nullable) columns of the bean using the setters
 $user-&gt;setPassword(password_hash("myPassword", PASSWORD_DEFAULT));
 $user-&gt;setMail("me@mail.com");
-// Any date should be passed as a PHP DateTime or DateTimeImmutable
+// Any date should be passed as a PHP DateTimeImmutable
 $user-&gt;setCreateDate(new DateTimeImmutable());
 
 // Finally, let's save this bean.
 // For this, we need an instance of the DAO.
 // The $userDao will be typically returned by the container of your application.
 $userDao-&gt;save($user);</code></pre>
-<p>Since we have a &quot;users&quot; table, TDBM generated
-a <code>UserDao</code> class and a <code>User</code> class. <code>UserDao</code> can be used to create/update/delete/search any
-user.</p>
+<p>Since we have a &quot;users&quot; table, TDBM generated a <code>UserDao</code> class, a <code>User</code> class and a <code>UserResultIterator</code> class.
+<code>UserDao</code> can be used to create/update/delete/search any user.</p>
 <p>You can also notice that the &quot;save()&quot; method is called on the <code>UserDao</code>, not on the <code>User</code>.</p>
 <h3 id="retrieving-a-user-bean-by-its-primary-key">Retrieving a user bean by its primary key:</h3>
 <pre><code class="language-php">// Let's get the bean
@@ -434,8 +439,6 @@ $user = $userDao-&gt;getById(42);
 echo $user-&gt;getName();</code></pre>
 <p>TDBM will automatically detect the primary key of your table (of course, your table must have a primary key). There is
 no name convention to respect, your primary key column can be named anything ('id', 'userid', 'iduser', ...)</p>
-<p>To use this method, the primary key must be on a single column. If your primary key is on several columns, you can still use the
-search method (see below).</p>
 <h3 id="querying-the-database">Querying the database</h3>
 <p>Now, what about getting the list of all users and displaying their name?</p>
 <p>Ok, that's easy, just use the <code>findAll()</code> method!</p>
@@ -452,7 +455,7 @@ foreach ($userList as $user) {
 Jean Dupont
 Robert Marley
 Bill Shakespeare</code></pre>
-<p>The <code>findAll</code> method will return the list of beans.
+<p>The <code>findAll</code> method will return the list of beans as a <code>UserResultIterator</code>.
 Of course, most of the time, you don't want all the rows in a database.
 You want to perform a query with filters.</p>
 <h3 id="querying-the-database-on-indexed-columns">Querying the database on indexed columns</h3>
@@ -491,6 +494,10 @@ edit it as TDBM will never overwrite it.</li>
 column of the &quot;users&quot; table. It is generated by TDBM and you should never modify this class.</li>
 <li><code>User</code>: this class extends <code>AbstractUser</code>. If you have some custom getters and setters, you should implement them in this class. You can
 edit it as TDBM will never overwrite it.</li>
+<li><code>AbstractUserResultIterator</code>: the resultIterator representing a query on the &quot;users&quot; table. This class contains methods to filter/sort/paginate your query.
+It is generated by TDBM and you should never modify this class.</li>
+<li><code>UserResultIterator</code>: this class extends <code>AbstractUserResultIterator</code>. If you have some custom function to narrow down your queries you should implement them in this class. You can
+edit it as TDBM will never overwrite it.</li>
 </ul>
 <p>In our example, we want to perform a query that retrieves any name starting with a &quot;J&quot;. This is a new
 kind of query. Since any request should be part of a DAO, we will add this request to the <code>UserDao</code>.</p>
@@ -501,7 +508,7 @@ kind of query. Since any request should be part of a DAO, we will add this reque
      * Returns the list of users starting with $firstLetter
      *
      * @param string $firstLetter
-     * @return User[]
+     * @return UserResultIterator
      */
     public function findUsersByLetter($firstLetter) {
         // The find can be used to retrieve a list of User
@@ -538,7 +545,7 @@ while your application will be very slow. You have been warned!</div>
      *
      * @param Category $category
      * @param Store $store
-     * @return Country[]
+     * @return CountryResultIterator
      */
     public function getProductsByCategoryAndStore(Category $category = null, Store $store = null) {
         return $this-&gt;find("category = :category AND store = :store", [ 
@@ -645,7 +652,7 @@ $role-&gt;setUsers($users);</code></pre>
      * Returns the list of users whose country name starts by "$countryName"
      *
      * @param string $countryName
-     * @return User[]
+     * @return UserResultIterator
      */
     public function getUsersByCountryName($countryName) {
         // Behold the magic!
@@ -667,7 +674,7 @@ using TDBM you can just pass the object. Have a look!</p>
      * Returns the list of users whose country is "$country"
      *
      * @param Country $country
-     * @return User[]
+     * @return UserResultIterator
      */
     public function getUsersByCountry(Country $country) {
         // You can pass a Country instance directly to the find method!
@@ -694,7 +701,7 @@ foreach ($userList as $user)
      * Returns the list of countries whose country name starts by "$countryName"
      *
      * @param string $countryName
-     * @return Country[]
+     * @return CountryResultIterator
      */
     public function findByCountryName($countryName) {
         return $this-&gt;find("name LIKE :country", [ 'country' =&gt; $countryName.'%' ] );
@@ -717,7 +724,7 @@ class UserDao extends AbstractUserDao {
      * Returns the list of users whose country name starts by "$countryName"
      *
      * @param string $countryName
-     * @return User[]
+     * @return UserResultIterator
      */
     public function getUsersByCountryName($countryName) {
         return $this-&gt;find($this-&gt;countryDao-&gt;findByCountryName($countryName));
@@ -736,7 +743,7 @@ your code can look like this:</p>
      * Returns the list of rights for a given user
      *
      * @param User $user
-     * @return Right[]
+     * @return RightResultIterator
      */
     public function getRightsForUser(User $user) {
         // Behold the magic!
@@ -752,7 +759,7 @@ To find the joins, TDBM will look for the shortest path between tables. However,
     /**
      * Returns the list of roles where right label = CAN_SING.
      *
-     * @return Role[]
+     * @return RoleResultIterator
      */
     public function getRolesByRightCanSing()
     {
@@ -778,7 +785,7 @@ Here, we filter a <code>products</code> table by <code>category_id</code> and <c
      *
      * @param int $category_id
      * @param int $status
-     * @return Product[]
+     * @return ProductResultIterator
      */
     public function findProductsByCategoryAndStatus(int $category_id, int $status) {
         return $this-&gt;find([
@@ -794,7 +801,7 @@ For instance, a query using a <code>GROUP BY</code> statement will not be suppor
 {
     /**
      * Returns the list of countries ordered by their users count (descending)
-     * @return Country[]
+     * @return CountryResultIterator
      */
     public function getCountriesByUserCount()
     {
@@ -827,7 +834,7 @@ LEFT JOIN users ON users.country_id = country.id</code></pre>
     /**
      * Returns the list of users by alphabetical order
      *
-     * @return User[]
+     * @return UserResultIterator
      */
     public function getUsersByAlphabeticalOrder() {
         // The third parameter will be used in the "ORDER BY" clause of the SQL query.

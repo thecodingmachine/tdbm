@@ -407,18 +407,20 @@
 <p>TDBM is an opiniated ORM. It will not suit everybody and all needs. Here is what you need to know.</p>
 <h2 id="tdbm-starts-with-your-database-model-and-generates-php-files">TDBM starts with your database model and generates PHP files</h2>
 <p>TDBM is a &quot;database first&quot; ORM. Everything starts from your database. TDBM is very good at understanding your database model and the intent behind it. It will generate PHP objects mapping your model.</p>
+<!-- https://docs.google.com/drawings/d/1ZdwVgk5w1oFXnVDnDuK6d9uu_zXxNuuzYlyK409zVBE -->
 <p><img src="doc/images/tdbm_generates_php_classes.png" alt="TDBM generates your PHP classes" /></p>
 <p>TDBM <strong>understands your database model</strong>. From it, it will generate PHP classes that will help you access your database:</p>
 <ul>
 <li><em>DAOs</em> that are services helping you access a given table</li>
-<li>and <em>Beans</em> that are classes representing a row in your database.</li>
+<li><em>Beans</em> that are classes representing a row in your database.</li>
+<li><em>ResultIterators</em> that are classes representing a query result.</li>
 </ul>
 <pre><code class="language-php">// Daos are used to query the database
 $user = $userDao-&gt;getById(42);
 
 // Beans have getters and setters for each column
 $login = $user-&gt;getLogin();</code></pre>
-<p>Because PHP objects are generated (no magic properties), you get a nice <strong>autocompletion</strong> in your favorite IDE (PHPStorm, Eclipse PDT, Netbeans...).</p>
+<p>Because PHP objects are generated (no magic properties), you get a nice <strong>autocompletion</strong> in your favorite IDE (PHPStorm, Eclipse PDT, NetBeans...).</p>
 <h2 id="tdbm-is-really-good-at-understanding-your-database-model">TDBM is really good at understanding your database model</h2>
 <p>TDBM has one of <strong>the most powerful database model analyzer</strong> out there.</p>
 <h3 id="tdbm-relies-on-your-foreign-keys">TDBM relies on your foreign keys</h3>

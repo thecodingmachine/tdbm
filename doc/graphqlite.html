@@ -501,7 +501,7 @@ As a result, you can directly inject you beans as arguments in your GraphQL quer
 
     /**
      * @Query()
-     * @return Product[]
+     * @return ProductResultIterator
      */
     public function getProducts(Category $category): array
     {
