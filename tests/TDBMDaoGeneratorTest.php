@@ -142,7 +142,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testGenerationException(): void
     {
-        $configuration = new Configuration('UnknownVendor\\Dao', 'UnknownVendor\\Bean', 'UnknownVendor\\ResultIterator', self::getConnection(), $this->getNamingStrategy());
+        $configuration = new Configuration('UnknownVendor\\Dao', 'UnknownVendor\\Bean', self::getConnection(), $this->getNamingStrategy());
 
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
@@ -184,7 +184,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertEquals(UserBean::class, $this->tdbmService->getBeanClassName('users'));
 
         // Let's create another TDBMService to test the cache.
-        $configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', 'TheCodingMachine\\TDBM\\Test\\ResultIterator', self::getConnection(), $this->getNamingStrategy(), $this->getCache(), null, null, [$this->getDummyGeneratorListener()]);
+        $configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), $this->getCache(), null, null, [$this->getDummyGeneratorListener()]);
         $configuration->setPathFinder(new PathFinder(null, dirname(__DIR__, 4)));
         $newTdbmService = new TDBMService($configuration);
         $this->assertEquals(UserBean::class, $newTdbmService->getBeanClassName('users'));

@@ -783,7 +783,7 @@ SQL;
     public function testLogger(): void
     {
         $arrayLogger = new ArrayLogger();
-        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', 'TheCodingMachine\\TDBM\\Test\\ResultIterator', self::getConnection(), $this->getNamingStrategy(), null, null, $arrayLogger));
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, $arrayLogger));
 
         $tdbmService->setLogLevel(LogLevel::DEBUG);
         $beans = $tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
@@ -808,7 +808,7 @@ SQL;
 
     public function testBuildFilterFromFilterBagIterator(): void
     {
-        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', 'TheCodingMachine\\TDBM\\Test\\ResultIterator', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
 
         [$sql, $parameters, $counter] = $tdbmService->buildFilterFromFilterBag(new \ArrayIterator(['id' => 1]), self::getConnection()->getDatabasePlatform());
         $this->assertRegExp('/\(.id. = :tdbmparam1\)/', $sql);
@@ -819,7 +819,7 @@ SQL;
     {
         $this->expectException(TDBMInvalidArgumentException::class);
         $this->expectExceptionMessageRegExp('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
-        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', 'TheCodingMachine\\TDBM\\Test\\ResultIterator', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
 
         $tdbmService->findObjects('', null, [], null, [], null, null, self::class);
     }
@@ -828,7 +828,7 @@ SQL;
     {
         $this->expectException(TDBMInvalidArgumentException::class);
         $this->expectExceptionMessageRegExp('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
-        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', 'TheCodingMachine\\TDBM\\Test\\ResultIterator', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
 
         $tdbmService->findObjectsFromSql('', '', null, [], null, null, null, self::class);
     }
@@ -837,7 +837,7 @@ SQL;
     {
         $this->expectException(TDBMInvalidArgumentException::class);
         $this->expectExceptionMessageRegExp('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
-        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', 'TheCodingMachine\\TDBM\\Test\\ResultIterator', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
 
         $tdbmService->findObjectsFromRawSql('', '', [], null, null, null, self::class);
     }

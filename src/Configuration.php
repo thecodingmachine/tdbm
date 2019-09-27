@@ -89,7 +89,6 @@ class Configuration implements ConfigurationInterface
     public function __construct(
         string $beanNamespace,
         string $daoNamespace,
-        string $resultIteratorNamespace,
         Connection $connection,
         NamingStrategyInterface $namingStrategy = null,
         Cache $cache = null,
@@ -97,10 +96,17 @@ class Configuration implements ConfigurationInterface
         LoggerInterface $logger = null,
         array $generatorListeners = [],
         AnnotationParser $annotationParser = null,
-        array $codeGeneratorListeners = []
+        array $codeGeneratorListeners = [],
+        string $resultIteratorNamespace = null
     ) {
         $this->beanNamespace = rtrim($beanNamespace, '\\');
         $this->daoNamespace = rtrim($daoNamespace, '\\');
+        if ($resultIteratorNamespace === null) {
+            $baseNamespace = explode('\\', $this->daoNamespace);
+            array_pop($baseNamespace);
+            $baseNamespace[] = 'ResultIterator';
+            $resultIteratorNamespace = implode('\\', $baseNamespace);
+        }
         $this->resultIteratorNamespace = rtrim($resultIteratorNamespace, '\\');
         $this->connection = $connection;
         if ($cache !== null) {

@@ -22,7 +22,7 @@ class AlteredConfigurationTest extends TestCase
         $logger = $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock();
         $schemaAnalyzer = $this->getMockBuilder(SchemaAnalyzer::class)->disableOriginalConstructor()->getMock();
 
-        $configuration = new Configuration('FooBean', 'FooDao', 'FooResultIterator', $connection, $namingStrategy, $cache, $schemaAnalyzer, $logger, []);
+        $configuration = new Configuration('FooBean', 'FooDao', $connection, $namingStrategy, $cache, $schemaAnalyzer, $logger, [], null, [], 'FooResultIterator');
 
         $alteredConfiguration = new AlteredConfiguration($configuration);
 
