@@ -65,7 +65,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     private $queryFactory;
 
     /**
-     * @var InnerResultIterator|null
+     * @var InnerResultIteratorInterface|null
      */
     private $innerResultIterator;
 
@@ -160,18 +160,13 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * Retrieve an external iterator.
      *
-     * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
-     *
-     * @return InnerResultIterator An instance of an object implementing <b>Iterator</b> or
-     *                             <b>Traversable</b>
-     *
-     * @since 5.0.0
+     * @return InnerResultIteratorInterface
      */
     public function getIterator()
     {
         if ($this->innerResultIterator === null) {
             if ($this->totalCount === 0) {
-                $this->innerResultIterator = InnerResultArray::createEmpyIterator();
+                $this->innerResultIterator = new EmptyInnerResultIterator();
             } elseif ($this->mode === TDBMService::MODE_CURSOR) {
                 $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             } else {
@@ -251,7 +246,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function offsetSet($offset, $value)
     {
-        return $this->getIterator()->offsetSet($offset, $value);
+        $this->getIterator()->offsetSet($offset, $value);
     }
 
     /**
@@ -267,7 +262,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function offsetUnset($offset)
     {
-        return $this->getIterator()->offsetUnset($offset);
+        $this->getIterator()->offsetUnset($offset);
     }
 
     /**

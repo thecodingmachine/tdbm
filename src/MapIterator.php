@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace TheCodingMachine\TDBM;
 
 use Iterator;
+use IteratorAggregate;
+use Traversable;
 
 /**
  * An iterator that maps element of another iterator by calling a callback on it.
@@ -22,7 +24,7 @@ class MapIterator implements Iterator, \JsonSerializable
     protected $callable;
 
     /**
-     * @param Iterator|array $iterator
+     * @param Traversable|array $iterator
      * @param callable $callable This can have two parameters
      *
      * @throws TDBMException
@@ -31,10 +33,15 @@ class MapIterator implements Iterator, \JsonSerializable
     {
         if (is_array($iterator)) {
             $this->iterator = new \ArrayIterator($iterator);
-        } elseif (!($iterator instanceof Iterator)) {
-            throw new TDBMException('$iterator parameter must be an instance of Iterator');
-        } else {
+        } elseif ($iterator instanceof Iterator) {
             $this->iterator = $iterator;
+        } elseif ($iterator instanceof IteratorAggregate) {
+            while (!$iterator instanceof Iterator) {
+                $iterator = $iterator->getIterator();
+            }
+            $this->iterator = $iterator;
+        } else {
+            throw new TDBMException('$iterator parameter must be an instance of Iterator');
         }
 
         if ($callable instanceof \Closure) {
