@@ -36,6 +36,8 @@ class AlteredConfigurationTest extends TestCase
         $this->assertSame($schemaAnalyzer, $alteredConfiguration->getSchemaAnalyzer());
         $this->assertSame($configuration->getPathFinder(), $alteredConfiguration->getPathFinder());
         $this->assertSame($configuration->getAnnotationParser(), $alteredConfiguration->getAnnotationParser());
+        $this->assertSame($configuration->getLockFilePath(), $alteredConfiguration->getLockFilePath());
+        $this->assertSame($configuration->getCodeGeneratorListener(), $alteredConfiguration->getCodeGeneratorListener());
 
         $logger2 = new NullLogger();
         $alteredConfiguration->setLogger($logger2);
