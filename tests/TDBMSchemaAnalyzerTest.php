@@ -23,6 +23,7 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\Utils\ImmutableCaster;
 
 class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
 {
@@ -35,15 +36,35 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
     {
         parent::setUp();
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
-        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer);
+        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer, Configuration::getDefaultLockFilePath());
+    }
+
+    public function testSchemaLock(): void
+    {
+        $schemaFromConnec = self::getConnection()->getSchemaManager()->createSchema();
+        $tableNames = [];
+        //lock file doesn't save the database name so we have to replace it manually.
+        ImmutableCaster::castSchemaToImmutable($schemaFromConnec);
+        foreach ($schemaFromConnec->getTableNames() as $tableName) {
+            $tableNames[] = str_replace(['tdbm_testcase', 'postgres'], 'public', $tableName);
+        }
+
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $cache = new ArrayCache();
+        $tdbmSchemaAnalyzer1 = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());
+
+        $schemaFromAnalyser = $tdbmSchemaAnalyzer1->getSchema(true);
+        $schemaFromAnalyserCached = $tdbmSchemaAnalyzer1->getSchema();
+        $this->assertEquals($tableNames, $schemaFromAnalyser->getTableNames());
+        $this->assertEquals($schemaFromAnalyser->getTableNames(), $schemaFromAnalyserCached->getTableNames());
     }
 
     public function testGetSchema(): void
     {
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer1 = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
-        $tdbmSchemaAnalyzer2 = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer1 = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());
+        $tdbmSchemaAnalyzer2 = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());
 
         // Why don't we go in all lines of code????
         $schema1 = $tdbmSchemaAnalyzer1->getSchema();
@@ -56,7 +77,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
     {
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('users');
         $this->assertCount(1, $fks);
@@ -66,7 +87,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
     {
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('contact');
         $this->assertCount(1, $fks);
@@ -76,7 +97,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
     {
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());
 
         $fks = $tdbmSchemaAnalyzer->getIncomingForeignKeys('country');
         $this->assertCount(5, $fks);
@@ -91,7 +112,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
     {
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
         $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer);
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());
 
         $pivotTables = $tdbmSchemaAnalyzer->getPivotTableLinkedToTable('rights');
         $this->assertCount(1, $pivotTables);

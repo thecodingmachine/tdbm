@@ -26,6 +26,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\Configuration;
 use TheCodingMachine\TDBM\TDBMAbstractServiceTest;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
@@ -53,7 +54,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $this->schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $this->schema = $schemaManager->createSchema();
-        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new VoidCache(), $this->schemaAnalyzer);
+        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new VoidCache(), $this->schemaAnalyzer, Configuration::getDefaultLockFilePath());
     }
 
     public function testConstructor(): void

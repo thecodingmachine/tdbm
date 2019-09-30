@@ -146,4 +146,9 @@ class AlteredConfiguration implements ConfigurationInterface
     {
         return $this->configuration->getAnnotationParser();
     }
+
+    public function getLockFilePath(): string
+    {
+        return $this->configuration->getLockFilePath();
+    }
 }

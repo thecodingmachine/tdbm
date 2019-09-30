@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Commands;
 
+use Symfony\Component\Console\Input\InputOption;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 use TheCodingMachine\TDBM\TDBMService;
 use Mouf\Utils\Log\Psr\MultiLogger;
@@ -30,6 +31,13 @@ class GenerateCommand extends Command
         $this->setName('tdbm:generate')
             ->setDescription('Generates DAOs and beans.')
             ->setHelp('Use this command to generate or regenerate the DAOs and beans for your project.')
+            ->addOption(
+                'from-lock',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Load the schema from the lock file instead of database',
+                false
+            )
         ;
     }
 
@@ -39,6 +47,7 @@ class GenerateCommand extends Command
 
         $alteredConf = new AlteredConfiguration($this->configuration);
 
+        $fromLock = (bool) $input->getOption('from-lock');
 
         $loggers = [ new ConsoleLogger($output) ];
 
@@ -54,7 +63,7 @@ class GenerateCommand extends Command
         $multiLogger->notice('Starting regenerating DAOs and beans');
 
         $tdbmService = new TDBMService($this->configuration);
-        $tdbmService->generateAllDaosAndBeans();
+        $tdbmService->generateAllDaosAndBeans($fromLock);
 
         $multiLogger->notice('Finished regenerating DAOs and beans');
     }

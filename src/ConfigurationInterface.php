@@ -78,4 +78,6 @@ interface ConfigurationInterface
      * @return AnnotationParser
      */
     public function getAnnotationParser(): AnnotationParser;
+
+    public function getLockFilePath(): string;
 }

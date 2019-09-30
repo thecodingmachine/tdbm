@@ -187,10 +187,11 @@ class TDBMService
         $this->connection = $configuration->getConnection();
         $this->cache = $configuration->getCache();
         $this->schemaAnalyzer = $configuration->getSchemaAnalyzer();
+        $lockFilePath = $configuration->getLockFilePath();
 
         $this->magicQuery = new MagicQuery($this->connection, $this->cache, $this->schemaAnalyzer);
 
-        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->connection, $this->cache, $this->schemaAnalyzer);
+        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->connection, $this->cache, $this->schemaAnalyzer, $lockFilePath);
         $this->cachePrefix = $this->tdbmSchemaAnalyzer->getCachePrefix();
 
         $this->toSaveObjects = new \SplObjectStorage();
@@ -527,7 +528,7 @@ class TDBMService
     /**
      * Generates all the daos and beans.
      */
-    public function generateAllDaosAndBeans() : void
+    public function generateAllDaosAndBeans(bool $fromLock = false) : void
     {
         // Purge cache before generating anything.
         if ($this->cache instanceof ClearableCache) {
@@ -535,7 +536,7 @@ class TDBMService
         }
 
         $tdbmDaoGenerator = new TDBMDaoGenerator($this->configuration, $this->tdbmSchemaAnalyzer);
-        $tdbmDaoGenerator->generateAllDaosAndBeans();
+        $tdbmDaoGenerator->generateAllDaosAndBeans($fromLock);
     }
 
     /**

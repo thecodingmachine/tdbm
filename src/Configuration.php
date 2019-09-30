@@ -21,6 +21,7 @@ use TheCodingMachine\TDBM\Utils\NamingStrategyInterface;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinderInterface;
 use Psr\Log\LoggerInterface;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
+use TheCodingMachine\TDBM\Utils\RootProjectLocator;
 
 class Configuration implements ConfigurationInterface
 {
@@ -71,6 +72,7 @@ class Configuration implements ConfigurationInterface
      * @var AnnotationParser
      */
     private $annotationParser;
+    private $lockFilePath;
 
     /**
      * @param string $beanNamespace The namespace hosting the beans
@@ -84,6 +86,7 @@ class Configuration implements ConfigurationInterface
      * @param GeneratorListenerInterface[] $generatorListeners A list of listeners that will be triggered when beans/daos are generated
      * @param AnnotationParser|null $annotationParser
      * @param CodeGeneratorListenerInterface[] $codeGeneratorListeners A list of listeners that can alter code generation of each bean/dao
+     * @param string|null $lockFilePath
      * @throws \Mouf\Database\SchemaAnalyzer\SchemaAnalyzerException
      */
     public function __construct(
@@ -97,7 +100,8 @@ class Configuration implements ConfigurationInterface
         array $generatorListeners = [],
         AnnotationParser $annotationParser = null,
         array $codeGeneratorListeners = [],
-        string $resultIteratorNamespace = null
+        string $resultIteratorNamespace = null,
+        string $lockFilePath = null
     ) {
         $this->beanNamespace = rtrim($beanNamespace, '\\');
         $this->daoNamespace = rtrim($daoNamespace, '\\');
@@ -125,6 +129,7 @@ class Configuration implements ConfigurationInterface
         $this->annotationParser = $annotationParser ?: AnnotationParser::buildWithDefaultAnnotations([]);
         $this->codeGeneratorListener = new CodeGeneratorEventDispatcher($codeGeneratorListeners);
         $this->namingStrategy = $namingStrategy ?: new DefaultNamingStrategy($this->annotationParser, $this->connection->getSchemaManager());
+        $this->lockFilePath = $lockFilePath;
     }
 
     /**
@@ -242,5 +247,18 @@ class Configuration implements ConfigurationInterface
     public function getAnnotationParser(): AnnotationParser
     {
         return $this->annotationParser;
+    }
+
+    /**
+     * @internal
+     */
+    public static function getDefaultLockFilePath(): string
+    {
+        return RootProjectLocator::getRootLocationPath().'tdbm.lock.yml';
+    }
+
+    public function getLockFilePath(): string
+    {
+        return $this->lockFilePath ?: self::getDefaultLockFilePath();
     }
 }

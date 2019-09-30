@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
+use BrainDiminished\SchemaVersionControl\SchemaVersionControlService;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Column;
@@ -12,12 +13,14 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\DateType;
 use Doctrine\DBAL\Types\Type;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\Utils\ImmutableCaster;
 
 /**
  * This class is used to analyze the schema and return valuable information / hints.
  */
 class TDBMSchemaAnalyzer
 {
+    private $lockFilePath;
     private $connection;
 
     /**
@@ -41,16 +44,24 @@ class TDBMSchemaAnalyzer
     private $schemaAnalyzer;
 
     /**
-     * @param Connection     $connection     The DBAL DB connection to use
-     * @param Cache          $cache          A cache service to be used
+     * @var SchemaVersionControlService
+     */
+    private $schemaVersionControlService;
+
+    /**
+     * @param Connection $connection The DBAL DB connection to use
+     * @param Cache $cache A cache service to be used
      * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
      *                                       Will be automatically created if not passed
+     * @param string $lockFilePath The path for the lock file which will store the database schema
      */
-    public function __construct(Connection $connection, Cache $cache, SchemaAnalyzer $schemaAnalyzer)
+    public function __construct(Connection $connection, Cache $cache, SchemaAnalyzer $schemaAnalyzer, string $lockFilePath)
     {
         $this->connection = $connection;
         $this->cache = $cache;
         $this->schemaAnalyzer = $schemaAnalyzer;
+        $this->lockFilePath = $lockFilePath;
+        $this->schemaVersionControlService = new SchemaVersionControlService($this->connection, $this->lockFilePath);
     }
 
     /**
@@ -67,20 +78,25 @@ class TDBMSchemaAnalyzer
         return $this->cachePrefix;
     }
 
+    public function getLockFilePath(): string
+    {
+        return $this->lockFilePath;
+    }
+
     /**
      * Returns the (cached) schema.
-     *
-     * @return Schema
      */
-    public function getSchema(): Schema
+    public function getSchema(bool $ignoreCache = false): Schema
     {
         if ($this->schema === null) {
             $cacheKey = $this->getCachePrefix().'_immutable_schema';
-            if ($this->cache->contains($cacheKey)) {
+            if (!$ignoreCache && $this->cache->contains($cacheKey)) {
                 $this->schema = $this->cache->fetch($cacheKey);
+            } elseif (!file_exists($this->getLockFilePath())) {
+                throw new TDBMException('No tdbm lock file found. Please regenerate DAOs and Beans.');
             } else {
-                $this->schema = $this->connection->getSchemaManager()->createSchema();
-                $this->castSchemaToImmutable($this->schema);
+                $this->schema = $this->schemaVersionControlService->loadSchemaFile();
+                ImmutableCaster::castSchemaToImmutable($this->schema);
                 $this->cache->save($cacheKey, $this->schema);
             }
         }
@@ -88,32 +104,10 @@ class TDBMSchemaAnalyzer
         return $this->schema;
     }
 
-    private function castSchemaToImmutable(Schema $schema): void
+    public function generateLockFile(): void
     {
-        foreach ($schema->getTables() as $table) {
-            foreach ($table->getColumns() as $column) {
-                $this->toImmutableType($column);
-            }
-        }
-    }
-
-    /**
-     * Changes the type of a column to an immutable date type if the type is a date.
-     * This is needed because by default, when reading a Schema, Doctrine assumes a mutable datetime.
-     */
-    private function toImmutableType(Column $column): void
-    {
-        $mapping = [
-            Type::DATE => Type::DATE_IMMUTABLE,
-            Type::DATETIME => Type::DATETIME_IMMUTABLE,
-            Type::DATETIMETZ => Type::DATETIMETZ_IMMUTABLE,
-            Type::TIME => Type::TIME_IMMUTABLE
-        ];
-
-        $typeName = $column->getType()->getName();
-        if (isset($mapping[$typeName])) {
-            $column->setType(Type::getType($mapping[$typeName]));
-        }
+        $this->schemaVersionControlService->dumpSchema();
+        \chmod($this->getLockFilePath(), 0664);
     }
 
     /**

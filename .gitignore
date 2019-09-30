@@ -16,3 +16,5 @@ vendor/*
 .phpunit.result.cache
 /phpbench.sh
 /xdebug/
+.php_cs.cache
+tdbm.lock.yml
