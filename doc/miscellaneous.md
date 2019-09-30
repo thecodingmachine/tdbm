@@ -89,7 +89,7 @@ class UserDao extends AbstractUserDao {
 	 * Returns the list of users starting with $firstLetter
 	 *
 	 * @param string $firstLetter
-	 * @return User[]
+	 * @return UserResultIterator
 	 */
 	public function getUsersByLetter($firstLetter) {
         $this->tdbmService->setLogLevel(LogLevel::DEBUG);

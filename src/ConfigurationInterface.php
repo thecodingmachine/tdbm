@@ -27,6 +27,11 @@ interface ConfigurationInterface
     public function getDaoNamespace(): string;
 
     /**
+     * @return string
+     */
+    public function getResultIteratorNamespace(): string;
+
+    /**
      * @return Connection
      */
     public function getConnection(): Connection;

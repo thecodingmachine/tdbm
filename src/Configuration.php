@@ -34,6 +34,8 @@ class Configuration implements ConfigurationInterface
      * @var string
      */
     private $daoNamespace;
+    /** @var string */
+    private $resultIteratorNamespace;
     /**
      * @var Connection
      */
@@ -75,6 +77,7 @@ class Configuration implements ConfigurationInterface
     /**
      * @param string $beanNamespace The namespace hosting the beans
      * @param string $daoNamespace The namespace hosting the DAOs
+     * @param string $resultIteratorNamespace The namespace hosting the ResultIterators
      * @param Connection $connection The connection to the database
      * @param NamingStrategyInterface|null $namingStrategy
      * @param Cache|null $cache The Doctrine cache to store database metadata
@@ -86,10 +89,29 @@ class Configuration implements ConfigurationInterface
      * @param string|null $lockFilePath
      * @throws \Mouf\Database\SchemaAnalyzer\SchemaAnalyzerException
      */
-    public function __construct(string $beanNamespace, string $daoNamespace, Connection $connection, NamingStrategyInterface $namingStrategy = null, Cache $cache = null, SchemaAnalyzer $schemaAnalyzer = null, LoggerInterface $logger = null, array $generatorListeners = [], AnnotationParser $annotationParser = null, array $codeGeneratorListeners = [], string $lockFilePath = null)
-    {
+    public function __construct(
+        string $beanNamespace,
+        string $daoNamespace,
+        Connection $connection,
+        NamingStrategyInterface $namingStrategy = null,
+        Cache $cache = null,
+        SchemaAnalyzer $schemaAnalyzer = null,
+        LoggerInterface $logger = null,
+        array $generatorListeners = [],
+        AnnotationParser $annotationParser = null,
+        array $codeGeneratorListeners = [],
+        string $resultIteratorNamespace = null,
+        string $lockFilePath = null
+    ) {
         $this->beanNamespace = rtrim($beanNamespace, '\\');
         $this->daoNamespace = rtrim($daoNamespace, '\\');
+        if ($resultIteratorNamespace === null) {
+            $baseNamespace = explode('\\', $this->daoNamespace);
+            array_pop($baseNamespace);
+            $baseNamespace[] = 'ResultIterator';
+            $resultIteratorNamespace = implode('\\', $baseNamespace);
+        }
+        $this->resultIteratorNamespace = rtrim($resultIteratorNamespace, '\\');
         $this->connection = $connection;
         if ($cache !== null) {
             $this->cache = $cache;
@@ -124,6 +146,14 @@ class Configuration implements ConfigurationInterface
     public function getDaoNamespace(): string
     {
         return $this->daoNamespace;
+    }
+
+    /**
+     * @return string
+     */
+    public function getResultIteratorNamespace(): string
+    {
+        return $this->resultIteratorNamespace;
     }
 
     /**

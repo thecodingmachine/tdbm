@@ -132,6 +132,11 @@ class CodeGeneratorEventDispatcherTest extends TestCase
                 return null;
             }
 
+            public function onBaseResultIteratorGenerated(FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
+            {
+                return null;
+            }
+
             /**
              * @param BeanDescriptor[] $beanDescriptors
              */
@@ -297,6 +302,12 @@ class CodeGeneratorEventDispatcherTest extends TestCase
         $index = $this->getMockBuilder(Index::class)->disableOriginalConstructor()->getMock();
         $this->assertSame($this->method1, $this->dispatcher->onBaseDaoFindByIndexGenerated($this->method1, $index, $this->beanDescriptor, $this->configuration, $this->class));
         $this->assertSame(null, $this->nullDispatcher->onBaseDaoFindByIndexGenerated($this->method1, $index, $this->beanDescriptor, $this->configuration, $this->class));
+    }
+
+    public function testOnBaseResultIteratorGenerated(): void
+    {
+        $this->assertSame($this->file, $this->dispatcher->onBaseResultIteratorGenerated($this->file, $this->beanDescriptor, $this->configuration));
+        $this->assertSame(null, $this->nullDispatcher->onBaseResultIteratorGenerated($this->file, $this->beanDescriptor, $this->configuration));
     }
 
     public function testOnDaoFactoryGenerated(): void

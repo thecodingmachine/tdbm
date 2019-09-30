@@ -59,6 +59,6 @@ there is no way to know if it more likely that he wanted users from the birth co
 
 This exception message is quite clear on the ambiguity.
 
-Solving ambiguities is always possible by [manually specifying joins](quickstart.html#joins-ans-filters) in your queries.
+Solving ambiguities is always possible by [manually specifying joins](quickstart.md#joins-ans-filters) in your queries.
 
 <div class="alert alert-warning">Note: If your data model has a lot of loops, you will likely face a lot of ambiguities. TDBM is very well suited for simple models. If your database model is complex enough to feature several of these loops, maybe TDBM is not the best tool for you. There are other great tools more suited for those use cases like <a href="http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/">Doctrine ORM</a> for instance.</div>

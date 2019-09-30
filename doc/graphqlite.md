@@ -186,7 +186,7 @@ class ProductController
 
     /**
      * @Query()
-     * @return Product[]
+     * @return ProductResultIterator
      */
     public function getProducts(Category $category): array
     {

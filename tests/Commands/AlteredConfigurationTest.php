@@ -22,7 +22,7 @@ class AlteredConfigurationTest extends TestCase
         $logger = $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock();
         $schemaAnalyzer = $this->getMockBuilder(SchemaAnalyzer::class)->disableOriginalConstructor()->getMock();
 
-        $configuration = new Configuration('FooBean', 'FooDao', $connection, $namingStrategy, $cache, $schemaAnalyzer, $logger, []);
+        $configuration = new Configuration('FooBean', 'FooDao', $connection, $namingStrategy, $cache, $schemaAnalyzer, $logger, [], null, [], 'FooResultIterator');
 
         $alteredConfiguration = new AlteredConfiguration($configuration);
 
@@ -32,6 +32,7 @@ class AlteredConfigurationTest extends TestCase
         $this->assertSame($logger, $alteredConfiguration->getLogger());
         $this->assertSame('FooBean', $alteredConfiguration->getBeanNamespace());
         $this->assertSame('FooDao', $alteredConfiguration->getDaoNamespace());
+        $this->assertSame('FooResultIterator', $alteredConfiguration->getResultIteratorNamespace());
         $this->assertSame($configuration->getGeneratorEventDispatcher(), $alteredConfiguration->getGeneratorEventDispatcher());
         $this->assertSame($schemaAnalyzer, $alteredConfiguration->getSchemaAnalyzer());
         $this->assertSame($configuration->getPathFinder(), $alteredConfiguration->getPathFinder());

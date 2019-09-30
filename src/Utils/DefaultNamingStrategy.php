@@ -23,6 +23,10 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
     private $daoSuffix = 'Dao';
     private $baseDaoPrefix = 'Abstract';
     private $baseDaoSuffix = 'Dao';
+    private $resultIteratorPrefix = '';
+    private $resultIteratorSuffix = 'ResultIterator';
+    private $baseResultIteratorPrefix = 'Abstract';
+    private $baseResultIteratorSuffix = 'ResultIterator';
     private $exceptions = [];
     /**
      * @var AnnotationParser
@@ -166,6 +170,28 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
     public function getBaseDaoClassName(string $tableName): string
     {
         return $this->baseDaoPrefix.$this->tableNameToSingularCamelCase($tableName).$this->baseDaoSuffix;
+    }
+
+    /**
+     * Returns the name of the ResultIterator class from the table name (excluding the namespace).
+     *
+     * @param string $tableName
+     * @return string
+     */
+    public function getResultIteratorClassName(string $tableName): string
+    {
+        return $this->resultIteratorPrefix.$this->tableNameToSingularCamelCase($tableName).$this->resultIteratorSuffix;
+    }
+
+    /**
+     * Returns the name of the base ResultIterator class from the table name (excluding the namespace).
+     *
+     * @param string $tableName
+     * @return string
+     */
+    public function getBaseResultIteratorClassName(string $tableName): string
+    {
+        return $this->baseResultIteratorPrefix.$this->tableNameToSingularCamelCase($tableName).$this->baseResultIteratorSuffix;
     }
 
     private function tableNameToSingularCamelCase(string $tableName): string

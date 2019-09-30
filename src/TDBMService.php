@@ -1120,13 +1120,17 @@ class TDBMService
      * @param string[]                     $additionalTablesFetch
      * @param int|null                     $mode
      * @param string                       $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param string                       $resultIteratorClass   The name of the resultIterator class to return
      *
      * @return ResultIterator An object representing an array of results
      *
      * @throws TDBMException
      */
-    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), ?int $mode = null, string $className = null) : ResultIterator
+    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), ?int $mode = null, string $className = null, string $resultIteratorClass = ResultIterator::class): ResultIterator
     {
+        if (!is_a($resultIteratorClass, ResultIterator::class, true)) {
+            throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.');
+        }
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
             throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
@@ -1142,7 +1146,7 @@ class TDBMService
 
         $queryFactory = new FindObjectsQueryFactory($mainTable, $additionalTablesFetch, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer, $this->cache);
 
-        return ResultIterator::createResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
+        return $resultIteratorClass::createResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**
@@ -1153,13 +1157,17 @@ class TDBMService
      * @param string|UncheckedOrderBy|null $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
      * @param int                          $mode
      * @param string                       $className   Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param string                       $resultIteratorClass   The name of the resultIterator class to return
      *
      * @return ResultIterator An object representing an array of results
      *
      * @throws TDBMException
      */
-    public function findObjectsFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), $orderString = null, ?int $mode = null, string $className = null): ResultIterator
+    public function findObjectsFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), $orderString = null, ?int $mode = null, string $className = null, string $resultIteratorClass = ResultIterator::class): ResultIterator
     {
+        if (!is_a($resultIteratorClass, ResultIterator::class, true)) {
+            throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.');
+        }
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
             throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
@@ -1175,7 +1183,7 @@ class TDBMService
 
         $queryFactory = new FindObjectsFromSqlQueryFactory($mainTable, $from, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer, $this->schemaAnalyzer, $this->cache, $this->cachePrefix);
 
-        return ResultIterator::createResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
+        return $resultIteratorClass::createResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**
@@ -1323,13 +1331,17 @@ class TDBMService
      * @param int|null $mode
      * @param string|null $className
      * @param string $sqlCount
+     * @param string $resultIteratorClass The name of the resultIterator class to return
      *
      * @return ResultIterator
      *
      * @throws TDBMException
      */
-    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), ?int $mode = null, string $className = null, string $sqlCount = null): ResultIterator
+    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), ?int $mode = null, string $className = null, string $sqlCount = null, string $resultIteratorClass = ResultIterator::class): ResultIterator
     {
+        if (!is_a($resultIteratorClass, ResultIterator::class, true)) {
+            throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.');
+        }
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
             throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
@@ -1339,7 +1351,7 @@ class TDBMService
 
         $queryFactory = new FindObjectsFromRawSqlQueryFactory($this, $this->tdbmSchemaAnalyzer->getSchema(), $mainTable, $sql, $sqlCount);
 
-        return ResultIterator::createResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
+        return $resultIteratorClass::createResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
 
     /**

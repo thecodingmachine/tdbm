@@ -80,6 +80,8 @@ interface CodeGeneratorListenerInterface
 
     public function onBaseDaoFindByIndexGenerated(MethodGenerator $methodGenerator, Index $index, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration, ClassGenerator $classGenerator): ?MethodGenerator;
 
+    public function onBaseResultIteratorGenerated(FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator;
+
     /**
      * @param BeanDescriptor[] $beanDescriptors
      */
