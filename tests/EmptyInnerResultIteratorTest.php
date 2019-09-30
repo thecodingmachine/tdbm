@@ -38,7 +38,10 @@ class EmptyInnerResultIteratorTest extends TestCase
         foreach ($iterator as $elem) {
             $this->fail('Iterator should be empty');
         }
-        $this->assertTrue(true);
+
+        $iterator->next();
+        $this->assertNull($iterator->current());
+        $this->assertNull($iterator->key());
     }
 
     public function testOffsetGet()

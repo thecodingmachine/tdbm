@@ -21,10 +21,31 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace TheCodingMachine\TDBM;
 
+use ArrayIterator;
+use IteratorAggregate;
 use PHPUnit\Framework\TestCase;
 
 class MapIteratorTest extends TestCase
 {
+    public function testIteratorAggregate(): void
+    {
+        $mapIterator = new MapIterator(new class implements IteratorAggregate
+            {
+                public $property1 = "Public property one";
+                public $property2 = "Public property two";
+                public $property3 = "Public property three";
+
+                public function getIterator()
+                {
+                    return new ArrayIterator($this);
+                }
+            }, function ($item) {
+                return $item;
+            });
+
+        self::assertCount(3, $mapIterator);
+    }
+
     public function testConstructorException1(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
