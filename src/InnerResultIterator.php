@@ -93,14 +93,6 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
         return $iterator;
     }
 
-    public static function createEmpyIterator(): self
-    {
-        $iterator = new static();
-        $iterator->count = 0;
-        $iterator->logger = new NullLogger();
-        return $iterator;
-    }
-
     private function getQuery(): string
     {
         $sql = $this->magicQuery->buildPreparedStatement($this->magicSql, $this->parameters);
