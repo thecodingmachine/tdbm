@@ -29,19 +29,18 @@ class MapIteratorTest extends TestCase
 {
     public function testIteratorAggregate(): void
     {
-        $mapIterator = new MapIterator(new class implements IteratorAggregate
-            {
-                public $property1 = "Public property one";
-                public $property2 = "Public property two";
-                public $property3 = "Public property three";
+        $mapIterator = new MapIterator(new class implements IteratorAggregate {
+            public $property1 = "Public property one";
+            public $property2 = "Public property two";
+            public $property3 = "Public property three";
 
-                public function getIterator()
-                {
-                    return new ArrayIterator($this);
-                }
-            }, function ($item) {
-                return $item;
-            });
+            public function getIterator()
+            {
+                return new ArrayIterator($this);
+            }
+        }, function ($item) {
+            return $item;
+        });
 
         self::assertCount(3, $mapIterator);
     }
