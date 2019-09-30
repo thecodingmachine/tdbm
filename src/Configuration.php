@@ -249,6 +249,9 @@ class Configuration implements ConfigurationInterface
         return $this->annotationParser;
     }
 
+    /**
+     * @internal
+     */
     public static function getDefaultLockFilePath(): string
     {
         return RootProjectLocator::getRootLocationPath().'tdbm.lock.yml';
