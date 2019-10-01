@@ -53,9 +53,6 @@ class InnerResultArray extends InnerResultIterator
      */
     public function offsetExists($offset)
     {
-        if ($this->count === 0) {
-            return false;
-        }
         try {
             $this->toIndex($offset);
         } catch (TDBMInvalidOffsetException $e) {
@@ -125,9 +122,6 @@ class InnerResultArray extends InnerResultIterator
      */
     public function rewind()
     {
-        if ($this->count === 0) {
-            return;
-        }
         if (!$this->fetchStarted) {
             $this->executeQuery();
         }

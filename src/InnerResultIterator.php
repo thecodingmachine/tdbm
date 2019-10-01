@@ -31,7 +31,7 @@ use TheCodingMachine\TDBM\Utils\DbalUtils;
 /**
  * Iterator used to retrieve results.
  */
-class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
+class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 {
     /**
      * @var Statement
@@ -90,14 +90,6 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
         $iterator->magicQuery = $magicQuery;
         $iterator->databasePlatform = $iterator->tdbmService->getConnection()->getDatabasePlatform();
         $iterator->logger = $logger;
-        return $iterator;
-    }
-
-    public static function createEmpyIterator(): self
-    {
-        $iterator = new static();
-        $iterator->count = 0;
-        $iterator->logger = new NullLogger();
         return $iterator;
     }
 
@@ -258,9 +250,6 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     public function rewind()
     {
-        if ($this->count === 0) {
-            return;
-        }
         $this->executeQuery();
         $this->key = -1;
         $this->next();
@@ -272,9 +261,6 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      */
     public function valid()
     {
-        if ($this->count === 0) {
-            return false;
-        }
         return $this->current !== null;
     }
 

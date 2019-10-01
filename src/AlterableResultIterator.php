@@ -16,7 +16,7 @@ use Porpaginas\Result;
 class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
 {
     /**
-     * @var \Iterator|null
+     * @var \Traversable|null
      */
     private $resultIterator;
 
@@ -37,9 +37,9 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     private $resultArray;
 
     /**
-     * @param \Iterator|null $resultIterator
+     * @param \Traversable|null $resultIterator
      */
-    public function __construct(\Iterator $resultIterator = null)
+    public function __construct(\Traversable $resultIterator = null)
     {
         $this->resultIterator = $resultIterator;
         $this->alterations = new \SplObjectStorage();
@@ -48,9 +48,9 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * Sets a new iterator as the base iterator to be altered.
      *
-     * @param \Iterator $resultIterator
+     * @param \Traversable $resultIterator
      */
-    public function setResultIterator(\Iterator $resultIterator): void
+    public function setResultIterator(\Traversable $resultIterator): void
     {
         $this->resultIterator = $resultIterator;
         $this->resultArray = null;
@@ -59,9 +59,9 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * Returns the non altered result iterator (or null if none exist).
      *
-     * @return \Iterator|null
+     * @return \Traversable|null
      */
-    public function getUnderlyingResultIterator(): ?\Iterator
+    public function getUnderlyingResultIterator(): ?\Traversable
     {
         return $this->resultIterator;
     }
@@ -231,7 +231,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * Return an iterator over all results of the paginatable.
      *
-     * @return \Iterator
+     * @return \Traversable
      */
     public function getIterator()
     {
