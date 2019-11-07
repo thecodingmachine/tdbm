@@ -23,7 +23,6 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\ClearableCache;
-use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
@@ -1083,9 +1082,11 @@ class TDBMService
         $tables = [$table];
         $keys = $schemaAnalyzer->getChildrenRelationships($table);
 
+        $tmpTables = [];
         foreach ($keys as $key) {
-            $tables = array_merge($tables, $this->exploreChildrenTablesRelationships($schemaAnalyzer, $key->getLocalTableName()));
+            $tmpTables[] = $this->exploreChildrenTablesRelationships($schemaAnalyzer, $key->getLocalTableName());
         }
+        $tables = array_merge($tables, ...$tmpTables);
 
         return $tables;
     }
@@ -1349,7 +1350,7 @@ class TDBMService
 
         $mode = $mode ?: $this->mode;
 
-        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this, $this->tdbmSchemaAnalyzer->getSchema(), $mainTable, $sql, $sqlCount);
+        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this, $this->tdbmSchemaAnalyzer->getSchema(), $mainTable, $sql, $sqlCount, $this->cache);
 
         return $resultIteratorClass::createResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
