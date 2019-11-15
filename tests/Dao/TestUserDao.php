@@ -6,6 +6,7 @@ namespace TheCodingMachine\TDBM\Dao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\UserBean;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
+use TheCodingMachine\TDBM\Test\ResultIterator\UserResultIterator;
 use TheCodingMachine\TDBM\UncheckedOrderBy;
 
 /**
@@ -15,20 +16,16 @@ class TestUserDao extends UserBaseDao
 {
     /**
      * Returns the list of users by alphabetical order.
-     *
-     * @return UserBean[]
      */
-    public function getUsersByAlphabeticalOrder()
+    public function getUsersByAlphabeticalOrder(): UserResultIterator
     {
         // The third parameter will be used in the "ORDER BY" clause of the SQL query.
         return $this->find(null, [], 'login ASC');
     }
     /**
      * Returns the list of users by alphabetical order.
-     *
-     * @return UserBean[]
      */
-    public function getUsersFromSqlByAlphabeticalOrder()
+    public function getUsersFromSqlByAlphabeticalOrder(): UserResultIterator
     {
         // The third parameter will be used in the "ORDER BY" clause of the SQL query.
         return $this->findFromSql('users', null, [], 'users.login ASC');
@@ -36,20 +33,16 @@ class TestUserDao extends UserBaseDao
 
     /**
      * Returns the list of users by alphabetical order.
-     *
-     * @return UserBean[]
      */
-    public function getUsersByCountryOrder()
+    public function getUsersByCountryOrder(): UserResultIterator
     {
         // The third parameter will be used in the "ORDER BY" clause of the SQL query.
         return $this->find(null, [], 'country.label ASC', ['country']);
     }
     /**
      * Returns the list of users by alphabetical order.
-     *
-     * @return UserBean[]
      */
-    public function getUsersFromSqlByCountryOrder()
+    public function getUsersFromSqlByCountryOrder(): UserResultIterator
     {
         // The third parameter will be used in the "ORDER BY" clause of the SQL query.
         return $this->findFromSql('users JOIN country ON country.id = users.country_id', null, [], 'country.label ASC');
@@ -60,10 +53,8 @@ class TestUserDao extends UserBaseDao
      *
      * @param string $login
      * @param string $mode
-     *
-     * @return \TheCodingMachine\TDBM\ResultIterator|UserBean[]
      */
-    public function getUsersByLoginStartingWith($login = null, $mode = null)
+    public function getUsersByLoginStartingWith($login = null, $mode = null): UserResultIterator
     {
         return $this->find('login LIKE :login', ['login' => $login.'%'], null, [], $mode);
     }
@@ -87,30 +78,24 @@ class TestUserDao extends UserBaseDao
 
     /**
      * Triggers an error because table "contacts" does not exist.
-     *
-     * @return \TheCodingMachine\TDBM\ResultIterator|UserBean[]
      */
-    public function getUsersWrongTableName()
+    public function getUsersWrongTableName(): UserResultIterator
     {
         return $this->find('contacts.manager_id = 1');
     }
 
     /**
      * Returns a list of users, sorted by a table on an external column.
-     *
-     * @return \TheCodingMachine\TDBM\ResultIterator|UserBean[]
      */
-    public function getUsersByCountryName()
+    public function getUsersByCountryName(): UserResultIterator
     {
         return $this->find(null, [], 'country.label DESC');
     }
 
     /**
      * A test to sort by function.
-     *
-     * @return \TheCodingMachine\TDBM\ResultIterator|UserBean[]
      */
-    public function getUsersByReversedCountryName()
+    public function getUsersByReversedCountryName(): UserResultIterator
     {
         return $this->find(null, [], new UncheckedOrderBy('REVERSE(country.label) ASC'));
     }

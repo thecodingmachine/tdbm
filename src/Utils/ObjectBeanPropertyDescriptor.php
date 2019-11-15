@@ -32,6 +32,10 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @var BeanDescriptor
      */
     private $foreignBeanDescriptor;
+    /**
+     * @var string
+     */
+    private $resultIteratorNamespace;
 
     /**
      * ObjectBeanPropertyDescriptor constructor.
@@ -41,6 +45,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
      * @param string $beanNamespace
      * @param AnnotationParser $annotationParser
      * @param BeanDescriptor $foreignBeanDescriptor The BeanDescriptor of FK foreign table
+     * @param string $resultIteratorNamespace
      */
     public function __construct(
         Table $table,
@@ -48,7 +53,8 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         NamingStrategyInterface $namingStrategy,
         string $beanNamespace,
         AnnotationParser $annotationParser,
-        BeanDescriptor $foreignBeanDescriptor
+        BeanDescriptor $foreignBeanDescriptor,
+        string $resultIteratorNamespace
     ) {
         parent::__construct($table, $namingStrategy);
         $this->foreignKey = $foreignKey;
@@ -57,6 +63,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $this->table = $table;
         $this->namingStrategy = $namingStrategy;
         $this->foreignBeanDescriptor = $foreignBeanDescriptor;
+        $this->resultIteratorNamespace = $resultIteratorNamespace;
     }
 
     /**
@@ -152,25 +159,27 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     public function getGetterSetterCode(): array
     {
         $tableName = $this->table->getName();
+        $foreignTableName = $this->foreignKey->getForeignTableName();
         $getterName = $this->getGetterName();
         $setterName = $this->getSetterName();
         $isNullable = !$this->isCompulsory();
 
-        $referencedBeanName = $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
+        $referencedBeanName = $this->namingStrategy->getBeanClassName($foreignTableName);
+        $referencedResultIteratorName = $this->namingStrategy->getResultIteratorClassName($foreignTableName);
 
         $getter = new MethodGenerator($getterName);
         $getter->setDocBlock('Returns the ' . $referencedBeanName . ' object bound to this object via the ' . implode(' and ', $this->foreignKey->getUnquotedLocalColumns()) . ' column.');
 
-        /*$types = [ $referencedBeanName ];
-        if ($isNullable) {
-            $types[] = 'null';
-        }
-        $getter->getDocBlock()->setTag(new ReturnTag($types));*/
-
         $getter->setReturnType(($isNullable ? '?' : '') . $this->beanNamespace . '\\' . $referencedBeanName);
         $tdbmFk = ForeignKey::createFromFk($this->foreignKey);
 
-        $getter->setBody('return $this->getRef(' . var_export($tdbmFk->getCacheKey(), true) . ', ' . var_export($tableName, true) . ');');
+        $getter->setBody(sprintf(
+            'return $this->getRef(%s, %s, %s, %s);',
+            var_export($tdbmFk->getCacheKey(), true),
+            var_export($tableName, true),
+            '\\' . $this->beanNamespace . '\\' . $referencedBeanName . '::class',
+            '\\' . $this->resultIteratorNamespace . '\\' . $referencedResultIteratorName . '::class'
+        ));
 
         if ($this->isGetterProtected()) {
             $getter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
@@ -183,7 +192,14 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
         $setter->setReturnType('void');
 
-        $setter->setBody('$this->setRef(' . var_export($tdbmFk->getCacheKey(), true) . ', $object, ' . var_export($tableName, true) . ');');
+        $setter->setBody(sprintf(
+            '$this->setRef(%s, %s, %s, %s, %s);',
+            var_export($tdbmFk->getCacheKey(), true),
+            '$object',
+            var_export($tableName, true),
+            '\\' . $this->beanNamespace . '\\' . $referencedBeanName . '::class',
+            '\\' . $this->resultIteratorNamespace . '\\' . $referencedResultIteratorName . '::class'
+        ));
 
         if ($this->isSetterProtected()) {
             $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);

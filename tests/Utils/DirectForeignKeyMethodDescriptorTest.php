@@ -15,7 +15,7 @@ class DirectForeignKeyMethodDescriptorTest extends TestCase
         $table = $this->createMock(Table::class);
         $ns = $this->createMock(DefaultNamingStrategy::class);
         $ap = $this->createMock(AnnotationParser::class);
-        $descriptor = new DirectForeignKeyMethodDescriptor($fk, $table, $ns, $ap, '');
+        $descriptor = new DirectForeignKeyMethodDescriptor($fk, $table, $ns, $ap, '', '');
 
         $this->assertSame($fk, $descriptor->getForeignKey());
         $this->assertSame($table, $descriptor->getMainTable());

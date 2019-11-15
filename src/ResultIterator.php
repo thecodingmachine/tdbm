@@ -82,13 +82,24 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /**
      * @param mixed[] $parameters
      */
-    public static function createResultIterator(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): self
-    {
+    public static function createResultIterator(
+        QueryFactory $queryFactory,
+        array $parameters,
+        ObjectStorageInterface $objectStorage,
+        ?string $className,
+        TDBMService $tdbmService,
+        MagicQuery $magicQuery,
+        int $mode,
+        LoggerInterface $logger
+    ): self {
         $iterator =  new static();
         if ($mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
             throw new TDBMException("Unknown fetch mode: '".$mode."'");
         }
 
+        if (is_subclass_of($iterator, self::class, false)) { // We only add iterator if it's specified
+            $queryFactory->setResultIterator($iterator);
+        }
         $iterator->queryFactory = $queryFactory;
         $iterator->objectStorage = $objectStorage;
         $iterator->className = $className;
@@ -100,7 +111,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         return $iterator;
     }
 
-    public static function createEmpyIterator(): self
+    public static function createEmptyIterator(): self
     {
         $iterator = new self();
         $iterator->totalCount = 0;
@@ -382,5 +393,20 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         $sql = $mysqlPlatform->quoteIdentifier($pkDesc['table']).'.'.$mysqlPlatform->quoteIdentifier($pkDesc['column']).' IN ('.$sql.')';
 
         return $sql;
+    }
+
+    protected function addToWhitelist(string $column, string $table) : void
+    {
+        throw new TDBMException('Table `' . $table . '` not found in inheritance Schema.');
+    }
+
+    public function isInWhitelist(string $column, string $table) : bool
+    {
+        throw new TDBMException('Table `' . $table . '` not found in inheritance Schema');
+    }
+
+    protected function removeFromWhitelist(string $column, string $table) : void
+    {
+        throw new TDBMException('Table `' . $table . '` not found in inheritance Schema');
     }
 }

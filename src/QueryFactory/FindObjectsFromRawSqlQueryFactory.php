@@ -5,6 +5,8 @@ namespace TheCodingMachine\TDBM\QueryFactory;
 
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
+use PHPSQLParser\utils\ExpressionType;
+use TheCodingMachine\TDBM\ResultIterator;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMService;
 use PHPSQLParser\PHPSQLCreator;
@@ -75,6 +77,11 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
     public function getColumnDescriptors(): array
     {
         return $this->columnDescriptors;
+    }
+
+    public function setResultIterator(ResultIterator $resultIterator): void
+    {
+        // We do not need to know the result iterator here
     }
 
     /**
@@ -177,7 +184,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         $fetchedTables = [];
 
         foreach ($baseSelect as $entry) {
-            if ($entry['expr_type'] !== 'colref') {
+            if ($entry['expr_type'] !== ExpressionType::COLREF) {
                 $formattedSelect[] = $entry;
                 continue;
             }
@@ -205,7 +212,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 $columnName = $column->getName();
                 $alias = "{$tableName}____{$columnName}";
                 $formattedSelect[] = [
-                    'expr_type' => 'colref',
+                    'expr_type' => ExpressionType::COLREF,
                     'base_expr' => $connection->quoteIdentifier($tableName).'.'.$connection->quoteIdentifier($columnName),
                     'no_quotes' => [
                         'delim' => '.',
@@ -292,7 +299,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         } else {
             $countSubExpr = [
                 [
-                'expr_type' => 'colref',
+                'expr_type' => ExpressionType::COLREF,
                 'base_expr' => '*',
                 'sub_tree' => false
                 ]
@@ -368,7 +375,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 'base_expr' => 'COUNT',
                 'sub_tree' => [
                     [
-                        'expr_type' => 'colref',
+                        'expr_type' => ExpressionType::COLREF,
                         'base_expr' => '*',
                         'sub_tree' => false
                     ]

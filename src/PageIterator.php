@@ -76,8 +76,20 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      * @param mixed[] $parameters
      * @param array[] $columnDescriptors
      */
-    public static function createResultIterator(ResultIterator $parentResult, string $magicSql, array $parameters, int $limit, int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): self
-    {
+    public static function createResultIterator(
+        ResultIterator $parentResult,
+        string $magicSql,
+        array $parameters,
+        int $limit,
+        int $offset,
+        array $columnDescriptors,
+        ObjectStorageInterface $objectStorage,
+        ?string $className,
+        TDBMService $tdbmService,
+        MagicQuery $magicQuery,
+        int $mode,
+        LoggerInterface $logger
+    ): self {
         $iterator =  new self();
         $iterator->parentResult = $parentResult;
         $iterator->magicSql = $magicSql;

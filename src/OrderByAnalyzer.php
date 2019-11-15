@@ -5,6 +5,7 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\Cache;
 use PHPSQLParser\PHPSQLParser;
+use PHPSQLParser\utils\ExpressionType;
 
 /**
  * Class in charge of analyzing order by clauses.
@@ -85,7 +86,7 @@ class OrderByAnalyzer
 
         for ($i = 0, $count = count($parsed['ORDER']); $i < $count; ++$i) {
             $orderItem = $parsed['ORDER'][$i];
-            if ($orderItem['expr_type'] === 'colref') {
+            if ($orderItem['expr_type'] === ExpressionType::COLREF) {
                 $parts = $orderItem['no_quotes']['parts'];
                 $columnName = array_pop($parts);
                 if (!empty($parts)) {
@@ -95,7 +96,7 @@ class OrderByAnalyzer
                 }
 
                 $results[] = [
-                    'type' => 'colref',
+                    'type' => ExpressionType::COLREF,
                     'table' => $tableName,
                     'column' => $columnName,
                     'direction' => $orderItem['direction'],
