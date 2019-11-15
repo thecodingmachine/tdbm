@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
+use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use TheCodingMachine\TDBM\TDBMException;
@@ -39,20 +40,17 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
      * @var string
      */
     private $mainTable;
-
     /**
-     * FindObjectsFromRawSqlQueryFactory constructor.
-     * @param TDBMService $tdbmService
-     * @param Schema $schema
-     * @param string $mainTable
-     * @param string $sql
-     * @param string $sqlCount
+     * @var Cache
      */
-    public function __construct(TDBMService $tdbmService, Schema $schema, string $mainTable, string $sql, string $sqlCount = null)
+    private $cache;
+
+    public function __construct(TDBMService $tdbmService, Schema $schema, string $mainTable, string $sql, ?string $sqlCount, Cache $cache)
     {
         $this->tdbmService = $tdbmService;
         $this->schema = $schema;
         $this->mainTable = $mainTable;
+        $this->cache = $cache;
 
         [$this->processedSql, $this->processedSqlCount, $this->columnDescriptors] = $this->compute($sql, $sqlCount);
     }
@@ -85,6 +83,10 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
      */
     private function compute(string $sql, ?string $sqlCount): array
     {
+        $key = 'FindObjectsFromRawSqlQueryFactory_' . dechex(crc32(var_export($sqlCount, true) . $sql));
+        if ($this->cache->contains($key)) {
+            return $this->cache->fetch($key);
+        }
         $parser = new PHPSQLParser();
         $parsedSql = $parser->parse($sql);
 
@@ -95,7 +97,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         } else {
             throw new TDBMException('Unable to analyze query "'.$sql.'"');
         }
-
+        $this->cache->save($key, [$processedSql, $processedSqlCount, $columnDescriptors]);
         return [$processedSql, $processedSqlCount, $columnDescriptors];
     }
 

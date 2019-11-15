@@ -36,6 +36,17 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
     protected function compute(): void
     {
+        $key = 'FindObjectsFromSqlQueryFactory_' . dechex(crc32($this->mainTable.'__'.$this->from.'__'.$this->filterString.'__'.$this->orderBy));
+        if ($this->cache->contains($key)) {
+            [
+                $this->magicSql,
+                $this->magicSqlCount,
+                $this->magicSqlSubQuery,
+                $this->columnDescList
+            ] = $this->cache->fetch($key);
+            return;
+        }
+
         // We quote in MySQL because of MagicQuery that will be applied.
         $mySqlPlatform = new MySqlPlatform();
 
@@ -104,6 +115,13 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         $this->magicSqlCount = $countSql;
         $this->magicSqlSubQuery = $subQuery;
         $this->columnDescList = $columnDescList;
+
+        $this->cache->save($key, [
+            $this->magicSql,
+            $this->magicSqlCount,
+            $this->magicSqlSubQuery,
+            $this->columnDescList,
+        ]);
     }
 
     /**
@@ -161,12 +179,10 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
                 return $this->getChildrenRelationshipForeignKeys($fk->getLocalTableName());
             }, $children);
 
-            $fks = array_merge($children, call_user_func_array('array_merge', $fksTables));
-
-            return $fks;
-        } else {
-            return [];
+            return array_merge($children, ...$fksTables);
         }
+
+        return [];
     }
 
     /**
