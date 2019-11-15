@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
+use PHPSQLParser\utils\ExpressionType;
+use TheCodingMachine\TDBM\ResultIterator;
 use function array_unique;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
@@ -52,6 +54,8 @@ abstract class AbstractQueryFactory implements QueryFactory
      * @var string
      */
     protected $mainTable;
+    /** @var null|ResultIterator */
+    protected $resultIterator;
 
     /**
      * @param TDBMService $tdbmService
@@ -66,6 +70,11 @@ abstract class AbstractQueryFactory implements QueryFactory
         $this->orderByAnalyzer = $orderByAnalyzer;
         $this->orderBy = $orderBy;
         $this->mainTable = $mainTable;
+    }
+
+    public function setResultIterator(ResultIterator $resultIterator): void
+    {
+        $this->resultIterator = $resultIterator;
     }
 
     /**
@@ -120,7 +129,7 @@ abstract class AbstractQueryFactory implements QueryFactory
             // If we sort by a column, there is a high chance we will fetch the bean containing this column.
             // Hence, we should add the table to the $additionalTablesFetch
             foreach ($orderByColumns as $orderByColumn) {
-                if ($orderByColumn['type'] === 'colref') {
+                if ($orderByColumn['type'] === ExpressionType::COLREF) {
                     if ($orderByColumn['table'] !== null) {
                         if ($canAddAdditionalTablesFetch) {
                             $additionalTablesFetch[] = $orderByColumn['table'];
@@ -140,16 +149,16 @@ abstract class AbstractQueryFactory implements QueryFactory
                         $reconstructedOrderBys[] = ($orderByColumn['table'] !== null ? $mysqlPlatform->quoteIdentifier($orderByColumn['table']).'.' : '').$mysqlPlatform->quoteIdentifier($orderByColumn['column']).' '.$orderByColumn['direction'];
                     }
                 } elseif ($orderByColumn['type'] === 'expr') {
+                    if ($securedOrderBy) {
+                        throw new TDBMInvalidArgumentException('Invalid ORDER BY column: "'.$orderByColumn['expr'].'". If you want to use expression in your ORDER BY clause, you must wrap them in a UncheckedOrderBy object. For instance: new UncheckedOrderBy("col1 + col2 DESC")');
+                    }
+
                     $sortColumnName = 'sort_column_'.$sortColumn;
                     $columnsList[] = $orderByColumn['expr'].' as '.$sortColumnName;
                     $columnDescList[$sortColumnName] = [
                         'tableGroup' => null,
                     ];
                     ++$sortColumn;
-
-                    if ($securedOrderBy) {
-                        throw new TDBMInvalidArgumentException('Invalid ORDER BY column: "'.$orderByColumn['expr'].'". If you want to use expression in your ORDER BY clause, you must wrap them in a UncheckedOrderBy object. For instance: new UncheckedOrderBy("col1 + col2 DESC")');
-                    }
                 }
             }
 
@@ -181,15 +190,20 @@ abstract class AbstractQueryFactory implements QueryFactory
         foreach ($allFetchedTables as $table) {
             foreach ($this->schema->getTable($table)->getColumns() as $column) {
                 $columnName = $column->getName();
-                $columnDescList[$table.'____'.$columnName] = [
-                    'as' => $table.'____'.$columnName,
-                    'table' => $table,
-                    'column' => $columnName,
-                    'type' => $column->getType(),
-                    'tableGroup' => $tableGroups[$table],
-                ];
-                $columnsList[] = $mysqlPlatform->quoteIdentifier($table).'.'.$mysqlPlatform->quoteIdentifier($columnName).' as '.
-                    $connection->quoteIdentifier($table.'____'.$columnName);
+                if ($this->resultIterator === null // @TODO (gua) don't take care of whitelist in case of LIMIT below 2
+                    || $table !== $mainTable
+                    || $this->resultIterator->isInWhitelist($columnName, $table)
+                ) {
+                    $columnDescList[$table . '____' . $columnName] = [
+                        'as' => $table . '____' . $columnName,
+                        'table' => $table,
+                        'column' => $columnName,
+                        'type' => $column->getType(),
+                        'tableGroup' => $tableGroups[$table],
+                    ];
+                    $columnsList[] = $mysqlPlatform->quoteIdentifier($table) . '.' . $mysqlPlatform->quoteIdentifier($columnName) . ' as ' .
+                        $connection->quoteIdentifier($table . '____' . $columnName);
+                }
             }
         }
 

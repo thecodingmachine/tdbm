@@ -28,11 +28,12 @@ namespace TheCodingMachine\TDBM;
  */
 final class TDBMObjectStateEnum
 {
-    const STATE_DETACHED = 'detached';
-    const STATE_NEW = 'new';
-    const STATE_SAVING = 'saving';
-    const STATE_NOT_LOADED = 'not loaded';
-    const STATE_LOADED = 'loaded';
-    const STATE_DIRTY = 'dirty';
-    const STATE_DELETED = 'deleted';
+    public const STATE_DETACHED = 'detached';
+    public const STATE_NEW = 'new';
+    public const STATE_SAVING = 'saving';
+    public const STATE_NOT_LOADED = 'not loaded';
+    public const STATE_LOADED = 'loaded';
+    public const STATE_DIRTY = 'dirty';
+    public const STATE_DELETED = 'deleted';
+    public const STATE_PARTIALLY_LOADED = 'partially_loaded';
 }

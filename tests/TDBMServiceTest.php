@@ -23,6 +23,12 @@ namespace TheCodingMachine\TDBM;
 
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
+use TheCodingMachine\TDBM\Test\Dao\Bean\ContactBean;
+use TheCodingMachine\TDBM\Test\ResultIterator\ContactResultIterator;
+use TheCodingMachine\TDBM\Test\ResultIterator\CountryResultIterator;
+use TheCodingMachine\TDBM\Test\ResultIterator\PersonResultIterator;
+use TheCodingMachine\TDBM\Test\ResultIterator\RoleResultIterator;
+use TheCodingMachine\TDBM\Test\ResultIterator\UserResultIterator;
 use Wa72\SimpleLogger\ArrayLogger;
 
 class TDBMServiceTest extends TDBMAbstractServiceTest
@@ -126,7 +132,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testCompleteSave(): void
     {
-        $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe'], null, [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe'], null, [], null, TDBMObject::class, ResultIterator::class);
         $jane = $beans[0];
         $jane->setProperty('country_id', 2, 'users');
 
@@ -136,7 +142,7 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
 
     public function testCompleteSave2(): void
     {
-        $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe'], null, [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('users', 'users.login = :login', ['login' => 'jane.doe'], null, [], null, TDBMObject::class, ResultIterator::class);
         $jane = $beans[0];
 
         $this->assertEquals(2, $jane->getProperty('country_id', 'users'));
@@ -209,8 +215,8 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $result = $magicQuery->parse("SELECT DISTINCT users.id, users.login FROM users");
         var_dump($result);*/
 
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
-        $beans2 = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ContactResultIterator::class);
+        $beans2 = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], null, TDBMObject::class, ContactResultIterator::class);
 
         foreach ($beans as $bean) {
             $bean1 = $bean;
@@ -242,7 +248,7 @@ GROUP BY country.id
 HAVING COUNT(users.id) > 1;
 SQL;
         /** @var Test\Dao\Bean\CountryBean[]|\Porpaginas\Result $beans */
-        $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class);
+        $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class, null, CountryResultIterator::class);
 
         $count = 0;
         foreach ($beans as $country) {
@@ -265,7 +271,7 @@ ORDER BY COUNT(users.id);
 SQL;
 
         /** @var Test\Dao\Bean\CountryBean[]|\Porpaginas\Result $beans */
-        $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class);
+        $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class, null,CountryResultIterator::class);
 
         $count = 0;
         foreach ($beans as $country) {
@@ -294,7 +300,7 @@ ORDER BY MAX(IF(roles.name = 'Admins', 3, IF(roles.name = 'Writers', 2, IF(roles
 SQL;
 
         /** @var Test\Dao\Bean\UserBean[]|\Porpaginas\Result $beans */
-        $beans = $this->tdbmService->findObjectsFromRawSql('contact', $sql, [], null, Test\Dao\Bean\UserBean::class);
+        $beans = $this->tdbmService->findObjectsFromRawSql('contact', $sql, [], null, Test\Dao\Bean\UserBean::class, null, UserResultIterator::class);
 
         function getCustomOrder(Test\Dao\Bean\UserBean $contact)
         {
@@ -318,7 +324,7 @@ SQL;
 
     public function testArrayAccess(): void
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ResultIterator::class);
 
         $this->assertTrue(isset($beans[0]));
         $this->assertFalse(isset($beans[42]));
@@ -345,7 +351,7 @@ SQL;
     public function testArrayAccessException(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMInvalidOffsetException');
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ContactResultIterator::class);
 
         $beans[-1];
     }
@@ -357,7 +363,7 @@ SQL;
     public function testArrayAccessException2(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMInvalidOffsetException');
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ContactResultIterator::class);
 
         $beans['foo'];
     }
@@ -369,7 +375,7 @@ SQL;
     public function testBeanGetException(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ResultIterator::class);
         $bean = $beans[0];
 
         // we don't specify the table on inheritance table => exception.
@@ -383,7 +389,7 @@ SQL;
     public function testBeanSetException(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ResultIterator::class);
         $bean = $beans[0];
 
         // we don't specify the table on inheritance table => exception.
@@ -392,7 +398,7 @@ SQL;
 
     public function testTake(): void
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ResultIterator::class);
 
         $page = $beans->take(0, 2);
 
@@ -419,7 +425,7 @@ SQL;
 
     public function testTakeInCursorMode(): void
     {
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], TDBMService::MODE_CURSOR, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], TDBMService::MODE_CURSOR, TDBMObject::class, ContactResultIterator::class);
 
         $page = $beans->take(0, 2);
 
@@ -446,7 +452,7 @@ SQL;
 
     public function testMap(): void
     {
-        $beans = $this->tdbmService->findObjects('person', null, [], 'person.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('person', null, [], 'person.id ASC', [], null, TDBMObject::class, ResultIterator::class);
 
         $results = $beans->map(function ($item) {
             return $item->getProperty('id', 'person');
@@ -471,7 +477,7 @@ SQL;
     public function testUnsetException(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ContactResultIterator::class);
 
         unset($beans[0]);
     }
@@ -483,7 +489,7 @@ SQL;
     public function testSetException(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ContactResultIterator::class);
 
         $beans[0] = 'foo';
     }
@@ -495,7 +501,7 @@ SQL;
     public function testPageUnsetException(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ContactResultIterator::class);
         $page = $beans->take(0, 1);
         unset($page[0]);
     }
@@ -507,14 +513,14 @@ SQL;
     public function testPageSetException(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
-        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ContactResultIterator::class);
         $page = $beans->take(0, 1);
         $page[0] = 'foo';
     }
 
     public function testToArray(): void
     {
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], null, TDBMObject::class, ResultIterator::class);
 
         $beanArray = $beans->toArray();
 
@@ -524,7 +530,7 @@ SQL;
 
     public function testCursorMode(): void
     {
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], TDBMService::MODE_CURSOR, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], TDBMService::MODE_CURSOR, TDBMObject::class, ContactResultIterator::class);
 
         $this->assertInstanceOf('\\TheCodingMachine\\TDBM\\ResultIterator', $beans);
 
@@ -556,7 +562,7 @@ SQL;
     public function testSetFetchMode(): void
     {
         $this->tdbmService->setFetchMode(TDBMService::MODE_CURSOR);
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], null, TDBMObject::class, ContactResultIterator::class);
 
         $this->assertInstanceOf('\\TheCodingMachine\\TDBM\\ResultIterator', $beans);
 
@@ -587,7 +593,7 @@ SQL;
     public function testCursorModeException(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], 99);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, [], 99, ContactBean::class, ContactResultIterator::class);
     }
 
     /**
@@ -597,18 +603,18 @@ SQL;
     public function testTableNameException(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
-        $beans = $this->tdbmService->findObjects('foo bar');
+        $beans = $this->tdbmService->findObjects('foo bar', null, [], null, [], null, AbstractTDBMObject::class, ResultIterator::class);
     }
 
     public function testLinkedTableFetch(): void
     {
-        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, ['country'], null, TDBMObject::class);
+        $beans = $this->tdbmService->findObjects('contact', 'contact.id = :id', ['id' => 1], null, ['country'], null, TDBMObject::class, ContactResultIterator::class);
         $this->assertInstanceOf(ResultIterator::class, $beans);
     }
 
     public function testFindObject(): void
     {
-        $bean = $this->tdbmService->findObject('contact', 'contact.id = :id', ['id' => -42], [], TDBMObject::class);
+        $bean = $this->tdbmService->findObject('contact', 'contact.id = :id', ['id' => -42], [], TDBMObject::class, ContactResultIterator::class);
         $this->assertNull($bean);
     }
 
@@ -619,7 +625,7 @@ SQL;
     public function testFindObjectOrFail(): void
     {
         $this->expectException('TheCodingMachine\TDBM\NoBeanFoundException');
-        $bean = $this->tdbmService->findObjectOrFail('contact', 'contact.id = :id', ['id' => -42], [], TDBMObject::class);
+        $bean = $this->tdbmService->findObjectOrFail('contact', 'contact.id = :id', ['id' => -42], [], TDBMObject::class, ContactResultIterator::class);
     }
 
     /**
@@ -629,7 +635,7 @@ SQL;
     {
         $this->expectException(NoBeanFoundException::class);
         $this->expectExceptionMessage("No result found for query on table 'contact' for 'id' = -42");
-        $bean = $this->tdbmService->findObjectByPk('contact', ['id' => -42], [], false, TDBMObject::class);
+        $bean = $this->tdbmService->findObjectByPk('contact', ['id' => -42], [], false, TDBMObject::class, ContactResultIterator::class);
     }
 
     /**
@@ -639,14 +645,14 @@ SQL;
     {
         $this->expectException(DuplicateRowException::class);
 
-        $bean = $this->tdbmService->findObject('contact');
+        $bean = $this->tdbmService->findObject('contact', null, [], [], TDBMObject::class, ContactResultIterator::class);
     }
 
     public function testFindObjectsByBean(): void
     {
-        $countryBean = $this->tdbmService->findObject('country', 'id = :id', ['id' => 1], [], TDBMObject::class);
+        $countryBean = $this->tdbmService->findObject('country', 'id = :id', ['id' => 1], [], TDBMObject::class, ResultIterator::class);
 
-        $users = $this->tdbmService->findObjects('users', $countryBean, [], null, [], null, TDBMObject::class);
+        $users = $this->tdbmService->findObjects('users', $countryBean, [], null, [], null, TDBMObject::class, ResultIterator::class);
         $this->assertCount(1, $users);
         $this->assertEquals('jean.dupont', $users[0]->getProperty('login', 'users'));
     }
@@ -671,7 +677,10 @@ SQL;
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right',
             array('right' => 'CAN_SING'),
-            'roles.name DESC'
+            'roles.name DESC',
+            null,
+            null,
+            RoleResultIterator::class
         );
         $this->assertCount(2, $roles);
         $this->assertInstanceOf(AbstractTDBMObject::class, $roles[0]);
@@ -689,7 +698,10 @@ SQL;
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right',
             array('right' => 'CAN_SING'),
-            'name DESC'
+            'name DESC',
+            null,
+            null,
+            ResultIterator::class
         );
     }
 
@@ -705,7 +717,10 @@ SQL;
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right GROUP BY roles.name',
             array('right' => 'CAN_SING'),
-            'name DESC'
+            'name DESC',
+            null,
+            null,
+            RoleResultIterator::class
         );
         $role = $roles[0];
     }
@@ -720,7 +735,11 @@ SQL;
         $this->tdbmService->findObjectsFromRawSql(
             '#{azerty',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label WHERE rights.label = :right',
-            array('right' => 'CAN_SING')
+            array('right' => 'CAN_SING'),
+            null,
+            TDBMObject::class,
+            null,
+            ResultIterator::class
         );
     }
 
@@ -730,7 +749,9 @@ SQL;
             'roles',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right AND name = :name',
-            array('right' => 'CAN_SING', 'name' => 'Singers')
+            array('right' => 'CAN_SING', 'name' => 'Singers'),
+            null,
+            RoleResultIterator::class
         );
         $this->assertInstanceOf(AbstractTDBMObject::class, $role);
     }
@@ -746,7 +767,9 @@ SQL;
             'roles',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right',
-            array('right' => 'CAN_SING')
+            array('right' => 'CAN_SING'),
+            null,
+            RoleResultIterator::class
         );
     }
 
@@ -759,7 +782,8 @@ SQL;
             array('name' => 'Robert Marley', 'name2' => 'Bill Shakespeare'),
             null,
             null,
-            TDBMObject::class
+            TDBMObject::class,
+            PersonResultIterator::class
         );
         $this->assertCount(2, $users);
         $this->assertSame('robert.marley', $users[0]->getProperty('login', 'users'));
@@ -774,7 +798,8 @@ SQL;
             array('login' => 'robert.marley', 'login2' => 'bill.shakespeare'),
             'users.login DESC',
             null,
-            TDBMObject::class
+            TDBMObject::class,
+            UserResultIterator::class
         );
         $this->assertCount(2, $users);
         $this->assertSame('Robert Marley', $users[0]->getProperty('name', 'person'));
@@ -786,7 +811,7 @@ SQL;
         $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, $arrayLogger));
 
         $tdbmService->setLogLevel(LogLevel::DEBUG);
-        $beans = $tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class);
+        $beans = $tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ContactResultIterator::class);
         $beans->first();
 
         $this->assertNotEmpty($arrayLogger->get());
@@ -794,14 +819,14 @@ SQL;
 
     public function testFindObjectsCountWithOneToManyLink(): void
     {
-        $countries = $this->tdbmService->findObjects('country', "users.status = 'on' OR users.status = 'off'");
+        $countries = $this->tdbmService->findObjects('country', "users.status = 'on' OR users.status = 'off'", [], null, [], null, null, CountryResultIterator::class);
 
         $this->assertEquals(3, $countries->count());
     }
 
     public function testFindObjectsFromSqlCountWithOneToManyLink(): void
     {
-        $countries = $this->tdbmService->findObjectsFromSql('country', 'country LEFT JOIN users ON country.id = users.country_id', "users.status = 'on' OR users.status = 'off'");
+        $countries = $this->tdbmService->findObjectsFromSql('country', 'country LEFT JOIN users ON country.id = users.country_id', "users.status = 'on' OR users.status = 'off'", [], null, null, null, CountryResultIterator::class);
 
         $this->assertEquals(3, $countries->count());
     }

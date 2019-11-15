@@ -134,6 +134,7 @@ class DbRow
                 $this->_setPrimaryKeys($primaryKeys);
                 if (!empty($dbRow)) {
                     $this->dbRow = $dbRow;
+                    // @TODO (gua): might not be fully loaded
                     $this->status = TDBMObjectStateEnum::STATE_LOADED;
                 } else {
                     $this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
@@ -219,6 +220,9 @@ class DbRow
      */
     public function get(string $var)
     {
+        if ($this->_getStatus() === TDBMObjectStateEnum::STATE_PARTIALLY_LOADED && !array_key_exists($var, $this->dbRow)) {
+            throw new TDBMInvalidArgumentException('Cannot load `'.$var.'` in partially loaded object with data ' . print_r($this->dbRow, true));
+        }
         if (!isset($this->primaryKeys[$var])) {
             $this->_dbLoadIfNotLoaded();
         }
@@ -234,16 +238,6 @@ class DbRow
     public function set(string $var, $value): void
     {
         $this->_dbLoadIfNotLoaded();
-
-        /*
-        // Ok, let's start by checking the column type
-        $type = $this->db_connection->getColumnType($this->dbTableName, $var);
-
-        // Throws an exception if the type is not ok.
-        if (!$this->db_connection->checkType($value, $type)) {
-            throw new TDBMException("Error! Invalid value passed for attribute '$var' of table '$this->dbTableName'. Passed '$value', but expecting '$type'");
-        }
-        */
 
         /*if ($var == $this->getPrimaryKey() && isset($this->dbRow[$var]))
             throw new TDBMException("Error! Changing primary key value is forbidden.");*/
@@ -275,7 +269,7 @@ class DbRow
      *
      * @return AbstractTDBMObject|null
      */
-    public function getRef(string $foreignKeyName) : ?AbstractTDBMObject
+    public function getRef(string $foreignKeyName, string $className, string $resultIteratorClass) : ?AbstractTDBMObject
     {
         if (array_key_exists($foreignKeyName, $this->references)) {
             return $this->references[$foreignKeyName];
@@ -303,9 +297,9 @@ class DbRow
 
             // If the foreign key points to the primary key, let's use findObjectByPk
             if ($this->tdbmService->getPrimaryKeyColumns($foreignTableName) === $foreignColumns) {
-                return $this->tdbmService->findObjectByPk($foreignTableName, $filter, [], true);
+                return $this->tdbmService->findObjectByPk($foreignTableName, $filter, [], true, $className, $resultIteratorClass);
             } else {
-                return $this->tdbmService->findObject($foreignTableName, $filter);
+                return $this->tdbmService->findObject($foreignTableName, $filter, [], [], $className, $resultIteratorClass);
             }
         }
     }

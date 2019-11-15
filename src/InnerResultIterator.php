@@ -42,6 +42,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
     private $objectStorage;
     private $className;
 
+    /** @var TDBMService */
     private $tdbmService;
     private $magicSql;
     private $parameters;
@@ -78,7 +79,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      */
     public static function createInnerResultIterator(string $magicSql, array $parameters, ?int $limit, ?int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger): self
     {
-        $iterator =  new static();
+        $iterator =  new static(); // @TODO (gua) Should I know here if it's a partial load ? (to allow to give that state to DBRow and TDBMObject)
         $iterator->magicSql = $magicSql;
         $iterator->objectStorage = $objectStorage;
         $iterator->className = $className;
@@ -170,10 +171,12 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      */
     public function next()
     {
+        /** @var array<string, string> $row */
         $row = $this->statement->fetch(\PDO::FETCH_ASSOC);
         if ($row) {
 
             // array<tablegroup, array<table, array<column, value>>>
+            /** @var array<string, array<string, array<string, mixed>>> $beansData */
             $beansData = [];
             foreach ($row as $key => $value) {
                 if (!isset($this->columnDescriptors[$key])) {
@@ -201,13 +204,15 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
                 list($actualClassName, $mainBeanTableName, $tablesUsed) = $this->tdbmService->_getClassNameFromBeanData($beanData);
 
-                if ($this->className !== null) {
+                // @TODO (gua) this is a weird hack to be able to force a TDBMObject...
+                // ClassName could be used to override $actualClassName
+                if ($this->className !== null && is_a($this->className, TDBMObject::class, true)) {
                     $actualClassName = $this->className;
                 }
 
                 // Let's filter out the beanData that is not used (because it belongs to a part of the hierarchy that is not fetched:
                 foreach ($beanData as $tableName => $descriptors) {
-                    if (!in_array($tableName, $tablesUsed)) {
+                    if (!in_array($tableName, $tablesUsed, true)) {
                         unset($beanData[$tableName]);
                     }
                 }

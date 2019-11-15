@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
+use TheCodingMachine\TDBM\ResultIterator;
 use TheCodingMachine\TDBM\UncheckedOrderBy;
 
 /**
@@ -47,4 +48,6 @@ interface QueryFactory
      * @return string[][] An array of column descriptors. Value is an array with those keys: table, column
      */
     public function getSubQueryColumnDescriptors() : array;
+
+    public function setResultIterator(ResultIterator $resultIterator) : void;
 }

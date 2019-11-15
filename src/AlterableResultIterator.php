@@ -75,11 +75,8 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
     {
         $this->alterations->attach($object, 'add');
 
-        if ($this->resultArray !== null) {
-            $foundKey = array_search($object, $this->resultArray, true);
-            if ($foundKey === false) {
-                $this->resultArray[] = $object;
-            }
+        if ($this->resultArray !== null && !in_array($object, $this->resultArray, true)) {
+            $this->resultArray[] = $object;
         }
     }
 
