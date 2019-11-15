@@ -14,6 +14,7 @@ use \TheCodingMachine\TDBM\Utils\Annotation;
 use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
+use Zend\Code\Generator\DocBlockGenerator;
 use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
 
@@ -222,6 +223,10 @@ EOF;
             $resourceTypeCheck = sprintf($resourceTypeCheck, $checkNullable, $this->column->getName(), $this->column->getName());
         }
 
+        $types = [ $normalizedType ];
+        if ($isNullable) {
+            $types[] = 'null';
+        }
 
         $paramType = null;
         if ($this->isTypeHintable()) {
@@ -229,14 +234,9 @@ EOF;
         }
 
         $getter = new MethodGenerator($columnGetterName);
-        $getter->setDocBlock(sprintf('The getter for the "%s" column.', $this->column->getName()));
-
-        $types = [ $normalizedType ];
-        if ($isNullable) {
-            $types[] = 'null';
-        }
-        $getter->getDocBlock()->setTag(new ReturnTag($types))->setWordWrap(false);
-
+        $getterDocBlock = new DocBlockGenerator(sprintf('The getter for the "%s" column.', $this->column->getName()));
+        $getterDocBlock->setTag(new ReturnTag($types))->setWordWrap(false);
+        $getter->setDocBlock($getterDocBlock);
         $getter->setReturnType($paramType);
 
         $getter->setBody(sprintf(
@@ -250,13 +250,9 @@ EOF;
         }
 
         $setter = new MethodGenerator($columnSetterName);
-        $setter->setDocBlock(sprintf('The setter for the "%s" column.', $this->column->getName()));
-
-        $types = [ $normalizedType ];
-        if ($isNullable) {
-            $types[] = 'null';
-        }
-        $setter->getDocBlock()->setTag(new ParamTag($this->column->getName(), $types))->setWordWrap(false);
+        $setterDocBlock = new DocBlockGenerator(sprintf('The setter for the "%s" column.', $this->column->getName()));
+        $setterDocBlock->setTag(new ParamTag($this->column->getName(), $types))->setWordWrap(false);
+        $setter->setDocBlock($setterDocBlock);
 
         $parameter = new ParameterGenerator($this->column->getName(), $paramType);
         $setter->setParameter($parameter);

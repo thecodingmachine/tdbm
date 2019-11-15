@@ -348,8 +348,9 @@ class BeanDescriptor implements BeanDescriptorInterface
         $constructorProperties = $this->getConstructorProperties();
 
         $constructor = new MethodGenerator('__construct', [], MethodGenerator::FLAG_PUBLIC);
-        $constructor->setDocBlock('The constructor takes all compulsory arguments.');
-        $constructor->getDocBlock()->setWordWrap(false);
+        $constructorDocBlock = new DocBlockGenerator('The constructor takes all compulsory arguments.');
+        $constructorDocBlock->setWordWrap(false);
+        $constructor->setDocBlock($constructorDocBlock);
 
         $assigns = [];
         $parentConstructorArguments = [];
@@ -361,7 +362,7 @@ class BeanDescriptor implements BeanDescriptorInterface
             }
             $constructor->setParameter($parameter);
 
-            $constructor->getDocBlock()->setTag($property->getParamAnnotation());
+            $constructorDocBlock->setTag($property->getParamAnnotation());
 
             if ($property->getTable()->getName() === $this->table->getName()) {
                 $assigns[] = $property->getConstructorAssignCode()."\n";
@@ -474,9 +475,14 @@ class BeanDescriptor implements BeanDescriptorInterface
         $parentFk = $this->schemaAnalyzer->getParentRelationship($tableName);
 
         $method = new MethodGenerator('jsonSerialize');
-        $method->setDocBlock('Serializes the object for JSON encoding.');
-        $method->getDocBlock()->setTag(new ParamTag('$stopRecursion', ['bool'], 'Parameter used internally by TDBM to stop embedded objects from embedding other objects.'));
-        $method->getDocBlock()->setTag(new ReturnTag(['array']));
+        $method->setDocBlock(new DocBlockGenerator(
+            'Serializes the object for JSON encoding.',
+            null,
+            [
+                new ParamTag('$stopRecursion', ['bool'], 'Parameter used internally by TDBM to stop embedded objects from embedding other objects.'),
+                new ReturnTag(['array'])
+            ]
+        ));
         $method->setParameter(new ParameterGenerator('stopRecursion', 'bool', false));
 
         if ($parentFk !== null) {
@@ -1366,8 +1372,11 @@ return $tables;', var_export($this->table->getName(), true));
         }
 
         $method = new MethodGenerator('getUsedTables');
-        $method->setDocBlock('Returns an array of used tables by this bean (from parent to child relationship).');
-        $method->getDocBlock()->setTag(new ReturnTag(['string[]']));
+        $method->setDocBlock(new DocBlockGenerator(
+            'Returns an array of used tables by this bean (from parent to child relationship).',
+            null,
+            [new ReturnTag(['string[]'])]
+        ));
         $method->setReturnType('array');
         $method->setBody($code);
 
@@ -1390,7 +1399,7 @@ return $tables;', var_export($this->table->getName(), true));
         }
 
         $method = new MethodGenerator('onDelete');
-        $method->setDocBlock('Method called when the bean is removed from database.');
+        $method->setDocBlock(new DocBlockGenerator('Method called when the bean is removed from database.'));
         $method->setReturnType('void');
         $method->setBody('parent::onDelete();
 '.$code);
@@ -1410,8 +1419,11 @@ return $tables;', var_export($this->table->getName(), true));
 
         $method = new MethodGenerator('_getManyToManyRelationshipDescriptor');
         $method->setVisibility(AbstractMemberGenerator::VISIBILITY_PUBLIC);
-        $method->setDocBlock('Get the paths used for many to many relationships methods.');
-        $method->getDocBlock()->setTag(new GenericTag('internal'));
+        $method->setDocBlock(new DocBlockGenerator(
+            'Get the paths used for many to many relationships methods.',
+            null,
+            [new GenericTag('internal')]
+        ));
         $method->setReturnType(ManyToManyRelationshipPathDescriptor::class);
 
         $parameter = new ParameterGenerator('pathKey');
@@ -1445,9 +1457,11 @@ return $tables;', var_export($this->table->getName(), true));
         $method = new MethodGenerator('_getManyToManyRelationshipDescriptorKeys');
         $method->setVisibility(AbstractMemberGenerator::VISIBILITY_PUBLIC);
         $method->setReturnType('array');
-        $method->setDocBlock('Returns the list of keys supported for many to many relationships');
-        $method->getDocBlock()->setTag(new GenericTag('internal'));
-        $method->getDocBlock()->setTag(new ReturnTag('string[]'));
+        $method->setDocBlock(new DocBlockGenerator(
+            'Returns the list of keys supported for many to many relationships',
+            null,
+            [new GenericTag('internal'), new ReturnTag('string[]')]
+        ));
 
         $keys = [];
         foreach ($pivotTableMethodsDescriptors as $pivotTableMethodsDescriptor) {
@@ -1601,7 +1615,7 @@ EOF;
         $method = new MethodGenerator('getForeignKeys');
         $method->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
         $method->setStatic(true);
-        $method->setDocBlock('Internal method used to retrieve the list of foreign keys attached to this bean.');
+        $method->setDocBlock(new DocBlockGenerator('Internal method used to retrieve the list of foreign keys attached to this bean.'));
         $method->setReturnType(ForeignKeys::class);
 
         $parameter = new ParameterGenerator('tableName');
