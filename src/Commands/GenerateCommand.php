@@ -57,5 +57,7 @@ class GenerateCommand extends Command
         $tdbmService->generateAllDaosAndBeans();
 
         $multiLogger->notice('Finished regenerating DAOs and beans');
+
+        return 0;
     }
 }
