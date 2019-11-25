@@ -10,6 +10,7 @@ use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation;
 use Zend\Code\Generator\AbstractMemberGenerator;
+use Zend\Code\Generator\DocBlockGenerator;
 use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
 
@@ -159,7 +160,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         $referencedBeanName = $this->namingStrategy->getBeanClassName($this->foreignKey->getForeignTableName());
 
         $getter = new MethodGenerator($getterName);
-        $getter->setDocBlock('Returns the ' . $referencedBeanName . ' object bound to this object via the ' . implode(' and ', $this->foreignKey->getUnquotedLocalColumns()) . ' column.');
+        $getter->setDocBlock(new DocBlockGenerator('Returns the ' . $referencedBeanName . ' object bound to this object via the ' . implode(' and ', $this->foreignKey->getUnquotedLocalColumns()) . ' column.'));
 
         /*$types = [ $referencedBeanName ];
         if ($isNullable) {
@@ -177,7 +178,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         }
 
         $setter = new MethodGenerator($setterName);
-        $setter->setDocBlock('The setter for the ' . $referencedBeanName . ' object bound to this object via the ' . implode(' and ', $this->foreignKey->getUnquotedLocalColumns()) . ' column.');
+        $setter->setDocBlock(new DocBlockGenerator('The setter for the ' . $referencedBeanName . ' object bound to this object via the ' . implode(' and ', $this->foreignKey->getUnquotedLocalColumns()) . ' column.'));
 
         $setter->setParameter(new ParameterGenerator('object', ($isNullable ? '?' : '') . $this->beanNamespace . '\\' . $referencedBeanName));
 

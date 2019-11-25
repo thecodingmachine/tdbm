@@ -1552,7 +1552,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testPSR2Compliance(): void
     {
-        $process = new Process('vendor/bin/php-cs-fixer fix src/Test/  --dry-run --diff --rules=@PSR2');
+        $process = new Process(['vendor/bin/php-cs-fixer', 'fix', 'src/Test/', '--dry-run', '--diff', '--rules=@PSR2']);
         $process->run();
 
         // executes after the command finishes
