@@ -13,6 +13,7 @@ use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation;
 use Zend\Code\Generator\AbstractMemberGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
+use Zend\Code\Generator\DocBlockGenerator;
 use Zend\Code\Generator\MethodGenerator;
 
 /**
@@ -127,9 +128,11 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
         $getter = new MethodGenerator($this->getName());
 
         if ($this->hasLocalUniqueIndex()) {
-            $getter->setDocBlock(sprintf('Returns the %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
             $classType = '\\' . $this->beanNamespace . '\\' . $beanClass;
-            $getter->getDocBlock()->setTag(new ReturnTag([$classType . '|null']))->setWordWrap(false);
+            $getterDocBlock = new DocBlockGenerator(sprintf('Returns the %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
+            $getterDocBlock->setTag([new ReturnTag([$classType . '|null'])]);
+            $getterDocBlock->setWordWrap(false);
+            $getter->setDocBlock($getterDocBlock);
             $getter->setReturnType('?' . $classType);
 
             $code = sprintf(
@@ -139,11 +142,10 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
                 $this->getFilters($this->foreignKey)
             );
         } else {
-            $getter->setDocBlock(sprintf('Returns the list of %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
-            $getter->getDocBlock()->setTag(new ReturnTag([
-                $beanClass . '[]',
-                '\\' . AlterableResultIterator::class
-            ]))->setWordWrap(false);
+            $getterDocBlock = new DocBlockGenerator(sprintf('Returns the list of %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
+            $getterDocBlock->setTag(new ReturnTag([$beanClass . '[]', '\\' . AlterableResultIterator::class]));
+            $getterDocBlock->setWordWrap(false);
+            $getter->setDocBlock($getterDocBlock);
             $getter->setReturnType(AlterableResultIterator::class);
 
             $code = sprintf(

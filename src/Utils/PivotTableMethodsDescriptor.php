@@ -7,6 +7,7 @@ use Doctrine\Common\Inflector\Inflector;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
+use Zend\Code\Generator\DocBlockGenerator;
 use function implode;
 use function sprintf;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
@@ -199,39 +200,49 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
         $localTableName = var_export($this->remoteFk->getLocalTableName(), true);
 
         $getter = new MethodGenerator($this->getName());
-        $getter->setDocBlock(sprintf('Returns the list of %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
-        $getter->getDocBlock()->setTag(new ReturnTag([ $fqcnRemoteBeanName.'[]' ]))->setWordWrap(false);
+        $getterDocBlock = new DocBlockGenerator(sprintf('Returns the list of %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
+        $getterDocBlock->setTag(new ReturnTag([ $fqcnRemoteBeanName.'[]' ]));
+        $getterDocBlock->setWordWrap(false);
+        $getter->setDocBlock($getterDocBlock);
         $getter->setReturnType('array');
         $getter->setBody(sprintf('return $this->_getRelationships(%s);', $pathKey));
 
 
         $adder = new MethodGenerator('add'.$singularName);
-        $adder->setDocBlock(sprintf('Adds a relationship with %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
-        $adder->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]))->setWordWrap(false);
+        $adderDocBlock = new DocBlockGenerator(sprintf('Adds a relationship with %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
+        $adderDocBlock->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
+        $adderDocBlock->setWordWrap(false);
+        $adder->setDocBlock($adderDocBlock);
         $adder->setReturnType('void');
         $adder->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
         $adder->setBody(sprintf('$this->addRelationship(%s, $%s);', $localTableName, $variableName));
 
         $remover = new MethodGenerator('remove'.$singularName);
-        $remover->setDocBlock(sprintf('Deletes the relationship with %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
-        $remover->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]))->setWordWrap(false);
+        $removerDocBlock = new DocBlockGenerator(sprintf('Deletes the relationship with %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
+        $removerDocBlock->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
+        $removerDocBlock->setWordWrap(false);
+        $remover->setDocBlock($removerDocBlock);
         $remover->setReturnType('void');
         $remover->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
         $remover->setBody(sprintf('$this->_removeRelationship(%s, $%s);', $localTableName, $variableName));
 
         $has = new MethodGenerator('has'.$singularName);
-        $has->setDocBlock(sprintf('Returns whether this bean is associated with %s via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
-        $has->getDocBlock()->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]))->setWordWrap(false);
-        $has->getDocBlock()->setTag(new ReturnTag([ 'bool' ]));
+        $hasDocBlock = new DocBlockGenerator(sprintf('Returns whether this bean is associated with %s via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
+        $hasDocBlock->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
+        $hasDocBlock->setTag(new ReturnTag([ 'bool' ]));
+        $hasDocBlock->setWordWrap(false);
+        $has->setDocBlock($hasDocBlock);
         $has->setReturnType('bool');
         $has->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
         $has->setBody(sprintf('return $this->hasRelationship(%s, $%s);', $pathKey, $variableName));
 
         $setter = new MethodGenerator('set'.$pluralName);
-        $setter->setDocBlock(sprintf('Sets all relationships with %s associated to this bean via the %s pivot table.
+        $setterDocBlock = new DocBlockGenerator(sprintf('Sets all relationships with %s associated to this bean via the %s pivot table.
 Exiting relationships will be removed and replaced by the provided relationships.', $remoteBeanName, $this->pivotTable->getName()));
-        $setter->getDocBlock()->setTag(new ParamTag($pluralVariableName, [ $fqcnRemoteBeanName.'[]' ]))->setWordWrap(false)->setWordWrap(false);
-        $setter->getDocBlock()->setTag(new ReturnTag([ 'void' ]));
+        $setterDocBlock->setTag(new ParamTag($pluralVariableName, [ $fqcnRemoteBeanName.'[]' ]));
+        $setterDocBlock->setTag(new ReturnTag([ 'void' ]));
+        $setterDocBlock->setWordWrap(false);
+        $setter->setDocBlock($setterDocBlock);
         $setter->setReturnType('void');
         $setter->setParameter(new ParameterGenerator($pluralVariableName, 'array'));
         $setter->setBody(sprintf('$this->setRelationships(%s, $%s);', $pathKey, $pluralVariableName));
