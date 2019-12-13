@@ -201,7 +201,7 @@ class BeanDescriptor implements BeanDescriptorInterface
     public function getConstructorProperties(): array
     {
         $constructorProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
-            return $property->isCompulsory();
+            return !$property instanceof ScalarReferencePropertyDescriptor && $property->isCompulsory();
         });
 
         return $constructorProperties;

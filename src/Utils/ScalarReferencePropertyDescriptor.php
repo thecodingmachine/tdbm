@@ -21,8 +21,7 @@ class ScalarReferencePropertyDescriptor extends ScalarBeanPropertyDescriptor
         NamingStrategyInterface $namingStrategy,
         AnnotationParser $annotationParser,
         AbstractBeanPropertyDescriptor $referencedPropertyDescriptor
-    )
-    {
+    ) {
         parent::__construct($table, $column, $namingStrategy, $annotationParser);
         $this->referencedPropertyDescriptor = $referencedPropertyDescriptor;
     }
