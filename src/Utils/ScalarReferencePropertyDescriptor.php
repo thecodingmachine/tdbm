@@ -34,4 +34,9 @@ class ScalarReferencePropertyDescriptor extends ScalarBeanPropertyDescriptor
     {
         return $this->referencedPropertyDescriptor;
     }
+
+    public function getJsonSerializeCode(): string
+    {
+        return $this->referencedPropertyDescriptor->getJsonSerializeCode();
+    }
 }

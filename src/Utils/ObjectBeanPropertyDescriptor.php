@@ -253,7 +253,7 @@ PHP;
         return $code;
     }
 
-    private function getLazySerializeCode(string $propertyAccess): string
+    public function getLazySerializeCode(string $propertyAccess): string
     {
         $rows = [];
         foreach ($this->getForeignKey()->getUnquotedForeignColumns() as $column) {
@@ -261,9 +261,13 @@ PHP;
             if ($descriptor instanceof ScalarReferencePropertyDescriptor) {
                 $descriptor = $descriptor->getReferencedPropertyDescriptor();
             }
-            $indexName = ltrim($descriptor->getVariableName(), '$');
-            $columnGetterName = $descriptor->getGetterName();
-            $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
+            if ($descriptor instanceof ObjectBeanPropertyDescriptor) {
+                $rows[] = trim($descriptor->getLazySerializeCode($propertyAccess), '[]');
+            } else {
+                $indexName = ltrim($descriptor->getVariableName(), '$');
+                $columnGetterName = $descriptor->getGetterName();
+                $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
+            }
         }
         return '[' . implode(', ', $rows) . ']';
     }

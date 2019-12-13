@@ -298,6 +298,7 @@ class BeanDescriptor implements BeanDescriptorInterface
                         continue 2;
                     }
                 }
+                $propertyDescriptor = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser, $this->registry->getBeanForTableName($fk->getForeignTableName()));
                 // Check that this property is not an inheritance relationship
                 $parentRelationship = $this->schemaAnalyzer->getParentRelationship($table->getName());
                 if ($parentRelationship !== null && $parentRelationship->getName() === $fk->getName()) {
@@ -306,12 +307,11 @@ class BeanDescriptor implements BeanDescriptorInterface
                         $column,
                         $this->namingStrategy,
                         $this->annotationParser,
-                        new ScalarBeanPropertyDescriptor($table, $column, $this->namingStrategy, $this->annotationParser)
+                        $propertyDescriptor
                     );
                 } else {
-                    $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser, $this->registry->getBeanForTableName($fk->getForeignTableName()));;
+                    $beanPropertyDescriptors[] = $propertyDescriptor;
                 }
-
             } else {
                 $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column, $this->namingStrategy, $this->annotationParser);
             }
