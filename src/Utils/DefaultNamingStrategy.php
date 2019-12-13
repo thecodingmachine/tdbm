@@ -312,11 +312,11 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
     {
         if ($property instanceof ObjectBeanPropertyDescriptor) {
             return $this->getForeignKeyUpperCamelCaseName($property->getForeignKey(), $property->isAlternativeName());
-        } elseif ($property instanceof ScalarBeanPropertyDescriptor) {
-            return $this->getScalarColumnUpperCamelCaseName($property->getColumnName(), $property->isAlternativeName());
-        } else {
-            throw new TDBMException('Unexpected property type. Should be either ObjectBeanPropertyDescriptor or ScalarBeanPropertyDescriptor'); // @codeCoverageIgnore
         }
+        if ($property instanceof ScalarBeanPropertyDescriptor) {
+            return $this->getScalarColumnUpperCamelCaseName($property->getColumnName(), $property->isAlternativeName());
+        }
+        throw new TDBMException('Unexpected property type. Should be either ObjectBeanPropertyDescriptor or ScalarBeanPropertyDescriptor'); // @codeCoverageIgnore
     }
 
     private function getSchema(): Schema

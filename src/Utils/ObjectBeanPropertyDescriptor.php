@@ -258,6 +258,9 @@ PHP;
         $rows = [];
         foreach ($this->getForeignKey()->getUnquotedForeignColumns() as $column) {
             $descriptor = $this->getBeanPropertyDescriptor($column);
+            if ($descriptor instanceof ScalarReferencePropertyDescriptor) {
+                $descriptor = $descriptor->getReferencedPropertyDescriptor();
+            }
             $indexName = ltrim($descriptor->getVariableName(), '$');
             $columnGetterName = $descriptor->getGetterName();
             $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
