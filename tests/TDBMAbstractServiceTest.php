@@ -466,6 +466,17 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('fk_2')->integer()
             ->then()->getDbalTable()->addForeignKeyConstraint($targetTable->getDbalTable(), ['fk_1', 'fk_2'], ['id_1', 'id_2']);
 
+        // Test case, the problem here is:
+        // - `inheritance_agency` have an FK to `inheritance_society.**id_entity**`
+        // - `inheritance_society` have an FK to `inheritance_entity.**id**`
+        $db->table('inheritance_entity')
+            ->column('id')->integer()->primaryKey()->autoIncrement();
+        $db->table('inheritance_society')
+            ->column('id_entity')->references('inheritance_entity')->primaryKey()
+            ->then();
+        $db->table('inheritance_agency')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('id_parent_society')->references('inheritance_society');
 
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 

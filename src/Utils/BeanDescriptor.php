@@ -201,7 +201,7 @@ class BeanDescriptor implements BeanDescriptorInterface
     public function getConstructorProperties(): array
     {
         $constructorProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
-            return $property->isCompulsory();
+            return !$property instanceof InheritanceReferencePropertyDescriptor && $property->isCompulsory();
         });
 
         return $constructorProperties;
@@ -230,7 +230,7 @@ class BeanDescriptor implements BeanDescriptorInterface
     public function getExposedProperties(): array
     {
         $exposedProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
-            return $property->getTable()->getName() == $this->table->getName();
+            return !$property instanceof InheritanceReferencePropertyDescriptor && $property->getTable()->getName() === $this->table->getName();
         });
 
         return $exposedProperties;
@@ -256,7 +256,7 @@ class BeanDescriptor implements BeanDescriptorInterface
             $localProperties = $this->getPropertiesForTable($table);
             foreach ($localProperties as $name => $property) {
                 // We do not override properties if this is a primary key!
-                if ($property->isPrimaryKey()) {
+                if (!$property instanceof InheritanceReferencePropertyDescriptor && $property->isPrimaryKey()) {
                     continue;
                 }
                 $properties[$name] = $property;
@@ -279,14 +279,14 @@ class BeanDescriptor implements BeanDescriptorInterface
     {
         $parentRelationship = $this->schemaAnalyzer->getParentRelationship($table->getName());
         if ($parentRelationship) {
-            $ignoreColumns = $parentRelationship->getUnquotedLocalColumns();
+            $ignoreColumns = $parentRelationship->getUnquotedForeignColumns();
         } else {
             $ignoreColumns = [];
         }
 
         $beanPropertyDescriptors = [];
         foreach ($table->getColumns() as $column) {
-            if (array_search($column->getName(), $ignoreColumns) !== false) {
+            if (in_array($column->getName(), $ignoreColumns, true)) {
                 continue;
             }
 
@@ -298,13 +298,20 @@ class BeanDescriptor implements BeanDescriptorInterface
                         continue 2;
                     }
                 }
+                $propertyDescriptor = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser, $this->registry->getBeanForTableName($fk->getForeignTableName()));
                 // Check that this property is not an inheritance relationship
                 $parentRelationship = $this->schemaAnalyzer->getParentRelationship($table->getName());
-                if ($parentRelationship === $fk) {
-                    continue;
+                if ($parentRelationship !== null && $parentRelationship->getName() === $fk->getName()) {
+                    $beanPropertyDescriptors[] = new InheritanceReferencePropertyDescriptor(
+                        $table,
+                        $column,
+                        $this->namingStrategy,
+                        $this->annotationParser,
+                        $propertyDescriptor
+                    );
+                } else {
+                    $beanPropertyDescriptors[] = $propertyDescriptor;
                 }
-
-                $beanPropertyDescriptors[] = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser, $this->registry->getBeanForTableName($fk->getForeignTableName()));
             } else {
                 $beanPropertyDescriptors[] = new ScalarBeanPropertyDescriptor($table, $column, $this->namingStrategy, $this->annotationParser);
             }

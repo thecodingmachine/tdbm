@@ -258,9 +258,18 @@ PHP;
         $rows = [];
         foreach ($this->getForeignKey()->getUnquotedForeignColumns() as $column) {
             $descriptor = $this->getBeanPropertyDescriptor($column);
-            $indexName = ltrim($descriptor->getVariableName(), '$');
-            $columnGetterName = $descriptor->getGetterName();
-            $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
+            if ($descriptor instanceof InheritanceReferencePropertyDescriptor) {
+                $descriptor = $descriptor->getNonScalarReferencedPropertyDescriptor();
+            }
+            if ($descriptor instanceof ObjectBeanPropertyDescriptor) {
+                $rows[] = trim($descriptor->getLazySerializeCode($propertyAccess), '[]');
+            } elseif ($descriptor instanceof ScalarBeanPropertyDescriptor) {
+                $indexName = ltrim($descriptor->getVariableName(), '$');
+                $columnGetterName = $descriptor->getGetterName();
+                $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
+            } else {
+                throw new TDBMException('PropertyDescriptor of class `' . get_class($descriptor) . '` cannot be serialized.');
+            }
         }
         return '[' . implode(', ', $rows) . ']';
     }
