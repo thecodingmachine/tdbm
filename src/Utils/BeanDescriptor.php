@@ -201,7 +201,7 @@ class BeanDescriptor implements BeanDescriptorInterface
     public function getConstructorProperties(): array
     {
         $constructorProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
-            return !$property instanceof ScalarReferencePropertyDescriptor && $property->isCompulsory();
+            return !$property instanceof InheritanceReferencePropertyDescriptor && $property->isCompulsory();
         });
 
         return $constructorProperties;
@@ -230,7 +230,7 @@ class BeanDescriptor implements BeanDescriptorInterface
     public function getExposedProperties(): array
     {
         $exposedProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
-            return !$property instanceof ScalarReferencePropertyDescriptor && $property->getTable()->getName() === $this->table->getName();
+            return !$property instanceof InheritanceReferencePropertyDescriptor && $property->getTable()->getName() === $this->table->getName();
         });
 
         return $exposedProperties;
@@ -256,7 +256,7 @@ class BeanDescriptor implements BeanDescriptorInterface
             $localProperties = $this->getPropertiesForTable($table);
             foreach ($localProperties as $name => $property) {
                 // We do not override properties if this is a primary key!
-                if (!$property instanceof ScalarReferencePropertyDescriptor && $property->isPrimaryKey()) {
+                if (!$property instanceof InheritanceReferencePropertyDescriptor && $property->isPrimaryKey()) {
                     continue;
                 }
                 $properties[$name] = $property;
@@ -302,7 +302,7 @@ class BeanDescriptor implements BeanDescriptorInterface
                 // Check that this property is not an inheritance relationship
                 $parentRelationship = $this->schemaAnalyzer->getParentRelationship($table->getName());
                 if ($parentRelationship !== null && $parentRelationship->getName() === $fk->getName()) {
-                    $beanPropertyDescriptors[] = new ScalarReferencePropertyDescriptor(
+                    $beanPropertyDescriptors[] = new InheritanceReferencePropertyDescriptor(
                         $table,
                         $column,
                         $this->namingStrategy,

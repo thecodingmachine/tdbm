@@ -8,9 +8,9 @@ use Doctrine\DBAL\Schema\Table;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 
 /**
- * This class represents a reference to a AbstractBeanPropertyDescriptor
+ * This class represents a reference to a AbstractBeanPropertyDescriptor used in an inheritance schema
  */
-class ScalarReferencePropertyDescriptor extends ScalarBeanPropertyDescriptor
+class InheritanceReferencePropertyDescriptor extends ScalarBeanPropertyDescriptor
 {
     /** @var AbstractBeanPropertyDescriptor */
     private $referencedPropertyDescriptor;
@@ -27,15 +27,18 @@ class ScalarReferencePropertyDescriptor extends ScalarBeanPropertyDescriptor
     }
 
     /**
-     * @return AbstractBeanPropertyDescriptor
+     * @return ScalarBeanPropertyDescriptor|ObjectBeanPropertyDescriptor
      */
-    public function getReferencedPropertyDescriptor(): AbstractBeanPropertyDescriptor
+    public function getNonScalarReferencedPropertyDescriptor(): AbstractBeanPropertyDescriptor
     {
+        if ($this->referencedPropertyDescriptor instanceof InheritanceReferencePropertyDescriptor) {
+            return $this->referencedPropertyDescriptor->getNonScalarReferencedPropertyDescriptor();
+        }
         return $this->referencedPropertyDescriptor;
     }
 
     public function getJsonSerializeCode(): string
     {
-        return $this->referencedPropertyDescriptor->getJsonSerializeCode();
+        return $this->getNonScalarReferencedPropertyDescriptor()->getJsonSerializeCode();
     }
 }
