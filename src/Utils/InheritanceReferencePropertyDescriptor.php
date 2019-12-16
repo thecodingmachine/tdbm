@@ -34,6 +34,7 @@ class InheritanceReferencePropertyDescriptor extends ScalarBeanPropertyDescripto
         if ($this->referencedPropertyDescriptor instanceof InheritanceReferencePropertyDescriptor) {
             return $this->referencedPropertyDescriptor->getNonScalarReferencedPropertyDescriptor();
         }
+        assert($this->referencedPropertyDescriptor instanceof ScalarBeanPropertyDescriptor || $this->referencedPropertyDescriptor instanceof ObjectBeanPropertyDescriptor);
         return $this->referencedPropertyDescriptor;
     }
 
