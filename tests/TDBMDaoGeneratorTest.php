@@ -2175,7 +2175,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testFindByDateTime(): void
     {
         $personDao = new PersonDao($this->tdbmService);
-        $personDao->findByModifiedAt(new \DateTimeImmutable('+1 year'))->count();
+        $personDao->findByModifiedAt(new \DateTimeImmutable())->count();
         $this->assertTrue(true);
     }
 }
