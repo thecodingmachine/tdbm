@@ -2219,7 +2219,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $inheritanceAgencyDao = new InheritanceAgencyDao($this->tdbmService);
         $society = new InheritanceSocietyBean();
         $inheritanceSocietyDao->save($society);
-        $this->assertIsInt($society->getId());
+        $this->assertNotNull($society->getId());
         $agency = new InheritanceAgencyBean($society);
         $inheritanceAgencyDao->save($agency);
     }
