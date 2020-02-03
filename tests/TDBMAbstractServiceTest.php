@@ -285,7 +285,9 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('login')->string(255)
             ->column('password')->string(255)->null()
             ->column('status')->string(10)->null()->default(null)
-            ->column('country_id')->references('country');
+            ->column('country_id')->references('country')
+            // Used to test generation for a column that starts with a digit
+            ->then()->column('3d_view')->boolean()->default(true);
 
         $db->table('rights')
             ->column('label')->string(255)->primaryKey()->comment('Non autoincrementable primary key');
