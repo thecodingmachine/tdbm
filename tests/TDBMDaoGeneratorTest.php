@@ -2161,7 +2161,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertEquals(1, $json['compositeFkTarget']['id2']);
     }
 
-    public function testMethodNameConflictsBetweenRegularAndAutoPivotProperties()
+    public function testMethodNameConflictsBetweenRegularAndAutoPivotProperties(): void
     {
         $artist = new ArtistBean('Super');
         $artist->getChildren(); // regular property
