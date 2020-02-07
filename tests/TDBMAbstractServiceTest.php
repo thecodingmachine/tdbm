@@ -266,7 +266,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         }
 
         $db->table('person')
-            ->column('modified_at')->datetime()->null()
+            ->column('modified_at')->datetime()->null()->index()
             ->column('order')->integer()->null();
 
 

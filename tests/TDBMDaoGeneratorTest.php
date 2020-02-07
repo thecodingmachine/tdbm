@@ -76,6 +76,7 @@ use TheCodingMachine\TDBM\Test\Dao\FileDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\InheritedObjectDao;
 use TheCodingMachine\TDBM\Test\Dao\NodeDao;
+use TheCodingMachine\TDBM\Test\Dao\PersonDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
 use TheCodingMachine\TDBM\Test\Dao\StateDao;
@@ -747,8 +748,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $countryDao = new TestCountryDao($this->tdbmService);
         $countries = $countryDao->getCountriesByUserCount();
 
-        $this->assertCount(4, $countries);
-        for ($i = 1; $i < count($countries); $i++) {
+        $nbCountries = 4;
+        $this->assertCount($nbCountries, $countries);
+        for ($i = 1; $i < $nbCountries; $i++) {
             $this->assertLessThanOrEqual($countries[$i - 1]->getUsers()->count(), $countries[$i]->getUsers()->count());
         }
     }
@@ -2168,5 +2170,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $artist->getChildrenByArtistId(); // one-to-may relationship
         $artist->getChildrenByArtistsRelations(); // auto-pivot relationship
         $this->assertEquals(1, 1);
+    }
+
+    public function testFindByDateTime(): void
+    {
+        $personDao = new PersonDao($this->tdbmService);
+        $personDao->findByModifiedAt(new \DateTimeImmutable())->count();
+        $this->assertTrue(true);
     }
 }

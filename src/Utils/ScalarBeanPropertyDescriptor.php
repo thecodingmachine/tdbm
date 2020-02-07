@@ -74,6 +74,16 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
+     * Returns the Database type for the property
+     *
+     * @return Type
+     */
+    public function getDatabaseType(): Type
+    {
+        return $this->column->getType();
+    }
+
+    /**
      * Returns true if the property is compulsory (and therefore should be fetched in the constructor).
      *
      * @return bool

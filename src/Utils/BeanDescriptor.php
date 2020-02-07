@@ -8,6 +8,7 @@ use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Types\Type;
 use JsonSerializable;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use PhpParser\Comment\Doc;
@@ -1291,7 +1292,17 @@ You should not put an alias on the main table name. So your \$from variable shou
         foreach ($elements as $element) {
             $params[] = $element->getParamAnnotation();
             if ($element instanceof ScalarBeanPropertyDescriptor) {
-                $filterArrayCode .= '            '.var_export($element->getColumnName(), true).' => '.$element->getSafeVariableName().",\n";
+                $typeName = $element->getDatabaseType()->getName();
+                if ($typeName === Type::DATETIME_IMMUTABLE) {
+                    $filterArrayCode .= sprintf(
+                        "            %s => \$this->tdbmService->getConnection()->convertToDatabaseValue(%s, %s),\n",
+                        var_export($element->getColumnName(), true),
+                        $element->getSafeVariableName(),
+                        var_export($typeName, true)
+                    );
+                } else {
+                    $filterArrayCode .= '            '.var_export($element->getColumnName(), true).' => '.$element->getSafeVariableName().",\n";
+                }
             } elseif ($element instanceof ObjectBeanPropertyDescriptor) {
                 $foreignKey = $element->getForeignKey();
                 $columns = SafeFunctions::arrayCombine($foreignKey->getLocalColumns(), $foreignKey->getForeignColumns());
