@@ -336,7 +336,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         foreach ($beanPropertyDescriptors as $beanDescriptor) {
             $name = $beanDescriptor->getGetterName();
             if (isset($names[$name])) {
-                throw new TDBMException('Unsolvable name conflict while generating method name');
+                throw new TDBMException('Unsolvable name conflict while generating method name "' . $name . '"');
             } else {
                 $names[$name] = $beanDescriptor;
             }
