@@ -32,6 +32,7 @@ use ReflectionClass;
 use ReflectionMethod;
 use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
+use TheCodingMachine\TDBM\Dao\TestPersonDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
@@ -2177,5 +2178,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $personDao = new PersonDao($this->tdbmService);
         $personDao->findByModifiedAt(new \DateTimeImmutable())->count();
         $this->assertTrue(true);
+    }
+
+    public function testFindFromRawSQLOnInheritance(): void
+    {
+        $dao = new TestPersonDao($this->tdbmService);
+        $objects = $dao->testFindFromRawSQLONInherited();
+
+        $this->assertNotNull($objects->first());
+        $this->assertNotEquals(0, $objects->count());
     }
 }
