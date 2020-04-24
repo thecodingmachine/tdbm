@@ -30,6 +30,7 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
 use ReflectionClass;
 use ReflectionMethod;
+use TheCodingMachine\TDBM\Dao\TestAlbumDao;
 use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestPersonDao;
@@ -43,6 +44,7 @@ use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\ArtistDao;
 use TheCodingMachine\TDBM\Test\Dao\BaseObjectDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AccountBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\AlbumBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AnimalBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Article2Bean;
@@ -2180,12 +2182,27 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertTrue(true);
     }
 
+    /**
+     * Bug: find from sql use a `COUNT(DISTINCT *)` which fails because of null values.
+     */
+    public function testFindFromRawSqlCount(): void
+    {
+        $dao = new TestAlbumDao($this->tdbmService);
+        $albums = $dao->findAllFromRawSql();
+
+        $firstAlbum = $albums->first();
+        assert($firstAlbum instanceof AlbumBean);
+        $this->assertNull($firstAlbum->getNode()); // This null ensure reproducibility of the bug
+        $expectedCount = $dao->findAllFromRawSqlWithCount()->count();
+        $this->assertEquals($expectedCount, $albums->count());
+    }
+
     public function testFindFromRawSQLOnInheritance(): void
     {
         $dao = new TestPersonDao($this->tdbmService);
-        $objects = $dao->testFindFromRawSQLONInherited();
+        $objects = $dao->testFindFromRawSQLOnInherited();
 
         $this->assertNotNull($objects->first());
-        $this->assertNotEquals(0, $objects->count());
+        $this->assertEquals(6, $objects->count());
     }
 }

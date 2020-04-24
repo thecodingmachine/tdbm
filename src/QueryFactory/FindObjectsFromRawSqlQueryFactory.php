@@ -144,14 +144,16 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
     private function processParsedSelectQuery(array $parsedSql, ?string $sqlCount): array
     {
         // 1: let's reformat the SELECT and construct our columns
-        list($select, $columnDescriptors) = $this->formatSelect($parsedSql['SELECT']);
+        list($select, $countSelect, $columnDescriptors) = $this->formatSelect($parsedSql['SELECT']);
         $generator = new PHPSQLCreator();
         $parsedSql['SELECT'] = $select;
         $processedSql = $generator->create($parsedSql);
 
         // 2: let's compute the count query if needed
         if ($sqlCount === null) {
-            $parsedSqlCount = $this->generateParsedSqlCount($parsedSql);
+            $parsedCountSql = $parsedSql;
+            $parsedCountSql['SELECT'] = $countSelect;
+            $parsedSqlCount = $this->generateParsedSqlCount($parsedCountSql);
             $processedSqlCount = $generator->create($parsedSqlCount);
         } else {
             $processedSqlCount = $sqlCount;
@@ -173,40 +175,46 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
 
         $connection = $this->tdbmService->getConnection();
         $formattedSelect = [];
+        $formattedCountSelect = [];
         $columnDescriptors = [];
         $fetchedTables = [];
 
         foreach ($baseSelect as $entry) {
             if ($entry['expr_type'] !== 'colref') {
                 $formattedSelect[] = $entry;
+                $formattedCountSelect[] = $entry;
                 continue;
             }
 
             $noQuotes = $entry['no_quotes'];
             if ($noQuotes['delim'] !== '.' || count($noQuotes['parts']) !== 2) {
                 $formattedSelect[] = $entry;
+                $formattedCountSelect[] = $entry;
                 continue;
             }
 
             $tableName = $noQuotes['parts'][0];
             if (!in_array($tableName, $relatedTables)) {
                 $formattedSelect[] = $entry;
+                $formattedCountSelect[] = $entry;
                 continue;
             }
 
             $columnName = $noQuotes['parts'][1];
             if ($columnName !== '*') {
                 $formattedSelect[] = $entry;
+                $formattedCountSelect[] = $entry;
                 continue;
             }
 
             $table = $this->schema->getTable($tableName);
+            $pkColumns = $table->getPrimaryKeyColumns();
             foreach ($table->getColumns() as $column) {
                 $columnName = $column->getName();
                 $alias = "{$tableName}____{$columnName}";
-                $formattedSelect[] = [
+                $astColumn = [
                     'expr_type' => 'colref',
-                    'base_expr' => $connection->quoteIdentifier($tableName).'.'.$connection->quoteIdentifier($columnName),
+                    'base_expr' => $connection->quoteIdentifier($tableName) . '.' . $connection->quoteIdentifier($columnName),
                     'no_quotes' => [
                         'delim' => '.',
                         'parts' => [
@@ -219,7 +227,10 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                         'name' => $alias,
                     ]
                 ];
-
+                $formattedSelect[] = $astColumn;
+                if (in_array($columnName, $pkColumns)) {
+                    $formattedCountSelect[] = $astColumn;
+                }
                 $columnDescriptors[$alias] = [
                     'as' => $alias,
                     'table' => $tableName,
@@ -241,7 +252,13 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 $formattedSelect[$i]['delim'] = ',';
             }
         }
-        return [$formattedSelect, $columnDescriptors];
+
+        for ($i = 0; $i < count($formattedCountSelect) - 1; $i++) {
+            if (!isset($formattedCountSelect[$i]['delim'])) {
+                $formattedCountSelect[$i]['delim'] = ',';
+            }
+        }
+        return [$formattedSelect, $formattedCountSelect, $columnDescriptors];
     }
 
     /**

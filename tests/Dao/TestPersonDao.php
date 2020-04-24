@@ -16,13 +16,12 @@ use TheCodingMachine\TDBM\Test\Dao\Generated\PersonBaseDao;
  */
 class TestPersonDao extends PersonBaseDao
 {
-    public function testFindFromRawSQLONInherited(): ResultIterator
+    public function testFindFromRawSQLOnInherited(): ResultIterator
     {
         $sql = '
             SELECT DISTINCT  person.*, contact.*, users.*
             FROM person JOIN contact ON person.id = contact.id
              JOIN users ON contact.id = users.id
-            WHERE TRUE
         ';
 
         return $this->findFromRawSql($sql, []);
