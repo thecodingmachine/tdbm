@@ -160,16 +160,20 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
      * Advances the cursor to the next result.
      * Casts the database result into one (or several) beans.
      */
-    public function next()
+    public function next(): void
     {
         $row = $this->statement->fetch(\PDO::FETCH_ASSOC);
         if ($row) {
 
             // array<tablegroup, array<table, array<column, value>>>
             $beansData = [];
+            $allNull = true;
             foreach ($row as $key => $value) {
                 if (!isset($this->columnDescriptors[$key])) {
                     continue;
+                }
+                if ($allNull !== false && $value !== null) {
+                    $allNull = false;
                 }
 
                 $columnDescriptor = $this->columnDescriptors[$key];
@@ -183,6 +187,10 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
                 $value = $columnDescriptor['type']->convertToPHPValue($value, $this->databasePlatform);
 
                 $beansData[$columnDescriptor['tableGroup']][$columnDescriptor['table']][$columnDescriptor['column']] = $value;
+            }
+            if ($allNull === true) {
+                $this->next();
+                return;
             }
 
             $reflectionClassCache = [];
