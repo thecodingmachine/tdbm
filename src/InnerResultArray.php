@@ -102,7 +102,7 @@ class InnerResultArray extends InnerResultIterator
         }
     }
 
-    public function next()
+    public function next(): void
     {
         // Let's overload the next() method to store the result.
         if (isset($this->results[$this->key + 1])) {
