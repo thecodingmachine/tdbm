@@ -26,7 +26,7 @@ class GenerateCommandTest extends TDBMAbstractServiceTest
 
         $result = $this->callCommand(new GenerateCommand($this->getConfiguration()), $input);
 
-        $this->assertContains('Finished regenerating DAOs and beans', $result);
+        $this->assertStringContainsString('Finished regenerating DAOs and beans', $result);
     }
 
     /**
