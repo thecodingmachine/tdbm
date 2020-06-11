@@ -97,7 +97,7 @@ class InnerResultIterator implements \Iterator, \Countable, \ArrayAccess
 
         $this->logger->debug('Running SQL request: '.$sql);
 
-        $this->statement = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters, DbalUtils::generateArrayTypes($this->parameters));
+        $this->statement = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters, DbalUtils::generateTypes($this->parameters));
 
         $this->fetchStarted = true;
     }
