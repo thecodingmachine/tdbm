@@ -165,19 +165,33 @@ abstract class AbstractQueryFactory implements QueryFactory
         foreach ($allFetchedTables as $table) {
             foreach ($this->schema->getTable($table)->getColumns() as $column) {
                 $columnName = $column->getName();
-                $columnDescList[$table.'____'.$columnName] = [
-                    'as' => $table.'____'.$columnName,
+                $alias = self::getColumnAlias($table, $columnName);
+                $columnDescList[$alias] = [
+                    'as' => $alias,
                     'table' => $table,
                     'column' => $columnName,
                     'type' => $column->getType(),
                     'tableGroup' => $tableGroups[$table],
                 ];
-                $columnsList[] = $mysqlPlatform->quoteIdentifier($table).'.'.$mysqlPlatform->quoteIdentifier($columnName).' as '.
-                    $connection->quoteIdentifier($table.'____'.$columnName);
+                $columnsList[] = sprintf(
+                    '%s.%s as %s',
+                    $mysqlPlatform->quoteIdentifier($table),
+                    $mysqlPlatform->quoteIdentifier($columnName),
+                    $connection->quoteIdentifier($alias)
+                );
             }
         }
 
         return [$columnDescList, $columnsList, $reconstructedOrderBy];
+    }
+
+    public static function getColumnAlias(string $tableName, string $columnName): string
+    {
+        $alias = $tableName.'____'.$columnName;
+        if (strlen($alias) <= 30) { // Older oracle version had a limit of 30 characters for identifiers
+            return $alias;
+        }
+        return substr($columnName, 0, 20) . crc32($tableName.'____'.$columnName);
     }
 
     abstract protected function compute(): void;
