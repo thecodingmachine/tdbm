@@ -211,7 +211,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
             $pkColumns = $table->getPrimaryKeyColumns();
             foreach ($table->getColumns() as $column) {
                 $columnName = $column->getName();
-                $alias = "{$tableName}____{$columnName}";
+                $alias = AbstractQueryFactory::getColumnAlias($tableName, $columnName);
                 $astColumn = [
                     'expr_type' => 'colref',
                     'base_expr' => $connection->quoteIdentifier($tableName) . '.' . $connection->quoteIdentifier($columnName),
