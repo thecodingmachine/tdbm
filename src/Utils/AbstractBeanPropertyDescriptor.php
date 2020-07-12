@@ -75,6 +75,11 @@ abstract class AbstractBeanPropertyDescriptor implements MethodDescriptorInterfa
         return $this->namingStrategy->getVariableName($this);
     }
 
+    public function getSafeVariableName(): string
+    {
+        return '$' . StringUtils::getValidVariableName(ltrim($this->getVariableName(), '$'));
+    }
+
     public function getSetterName(): string
     {
         return $this->namingStrategy->getSetterName($this);
@@ -102,7 +107,7 @@ abstract class AbstractBeanPropertyDescriptor implements MethodDescriptorInterfa
     {
         $str = '$this->%s(%s);';
 
-        return sprintf($str, $this->getSetterName(), $this->getVariableName());
+        return sprintf($str, $this->getSetterName(), $this->getSafeVariableName());
     }
 
     /**

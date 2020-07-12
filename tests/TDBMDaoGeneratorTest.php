@@ -30,9 +30,12 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionNamedType;
+use TheCodingMachine\TDBM\Dao\TestAlbumDao;
 use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestArticleSubQueryDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
+use TheCodingMachine\TDBM\Dao\TestPersonDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
@@ -43,6 +46,7 @@ use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
 use TheCodingMachine\TDBM\Test\Dao\ArtistDao;
 use TheCodingMachine\TDBM\Test\Dao\BaseObjectDao;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AccountBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\AlbumBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AllNullableBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\AnimalBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Article2Bean;
@@ -77,6 +81,7 @@ use TheCodingMachine\TDBM\Test\Dao\FileDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\InheritedObjectDao;
 use TheCodingMachine\TDBM\Test\Dao\NodeDao;
+use TheCodingMachine\TDBM\Test\Dao\PersonDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
 use TheCodingMachine\TDBM\Test\Dao\StateDao;
@@ -771,8 +776,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $countryDao = new TestCountryDao($this->tdbmService);
         $countries = $countryDao->getCountriesByUserCount();
 
-        $this->assertCount(4, $countries);
-        for ($i = 1; $i < count($countries); $i++) {
+        $nbCountries = 4;
+        $this->assertCount($nbCountries, $countries);
+        for ($i = 1; $i < $nbCountries; $i++) {
             $this->assertLessThanOrEqual($countries[$i - 1]->getUsers()->count(), $countries[$i]->getUsers()->count());
         }
     }
@@ -1630,9 +1636,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testTypeHintedConstructors(): void
     {
         $userBaseBeanReflectionConstructor = new \ReflectionMethod(UserBaseBean::class, '__construct');
+        /** @var ReflectionNamedType $nameParam */
         $nameParam = $userBaseBeanReflectionConstructor->getParameters()[0];
 
-        $this->assertSame('string', (string)$nameParam->getType());
+        $this->assertSame('string', $nameParam->getType()->getName());
     }
 
     /**
@@ -1744,7 +1751,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $resource = $loadedFile->getFile();
         $result = fseek($resource, 0);
         $this->assertSame(0, $result);
-        $this->assertInternalType('resource', $resource);
+        $this->assertIsResource($resource);
         $firstLine = fgets($resource);
         $this->assertSame("<?php\n", $firstLine);
     }
@@ -1758,7 +1765,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $loadedFile = $fileDao->getById(1);
 
         $resource = $loadedFile->getFile();
-        $this->assertInternalType('resource', $resource);
+        $this->assertIsResource($resource);
         $firstLine = fgets($resource);
         $this->assertSame("<?php\n", $firstLine);
 
@@ -1845,7 +1852,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testDecimalIsMappedToString(): void
     {
         $reflectionClass = new \ReflectionClass(BoatBaseBean::class);
-        $this->assertSame('string', (string) $reflectionClass->getMethod('getLength')->getReturnType());
+        /** @var ReflectionNamedType $nameParam */
+        $this->assertSame('string', $reflectionClass->getMethod('getLength')->getReturnType()->getName());
     }
 
     /**
@@ -2185,7 +2193,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertEquals(1, $json['compositeFkTarget']['id2']);
     }
 
-    public function testMethodNameConflictsBetweenRegularAndAutoPivotProperties()
+    public function testMethodNameConflictsBetweenRegularAndAutoPivotProperties(): void
     {
         $artist = new ArtistBean('Super');
         $artist->getChildren(); // regular property
@@ -2235,5 +2243,36 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->expectException(TDBMException::class);
         $this->expectExceptionMessage('You cannot use in a sub-query a table that has a primary key on more that 1 column.');
         $states->_getSubQuery();
+    }
+
+    public function testFindByDateTime(): void
+    {
+        $personDao = new PersonDao($this->tdbmService);
+        $personDao->findByModifiedAt(new \DateTimeImmutable())->count();
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Bug: find from sql use a `COUNT(DISTINCT *)` which fails because of null values.
+     */
+    public function testFindFromRawSqlCount(): void
+    {
+        $dao = new TestAlbumDao($this->tdbmService);
+        $albums = $dao->findAllFromRawSql();
+
+        $firstAlbum = $albums->first();
+        assert($firstAlbum instanceof AlbumBean);
+        $this->assertNull($firstAlbum->getNode()); // This null ensure reproducibility of the bug
+        $expectedCount = $dao->findAllFromRawSqlWithCount()->count();
+        $this->assertEquals($expectedCount, $albums->count());
+    }
+
+    public function testFindFromRawSQLOnInheritance(): void
+    {
+        $dao = new TestPersonDao($this->tdbmService);
+        $objects = $dao->testFindFromRawSQLOnInherited();
+
+        $this->assertNotNull($objects->first());
+        $this->assertEquals(6, $objects->count());
     }
 }

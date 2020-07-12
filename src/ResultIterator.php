@@ -112,7 +112,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     {
         $sql = $this->magicQuery->buildPreparedStatement($this->queryFactory->getMagicSqlCount(), $this->parameters);
         $this->logger->debug('Running count query: '.$sql);
-        $this->totalCount = (int) $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters, 0, DbalUtils::generateArrayTypes($this->parameters));
+        $this->totalCount = (int) $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters, 0, DbalUtils::generateTypes($this->parameters));
     }
 
     /**

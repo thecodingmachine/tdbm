@@ -19,7 +19,7 @@
     ],
     "require" : {
         "php" : ">=7.1",
-        "mouf/magic-query" : "^1.4.0",
+        "mouf/magic-query" : "^1.4",
         "mouf/schema-analyzer": "^1.1.4",
         "doctrine/dbal": "^2.9.2",
         "psr/log": "~1.0",
@@ -32,20 +32,21 @@
         "mouf/utils.log.psr.multi-logger": "^1.0",
         "symfony/filesystem": "^2.7 || ^3 || ^4 || ^5",
         "ramsey/uuid": "^3.7",
-        "doctrine/annotations": "^1.6",
+        "doctrine/annotations": "^1.10",
         "zendframework/zend-code": "^3.4",
         "psr/container": "^1",
+        "brain-diminished/schema-version-control": "^1.0.2",
         "ext-PDO": "*",
         "ext-json": "*",
         "ext-hash": "*",
         "ext-filter": "*",
-        "brain-diminished/schema-version-control": "^1.0.2"
+        "ext-intl": "*"
     },
     "require-dev" : {
         "phpunit/phpunit": "^7.4.4 || ^8.0.0",
         "php-coveralls/php-coveralls": "^2.1",
         "wa72/simplelogger" : "^1.0",
-        "friendsofphp/php-cs-fixer": "^2.15.1",
+        "friendsofphp/php-cs-fixer": "^2.16",
         "symfony/process": "^3 || ^4 || ^5",
         "thecodingmachine/tdbm-fluid-schema-builder": "^1.0.0",
         "phpstan/phpstan": "^0.11.5",

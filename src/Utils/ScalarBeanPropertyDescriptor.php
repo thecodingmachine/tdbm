@@ -74,6 +74,16 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     }
 
     /**
+     * Returns the Database type for the property
+     *
+     * @return Type
+     */
+    public function getDatabaseType(): Type
+    {
+        return $this->column->getType();
+    }
+
+    /**
      * Returns true if the property is compulsory (and therefore should be fetched in the constructor).
      *
      * @return bool
@@ -205,6 +215,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
         $columnGetterName = $this->getGetterName();
         $columnSetterName = $this->getSetterName();
+        $variableName = ltrim($this->getSafeVariableName(), '$');
 
         // A column type can be forced if it is not nullable and not auto-incrementable (for auto-increment columns, we can get "null" as long as the bean is not saved).
         $isNullable = !$this->column->getNotnull() || $this->isAutoincrement();
@@ -220,7 +231,7 @@ if (%s!\is_resource($%s)) {
     throw \TheCodingMachine\TDBM\TDBMInvalidArgumentException::badType('resource', $%s, __METHOD__);
 }
 EOF;
-            $resourceTypeCheck = sprintf($resourceTypeCheck, $checkNullable, $this->column->getName(), $this->column->getName());
+            $resourceTypeCheck = sprintf($resourceTypeCheck, $checkNullable, $variableName, $variableName);
         }
 
         $types = [ $normalizedType ];
@@ -251,10 +262,10 @@ EOF;
 
         $setter = new MethodGenerator($columnSetterName);
         $setterDocBlock = new DocBlockGenerator(sprintf('The setter for the "%s" column.', $this->column->getName()));
-        $setterDocBlock->setTag(new ParamTag($this->column->getName(), $types))->setWordWrap(false);
+        $setterDocBlock->setTag(new ParamTag($variableName, $types))->setWordWrap(false);
         $setter->setDocBlock($setterDocBlock);
 
-        $parameter = new ParameterGenerator($this->column->getName(), $paramType);
+        $parameter = new ParameterGenerator($variableName, $paramType);
         $setter->setParameter($parameter);
         $setter->setReturnType('void');
 
@@ -263,7 +274,7 @@ EOF;
 $this->set(%s, $%s, %s);',
             $resourceTypeCheck,
             var_export($this->column->getName(), true),
-            $this->column->getName(),
+            $variableName,
             var_export($this->table->getName(), true)
         ));
 
