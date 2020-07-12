@@ -98,7 +98,7 @@ class NativeWeakrefObjectStorage implements ObjectStorageInterface
     {
         foreach ($this->objects as $tableName => $table) {
             foreach ($table as $id => $obj) {
-                if ($obj->valid() === false) {
+                if ($obj->get() === null) {
                     unset($this->objects[$tableName][$id]);
                 }
             }

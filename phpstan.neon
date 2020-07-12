@@ -11,6 +11,7 @@ parameters:
      - "#expects array<string>, array<int, int|string> given.#"
      - "/Parameter #. \\$types of method Doctrine\\\\DBAL\\\\Connection::.*() expects array<int|string>, array<int, Doctrine\\\\DBAL\\\\Types\\\\Type> given./"
      - "#Method TheCodingMachine\\\\TDBM\\\\Schema\\\\ForeignKey::.*() should return .* but returns array<string>|string.#"
+     - '#Method TheCodingMachine\\TDBM\\NativeWeakrefObjectStorage::get\(\) should return TheCodingMachine\\TDBM\\DbRow\|null but returns object\|null.#'
      -
         message: '#Result of && is always false.#'
         path: src/Test/Dao/Bean/Generated/ArticleBaseBean.php
