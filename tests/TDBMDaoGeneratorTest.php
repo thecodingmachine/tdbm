@@ -30,6 +30,7 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionNamedType;
 use TheCodingMachine\TDBM\Dao\TestAlbumDao;
 use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
@@ -1611,9 +1612,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testTypeHintedConstructors(): void
     {
         $userBaseBeanReflectionConstructor = new \ReflectionMethod(UserBaseBean::class, '__construct');
+        /** @var ReflectionNamedType $nameParam */
         $nameParam = $userBaseBeanReflectionConstructor->getParameters()[0];
 
-        $this->assertSame('string', (string)$nameParam->getType());
+        $this->assertSame('string', $nameParam->getType()->getName());
     }
 
     /**
@@ -1826,7 +1828,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testDecimalIsMappedToString(): void
     {
         $reflectionClass = new \ReflectionClass(BoatBaseBean::class);
-        $this->assertSame('string', (string) $reflectionClass->getMethod('getLength')->getReturnType());
+        $this->assertSame('string', $reflectionClass->getMethod('getLength')->getReturnType()->getName());
     }
 
     /**
