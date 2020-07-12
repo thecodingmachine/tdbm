@@ -89,6 +89,7 @@ use TheCodingMachine\TDBM\Utils\PathFinder\NoPathFoundException;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Symfony\Component\Process\Process;
+use function gettype;
 
 class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 {
@@ -1727,7 +1728,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $resource = $loadedFile->getFile();
         $result = fseek($resource, 0);
         $this->assertSame(0, $result);
-        $this->assertIsResource($resource);
+        $this->assertSame('resource', gettype($resource));
         $firstLine = fgets($resource);
         $this->assertSame("<?php\n", $firstLine);
     }
@@ -1741,7 +1742,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $loadedFile = $fileDao->getById(1);
 
         $resource = $loadedFile->getFile();
-        $this->assertIsResource($resource);
+        $this->assertSame('resource', gettype($resource));
         $firstLine = fgets($resource);
         $this->assertSame("<?php\n", $firstLine);
 
