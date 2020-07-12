@@ -14,53 +14,53 @@ matrix:
       env: PREFER_LOWEST="" DB=mysql NO_WEAKREF=1
       services:
         - mysql
-    - php: 7.1
-      env: PREFER_LOWEST="" DB=mysql COVERALLS=true
+    - php: 7.4
+      env: PREFER_LOWEST="" DB=mysql NO_WEAKREF=1 COVERALLS=true
       services:
         - mysql
-    - php: 7.1
+    - php: 7.2
       env: PREFER_LOWEST="--prefer-lowest" DB=mysql
       services:
         - mysql
-    - php: 7.1
+    - php: 7.2
       env: PREFER_LOWEST="" DB=mysql8
       sudo: required
       services:
       - docker
-    - php: 7.1
+    - php: 7.2
       env: PREFER_LOWEST="" DB=mariadb
       addons:
         mariadb: '10.3'
-    - php: 7.1
+    - php: 7.2
       env: PREFER_LOWEST="--prefer-lowest" DB=mariadb
       addons:
         mariadb: '10.3'
-    - php: 7.1
+    - php: 7.2
       env: PREFER_LOWEST="--prefer-lowest" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
       sudo: required
       services:
         - docker
-    - php: 7.1
+    - php: 7.2
       env: PREFER_LOWEST="" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
       sudo: required
       services:
         - docker
-    - php: 7.1
+    - php: 7.2
       env: PREFER_LOWEST="--prefer-lowest" DB=postgres PHPUNITFILE="-c phpunit.postgres.xml"
       addons:
         postgresql: "9.6"
       services:
         - postgresql
-    - php: 7.1
+    - php: 7.2
       env: PREFER_LOWEST="" DB=postgres PHPUNITFILE="-c phpunit.postgres.xml"
       addons:
         postgresql: "9.6"
       services:
         - postgresql
   allow_failures:
-    - php: 7.1
+    - php: 7.2
       env: PREFER_LOWEST="" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
-    - php: 7.1
+    - php: 7.2
       env: PREFER_LOWEST="--prefer-lowest" DB=oracle PHPUNITFILE="-c phpunit.oracle.xml"
 env:
   global:
@@ -115,4 +115,4 @@ after_success:
     fi
 after_script:
 - if [ "$COVERALLS" = "true" ] ; then ./vendor/bin/php-coveralls -v; fi
-- if [ "$COVERALLS" = "true" ] ; then vendor/bin/couscous travis-auto-deploy --php-version=7.1 -vvv; fi
+- if [ "$COVERALLS" = "true" ] ; then vendor/bin/couscous travis-auto-deploy --php-version=7.2 -vvv; fi

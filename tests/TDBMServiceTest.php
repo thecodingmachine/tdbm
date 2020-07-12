@@ -818,7 +818,7 @@ SQL;
     public function testFindObjectsMethodWithoutResultIteratorClass(): void
     {
         $this->expectException(TDBMInvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
+        $this->expectExceptionMessageMatches('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
         $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
 
         $tdbmService->findObjects('', null, [], null, [], null, null, self::class);
@@ -827,7 +827,7 @@ SQL;
     public function testFindObjectsFromSqlMethodWithoutResultIteratorClass(): void
     {
         $this->expectException(TDBMInvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
+        $this->expectExceptionMessageMatches('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
         $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
 
         $tdbmService->findObjectsFromSql('', '', null, [], null, null, null, self::class);
@@ -836,7 +836,7 @@ SQL;
     public function testFindObjectsFromRawSqlMethodWithoutResultIteratorClass(): void
     {
         $this->expectException(TDBMInvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
+        $this->expectExceptionMessageMatches('/^\$resultIteratorClass should be a `' . preg_quote(ResultIterator::class, '/') . '`. `(.*)` provided\.$/');
         $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
 
         $tdbmService->findObjectsFromRawSql('', '', [], null, null, null, self::class);
