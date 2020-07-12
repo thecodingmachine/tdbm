@@ -7,7 +7,7 @@ cache:
 matrix:
   include:
     - php: 7.4
-      env: PREFER_LOWEST="" DB=mysql RUN_PHPSTAN=1 RUN_CSCHECK=1 RUN_REQUIRECHECKER=1 RUN_PERF_TEST=1
+      env: PREFER_LOWEST="" DB=mysql NO_WEAKREF=1 RUN_PHPSTAN=1 RUN_CSCHECK=1 RUN_REQUIRECHECKER=1 RUN_PERF_TEST=1
       services:
         - mysql
     - php: 7.3
