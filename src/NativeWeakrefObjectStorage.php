@@ -21,24 +21,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace TheCodingMachine\TDBM;
 
+use WeakReference;
+
 /**
- * The WeakrefObjectStorage class is used to reference all beans that have been fetched from the database.
- * If a bean is requested twice from TDBM, the WeakrefObjectStorage is used to "cache" the bean.
- * Unlike the StandardObjectStorage, the WeakrefObjectStorage manages memory in a clever way, using the weakref
- * PHP extension. It is used if the "weakref" extension is available.
- * Otherwise, the StandardObjectStorage or NativeWeakrefObjectStorage (in PHP 7.4+) is used instead.
- *
- * Note: the weakref extension is available until PHP 7.2, but not available in PHP 7.3+
+ * The NativeWeakrefObjectStorage class is used to reference all beans that have been fetched from the database.
+ * If a bean is requested twice from TDBM, the NativeWeakrefObjectStorage is used to "cache" the bean.
+ * Unlike the StandardObjectStorage, the NativeWeakrefObjectStorage manages memory in a clever way, using WeakReference.
+ * WeakReference have been added in PHP 7.4.
  *
  * @author David Negrier
  */
-class WeakrefObjectStorage implements ObjectStorageInterface
+class NativeWeakrefObjectStorage implements ObjectStorageInterface
 {
     /**
      * An array of fetched object, accessible via table name and primary key.
      * If the primary key is split on several columns, access is done by an array of columns, serialized.
      *
-     * @var \WeakRef[][]
+     * @var WeakReference[][]
      */
     private $objects = array();
 
@@ -60,7 +59,7 @@ class WeakrefObjectStorage implements ObjectStorageInterface
      */
     public function set(string $tableName, $id, DbRow $dbRow): void
     {
-        $this->objects[$tableName][$id] = new \WeakRef($dbRow);
+        $this->objects[$tableName][$id] = WeakReference::create($dbRow);
         ++$this->garbageCollectorCount;
         if ($this->garbageCollectorCount === 10000) {
             $this->garbageCollectorCount = 0;
@@ -99,7 +98,7 @@ class WeakrefObjectStorage implements ObjectStorageInterface
     {
         foreach ($this->objects as $tableName => $table) {
             foreach ($table as $id => $obj) {
-                if ($obj->valid() === false) {
+                if ($obj->get() === null) {
                     unset($this->objects[$tableName][$id]);
                 }
             }

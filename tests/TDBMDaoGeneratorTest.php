@@ -1852,7 +1852,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testDecimalIsMappedToString(): void
     {
         $reflectionClass = new \ReflectionClass(BoatBaseBean::class);
-        /** @var ReflectionNamedType $nameParam */
         $this->assertSame('string', $reflectionClass->getMethod('getLength')->getReturnType()->getName());
     }
 
