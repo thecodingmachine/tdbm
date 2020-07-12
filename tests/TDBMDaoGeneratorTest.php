@@ -30,6 +30,7 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionNamedType;
 use TheCodingMachine\TDBM\Dao\TestAlbumDao;
 use TheCodingMachine\TDBM\Dao\TestArticleDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
@@ -88,6 +89,7 @@ use TheCodingMachine\TDBM\Utils\PathFinder\NoPathFoundException;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Symfony\Component\Process\Process;
+use function gettype;
 
 class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 {
@@ -1611,9 +1613,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testTypeHintedConstructors(): void
     {
         $userBaseBeanReflectionConstructor = new \ReflectionMethod(UserBaseBean::class, '__construct');
+        /** @var ReflectionNamedType $nameParam */
         $nameParam = $userBaseBeanReflectionConstructor->getParameters()[0];
 
-        $this->assertSame('string', (string)$nameParam->getType());
+        $this->assertSame('string', $nameParam->getType()->getName());
     }
 
     /**
@@ -1725,7 +1728,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $resource = $loadedFile->getFile();
         $result = fseek($resource, 0);
         $this->assertSame(0, $result);
-        $this->assertIsResource($resource);
+        $this->assertSame('resource', gettype($resource));
         $firstLine = fgets($resource);
         $this->assertSame("<?php\n", $firstLine);
     }
@@ -1739,7 +1742,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $loadedFile = $fileDao->getById(1);
 
         $resource = $loadedFile->getFile();
-        $this->assertIsResource($resource);
+        $this->assertSame('resource', gettype($resource));
         $firstLine = fgets($resource);
         $this->assertSame("<?php\n", $firstLine);
 
@@ -1826,7 +1829,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     public function testDecimalIsMappedToString(): void
     {
         $reflectionClass = new \ReflectionClass(BoatBaseBean::class);
-        $this->assertSame('string', (string) $reflectionClass->getMethod('getLength')->getReturnType());
+        $this->assertSame('string', $reflectionClass->getMethod('getLength')->getReturnType()->getName());
     }
 
     /**
