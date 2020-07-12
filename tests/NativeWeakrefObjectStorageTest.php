@@ -4,7 +4,7 @@ namespace TheCodingMachine\TDBM;
 
 use PHPUnit\Framework\TestCase;
 
-class WeakreferenceObjectStorageTest extends TestCase
+class NativeWeakrefObjectStorageTest extends TestCase
 {
     public function testObjectStorage(): void
     {
