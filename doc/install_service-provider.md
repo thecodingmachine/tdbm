@@ -18,7 +18,7 @@ In this document, we will describe integration of TDBM 5 with [Simplex](https://
     }
   },
   "require": {
-    "php": ">=7.1",
+    "php": ">=7.2",
     "mnapoli/simplex": "^0.4.1",
     "thecodingmachine/tdbm-universal-provider": "^5",
     "thecodingmachine/discovery": "^1.2"

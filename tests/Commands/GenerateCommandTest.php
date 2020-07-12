@@ -11,6 +11,8 @@ use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
+use function file_exists;
+use function unlink;
 
 class GenerateCommandTest extends TDBMAbstractServiceTest
 {
@@ -28,7 +30,7 @@ class GenerateCommandTest extends TDBMAbstractServiceTest
         (new GenerateCommand($this->getConfiguration()))->run($input, $output);
         $result = $output->fetch();
 
-        $this->assertContains('Finished regenerating DAOs and beans', $result);
+        $this->assertStringContainsString('Finished regenerating DAOs and beans', $result);
         //Check that the lock file was generated
         $this->assertFileExists($schemaFilePath);
     }

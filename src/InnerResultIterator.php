@@ -106,7 +106,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
         $this->logger->debug('Running SQL request: '.$sql);
 
-        $this->statement = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters, DbalUtils::generateArrayTypes($this->parameters));
+        $this->statement = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters, DbalUtils::generateTypes($this->parameters));
 
         $this->fetchStarted = true;
     }
@@ -140,7 +140,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
         $this->logger->debug('Running count SQL request: '.$countSql);
 
-        $this->count = (int) $this->tdbmService->getConnection()->fetchColumn($countSql, $this->parameters, 0, DbalUtils::generateArrayTypes($this->parameters));
+        $this->count = (int) $this->tdbmService->getConnection()->fetchColumn($countSql, $this->parameters, 0, DbalUtils::generateTypes($this->parameters));
         return $this->count;
     }
 
@@ -168,16 +168,20 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      * Advances the cursor to the next result.
      * Casts the database result into one (or several) beans.
      */
-    public function next()
+    public function next(): void
     {
         $row = $this->statement->fetch(\PDO::FETCH_ASSOC);
         if ($row) {
 
             // array<tablegroup, array<table, array<column, value>>>
             $beansData = [];
+            $allNull = true;
             foreach ($row as $key => $value) {
                 if (!isset($this->columnDescriptors[$key])) {
                     continue;
+                }
+                if ($allNull !== false && $value !== null) {
+                    $allNull = false;
                 }
 
                 $columnDescriptor = $this->columnDescriptors[$key];
@@ -191,6 +195,10 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
                 $value = $columnDescriptor['type']->convertToPHPValue($value, $this->databasePlatform);
 
                 $beansData[$columnDescriptor['tableGroup']][$columnDescriptor['table']][$columnDescriptor['column']] = $value;
+            }
+            if ($allNull === true) {
+                $this->next();
+                return;
             }
 
             $reflectionClassCache = [];

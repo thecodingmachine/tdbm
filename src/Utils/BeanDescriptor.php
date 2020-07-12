@@ -8,6 +8,7 @@ use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Types\Type;
 use JsonSerializable;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use PhpParser\Comment\Doc;
@@ -348,7 +349,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         foreach ($beanPropertyDescriptors as $beanDescriptor) {
             $name = $beanDescriptor->getGetterName();
             if (isset($names[$name])) {
-                throw new TDBMException('Unsolvable name conflict while generating method name');
+                throw new TDBMException('Unsolvable name conflict while generating method name "' . $name . '"');
             } else {
                 $names[$name] = $beanDescriptor;
             }
@@ -376,7 +377,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         $parentConstructorArguments = [];
 
         foreach ($constructorProperties as $property) {
-            $parameter = new ParameterGenerator(ltrim($property->getVariableName(), '$'));
+            $parameter = new ParameterGenerator(ltrim($property->getSafeVariableName(), '$'));
             if ($property->isTypeHintable()) {
                 $parameter->setType($property->getPhpType());
             }
@@ -387,7 +388,7 @@ class BeanDescriptor implements BeanDescriptorInterface
             if ($property->getTable()->getName() === $this->table->getName()) {
                 $assigns[] = $property->getConstructorAssignCode()."\n";
             } else {
-                $parentConstructorArguments[] = $property->getVariableName();
+                $parentConstructorArguments[] = $property->getSafeVariableName();
             }
         }
 
@@ -1296,7 +1297,7 @@ EOF
         $first = true;
         /** @var AbstractBeanPropertyDescriptor $element */
         foreach ($elements as $element) {
-            $parameter = new ParameterGenerator(ltrim($element->getVariableName(), '$'));
+            $parameter = new ParameterGenerator(ltrim($element->getSafeVariableName(), '$'));
             if (!$first && !($element->isCompulsory() && $index->isUnique())) {
                 $parameterType = '?';
             //$functionParameter = '?';
@@ -1335,7 +1336,17 @@ EOF
         foreach ($elements as $element) {
             $params[] = $element->getParamAnnotation();
             if ($element instanceof ScalarBeanPropertyDescriptor) {
-                $filterArrayCode .= '            '.var_export($element->getColumnName(), true).' => '.$element->getVariableName().",\n";
+                $typeName = $element->getDatabaseType()->getName();
+                if ($typeName === Type::DATETIME_IMMUTABLE) {
+                    $filterArrayCode .= sprintf(
+                        "            %s => \$this->tdbmService->getConnection()->convertToDatabaseValue(%s, %s),\n",
+                        var_export($element->getColumnName(), true),
+                        $element->getSafeVariableName(),
+                        var_export($typeName, true)
+                    );
+                } else {
+                    $filterArrayCode .= '            '.var_export($element->getColumnName(), true).' => '.$element->getSafeVariableName().",\n";
+                }
             } elseif ($element instanceof ObjectBeanPropertyDescriptor) {
                 $foreignKey = $element->getForeignKey();
                 $columns = SafeFunctions::arrayCombine($foreignKey->getLocalColumns(), $foreignKey->getForeignColumns());
@@ -1346,14 +1357,14 @@ EOF
                     $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy, $this->annotationParser);
                     if ($first || $element->isCompulsory() && $index->isUnique()) {
                         // First parameter for index is not nullable
-                        $filterArrayCode .= '            '.var_export($localColumn, true).' => '.$element->getVariableName().'->'.$targetedElement->getGetterName()."(),\n";
+                        $filterArrayCode .= '            '.var_export($localColumn, true).' => '.$element->getSafeVariableName().'->'.$targetedElement->getGetterName()."(),\n";
                     } else {
                         // Other parameters for index is not nullable
-                        $filterArrayCode .= '            '.var_export($localColumn, true).' => ('.$element->getVariableName().' !== null) ? '.$element->getVariableName().'->'.$targetedElement->getGetterName()."() : null,\n";
+                        $filterArrayCode .= '            '.var_export($localColumn, true).' => ('.$element->getSafeVariableName().' !== null) ? '.$element->getSafeVariableName().'->'.$targetedElement->getGetterName()."() : null,\n";
                     }
                 }
             }
-            $commentArguments[] = substr($element->getVariableName(), 1);
+            $commentArguments[] = substr($element->getSafeVariableName(), 1);
             if ($first) {
                 $first = false;
             }
