@@ -31,7 +31,7 @@
         "symfony/console": "^2 || ^3 || ^4 || ^5",
         "mouf/utils.log.psr.multi-logger": "^1.0",
         "symfony/filesystem": "^2.7 || ^3 || ^4 || ^5",
-        "ramsey/uuid": "^3.7",
+        "ramsey/uuid": "^3.7 || ^4.0",
         "doctrine/annotations": "^1.10",
         "zendframework/zend-code": "^3.4",
         "psr/container": "^1",
