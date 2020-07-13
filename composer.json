@@ -52,7 +52,7 @@
         "phpstan/phpstan": "^0.11.19",
         "thecodingmachine/phpstan-strict-rules": "^0.11.2",
         "bamarni/composer-bin-plugin": "^1.4.1",
-        "phpbench/phpbench": "^0.16.10"
+        "phpbench/phpbench": "^0.16.10 || ^0.17.0"
     },
     "conflict": {
         "mouf/database.tdbm": "~5.0.0"
