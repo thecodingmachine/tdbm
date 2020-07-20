@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
-use Doctrine\Common\Inflector\Inflector;
+use Doctrine\Inflector\Inflector;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\Inflector\InflectorFactory;
 use Psr\Container\ContainerInterface;
 use TheCodingMachine\TDBM\Schema\ForeignKeys;
 use TheCodingMachine\TDBM\TDBMService;
@@ -51,6 +52,10 @@ class TDBMDaoGenerator
      * @var ConfigurationInterface
      */
     private $configuration;
+    /**
+     * @var Inflector
+     */
+    private static $inflector;
 
     /**
      * Constructor.
@@ -470,7 +475,11 @@ BODY;
      */
     public static function toSingular(string $str): string
     {
-        return Inflector::singularize($str);
+        if (self::$inflector === null) {
+            self::$inflector = InflectorFactory::create()->build();
+        }
+
+        return self::$inflector->singularize($str);
     }
 
     /**

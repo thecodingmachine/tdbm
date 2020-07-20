@@ -23,7 +23,7 @@
         "mouf/schema-analyzer": "^1.1.4",
         "doctrine/dbal": "^2.9.2",
         "psr/log": "~1.0",
-        "doctrine/inflector": "~1.0",
+        "doctrine/inflector": "^1.4.3 || ^2",
         "beberlei/porpaginas": "~1.0",
         "mouf/classname-mapper": "~1.0",
         "doctrine/cache": "^1.6",
@@ -58,7 +58,7 @@
         "mouf/database.tdbm": "~5.0.0"
     },
     "suggest" : {
-        "ext/weakref" : "Allows efficient memory management. Useful for batches."
+        "ext/weakref" : "Allows efficient memory management (in PHP 7.2 only). Useful for batches."
     },
     "autoload" : {
         "psr-4" : {
