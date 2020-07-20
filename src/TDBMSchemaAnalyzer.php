@@ -20,7 +20,6 @@ use TheCodingMachine\TDBM\Utils\ImmutableCaster;
  */
 class TDBMSchemaAnalyzer
 {
-    private $lockFilePath;
     private $connection;
 
     /**
@@ -44,24 +43,22 @@ class TDBMSchemaAnalyzer
     private $schemaAnalyzer;
 
     /**
-     * @var SchemaVersionControlService
+     * @var SchemaLockFileDumper
      */
-    private $schemaVersionControlService;
+    private $schemaLockFileDumper;
 
     /**
      * @param Connection $connection The DBAL DB connection to use
      * @param Cache $cache A cache service to be used
      * @param SchemaAnalyzer $schemaAnalyzer The schema analyzer that will be used to find shortest paths...
      *                                       Will be automatically created if not passed
-     * @param string $lockFilePath The path for the lock file which will store the database schema
      */
-    public function __construct(Connection $connection, Cache $cache, SchemaAnalyzer $schemaAnalyzer, string $lockFilePath)
+    public function __construct(Connection $connection, Cache $cache, SchemaAnalyzer $schemaAnalyzer, SchemaLockFileDumper $schemaLockFileDumper)
     {
         $this->connection = $connection;
         $this->cache = $cache;
         $this->schemaAnalyzer = $schemaAnalyzer;
-        $this->lockFilePath = $lockFilePath;
-        $this->schemaVersionControlService = new SchemaVersionControlService($this->connection, $this->lockFilePath);
+        $this->schemaLockFileDumper = $schemaLockFileDumper;
     }
 
     /**
@@ -78,35 +75,28 @@ class TDBMSchemaAnalyzer
         return $this->cachePrefix;
     }
 
+    /**
+     * @deprecated
+     */
     public function getLockFilePath(): string
     {
-        return $this->lockFilePath;
+        return $this->schemaLockFileDumper->getLockFilePath();
     }
 
     /**
-     * Returns the (cached) schema.
+     * @deprecated
      */
     public function getSchema(bool $ignoreCache = false): Schema
     {
-        if ($this->schema === null) {
-            $cacheKey = $this->getCachePrefix().'_immutable_schema';
-            if (!$ignoreCache && $this->cache->contains($cacheKey)) {
-                $this->schema = $this->cache->fetch($cacheKey);
-            } elseif (!file_exists($this->getLockFilePath())) {
-                throw new TDBMException('No tdbm lock file found. Please regenerate DAOs and Beans.');
-            } else {
-                $this->schema = $this->schemaVersionControlService->loadSchemaFile();
-                ImmutableCaster::castSchemaToImmutable($this->schema);
-                $this->cache->save($cacheKey, $this->schema);
-            }
-        }
-
-        return $this->schema;
+        return $this->schemaLockFileDumper->getSchema($ignoreCache);
     }
 
+    /**
+     * @deprecated
+     */
     public function generateLockFile(): void
     {
-        $this->schemaVersionControlService->dumpSchema();
+        $this->schemaLockFileDumper->generateLockFile();
         \chmod($this->getLockFilePath(), 0664);
     }
 
@@ -158,7 +148,7 @@ class TDBMSchemaAnalyzer
         $childrenRelationships = $this->schemaAnalyzer->getChildrenRelationships($tableName);
 
         $fks = [];
-        foreach ($this->getSchema()->getTables() as $table) {
+        foreach ($this->schemaLockFileDumper->getSchema()->getTables() as $table) {
             $uniqueForeignKeys = $this->removeDuplicates($table->getForeignKeys());
             foreach ($uniqueForeignKeys as $fk) {
                 if ($fk->getForeignTableName() === $tableName) {

@@ -4,6 +4,7 @@
 namespace TheCodingMachine\TDBM\Performance;
 
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
@@ -12,6 +13,7 @@ use TheCodingMachine\TDBM\Configuration;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 use TheCodingMachine\TDBM\ConnectionFactory;
 use TheCodingMachine\TDBM\DummyGeneratorListener;
+use TheCodingMachine\TDBM\SchemaLockFileDumper;
 use TheCodingMachine\TDBM\TDBMAbstractServiceTest;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
 use TheCodingMachine\TDBM\TDBMService;
@@ -91,7 +93,8 @@ class ManyToOneBench
     {
         $schemaManager = $connection->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, new ArrayCache(), $schemaAnalyzer, Configuration::getDefaultLockFilePath());
+        $schemaLockFileDumper = new SchemaLockFileDumper($connection, new ArrayCache(), Configuration::getDefaultLockFilePath());
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
         $tdbmDaoGenerator = new TDBMDaoGenerator(self::createConfiguration(), $tdbmSchemaAnalyzer);
         $rootPath = __DIR__ . '/../';
         self::recursiveDelete(__DIR__. '/../../src/Test/Dao/');

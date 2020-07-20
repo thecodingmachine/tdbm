@@ -174,6 +174,10 @@ class TDBMService
      * @var ConfigurationInterface
      */
     private $configuration;
+    /**
+     * @var SchemaLockFileDumper
+     */
+    private $schemaLockFileDumper;
 
     /**
      * @param ConfigurationInterface $configuration The configuration object
@@ -194,7 +198,8 @@ class TDBMService
 
         $this->magicQuery = new MagicQuery($this->connection, $this->cache, $this->schemaAnalyzer);
 
-        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->connection, $this->cache, $this->schemaAnalyzer, $lockFilePath);
+        $this->schemaLockFileDumper = new SchemaLockFileDumper($this->connection, $this->cache, $lockFilePath);
+        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->connection, $this->cache, $this->schemaAnalyzer, $this->schemaLockFileDumper);
         $this->cachePrefix = $this->tdbmSchemaAnalyzer->getCachePrefix();
 
         $this->toSaveObjects = new \SplObjectStorage();

@@ -15,11 +15,14 @@ parameters:
      - "#Method TheCodingMachine\\\\TDBM\\\\Schema\\\\ForeignKey::.*() should return .* but returns array<string>|string.#"
      - '#Method TheCodingMachine\\TDBM\\NativeWeakrefObjectStorage::get\(\) should return TheCodingMachine\\TDBM\\DbRow\|null but returns object\|null.#'
      -
-             message: '#WeakRef#'
-             path: src/WeakrefObjectStorage.php
+        message: '#WeakRef#'
+        path: src/WeakrefObjectStorage.php
      -
         message: '#Result of && is always false.#'
         path: src/Test/Dao/Bean/Generated/ArticleBaseBean.php
+     -
+        message: '#TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager::__construct\(\) does not call parent constructor from Doctrine\\DBAL\\Schema\\AbstractSchemaManager.#'
+        path: src/Schema/LockFileSchemaManager.php
     #reportUnmatchedIgnoredErrors: false
 includes:
     - vendor/thecodingmachine/phpstan-strict-rules/phpstan-strict-rules.neon

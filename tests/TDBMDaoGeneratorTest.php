@@ -103,7 +103,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         parent::setUp();
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer, Configuration::getDefaultLockFilePath());
+        $schemaLockFileDumper = new SchemaLockFileDumper($this->tdbmService->getConnection(), new ArrayCache(), Configuration::getDefaultLockFilePath());
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
         $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->getConfiguration(), $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__ . '/../';
         //$this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
@@ -118,7 +119,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         }
         //let's check we cannot call get schema without a lock file
         $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer, Configuration::getDefaultLockFilePath());
+        $schemaLockFileDumper = new SchemaLockFileDumper(self::getConnection(), new ArrayCache(), Configuration::getDefaultLockFilePath());
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
         $schema1 = $tdbmSchemaAnalyzer->getSchema(true);
     }
@@ -174,7 +176,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer, Configuration::getDefaultLockFilePath());
+        $schemaLockFileDumper = new SchemaLockFileDumper($this->tdbmService->getConnection(), new ArrayCache(), Configuration::getDefaultLockFilePath());
+        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
         $tdbmDaoGenerator = new TDBMDaoGenerator($configuration, $tdbmSchemaAnalyzer);
         $this->rootPath = __DIR__ . '/../../../../';
         //$tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');

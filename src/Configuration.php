@@ -118,17 +118,18 @@ class Configuration implements ConfigurationInterface
         } else {
             $this->cache = new VoidCache();
         }
+        $lockFileSchemaManager = $this->connection->getSchemaManager();
         if ($schemaAnalyzer !== null) {
             $this->schemaAnalyzer = $schemaAnalyzer;
         } else {
-            $this->schemaAnalyzer = new SchemaAnalyzer($this->connection->getSchemaManager(), $this->cache, $this->getConnectionUniqueId());
+            $this->schemaAnalyzer = new SchemaAnalyzer($lockFileSchemaManager, $this->cache, $this->getConnectionUniqueId());
         }
         $this->logger = $logger;
         $this->generatorEventDispatcher = new GeneratorEventDispatcher($generatorListeners);
         $this->pathFinder = new PathFinder();
         $this->annotationParser = $annotationParser ?: AnnotationParser::buildWithDefaultAnnotations([]);
         $this->codeGeneratorListener = new CodeGeneratorEventDispatcher($codeGeneratorListeners);
-        $this->namingStrategy = $namingStrategy ?: new DefaultNamingStrategy($this->annotationParser, $this->connection->getSchemaManager());
+        $this->namingStrategy = $namingStrategy ?: new DefaultNamingStrategy($this->annotationParser, $lockFileSchemaManager);
         $this->lockFilePath = $lockFilePath;
     }
 
