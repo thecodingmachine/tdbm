@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
-use Doctrine\Common\Inflector\Inflector;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
-use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Inflector\Inflector;
+use Doctrine\Inflector\InflectorFactory;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Bean;
@@ -40,11 +40,16 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      * @var Schema
      */
     private $schema;
+    /**
+     * @var Inflector
+     */
+    private $inflector;
 
     public function __construct(AnnotationParser $annotationParser, AbstractSchemaManager $schemaManager)
     {
         $this->annotationParser = $annotationParser;
         $this->schemaManager = $schemaManager;
+        $this->inflector = InflectorFactory::create()->build();
     }
 
     /**
@@ -233,7 +238,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
 
         $str = '';
         foreach ($tokens as $token) {
-            $str .= ucfirst(Inflector::singularize($token));
+            $str .= ucfirst($this->inflector->singularize($token));
         }
 
         return $str;
