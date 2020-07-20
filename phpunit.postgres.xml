@@ -25,12 +25,13 @@
         <var name="db_port" value="5432"/>
         <var name="db_driver" value="pdo_pgsql"/>
     </php>
-    
+
     <filter>
   		<whitelist processUncoveredFilesFromWhitelist="true">
     		<directory suffix=".php">src/</directory>
     		<exclude>
                 <directory suffix=".php">src/Test</directory>
+                <file>src/Schema/LockFileSchemaManager.php</file>
     		</exclude>
   		</whitelist>
 	</filter>

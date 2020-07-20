@@ -8,6 +8,7 @@ use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\Schema\LockFileSchemaManager;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Autoincrement;
 use TheCodingMachine\TDBM\Utils\Annotation\UUID;
@@ -118,18 +119,20 @@ class Configuration implements ConfigurationInterface
         } else {
             $this->cache = new VoidCache();
         }
+        $this->lockFilePath = $lockFilePath;
+        $schemaLockFileDumper = new SchemaLockFileDumper($this->connection, $this->cache, $this->getLockFilePath());
+        $lockFileSchemaManager = new LockFileSchemaManager($this->connection->getSchemaManager(), $schemaLockFileDumper);
         if ($schemaAnalyzer !== null) {
             $this->schemaAnalyzer = $schemaAnalyzer;
         } else {
-            $this->schemaAnalyzer = new SchemaAnalyzer($this->connection->getSchemaManager(), $this->cache, $this->getConnectionUniqueId());
+            $this->schemaAnalyzer = new SchemaAnalyzer($lockFileSchemaManager, $this->cache, $this->getConnectionUniqueId());
         }
         $this->logger = $logger;
         $this->generatorEventDispatcher = new GeneratorEventDispatcher($generatorListeners);
         $this->pathFinder = new PathFinder();
         $this->annotationParser = $annotationParser ?: AnnotationParser::buildWithDefaultAnnotations([]);
         $this->codeGeneratorListener = new CodeGeneratorEventDispatcher($codeGeneratorListeners);
-        $this->namingStrategy = $namingStrategy ?: new DefaultNamingStrategy($this->annotationParser, $this->connection->getSchemaManager());
-        $this->lockFilePath = $lockFilePath;
+        $this->namingStrategy = $namingStrategy ?: new DefaultNamingStrategy($this->annotationParser, $lockFileSchemaManager);
     }
 
     /**

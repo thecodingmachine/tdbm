@@ -21,12 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\Configuration;
+use TheCodingMachine\TDBM\SchemaLockFileDumper;
 use TheCodingMachine\TDBM\TDBMAbstractServiceTest;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
@@ -54,7 +56,8 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
         $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
         $this->schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $this->schema = $schemaManager->createSchema();
-        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new VoidCache(), $this->schemaAnalyzer, Configuration::getDefaultLockFilePath());
+        $schemaLockFileDumper = new SchemaLockFileDumper($this->tdbmService->getConnection(), new VoidCache(), Configuration::getDefaultLockFilePath());
+        $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new VoidCache(), $this->schemaAnalyzer, $schemaLockFileDumper);
     }
 
     public function testConstructor(): void
