@@ -26,12 +26,13 @@
         <var name="db_port" value="1521"/>
         <var name="db_driver" value="oci8"/>
     </php>
-    
+
     <filter>
   		<whitelist processUncoveredFilesFromWhitelist="true">
     		<directory suffix=".php">src/</directory>
     		<exclude>
                 <directory suffix=".php">src/Test</directory>
+                <file>src/Schema/LockFileSchemaManager.php</file>
     		</exclude>
   		</whitelist>
 	</filter>

@@ -42,30 +42,18 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
 
     public function testGetIncomingForeignKeys(): void
     {
-        /*$schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
-        $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());*/
-
         $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys('users');
         $this->assertCount(1, $fks);
     }
 
     public function testGetIncomingForeignKeys2(): void
     {
-        /*$schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
-        $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());*/
-
         $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys('contact');
         $this->assertCount(1, $fks);
     }
 
     public function testGetIncomingForeignKeys3(): void
     {
-        /*$schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
-        $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());*/
-
         $fks = $this->tdbmSchemaAnalyzer->getIncomingForeignKeys('country');
         $this->assertCount(5, $fks);
         $tables = [$fks[0]->getLocalTableName(), $fks[1]->getLocalTableName(), $fks[2]->getLocalTableName(), $fks[3]->getLocalTableName(), $fks[4]->getLocalTableName()];
@@ -77,10 +65,6 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
 
     public function testGetPivotTableLinkedToTable(): void
     {
-        /*$schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
-        $cache = new ArrayCache();
-        $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), $cache, $schemaAnalyzer, Configuration::getDefaultLockFilePath());*/
-
         $pivotTables = $this->tdbmSchemaAnalyzer->getPivotTableLinkedToTable('rights');
         $this->assertCount(1, $pivotTables);
         $this->assertEquals('roles_rights', $pivotTables[0]);
@@ -91,18 +75,4 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
         $pivotTables = $this->tdbmSchemaAnalyzer->getPivotTableLinkedToTable('animal');
         $this->assertCount(0, $pivotTables);
     }
-
-    /*public function testGetCompulsoryColumnsWithNoInheritance() {
-        $table = $this->tdbmSchemaAnalyzer->getSchema()->getTable('country');
-        $compulsoryColumns = $this->tdbmSchemaAnalyzer->getCompulsoryProperties($table);
-        $this->assertCount(1, $compulsoryColumns);
-        $this->assertArrayHasKey("label", $compulsoryColumns);
-    }
-
-    public function testGetCompulsoryColumnsWithInheritance() {
-        $table = $this->tdbmSchemaAnalyzer->getSchema()->getTable('users');
-        $compulsoryColumns = $this->tdbmSchemaAnalyzer->getCompulsoryProperties($table);
-        $this->assertCount(5, $compulsoryColumns);
-        $this->assertEquals(['name', 'created_at', 'email', 'country_id', 'login'], array_keys($compulsoryColumns));
-    }*/
 }

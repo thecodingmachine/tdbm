@@ -5,6 +5,7 @@ namespace TheCodingMachine\TDBM\Commands;
 
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use PHPUnit\Framework\TestCase;
 use TheCodingMachine\TDBM\Configuration;
@@ -17,6 +18,7 @@ class AlteredConfigurationTest extends TestCase
     public function testAlteredConfiguration(): void
     {
         $connection = $this->getMockBuilder(Connection::class)->disableOriginalConstructor()->getMock();
+        $connection->method('getSchemaManager')->willReturn($this->createMock(AbstractSchemaManager::class));
         $namingStrategy = $this->getMockBuilder(NamingStrategyInterface::class)->disableOriginalConstructor()->getMock();
         $cache = $this->getMockBuilder(Cache::class)->disableOriginalConstructor()->getMock();
         $logger = $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock();
