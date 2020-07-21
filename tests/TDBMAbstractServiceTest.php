@@ -421,8 +421,8 @@ abstract class TDBMAbstractServiceTest extends TestCase
             $connection->exec('CREATE TABLE `players` (
                `id` INT UNSIGNED AUTO_INCREMENT NOT NULL,
                `player_and_games` JSON NOT NULL,
-               `names_virtual` VARCHAR(20) GENERATED ALWAYS AS (`player_and_games` ->> \'$.name\') NOT NULL COMMENT \'@Generated\',
-               `animal_id` INT COMMENT \'@Generated\',
+               `names_virtual` VARCHAR(20) GENERATED ALWAYS AS (`player_and_games` ->> \'$.name\') NOT NULL COMMENT \'@ReadOnly\',
+               `animal_id` INT COMMENT \'@ReadOnly\',
                PRIMARY KEY (`id`),
                FOREIGN KEY (animal_id) REFERENCES animal(id)
             );
