@@ -37,7 +37,8 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
             [
                 $this->magicSql,
                 $this->magicSqlCount,
-                $this->columnDescList
+                $this->columnDescList,
+                $this->magicSqlSubQuery
             ] = $this->cache->fetch($key);
             return;
         }
@@ -79,6 +80,7 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
             $this->magicSql,
             $this->magicSqlCount,
             $this->columnDescList,
+            $this->magicSqlSubQuery
         ]);
     }
 }
