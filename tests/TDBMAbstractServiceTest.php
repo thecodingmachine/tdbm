@@ -70,11 +70,13 @@ abstract class TDBMAbstractServiceTest extends TestCase
     /**
      * @var ArrayCache
      */
-    private $cache;
+    private static $cache;
 
     public static function setUpBeforeClass(): void
     {
         self::resetConnection();
+
+        self::$cache = new ArrayCache();
 
         $dbConnection = ConnectionFactory::resetDatabase(
             $GLOBALS['db_driver'],
@@ -134,10 +136,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
     protected function getCache(): ArrayCache
     {
-        if ($this->cache === null) {
-            $this->cache = new ArrayCache();
-        }
-        return $this->cache;
+        return self::$cache;
     }
 
     protected function getConfiguration() : ConfigurationInterface
