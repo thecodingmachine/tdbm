@@ -92,6 +92,7 @@ use TheCodingMachine\TDBM\Utils\PathFinder\NoPathFoundException;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Symfony\Component\Process\Process;
+use function get_class;
 
 class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 {
@@ -2282,7 +2283,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testGeneratedColumnsAreNotPartOfTheConstructor(): void
     {
-        if ($this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform && !self::isMariaDb($this->tdbmService->getConnection())) {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform || self::isMariaDb($this->tdbmService->getConnection())) {
             $this->markTestSkipped('ReadOnly column is only tested with MySQL');
         }
 
@@ -2318,7 +2319,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testCanReadVirtualColumn(): void
     {
-        if ($this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform && !self::isMariaDb($this->tdbmService->getConnection())) {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform || self::isMariaDb($this->tdbmService->getConnection())) {
             $this->markTestSkipped('ReadOnly column is only tested with MySQL');
         }
 
