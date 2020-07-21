@@ -2282,6 +2282,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testGeneratedColumnsAreNotPartOfTheConstructor(): void
     {
+        if ($this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform && !self::isMariaDb($this->tdbmService->getConnection())) {
+            $this->markTestSkipped('ReadOnly column is only tested with MySQL');
+        }
+
         $dao = new PlayerDao($this->tdbmService);
 
         $player = new PlayerBean([
@@ -2314,6 +2318,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testCanReadVirtualColumn(): void
     {
+        if ($this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform && !self::isMariaDb($this->tdbmService->getConnection())) {
+            $this->markTestSkipped('ReadOnly column is only tested with MySQL');
+        }
+
         $dao = new PlayerDao($this->tdbmService);
 
         $player = $dao->getById(1);
