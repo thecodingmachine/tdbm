@@ -193,13 +193,13 @@ For instance:
 CREATE TABLE `products` (
     `id` INT UNSIGNED AUTO_INCREMENT NOT NULL,
     `data` JSON NOT NULL,
-    `names_virtual` VARCHAR(20) GENERATED ALWAYS AS (`data` ->> '$.name') NOT NULL COMMENT '@Generated', 
+    `names_virtual` VARCHAR(20) GENERATED ALWAYS AS (`data` ->> '$.name') NOT NULL COMMENT '@ReadOnly', 
     PRIMARY KEY (`id`)
 )
 ```
 
 Note: TDBM is based in Doctrine DBAL and Doctrine DBAL offers no way of knowing which columns are computed. So each time
-you have a generated column in your data model, you will need to put the `@Generated` annotation explicitly. 
+you have a generated column in your data model, you will need to put the `@ReadOnly` annotation explicitly. 
 
 The @Json annotations
 ---------------------
