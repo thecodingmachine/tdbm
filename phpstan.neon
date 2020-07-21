@@ -23,6 +23,9 @@ parameters:
      -
         message: '#TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager::__construct\(\) does not call parent constructor from Doctrine\\DBAL\\Schema\\AbstractSchemaManager.#'
         path: src/Schema/LockFileSchemaManager.php
+     -
+        message: '#is "array". Please provide a more specific .* annotation#'
+        path: src/Test/Dao/Bean/Generated/PlayerBaseBean.php
     #reportUnmatchedIgnoredErrors: false
 includes:
     - vendor/thecodingmachine/phpstan-strict-rules/phpstan-strict-rules.neon

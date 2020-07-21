@@ -148,7 +148,7 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     /**
      * Returns the PHP code for getters and setters.
      *
-     * @return MethodGenerator[]
+     * @return (MethodGenerator|null)[]
      */
     public function getGetterSetterCode(): array
     {
@@ -177,17 +177,21 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             $getter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
         }
 
-        $setter = new MethodGenerator($setterName);
-        $setter->setDocBlock(new DocBlockGenerator('The setter for the ' . $referencedBeanName . ' object bound to this object via the ' . implode(' and ', $this->foreignKey->getUnquotedLocalColumns()) . ' column.'));
+        if (!$this->isReadOnly()) {
+            $setter = new MethodGenerator($setterName);
+            $setter->setDocBlock(new DocBlockGenerator('The setter for the ' . $referencedBeanName . ' object bound to this object via the ' . implode(' and ', $this->foreignKey->getUnquotedLocalColumns()) . ' column.'));
 
-        $setter->setParameter(new ParameterGenerator('object', ($isNullable ? '?' : '') . $this->beanNamespace . '\\' . $referencedBeanName));
+            $setter->setParameter(new ParameterGenerator('object', ($isNullable ? '?' : '') . $this->beanNamespace . '\\' . $referencedBeanName));
 
-        $setter->setReturnType('void');
+            $setter->setReturnType('void');
 
-        $setter->setBody('$this->setRef(' . var_export($tdbmFk->getCacheKey(), true) . ', $object, ' . var_export($tableName, true) . ');');
+            $setter->setBody('$this->setRef(' . var_export($tdbmFk->getCacheKey(), true) . ', $object, ' . var_export($tableName, true) . ');');
 
-        if ($this->isSetterProtected()) {
-            $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+            if ($this->isSetterProtected()) {
+                $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+            }
+        } else {
+            $setter = null;
         }
 
         return [$getter, $setter];
@@ -311,6 +315,11 @@ PHP;
     private function isSetterProtected(): bool
     {
         return $this->findAnnotation(Annotation\ProtectedSetter::class) !== null;
+    }
+
+    public function isReadOnly(): bool
+    {
+        return $this->findAnnotation(Annotation\ReadOnly::class) !== null;
     }
 
     /**

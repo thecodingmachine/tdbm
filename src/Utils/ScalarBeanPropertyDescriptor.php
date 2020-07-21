@@ -207,7 +207,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
     /**
      * Returns the PHP code for getters and setters.
      *
-     * @return MethodGenerator[]
+     * @return (MethodGenerator|null)[]
      */
     public function getGetterSetterCode(): array
     {
@@ -260,26 +260,30 @@ EOF;
             $getter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
         }
 
-        $setter = new MethodGenerator($columnSetterName);
-        $setterDocBlock = new DocBlockGenerator(sprintf('The setter for the "%s" column.', $this->column->getName()));
-        $setterDocBlock->setTag(new ParamTag($variableName, $types))->setWordWrap(false);
-        $setter->setDocBlock($setterDocBlock);
+        if (!$this->isReadOnly()) {
+            $setter = new MethodGenerator($columnSetterName);
+            $setterDocBlock = new DocBlockGenerator(sprintf('The setter for the "%s" column.', $this->column->getName()));
+            $setterDocBlock->setTag(new ParamTag($variableName, $types))->setWordWrap(false);
+            $setter->setDocBlock($setterDocBlock);
 
-        $parameter = new ParameterGenerator($variableName, $paramType);
-        $setter->setParameter($parameter);
-        $setter->setReturnType('void');
+            $parameter = new ParameterGenerator($variableName, $paramType);
+            $setter->setParameter($parameter);
+            $setter->setReturnType('void');
 
-        $setter->setBody(sprintf(
-            '%s
+            $setter->setBody(sprintf(
+                '%s
 $this->set(%s, $%s, %s);',
-            $resourceTypeCheck,
-            var_export($this->column->getName(), true),
-            $variableName,
-            var_export($this->table->getName(), true)
-        ));
+                $resourceTypeCheck,
+                var_export($this->column->getName(), true),
+                $variableName,
+                var_export($this->table->getName(), true)
+            ));
 
-        if ($this->isSetterProtected()) {
-            $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+            if ($this->isSetterProtected()) {
+                $setter->setVisibility(AbstractMemberGenerator::VISIBILITY_PROTECTED);
+            }
+        } else {
+            $setter = null;
         }
 
         return [$getter, $setter];
@@ -415,11 +419,12 @@ $this->set(%s, $%s, %s);',
         return $this->findAnnotation(Annotation\ProtectedSetter::class) !== null;
     }
 
-    /**
-     * @param string $type
-     * @return null|object
-     */
-    private function findAnnotation(string $type)
+    public function isReadOnly(): bool
+    {
+        return $this->findAnnotation(Annotation\ReadOnly::class) !== null;
+    }
+
+    private function findAnnotation(string $type): ?object
     {
         return $this->getAnnotations()->findAnnotation($type);
     }
