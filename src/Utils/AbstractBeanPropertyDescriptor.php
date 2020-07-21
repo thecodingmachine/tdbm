@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Table;
+use TheCodingMachine\TDBM\Utils\Annotation\ReadOnly;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
 use Zend\Code\Generator\MethodGenerator;
 
@@ -149,7 +150,7 @@ abstract class AbstractBeanPropertyDescriptor implements MethodDescriptorInterfa
     /**
      * Returns the PHP code for getters and setters.
      *
-     * @return MethodGenerator[]
+     * @return (MethodGenerator|null)[]
      */
     abstract public function getGetterSetterCode(): array;
 
@@ -180,4 +181,12 @@ abstract class AbstractBeanPropertyDescriptor implements MethodDescriptorInterfa
      * @return bool
      */
     abstract public function isTypeHintable() : bool;
+
+    /**
+     * Returns true if the property is tagged with the "ReadOnly" annotation.
+     * ReadOnly annotations should be used on generated/computed database columns.
+     *
+     * @return bool
+     */
+    abstract public function isReadOnly(): bool;
 }

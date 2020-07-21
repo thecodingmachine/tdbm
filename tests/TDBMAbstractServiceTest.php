@@ -43,6 +43,7 @@ use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
+use function stripos;
 
 abstract class TDBMAbstractServiceTest extends TestCase
 {
@@ -415,6 +416,19 @@ abstract class TDBMAbstractServiceTest extends TestCase
             $connection->exec($sqlStmt);
         }
 
+        // Let's generate computed columns
+        if ($connection->getDatabasePlatform() instanceof MySqlPlatform && !self::isMariaDb($connection)) {
+            $connection->exec('CREATE TABLE `players` (
+               `id` INT UNSIGNED AUTO_INCREMENT NOT NULL,
+               `player_and_games` JSON NOT NULL,
+               `names_virtual` VARCHAR(20) GENERATED ALWAYS AS (`player_and_games` ->> \'$.name\') NOT NULL COMMENT \'@ReadOnly\',
+               `animal_id` INT COMMENT \'@ReadOnly\',
+               PRIMARY KEY (`id`),
+               FOREIGN KEY (animal_id) REFERENCES animal(id)
+            );
+            ');
+        }
+
         self::insert($connection, 'country', [
             'label' => 'France',
         ]);
@@ -756,5 +770,14 @@ abstract class TDBMAbstractServiceTest extends TestCase
             $quotedData[$connection->quoteIdentifier($id)] = $value;
         }
         $connection->delete($connection->quoteIdentifier($tableName), $quotedData);
+    }
+
+    protected static function isMariaDb(Connection $connection): bool
+    {
+        if (!$connection->getDatabasePlatform() instanceof MySqlPlatform) {
+            return false;
+        }
+        $version = $connection->fetchColumn('SELECT VERSION()');
+        return stripos($version, 'maria') !== false;
     }
 }

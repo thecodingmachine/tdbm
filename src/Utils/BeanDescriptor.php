@@ -214,8 +214,8 @@ class BeanDescriptor implements BeanDescriptorInterface
      */
     public function getConstructorProperties(): array
     {
-        $constructorProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
-            return !$property instanceof InheritanceReferencePropertyDescriptor && $property->isCompulsory();
+        $constructorProperties = array_filter($this->beanPropertyDescriptors, static function (AbstractBeanPropertyDescriptor $property) {
+            return !$property instanceof InheritanceReferencePropertyDescriptor && $property->isCompulsory() && !$property->isReadOnly();
         });
 
         return $constructorProperties;

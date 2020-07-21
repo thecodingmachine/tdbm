@@ -66,6 +66,7 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\InheritedObjectBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\NodeBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\PlayerBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RefNoPrimKeyBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\RoleBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\StateBean;
@@ -82,6 +83,7 @@ use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
 use TheCodingMachine\TDBM\Test\Dao\InheritedObjectDao;
 use TheCodingMachine\TDBM\Test\Dao\NodeDao;
 use TheCodingMachine\TDBM\Test\Dao\PersonDao;
+use TheCodingMachine\TDBM\Test\Dao\PlayerDao;
 use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
 use TheCodingMachine\TDBM\Test\Dao\StateDao;
@@ -90,6 +92,7 @@ use TheCodingMachine\TDBM\Utils\PathFinder\NoPathFoundException;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Symfony\Component\Process\Process;
+use function get_class;
 
 class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 {
@@ -2276,5 +2279,53 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->assertNotNull($objects->first());
         $this->assertEquals(6, $objects->count());
+    }
+
+    public function testGeneratedColumnsAreNotPartOfTheConstructor(): void
+    {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform || self::isMariaDb($this->tdbmService->getConnection())) {
+            $this->markTestSkipped('ReadOnly column is only tested with MySQL');
+        }
+
+        $dao = new PlayerDao($this->tdbmService);
+
+        $player = new PlayerBean([
+            'id' => 1,
+            'name' => 'Sally',
+            'games_played' =>
+                [
+                    'Battlefield' =>
+                        [
+                            'weapon' => 'sniper rifle',
+                            'rank' => 'Sergeant V',
+                            'level' => 20,
+                        ],
+                    'Crazy Tennis' =>
+                        [
+                            'won' => 4,
+                            'lost' => 1,
+                        ],
+                    'Puzzler' =>
+                        [
+                            'time' => 7,
+                        ],
+                ],
+        ]);
+
+        $dao->save($player);
+
+        $this->assertTrue(true);
+    }
+
+    public function testCanReadVirtualColumn(): void
+    {
+        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform || self::isMariaDb($this->tdbmService->getConnection())) {
+            $this->markTestSkipped('ReadOnly column is only tested with MySQL');
+        }
+
+        $dao = new PlayerDao($this->tdbmService);
+
+        $player = $dao->getById(1);
+        $this->assertSame('Sally', $player->getNamesVirtual());
     }
 }
