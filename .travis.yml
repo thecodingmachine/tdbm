@@ -23,7 +23,7 @@ matrix:
       services:
         - mysql
     - php: 7.2
-      env: PREFER_LOWEST="" DB=mysql8
+      env: PREFER_LOWEST="" DB=mysql8 COVERALLS=true
       sudo: required
       services:
         - docker
@@ -52,7 +52,7 @@ matrix:
       services:
         - postgresql
     - php: 7.2
-      env: PREFER_LOWEST="" DB=postgres PHPUNITFILE="-c phpunit.postgres.xml"
+      env: PREFER_LOWEST="" DB=postgres COVERALLS=true PHPUNITFILE="-c phpunit.postgres.xml"
       addons:
         postgresql: "9.6"
       services:
