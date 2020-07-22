@@ -40,6 +40,39 @@ jobs:
       - name: "Run PHP-CS-Fixer on tests/"
         run: "vendor/bin/php-cs-fixer fix tests/ --dry-run --stop-on-violation --format=checkstyle | cs2pr"
 
+  require-checker:
+    name: "Composer require checker"
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      matrix:
+        php-version:
+          - "7.4"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "none"
+          php-version: "${{ matrix.php-version }}"
+          tools: "cs2pr"
+
+      - name: "Cache dependencies installed with composer"
+        uses: "actions/cache@v1"
+        with:
+          path: "~/.composer/cache"
+          key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
+          restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
+
+      - name: "Install dependencies with composer"
+        run: "composer install --no-interaction --no-progress --no-suggest"
+
+      - name: "Run require-checker"
+        run: "composer require-checker"
+
   phpunit-mysql57:
     name: "PHPUnit on MySQL 5.7 and PhpStan"
     runs-on: "ubuntu-latest"
