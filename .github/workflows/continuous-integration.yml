@@ -260,7 +260,7 @@ jobs:
 
       - name: "Setup Oracle user"
         run: |
-          docker exec -ti $(docker ps -aqf "ancestor=wnameless/oracle-xe-11g-r2") bash -c "export PS1=1 && source /etc/bash.bashrc && source /root/.bashrc && sqlplus -L -S sys/oracle AS SYSDBA <<<SQL
+          docker exec $(docker ps -aqf "ancestor=wnameless/oracle-xe-11g-r2") bash -c "export PS1=1 && source /etc/bash.bashrc && source /root/.bashrc && sqlplus -L -S sys/oracle AS SYSDBA <<<SQL
           create user tdbm_admin identified by tdbm quota unlimited on USERS default tablespace USERS;
           GRANT CONNECT,RESOURCE TO tdbm_admin;
           GRANT dba TO tdbm_admin WITH ADMIN OPTION;
