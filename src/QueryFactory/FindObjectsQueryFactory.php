@@ -5,6 +5,7 @@ namespace TheCodingMachine\TDBM\QueryFactory;
 
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Schema\Schema;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
 use TheCodingMachine\TDBM\TDBMService;
@@ -55,16 +56,20 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
 
         $subQuery = 'SELECT DISTINCT '.implode(', ', $pkColumnNames).' FROM MAGICJOIN('.$this->mainTable.')';
 
-        if (count($pkColumnNames) === 1 || $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
-            $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM MAGICJOIN('.$this->mainTable.')';
-        } else {
-            $countSql = 'SELECT COUNT(*) FROM ('.$subQuery.') tmp';
-        }
-
         if (!empty($this->filterString)) {
             $sql .= ' WHERE '.$this->filterString;
-            $countSql .= ' WHERE '.$this->filterString;
             $subQuery .= ' WHERE '.$this->filterString;
+        }
+
+        if (count($pkColumnNames) === 1 || $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM MAGICJOIN('.$this->mainTable.')';
+            if (!empty($this->filterString)) {
+                $countSql .= ' WHERE '.$this->filterString;
+            }
+        } elseif ($this->tdbmService->getConnection()->getDatabasePlatform() instanceof OraclePlatform) {
+            $countSql = 'SELECT COUNT(*) FROM ('.$subQuery.')';
+        } else {
+            $countSql = 'SELECT COUNT(*) FROM ('.$subQuery.') tmp';
         }
 
         if (!empty($orderString)) {
