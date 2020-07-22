@@ -99,7 +99,7 @@ jobs:
         uses: "shivammathur/setup-php@v2"
         with:
           php-version: "${{ matrix.php-version }}"
-          extensions: "oci8"
+          extensions: ""
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
@@ -113,7 +113,52 @@ jobs:
         run: "composer install --no-interaction --no-progress --no-suggest"
 
       - name: "Run PHPUnit"
-        run: "vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover=coverage.xml"
+        run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
+
+      - name: "Upload Code Coverage"
+        uses: "codecov/codecov-action@v1"
+
+  phpunit-mysql8:
+    name: "PHPUnit on MySQL 8"
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      matrix:
+        php-version:
+          - "7.4"
+
+    services:
+      mysql:
+        image: "mysql:8"
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_ROOT_PASSWORD:
+        ports:
+          - "3306:3306"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "${{ matrix.php-version }}"
+          extensions: ""
+          coverage: "pcov"
+
+      - name: "Cache dependencies installed with composer"
+        uses: "actions/cache@v1"
+        with:
+          path: "~/.composer/cache"
+          key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
+          restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
+
+      - name: "Install dependencies with composer"
+        run: "composer install --no-interaction --no-progress --no-suggest"
+
+      - name: "Run PHPUnit"
+        run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
         uses: "codecov/codecov-action@v1"
@@ -143,7 +188,7 @@ jobs:
         uses: "shivammathur/setup-php@v2"
         with:
           php-version: "${{ matrix.php-version }}"
-          extensions: "oci8"
+          extensions: ""
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
@@ -187,7 +232,7 @@ jobs:
         uses: "shivammathur/setup-php@v2"
         with:
           php-version: "${{ matrix.php-version }}"
-          extensions: "oci8"
+          extensions: ""
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
