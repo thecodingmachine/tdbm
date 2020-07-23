@@ -1,12 +1,2 @@
-*~
-vendor/*
-.*~
-.buildpath
-.project
-.settings
-/composer.lock
-/phpunit.xml
-/src/Test/
-/build/
-/.couscous/
-/template/
+/node_modules/
+npm-debug.log
