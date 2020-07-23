@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="false"
+         stopOnFailure="false"
+         bootstrap="vendor/autoload.php"
+>
+    <testsuites>
+        <testsuite name="TDBM Test Suite">
+            <directory>./tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <!-- "Real" test database -->
+        <var name="db_host" value="postgres" />
+        <var name="db_username" value="postgres" />
+        <var name="db_password" value="postgres" />
+        <var name="db_name" value="tdbm_test" />
+        <var name="db_port" value="5432"/>
+        <var name="db_driver" value="pdo_pgsql"/>
+    </php>
+
+    <filter>
+  		<whitelist processUncoveredFilesFromWhitelist="true">
+    		<directory suffix=".php">src/</directory>
+    		<exclude>
+                <directory suffix=".php">src/Test</directory>
+                <file>src/Schema/LockFileSchemaManager.php</file>
+    		</exclude>
+  		</whitelist>
+	</filter>
+</phpunit>

@@ -223,11 +223,10 @@ jobs:
 
     services:
       postgres:
-        image: "postgres:12"
+        image: postgres:12
         env:
-          POSTGRES_PASSWORD:
-        ports:
-          - "5432:5432"
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -255,7 +254,7 @@ jobs:
         run: "composer install --no-interaction --no-progress --no-suggest"
 
       - name: "Run PHPUnit"
-        run: "vendor/bin/phpunit -c phpunit.postgres.xml --coverage-clover=coverage.xml"
+        run: "vendor/bin/phpunit -c phpunit.postgres.github.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
         uses: "codecov/codecov-action@v1"
