@@ -237,7 +237,7 @@ jobs:
         uses: "shivammathur/setup-php@v2"
         with:
           php-version: "${{ matrix.php-version }}"
-          extensions: ""
+          extensions: "pgsql"
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
