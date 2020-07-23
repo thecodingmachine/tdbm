@@ -256,6 +256,62 @@ jobs:
       - name: "Upload Code Coverage"
         uses: "codecov/codecov-action@v1"
 
+  phpunit-phpbench:
+    name: "PHPBench"
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      matrix:
+        php-version:
+          - "7.4"
+
+    services:
+      mysql:
+        image: "mysql:8"
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_ROOT_PASSWORD:
+        ports:
+          - "3306:3306"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+        with:
+          fetch-depth: 0
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "${{ matrix.php-version }}"
+          extensions: ""
+          coverage: "pcov"
+
+      - name: "Cache dependencies installed with composer"
+        uses: "actions/cache@v1"
+        with:
+          path: "~/.composer/cache"
+          key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
+          restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
+
+      - name: "Install dependencies with composer"
+        run: "composer install --no-interaction --no-progress --no-suggest"
+
+      - name: "Running PHPBench on current branch"
+        run: "./phpbench.dist.sh run --tag=current_pr --store"
+
+      - name: "Switching to master branch"
+        run: "git checkout master"
+
+      - name: "Updating dependencies"
+        run: "composer update"
+
+      - name: "Running PHPBENCH on master branch for comparison"
+        run: "./phpbench.dist.sh run --tag=master --store"
+
+      - name: "Generating comparison"
+        run: "./phpbench.dist.sh report --uuid=tag:current_pr --uuid=tag:master --report='{extends: compare, compare: tag}'"
+
 #  phpunit-oci8:
 #    name: "PHPUnit on OCI8"
 #    runs-on: "ubuntu-latest"
