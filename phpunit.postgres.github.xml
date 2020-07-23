@@ -18,7 +18,7 @@
 
     <php>
         <!-- "Real" test database -->
-        <var name="db_host" value="postgres" />
+        <var name="db_host" value="127.0.0.1" />
         <var name="db_username" value="postgres" />
         <var name="db_password" value="postgres" />
         <var name="db_name" value="tdbm_test" />
