@@ -408,9 +408,12 @@ class TDBMService
                     $paramName = 'tdbmparam'.$counter;
                     if (is_array($value)) {
                         $sqlParts[] = $platform->quoteIdentifier($column).' IN (:'.$paramName.')';
+                    } else if($value === null ) {
+                        $sqlParts[] = $platform->quoteIdentifier($column).' IS NULL ';
                     } else {
                         $sqlParts[] = $platform->quoteIdentifier($column).' = :'.$paramName;
                     }
+
                     $parameters[$paramName] = $value;
                     ++$counter;
                 }
