@@ -51,7 +51,7 @@ class ConnectionFactory
 
             $adminConn->getSchemaManager()->dropAndCreateDatabase($dbName);
 
-            $dbConnection = self::getConnection();
+            $dbConnection = $adminConn;
         } else {
             $connectionParams = array(
                 'user' => $dbUserName,
@@ -122,7 +122,7 @@ class ConnectionFactory
             );
             $dbConnection = DriverManager::getConnection($connectionParams, $config);
         }
-        
+
         return $dbConnection;
     }
 }
