@@ -20,7 +20,7 @@ class ForeignKey
 
 
     /**
-     * @param array<string, string|array<string>> $foreignKey
+     * @param array{foreignTable: string, localColumns: string[], foreignColumns: string[]} $foreignKey
      */
     public function __construct(array $foreignKey)
     {

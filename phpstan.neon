@@ -12,8 +12,8 @@ parameters:
      - "#should return array<TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject> but returns array<int, object>#"
      #- "#expects array<string>, array<int, int|string> given.#"
      - "/Parameter #. \\$types of method Doctrine\\\\DBAL\\\\Connection::.*() expects array<int|string>, array<int, Doctrine\\\\DBAL\\\\Types\\\\Type> given./"
-     - "#Method TheCodingMachine\\\\TDBM\\\\Schema\\\\ForeignKey::.*() should return .* but returns array<string>\\|string.#"
      - '#Method TheCodingMachine\\TDBM\\NativeWeakrefObjectStorage::get\(\) should return TheCodingMachine\\TDBM\\DbRow\|null but returns object\|null.#'
+     - '#Method TheCodingMachine\\TDBM\\QueryFactory\\AbstractQueryFactory::.* should return string but returns string\|null.#'
      -
         message: '#WeakRef#'
         path: src/WeakrefObjectStorage.php
@@ -26,6 +26,12 @@ parameters:
      -
         message: '#is "array". Please provide a more specific .* annotation#'
         path: src/Test/Dao/Bean/Generated/PlayerBaseBean.php
+     -
+        message: '#Parameter \#1 \$str of method Doctrine\\DBAL\\Platforms\\AbstractPlatform::quoteIdentifier\(\) expects string, string\|null given#'
+        path: src/ResultIterator.php
+     -
+        message: '#Strict comparison using === between int\\|string and null will always evaluate to false#'
+        path: src/Utils/ScalarBeanPropertyDescriptor.php
     #reportUnmatchedIgnoredErrors: false
 includes:
     - vendor/thecodingmachine/phpstan-strict-rules/phpstan-strict-rules.neon

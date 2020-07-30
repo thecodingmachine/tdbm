@@ -20,7 +20,8 @@ class SafeFunctions
     {
         $array = array_combine($keys, $values);
         if ($array === false) {
-            throw new RuntimeException(error_get_last()['message']);
+            $error = error_get_last();
+            throw new RuntimeException($error['message'] ?? '');
         }
         return $array;
     }

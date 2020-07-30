@@ -41,7 +41,7 @@ class LevelFilter extends AbstractLogger
      * @param LoggerInterface $logger
      * @param string $level \Psr\Log\LogLevel string
      */
-    public function __construct(LoggerInterface $logger, $level)
+    public function __construct(LoggerInterface $logger, string $level)
     {
         $this->logger = $logger;
 

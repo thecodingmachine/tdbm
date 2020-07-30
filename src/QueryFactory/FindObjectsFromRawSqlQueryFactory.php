@@ -425,7 +425,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
     }
 
     /**
-     * @return string[][] An array of column descriptors. Value is an array with those keys: table, column
+     * @return array<int, array{table: string, column: string}> An array of column descriptors.
      */
     public function getSubQueryColumnDescriptors(): array
     {
