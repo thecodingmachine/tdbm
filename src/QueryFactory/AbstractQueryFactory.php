@@ -173,7 +173,7 @@ abstract class AbstractQueryFactory implements QueryFactory
 
         // Let's remove any duplicate
         $allFetchedTables = array_unique($allFetchedTables);
-        
+
         // We quote in MySQL because MagicJoin requires MySQL style quotes
         $mysqlPlatform = new MySqlPlatform();
 
@@ -263,7 +263,7 @@ abstract class AbstractQueryFactory implements QueryFactory
     }
 
     /**
-     * @return string[][] An array of column descriptors. Value is an array with those keys: table, column
+     * @return array<int, array{table: string, column: string}> An array of column descriptors.
      */
     public function getSubQueryColumnDescriptors() : array
     {

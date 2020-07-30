@@ -161,7 +161,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
                 return $this->getChildrenRelationshipForeignKeys($fk->getLocalTableName());
             }, $children);
 
-            $fks = array_merge($children, call_user_func_array('array_merge', $fksTables));
+            $fks = array_merge($children, ...$fksTables);
 
             return $fks;
         } else {

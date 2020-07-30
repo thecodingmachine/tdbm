@@ -140,6 +140,9 @@ class TDBMDaoGenerator
     private function deleteAllPhpFiles(string $directory): void
     {
         $files = glob($directory.'/*.php', GLOB_NOSORT);
+        if ($files === false) {
+            return;
+        }
         $fileSystem = new Filesystem();
         $fileSystem->remove($files);
     }

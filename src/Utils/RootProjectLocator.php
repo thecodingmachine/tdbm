@@ -8,6 +8,8 @@ class RootProjectLocator
     public static function getRootLocationPath(): string
     {
         $reflection = new \ReflectionClass(\Composer\Autoload\ClassLoader::class);
-        return dirname($reflection->getFileName(), 3).'/';
+        $file = $reflection->getFileName();
+        assert($file !== false);
+        return dirname($file, 3).'/';
     }
 }

@@ -6,7 +6,7 @@ namespace TheCodingMachine\TDBM\Schema;
 class ForeignKeys
 {
     /**
-     * @var array
+     * @var array<string, array{foreignTable: string, localColumns: string[], foreignColumns: string[]}>
      */
     private $foreignKeys;
 
@@ -16,7 +16,7 @@ class ForeignKeys
     private $foreignKey;
 
     /**
-     * @param array<string, array<string, string|array<string>>> $foreignKeys
+     * @param array<string, array{foreignTable: string, localColumns: string[], foreignColumns: string[]}> $foreignKeys
      */
     public function __construct(array $foreignKeys)
     {
