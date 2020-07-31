@@ -25,25 +25,11 @@ class ConnectionFactory
     ): Connection {
         $config = new \Doctrine\DBAL\Configuration();
 
-        $dbDriver = $dbDriver;
-
         if ($dbDriver === 'pdo_sqlite') {
             $dbConnection = self::getConnection();
             $dbConnection->exec('PRAGMA foreign_keys = ON;');
         } elseif ($dbDriver === 'oci8') {
-            $connectionParams = array(
-                'servicename' => 'XE',
-                'user' => $dbAdminUserName,
-                // Because of issues in DBAL, admin and normal user password have to be the same.
-                'password' => $dbPassword,
-                'host' => $dbHost,
-                'port' => $dbPort,
-                'driver' => $dbDriver,
-                'dbname' => $dbAdminUserName,
-                'charset' => 'AL32UTF8',
-            );
-
-            $adminConn = DriverManager::getConnection($connectionParams, $config);
+            $adminConn = self::createConnection($dbDriver, $dbHost, $dbPort, $dbAdminUserName, $dbPassword, $dbAdminUserName);
 
             // When dropAndCreateDatabase is run several times, Oracle can have some issues releasing the TDBM user.
             // Let's forcefully delete the connection!
@@ -51,7 +37,7 @@ class ConnectionFactory
 
             $adminConn->getSchemaManager()->dropAndCreateDatabase($dbName);
 
-            $dbConnection = $adminConn;
+            $dbConnection = self::createConnection($dbDriver, $dbHost, $dbPort, $dbName, $dbPassword, $dbName);
         } else {
             $connectionParams = array(
                 'user' => $dbUserName,

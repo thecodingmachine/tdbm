@@ -44,6 +44,7 @@ use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use function stripos;
+use const PHP_EOL;
 
 abstract class TDBMAbstractServiceTest extends TestCase
 {
@@ -380,12 +381,14 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         $db->junctionTable('person', 'boats');
 
-        $db->table('base_objects')
-            ->column('id')->integer()->primaryKey()->autoIncrement()
-            ->column('label')->string();
-        $db->table('inherited_objects')
-            ->column('id')->integer()->primaryKey()->autoIncrement()
-            ->column('base_object_id')->references('base_objects')->unique()->comment('@JsonCollection');
+        if (!$connection->getDatabasePlatform() instanceof OraclePlatform) {
+            $db->table('base_objects')
+                ->column('id')->integer()->primaryKey()->autoIncrement()
+                ->column('label')->string();
+            $db->table('inherited_objects')
+                ->column('id')->integer()->primaryKey()->autoIncrement()
+                ->column('base_object_id')->references('base_objects')->unique()->comment('@JsonCollection');
+        }
 
         $targetTable = $db->table('composite_fk_target')
             ->column('id_1')->integer()
@@ -395,7 +398,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('id')->integer()->primaryKey()->autoIncrement()
             ->column('fk_1')->integer()
             ->column('fk_2')->integer()
-            ->then()->getDbalTable()->addForeignKeyConstraint($targetTable->getDbalTable(), ['fk_1', 'fk_2'], ['id_1', 'id_2']);
+            ->then()->getDbalTable()->addForeignKeyConstraint($targetTable->getDbalTable(), [$connection->quoteIdentifier('fk_1'), $connection->quoteIdentifier('fk_2')], [$connection->quoteIdentifier('id_1'), $connection->quoteIdentifier('id_2')]);
 
         // Test case, the problem here is:
         // - `inheritance_agency` have an FK to `inheritance_society.**id_entity**`
