@@ -7,7 +7,7 @@
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
          processIsolation="false"
-         stopOnFailure="false"
+         stopOnFailure="true"
          bootstrap="vendor/autoload.php"
 >
     <testsuites>
@@ -19,9 +19,9 @@
     <php>
         <!-- "Real" test database -->
         <var name="db_host" value="localhost" />
-        <var name="db_admin_username" value="tdbm_admin" />
+        <var name="db_admin_username" value="system" />
         <var name="db_username" value="tdbm" />
-        <var name="db_password" value="tdbm" />
+        <var name="db_password" value="oracle" />
         <var name="db_name" value="tdbm" />
         <var name="db_port" value="1521"/>
         <var name="db_driver" value="oci8"/>
