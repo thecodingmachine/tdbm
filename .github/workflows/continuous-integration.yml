@@ -362,39 +362,40 @@ jobs:
       - name: "Generating comparison"
         run: "./phpbench.dist.sh report --uuid=tag:current_pr --uuid=tag:master --report='{extends: compare, compare: tag}'"
 
-#  phpunit-oci8:
-#    name: "PHPUnit on OCI8"
-#    runs-on: "ubuntu-latest"
-#
-#    strategy:
-#      matrix:
-#        php-version:
-#          - "7.4"
-#
+  phpunit-oci8:
+    name: "PHPUnit on OCI8"
+    runs-on: "ubuntu-latest"
+    container: "moufmouf/oracle-xe-php:7.4-11g"
+
+    strategy:
+      matrix:
+        php-version:
+          - "7.4"
+
 #    services:
 #      oracle:
 #        image: "wnameless/oracle-xe-11g-r2"
 #        ports:
 #          - "1521:1521"
-#
-#    steps:
-#      - name: "Checkout"
-#        uses: "actions/checkout@v2"
-#
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+
 #      - name: "Install PHP"
 #        uses: "shivammathur/setup-php@v2"
 #        with:
 #          php-version: "${{ matrix.php-version }}"
 #          extensions: "oci8"
 #          coverage: "pcov"
-#
-#      - name: "Cache dependencies installed with composer"
-#        uses: "actions/cache@v1"
-#        with:
-#          path: "~/.composer/cache"
-#          key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
-#          restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
-#
+
+      - name: "Cache dependencies installed with composer"
+        uses: "actions/cache@v1"
+        with:
+          path: "~/.composer/cache"
+          key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
+          restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
+
 #      - name: "Setup Oracle user"
 #        run: |
 #          docker exec $(docker ps -aqf "ancestor=wnameless/oracle-xe-11g-r2") bash -c "export PS1=1 && source /etc/bash.bashrc && source /root/.bashrc && sqlplus -L -S sys/oracle AS SYSDBA <<<SQL \
@@ -405,12 +406,12 @@ jobs:
 #          grant select any dictionary to tdbm_admin; \
 #          exit \
 #          SQL"
-#
-#      - name: "Install dependencies with composer"
-#        run: "composer install --no-interaction --no-progress --no-suggest"
-#
-#      - name: "Run PHPUnit"
-#        run: "vendor/bin/phpunit -c phpunit.oracle.xml --coverage-clover=coverage.xml"
-#
-#      - name: "Upload Code Coverage"
-#        uses: "codecov/codecov-action@v1"
+
+      - name: "Install dependencies with composer"
+        run: "composer install --no-interaction --no-progress --no-suggest"
+
+      - name: "Run PHPUnit"
+        run: "vendor/bin/phpunit -c phpunit.oracle.xml --coverage-clover=coverage.xml"
+
+      - name: "Upload Code Coverage"
+        uses: "codecov/codecov-action@v1"
