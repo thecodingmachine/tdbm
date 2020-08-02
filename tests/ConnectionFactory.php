@@ -7,7 +7,6 @@ use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
-use function strtoupper;
 
 class ConnectionFactory
 {
@@ -33,7 +32,7 @@ class ConnectionFactory
 
             // When dropAndCreateDatabase is run several times, Oracle can have some issues releasing the TDBM user.
             // Let's forcefully delete the connection!
-            $adminConn->exec("select 'alter system kill session ''' || sid || ',' || serial# || ''';' from v\$session where username = '".strtoupper($dbName)."'");
+            //$adminConn->exec("select 'alter system kill session ''' || sid || ',' || serial# || ''';' from v\$session where username = '".strtoupper($dbName)."'");
 
             $adminConn->getSchemaManager()->dropAndCreateDatabase($dbName);
 

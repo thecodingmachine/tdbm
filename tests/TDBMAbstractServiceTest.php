@@ -89,6 +89,8 @@ abstract class TDBMAbstractServiceTest extends TestCase
             $GLOBALS['db_name'] ?? null
         );
 
+        self::$dbConnection = $dbConnection;
+
         self::initSchema($dbConnection);
     }
 
@@ -415,6 +417,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
+            //echo $sqlStmt."\n";
             $connection->exec($sqlStmt);
         }
 
