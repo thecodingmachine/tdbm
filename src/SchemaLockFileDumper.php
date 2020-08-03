@@ -10,6 +10,7 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\Utils\ColumnsReorderer;
 use TheCodingMachine\TDBM\Utils\ImmutableCaster;
 use function array_map;
 use function array_values;
@@ -92,6 +93,7 @@ class SchemaLockFileDumper
             } else {
                 $this->schema = $this->schemaVersionControlService->loadSchemaFile();
                 ImmutableCaster::castSchemaToImmutable($this->schema);
+                ColumnsReorderer::reorderTableColumns($this->schema);
                 $this->cache->save($cacheKey, $this->schema);
             }
         }

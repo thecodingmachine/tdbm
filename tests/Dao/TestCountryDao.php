@@ -21,7 +21,7 @@ class TestCountryDao extends CountryBaseDao
 SELECT country.*
 FROM country
 LEFT JOIN users ON users.country_id = country.id
-GROUP BY country.id
+GROUP BY country.id, country.label
 ORDER BY COUNT(users.id) DESC
 SQL;
 
