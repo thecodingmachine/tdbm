@@ -25,7 +25,7 @@ class ColumnsReorderer
         }
     }
 
-    private static function reorderColumnsForTable(Table $table)
+    private static function reorderColumnsForTable(Table $table): void
     {
         $columns = self::getColumnsInExpectedOrder($table);
 
@@ -49,8 +49,9 @@ class ColumnsReorderer
      * @return Column[]
      */
     private static function getColumnsInExpectedOrder(Table $table): array {
-        if ($table->hasPrimaryKey()) {
-            $pkColumns = $table->getPrimaryKey()->getUnquotedColumns();
+        $primaryKey = $table->getPrimaryKey();
+        if ($primaryKey !== null) {
+            $pkColumns = $primaryKey->getUnquotedColumns();
         } else {
             $pkColumns = [];
         }
