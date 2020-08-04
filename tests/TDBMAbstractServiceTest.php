@@ -329,7 +329,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('name')->string();
 
         $db->table('nodes')
-            ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@JsonIgnore')
+            ->column('id')->integer()->primaryKey()->autoIncrement()->comment("@JsonIgnore\n@Autoincrement")
             ->column('alias_id')->references('nodes')->null()->comment('@JsonRecursive')
             ->column('parent_id')->references('nodes')->null()->comment('@JsonInclude')
             ->column('root_id')->references('nodes')->null()->comment('@JsonIgnore')
@@ -590,38 +590,38 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'id' => 1,
             'owner_id' => 1,
             'name' => '/',
-            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d 00:00:00'),
         ]);
         self::insert($connection, 'nodes', [
             'id' => 2,
             'name' => 'private',
-            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d 00:00:00'),
             'parent_id' => 1,
         ]);
         self::insert($connection, 'nodes', [
             'id' => 3,
             'name' => 'var',
-            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d 00:00:00'),
             'parent_id' => 2,
         ]);
         self::insert($connection, 'nodes', [
             'id' => 4,
             'name' => 'var',
-            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d 00:00:00'),
             'parent_id' => 1,
             'alias_id' => 3
         ]);
         self::insert($connection, 'nodes', [
             'id' => 5,
             'name' => 'www',
-            'created_at' => (new DateTime('last week'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last week'))->format('Y-m-d 00:00:00'),
             'parent_id' => 4
         ]);
         self::insert($connection, 'nodes', [
             'id' => 6,
             'owner_id' => 2,
             'name' => 'index.html',
-            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('now'))->format('Y-m-d 00:00:00'),
             'size' => 512,
             'weight' => 42.5,
             'parent_id' => 5
@@ -629,14 +629,14 @@ abstract class TDBMAbstractServiceTest extends TestCase
         self::insert($connection, 'nodes', [
             'id' => 7,
             'name' => 'index.html',
-            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('now'))->format('Y-m-d 00:00:00'),
             'alias_id' => 6,
             'parent_id' => 1
         ]);
         self::insert($connection, 'nodes', [
             'id' => 8,
             'name' => 'index.htm',
-            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('now'))->format('Y-m-d 00:00:00'),
             'alias_id' => 7,
             'parent_id' => 1
         ]);

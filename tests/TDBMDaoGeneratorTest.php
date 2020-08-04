@@ -26,6 +26,7 @@ use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
 use ReflectionClass;
@@ -1465,6 +1466,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testExceptionOnMultipleInheritance(): void
     {
+        // Because of the sequence on the PK, we cannot set the PK to 99 at all.
+        $this->skipOracle();
+
         $connection = self::getConnection();
         self::insert($connection, 'animal', [
             'id' => 99, 'name' => 'Snoofield',
@@ -1745,6 +1749,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testBlob(): void
     {
+        // An issue in DBAL makes using BLOB type impossible with resources.
+        // See https://github.com/doctrine/dbal/issues/3290
+        $this->skipOracle();
+
         $fp = fopen(__FILE__, 'r');
         $file = new FileBean($fp);
 
@@ -1767,6 +1775,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testReadBlob(): void
     {
+        // An issue in DBAL makes using BLOB type impossible with resources.
+        // See https://github.com/doctrine/dbal/issues/3290
+        $this->skipOracle();
+
         $fileDao = new FileDao($this->tdbmService);
         $loadedFile = $fileDao->getById(1);
 
@@ -1787,6 +1799,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testReadAndSaveBlob(): void
     {
+        // An issue in DBAL makes using BLOB type impossible with resources.
+        // See https://github.com/doctrine/dbal/issues/3290
+        $this->skipOracle();
+
         $fileDao = new FileDao($this->tdbmService);
         $loadedFile = $fileDao->getById(1);
 
@@ -1801,6 +1817,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testProtectedGetterSetter(): void
     {
+        // An issue in DBAL makes using BLOB type impossible with resources.
+        // See https://github.com/doctrine/dbal/issues/3290
+        $this->skipOracle();
+
         $md5Getter = new ReflectionMethod(FileBaseBean::class, 'getMd5');
         $md5Setter = new ReflectionMethod(FileBaseBean::class, 'setMd5');
 
@@ -2327,5 +2347,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $player = $dao->getById(1);
         $this->assertSame('Sally', $player->getNamesVirtual());
+    }
+
+    private function skipOracle()
+    {
+        if (self::getConnection()->getDatabasePlatform() instanceof OraclePlatform) {
+            $this->markTestSkipped('Not supported in Oracle');
+        }
     }
 }
