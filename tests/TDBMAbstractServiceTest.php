@@ -438,7 +438,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'label' => 'France',
         ]);
         self::insert($connection, 'country', [
-            'label' => 'UK',
+            'label' => 'uk',
         ]);
         self::insert($connection, 'country', [
             'label' => 'Jamaica',
@@ -660,6 +660,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'node_id' => 6,
             'entry' => '</h1>'
         ]);
+
 
         self::insert($connection, 'artists', [
             'id' => 1,

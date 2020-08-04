@@ -270,7 +270,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userBean = $userDao->getById(1);
         $country = $userBean->getCountry();
 
-        $this->assertEquals('UK', $country->getLabel());
+        $this->assertEquals('uk', $country->getLabel());
 
         $userBean2 = $userDao->getById(1);
         $this->assertTrue($userBean === $userBean2);
@@ -891,7 +891,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNull($userDecoded['modifiedAt']);
 
         // testing many to 1 relationships
-        $this->assertEquals('UK', $userDecoded['country']['label']);
+        $this->assertEquals('uk', $userDecoded['country']['label']);
 
         // testing many to many relationships
         $this->assertCount(1, $userDecoded['roles']);
@@ -1059,7 +1059,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNull($user2->getId());
         $this->assertEquals('bill.shakespeare', $user2->getLogin());
         $this->assertEquals('Bill Shakespeare', $user2->getName());
-        $this->assertEquals('UK', $user2->getCountry()->getLabel());
+        $this->assertEquals('uk', $user2->getCountry()->getLabel());
 
         // MANY 2 MANY must be duplicated
         $this->assertEquals('Writers', $user2->getRoles()[0]->getName());
@@ -1094,7 +1094,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNull($user2->getId());
         $this->assertEquals('john.doe', $user2->getLogin());
         $this->assertEquals('John Doe', $user2->getName());
-        $this->assertEquals('UK', $user2->getCountry()->getLabel());
+        $this->assertEquals('uk', $user2->getCountry()->getLabel());
 
         // MANY 2 MANY must be duplicated
         $this->assertEquals($role->getName(), $user2->getRoles()[0]->getName());
@@ -1379,7 +1379,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByCountryName();
 
-        $this->assertEquals('UK', $users[0]->getCountry()->getLabel());
+        $this->assertEquals('uk', $users[0]->getCountry()->getLabel());
     }
 
     /**
@@ -1390,7 +1390,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userDao = new UserDao($this->tdbmService);
         $users = $userDao->findAll()->withOrder('country.label DESC');
 
-        $this->assertEquals('UK', $users[0]->getCountry()->getLabel());
+        $this->assertEquals('uk', $users[0]->getCountry()->getLabel());
 
         $users = $users->withOrder('country.label ASC');
         $this->assertEquals('France', $users[0]->getCountry()->getLabel());
