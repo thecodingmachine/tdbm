@@ -2031,6 +2031,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testJsonCollection(): void
     {
+        // This test tries to perform a SELECT DISTINCT on a JSON column (which is represented as a CLOB column in Oracle)
+        // DISTINCT statements cannot be applied on CLOB columns. As a result, JSON columns are not supported in Oracle + TDBM 5 for now.
+        $this->skipOracle();
+
         $artists = new ArtistDao($this->tdbmService);
         $pinkFloyd = $artists->getById(1);
         $animals =  $pinkFloyd->getAlbums()[0];
@@ -2054,6 +2058,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testFloydHasNoParent(): void
     {
+        // This test tries to perform a SELECT DISTINCT on a JSON column (which is represented as a CLOB column in Oracle)
+        // DISTINCT statements cannot be applied on CLOB columns. As a result, JSON columns are not supported in Oracle + TDBM 5 for now.
+        $this->skipOracle();
+
         $artists = new ArtistDao($this->tdbmService);
         $pinkFloyd = $artists->getById(1);
         $parents = $pinkFloyd->getParents();
@@ -2063,6 +2071,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testFloydHasOneChild(): void
     {
+        // This test tries to perform a SELECT DISTINCT on a JSON column (which is represented as a CLOB column in Oracle)
+        // DISTINCT statements cannot be applied on CLOB columns. As a result, JSON columns are not supported in Oracle + TDBM 5 for now.
+        $this->skipOracle();
+
         $artists = new ArtistDao($this->tdbmService);
         $pinkFloyd = $artists->getById(1);
         $children = $pinkFloyd->getChildrenByArtistsRelations();
@@ -2076,11 +2088,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testAddInterfaceAnnotation(): void
     {
-        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
-            // See https://github.com/doctrine/dbal/pull/3512
-            $this->markTestSkipped('Only MySQL supports table level comments');
-        }
-
         $refClass = new ReflectionClass(UserBaseBean::class);
         $this->assertTrue($refClass->implementsInterface(TestUserInterface::class));
     }
@@ -2090,11 +2097,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testAddInterfaceOnDaoAnnotation(): void
     {
-        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
-            // See https://github.com/doctrine/dbal/pull/3512
-            $this->markTestSkipped('Only MySQL supports table level comments');
-        }
-
         $refClass = new ReflectionClass(UserBaseDao::class);
         $this->assertTrue($refClass->implementsInterface(TestUserDaoInterface::class));
     }
@@ -2104,11 +2106,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testTrait(): void
     {
-        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
-            // See https://github.com/doctrine/dbal/pull/3512
-            $this->markTestSkipped('Only MySQL supports table level comments');
-        }
-
         $userDao = new UserDao($this->tdbmService);
         $userBean = $userDao->getById(1);
 
@@ -2189,6 +2186,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testOneToOneInverseRelationGetter(): void
     {
+        $this->skipOracle();
+
         $objectBaseDao = new BaseObjectDao($this->tdbmService);
         $objectInheritedDao = new InheritedObjectDao($this->tdbmService);
         $objectBase = new BaseObjectBean('label');
