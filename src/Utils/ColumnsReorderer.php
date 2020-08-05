@@ -48,7 +48,8 @@ class ColumnsReorderer
      * @param Table $table
      * @return Column[]
      */
-    private static function getColumnsInExpectedOrder(Table $table): array {
+    private static function getColumnsInExpectedOrder(Table $table): array
+    {
         $primaryKey = $table->getPrimaryKey();
         if ($primaryKey !== null) {
             $pkColumns = $primaryKey->getUnquotedColumns();
