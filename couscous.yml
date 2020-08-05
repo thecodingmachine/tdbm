@@ -101,6 +101,9 @@ menu:
         migrating:
             text: Migrating
             relativeUrl: doc/migrating.html
+        compatibility:
+            text: Databases compatibility
+            relativeUrl: doc/compatibility.html
         internals:
             text: TDBM internals
             relativeUrl: doc/internals.html
