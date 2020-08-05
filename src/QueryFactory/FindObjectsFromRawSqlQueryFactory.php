@@ -9,6 +9,7 @@ use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMService;
 use PHPSQLParser\PHPSQLCreator;
 use PHPSQLParser\PHPSQLParser;
+use function array_merge;
 
 /**
  * This class is in charge of formatting the SQL passed to findObjectsFromRawSql method.
@@ -224,7 +225,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                     ],
                     'alias' => [
                         'as' => true,
-                        'name' => $alias,
+                        'name' => $connection->quoteIdentifier($alias),
                     ]
                 ];
                 $formattedSelect[] = $astColumn;
@@ -352,20 +353,98 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
     {
         $group = $parsedSql['GROUP'];
         unset($parsedSql['GROUP']);
-        $parsedSql['SELECT'] = [[
-            'expr_type' => 'aggregate_function',
-            'alias' => [
-                'as' => true,
-                'name' => 'cnt',
-            ],
-            'base_expr' => 'COUNT',
-            'sub_tree' => array_merge([[
+
+        // Count(DISTINCT ...) on multiple columns is only valid in MySQL (unsupported on Pgsql or Oracle). For those, we need to do a subquery.
+        if (count($group) === 1 || $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
+            $parsedSql['SELECT'] = [[
+                'expr_type' => 'aggregate_function',
+                'alias' => [
+                    'as' => true,
+                    'name' => 'cnt',
+                ],
+                'base_expr' => 'COUNT',
+                'sub_tree' => array_merge([[
+                    'expr_type' => 'reserved',
+                    'base_expr' => 'DISTINCT',
+                    'delim' => ','
+                ]], $group),
+                'delim' => false,
+            ]];
+        } else {
+            $innerColumns = [[
                 'expr_type' => 'reserved',
                 'base_expr' => 'DISTINCT',
-                'delim' => ','
-            ]], $group),
-            'delim' => false,
-        ]];
+                'delim' => ' '
+            ]];
+            foreach ($group as $item) {
+                $item['delim'] = ',';
+                $innerColumns[] = $item;
+            }
+            $innerColumns[count($innerColumns)-1]['delim'] = false;
+            $parsedSql['SELECT'] = $innerColumns;
+
+            $parsedSql = [
+                'SELECT' =>
+                    [
+                        0 =>
+                            [
+                                'expr_type' => 'aggregate_function',
+                                'alias' =>
+                                    [
+                                        'as' => true,
+                                        'name' => 'cnt',
+                                        'base_expr' => 'AS cnt',
+                                        'no_quotes' =>
+                                            [
+                                                'delim' => false,
+                                                'parts' =>
+                                                    [
+                                                        0 => 'cnt',
+                                                    ],
+                                            ],
+                                    ],
+                                'base_expr' => 'COUNT',
+                                'sub_tree' =>
+                                    [
+                                        0 =>
+                                            [
+                                                'expr_type' => 'colref',
+                                                'base_expr' => '*',
+                                                'sub_tree' => false,
+                                            ],
+                                    ],
+                                'delim' => false,
+                            ],
+                    ],
+                'FROM' =>
+                    [
+                        0 =>
+                            [
+                                'expr_type' => 'subquery',
+                                'alias' =>
+                                    [
+                                        'as' => false,
+                                        'name' => 'subquery',
+                                        'no_quotes' =>
+                                            [
+                                                'delim' => false,
+                                                'parts' =>
+                                                    [
+                                                        0 => 'subquery',
+                                                    ],
+                                            ],
+                                        'base_expr' => 'subquery',
+                                    ],
+                                'hints' => false,
+                                'join_type' => 'JOIN',
+                                'ref_type' => false,
+                                'ref_clause' => false,
+                                //'base_expr' => 'SELECT id FROM country',
+                                'sub_tree' => $parsedSql
+                            ],
+                    ],
+                ];
+        }
         return $parsedSql;
     }
 

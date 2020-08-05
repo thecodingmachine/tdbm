@@ -1349,7 +1349,7 @@ EOF
                 }
             } elseif ($element instanceof ObjectBeanPropertyDescriptor) {
                 $foreignKey = $element->getForeignKey();
-                $columns = SafeFunctions::arrayCombine($foreignKey->getLocalColumns(), $foreignKey->getForeignColumns());
+                $columns = SafeFunctions::arrayCombine($foreignKey->getUnquotedLocalColumns(), $foreignKey->getUnquotedForeignColumns());
                 ++$count;
                 $foreignTable = $this->schema->getTable($foreignKey->getForeignTableName());
                 foreach ($columns as $localColumn => $foreignColumn) {

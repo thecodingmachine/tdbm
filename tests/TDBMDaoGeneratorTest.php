@@ -26,6 +26,7 @@ use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
 use ReflectionClass;
@@ -269,7 +270,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userBean = $userDao->getById(1);
         $country = $userBean->getCountry();
 
-        $this->assertEquals('UK', $country->getLabel());
+        $this->assertEquals('uk', $country->getLabel());
 
         $userBean2 = $userDao->getById(1);
         $this->assertTrue($userBean === $userBean2);
@@ -890,7 +891,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNull($userDecoded['modifiedAt']);
 
         // testing many to 1 relationships
-        $this->assertEquals('UK', $userDecoded['country']['label']);
+        $this->assertEquals('uk', $userDecoded['country']['label']);
 
         // testing many to many relationships
         $this->assertCount(1, $userDecoded['roles']);
@@ -1058,7 +1059,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNull($user2->getId());
         $this->assertEquals('bill.shakespeare', $user2->getLogin());
         $this->assertEquals('Bill Shakespeare', $user2->getName());
-        $this->assertEquals('UK', $user2->getCountry()->getLabel());
+        $this->assertEquals('uk', $user2->getCountry()->getLabel());
 
         // MANY 2 MANY must be duplicated
         $this->assertEquals('Writers', $user2->getRoles()[0]->getName());
@@ -1093,7 +1094,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNull($user2->getId());
         $this->assertEquals('john.doe', $user2->getLogin());
         $this->assertEquals('John Doe', $user2->getName());
-        $this->assertEquals('UK', $user2->getCountry()->getLabel());
+        $this->assertEquals('uk', $user2->getCountry()->getLabel());
 
         // MANY 2 MANY must be duplicated
         $this->assertEquals($role->getName(), $user2->getRoles()[0]->getName());
@@ -1378,7 +1379,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userDao = new TestUserDao($this->tdbmService);
         $users = $userDao->getUsersByCountryName();
 
-        $this->assertEquals('UK', $users[0]->getCountry()->getLabel());
+        $this->assertEquals('uk', $users[0]->getCountry()->getLabel());
     }
 
     /**
@@ -1389,7 +1390,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $userDao = new UserDao($this->tdbmService);
         $users = $userDao->findAll()->withOrder('country.label DESC');
 
-        $this->assertEquals('UK', $users[0]->getCountry()->getLabel());
+        $this->assertEquals('uk', $users[0]->getCountry()->getLabel());
 
         $users = $users->withOrder('country.label ASC');
         $this->assertEquals('France', $users[0]->getCountry()->getLabel());
@@ -1465,6 +1466,9 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testExceptionOnMultipleInheritance(): void
     {
+        // Because of the sequence on the PK, we cannot set the PK to 99 at all.
+        $this->skipOracle();
+
         $connection = self::getConnection();
         self::insert($connection, 'animal', [
             'id' => 99, 'name' => 'Snoofield',
@@ -1745,6 +1749,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testBlob(): void
     {
+        // An issue in DBAL makes using BLOB type impossible with resources.
+        // See https://github.com/doctrine/dbal/issues/3290
+        $this->skipOracle();
+
         $fp = fopen(__FILE__, 'r');
         $file = new FileBean($fp);
 
@@ -1767,6 +1775,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testReadBlob(): void
     {
+        // An issue in DBAL makes using BLOB type impossible with resources.
+        // See https://github.com/doctrine/dbal/issues/3290
+        $this->skipOracle();
+
         $fileDao = new FileDao($this->tdbmService);
         $loadedFile = $fileDao->getById(1);
 
@@ -1787,6 +1799,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testReadAndSaveBlob(): void
     {
+        // An issue in DBAL makes using BLOB type impossible with resources.
+        // See https://github.com/doctrine/dbal/issues/3290
+        $this->skipOracle();
+
         $fileDao = new FileDao($this->tdbmService);
         $loadedFile = $fileDao->getById(1);
 
@@ -1801,6 +1817,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testProtectedGetterSetter(): void
     {
+        // An issue in DBAL makes using BLOB type impossible with resources.
+        // See https://github.com/doctrine/dbal/issues/3290
+        $this->skipOracle();
+
         $md5Getter = new ReflectionMethod(FileBaseBean::class, 'getMd5');
         $md5Setter = new ReflectionMethod(FileBaseBean::class, 'setMd5');
 
@@ -2011,6 +2031,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testJsonCollection(): void
     {
+        // This test tries to perform a SELECT DISTINCT on a JSON column (which is represented as a CLOB column in Oracle)
+        // DISTINCT statements cannot be applied on CLOB columns. As a result, JSON columns are not supported in Oracle + TDBM 5 for now.
+        $this->skipOracle();
+
         $artists = new ArtistDao($this->tdbmService);
         $pinkFloyd = $artists->getById(1);
         $animals =  $pinkFloyd->getAlbums()[0];
@@ -2034,6 +2058,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testFloydHasNoParent(): void
     {
+        // This test tries to perform a SELECT DISTINCT on a JSON column (which is represented as a CLOB column in Oracle)
+        // DISTINCT statements cannot be applied on CLOB columns. As a result, JSON columns are not supported in Oracle + TDBM 5 for now.
+        $this->skipOracle();
+
         $artists = new ArtistDao($this->tdbmService);
         $pinkFloyd = $artists->getById(1);
         $parents = $pinkFloyd->getParents();
@@ -2043,6 +2071,10 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
     public function testFloydHasOneChild(): void
     {
+        // This test tries to perform a SELECT DISTINCT on a JSON column (which is represented as a CLOB column in Oracle)
+        // DISTINCT statements cannot be applied on CLOB columns. As a result, JSON columns are not supported in Oracle + TDBM 5 for now.
+        $this->skipOracle();
+
         $artists = new ArtistDao($this->tdbmService);
         $pinkFloyd = $artists->getById(1);
         $children = $pinkFloyd->getChildrenByArtistsRelations();
@@ -2056,11 +2088,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testAddInterfaceAnnotation(): void
     {
-        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
-            // See https://github.com/doctrine/dbal/pull/3512
-            $this->markTestSkipped('Only MySQL supports table level comments');
-        }
-
         $refClass = new ReflectionClass(UserBaseBean::class);
         $this->assertTrue($refClass->implementsInterface(TestUserInterface::class));
     }
@@ -2070,11 +2097,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testAddInterfaceOnDaoAnnotation(): void
     {
-        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
-            // See https://github.com/doctrine/dbal/pull/3512
-            $this->markTestSkipped('Only MySQL supports table level comments');
-        }
-
         $refClass = new ReflectionClass(UserBaseDao::class);
         $this->assertTrue($refClass->implementsInterface(TestUserDaoInterface::class));
     }
@@ -2084,11 +2106,6 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testTrait(): void
     {
-        if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
-            // See https://github.com/doctrine/dbal/pull/3512
-            $this->markTestSkipped('Only MySQL supports table level comments');
-        }
-
         $userDao = new UserDao($this->tdbmService);
         $userBean = $userDao->getById(1);
 
@@ -2169,6 +2186,8 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
      */
     public function testOneToOneInverseRelationGetter(): void
     {
+        $this->skipOracle();
+
         $objectBaseDao = new BaseObjectDao($this->tdbmService);
         $objectInheritedDao = new InheritedObjectDao($this->tdbmService);
         $objectBase = new BaseObjectBean('label');
@@ -2327,5 +2346,12 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $player = $dao->getById(1);
         $this->assertSame('Sally', $player->getNamesVirtual());
+    }
+
+    private function skipOracle()
+    {
+        if (self::getConnection()->getDatabasePlatform() instanceof OraclePlatform) {
+            $this->markTestSkipped('Not supported in Oracle');
+        }
     }
 }

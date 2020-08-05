@@ -141,7 +141,7 @@ abstract class AbstractQueryFactory implements QueryFactory
                     }
                 } elseif ($orderByColumn['type'] === 'expr') {
                     $sortColumnName = 'sort_column_'.$sortColumn;
-                    $columnsList[] = $orderByColumn['expr'].' as '.$sortColumnName;
+                    $columnsList[] = $orderByColumn['expr'].' as '.$connection->quoteIdentifier($sortColumnName);
                     $columnDescList[$sortColumnName] = [
                         'tableGroup' => null,
                     ];

@@ -44,6 +44,7 @@ use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use function stripos;
+use const PHP_EOL;
 
 abstract class TDBMAbstractServiceTest extends TestCase
 {
@@ -87,6 +88,8 @@ abstract class TDBMAbstractServiceTest extends TestCase
             $GLOBALS['db_password'] ?? null,
             $GLOBALS['db_name'] ?? null
         );
+
+        self::$dbConnection = $dbConnection;
 
         self::initSchema($dbConnection);
     }
@@ -326,7 +329,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('name')->string();
 
         $db->table('nodes')
-            ->column('id')->integer()->primaryKey()->autoIncrement()->comment('@JsonIgnore')
+            ->column('id')->integer()->primaryKey()->autoIncrement()->comment("@JsonIgnore\n@Autoincrement")
             ->column('alias_id')->references('nodes')->null()->comment('@JsonRecursive')
             ->column('parent_id')->references('nodes')->null()->comment('@JsonInclude')
             ->column('root_id')->references('nodes')->null()->comment('@JsonIgnore')
@@ -380,12 +383,14 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         $db->junctionTable('person', 'boats');
 
-        $db->table('base_objects')
-            ->column('id')->integer()->primaryKey()->autoIncrement()
-            ->column('label')->string();
-        $db->table('inherited_objects')
-            ->column('id')->integer()->primaryKey()->autoIncrement()
-            ->column('base_object_id')->references('base_objects')->unique()->comment('@JsonCollection');
+        if (!$connection->getDatabasePlatform() instanceof OraclePlatform) {
+            $db->table('base_objects')
+                ->column('id')->integer()->primaryKey()->autoIncrement()
+                ->column('label')->string();
+            $db->table('inherited_objects')
+                ->column('id')->integer()->primaryKey()->autoIncrement()
+                ->column('base_object_id')->references('base_objects')->unique()->comment('@JsonCollection');
+        }
 
         $targetTable = $db->table('composite_fk_target')
             ->column('id_1')->integer()
@@ -395,7 +400,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('id')->integer()->primaryKey()->autoIncrement()
             ->column('fk_1')->integer()
             ->column('fk_2')->integer()
-            ->then()->getDbalTable()->addForeignKeyConstraint($targetTable->getDbalTable(), ['fk_1', 'fk_2'], ['id_1', 'id_2']);
+            ->then()->getDbalTable()->addForeignKeyConstraint($targetTable->getDbalTable(), [$connection->quoteIdentifier('fk_1'), $connection->quoteIdentifier('fk_2')], [$connection->quoteIdentifier('id_1'), $connection->quoteIdentifier('id_2')]);
 
         // Test case, the problem here is:
         // - `inheritance_agency` have an FK to `inheritance_society.**id_entity**`
@@ -412,6 +417,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
+            //echo $sqlStmt."\n";
             $connection->exec($sqlStmt);
         }
 
@@ -432,7 +438,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'label' => 'France',
         ]);
         self::insert($connection, 'country', [
-            'label' => 'UK',
+            'label' => 'uk',
         ]);
         self::insert($connection, 'country', [
             'label' => 'Jamaica',
@@ -584,38 +590,38 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'id' => 1,
             'owner_id' => 1,
             'name' => '/',
-            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d 00:00:00'),
         ]);
         self::insert($connection, 'nodes', [
             'id' => 2,
             'name' => 'private',
-            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d 00:00:00'),
             'parent_id' => 1,
         ]);
         self::insert($connection, 'nodes', [
             'id' => 3,
             'name' => 'var',
-            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d 00:00:00'),
             'parent_id' => 2,
         ]);
         self::insert($connection, 'nodes', [
             'id' => 4,
             'name' => 'var',
-            'created_at' => (new DateTime('last year'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last year'))->format('Y-m-d 00:00:00'),
             'parent_id' => 1,
             'alias_id' => 3
         ]);
         self::insert($connection, 'nodes', [
             'id' => 5,
             'name' => 'www',
-            'created_at' => (new DateTime('last week'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('last week'))->format('Y-m-d 00:00:00'),
             'parent_id' => 4
         ]);
         self::insert($connection, 'nodes', [
             'id' => 6,
             'owner_id' => 2,
             'name' => 'index.html',
-            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('now'))->format('Y-m-d 00:00:00'),
             'size' => 512,
             'weight' => 42.5,
             'parent_id' => 5
@@ -623,14 +629,14 @@ abstract class TDBMAbstractServiceTest extends TestCase
         self::insert($connection, 'nodes', [
             'id' => 7,
             'name' => 'index.html',
-            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('now'))->format('Y-m-d 00:00:00'),
             'alias_id' => 6,
             'parent_id' => 1
         ]);
         self::insert($connection, 'nodes', [
             'id' => 8,
             'name' => 'index.htm',
-            'created_at' => (new DateTime('now'))->format('Y-m-d H:i:s'),
+            'created_at' => (new DateTime('now'))->format('Y-m-d 00:00:00'),
             'alias_id' => 7,
             'parent_id' => 1
         ]);
@@ -654,6 +660,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'node_id' => 6,
             'entry' => '</h1>'
         ]);
+
 
         self::insert($connection, 'artists', [
             'id' => 1,

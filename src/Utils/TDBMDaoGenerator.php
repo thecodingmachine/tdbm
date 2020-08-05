@@ -28,6 +28,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use function strpos;
 use function substr;
 use function var_export;
+use const PHP_EOL;
 
 /**
  * This class generates automatically DAOs and Beans for TDBM.

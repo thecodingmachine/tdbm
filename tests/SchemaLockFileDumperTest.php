@@ -24,6 +24,7 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\Utils\ImmutableCaster;
+use function sort;
 
 class SchemaLockFileDumperTest extends TDBMAbstractServiceTest
 {
@@ -45,7 +46,7 @@ class SchemaLockFileDumperTest extends TDBMAbstractServiceTest
         //lock file doesn't save the database name so we have to replace it manually.
         ImmutableCaster::castSchemaToImmutable($schemaFromConnec);
         foreach ($schemaFromConnec->getTableNames() as $tableName) {
-            $tableNames[] = str_replace(['tdbm_testcase', 'postgres'], 'public', $tableName);
+            $tableNames[] = str_replace(['tdbm_testcase', 'postgres', 'tdbm'], 'public', $tableName);
         }
 
         $cache = new ArrayCache();
@@ -53,8 +54,13 @@ class SchemaLockFileDumperTest extends TDBMAbstractServiceTest
 
         $schemaFromAnalyser = $schemaLockFileDumper->getSchema(true);
         $schemaFromAnalyserCached = $schemaLockFileDumper->getSchema();
-        $this->assertEquals($tableNames, $schemaFromAnalyser->getTableNames());
-        $this->assertEquals($schemaFromAnalyser->getTableNames(), $schemaFromAnalyserCached->getTableNames());
+        sort($tableNames);
+        $tablesFromAnalyser = $schemaFromAnalyser->getTableNames();
+        sort($tablesFromAnalyser);
+        $tablesFromAnalyserCached = $schemaFromAnalyserCached->getTableNames();
+        sort($tablesFromAnalyserCached);
+        $this->assertEquals($tableNames, $tablesFromAnalyser);
+        $this->assertEquals($tablesFromAnalyser, $tablesFromAnalyserCached);
     }
 
     public function testGetSchema(): void
