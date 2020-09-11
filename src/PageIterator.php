@@ -67,6 +67,8 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      * @var LoggerInterface
      */
     private $logger;
+    /** @var bool */
+    private $hasExcludedColumns;
 
     private function __construct()
     {
@@ -88,7 +90,8 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
         TDBMService $tdbmService,
         MagicQuery $magicQuery,
         int $mode,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        bool $hasExcludedColumns
     ): self {
         $iterator =  new self();
         $iterator->parentResult = $parentResult;
@@ -103,6 +106,7 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
         $iterator->magicQuery = $magicQuery;
         $iterator->mode = $mode;
         $iterator->logger = $logger;
+        $iterator->hasExcludedColumns = $hasExcludedColumns;
         return $iterator;
     }
 
@@ -125,9 +129,9 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
             if ($this->parentResult->count() === 0) {
                 $this->innerResultIterator = new EmptyInnerResultIterator();
             } elseif ($this->mode === TDBMService::MODE_CURSOR) {
-                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger, $this->hasExcludedColumns);
             } else {
-                $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger, $this->hasExcludedColumns);
             }
         }
 

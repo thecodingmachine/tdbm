@@ -87,7 +87,7 @@ abstract class AbstractQueryFactory implements QueryFactory
      * @param string|UncheckedOrderBy|null $orderBy
      *
      * @param bool $canAddAdditionalTablesFetch Set to true if the function can add additional tables to fetch (so if the factory generates its own FROM clause)
-     * @return mixed[] A 3 elements array: [$columnDescList, $columnsList, $reconstructedOrderBy]
+     * @return mixed[] A 4 elements array: [$columnDescList, $columnsList, $reconstructedOrderBy, $hasExcludedColumns]
      */
     protected function getColumnsList(string $mainTable, array $additionalTablesFetch = array(), $orderBy = null, bool $canAddAdditionalTablesFetch = false): array
     {
@@ -187,11 +187,12 @@ abstract class AbstractQueryFactory implements QueryFactory
         $mysqlPlatform = new MySqlPlatform();
 
         // Now, let's build the column list
+        $hasExcludedColumns = false;
         foreach ($allFetchedTables as $table) {
             foreach ($this->schema->getTable($table)->getColumns() as $column) {
                 $columnName = $column->getName();
                 if ($this->resultIterator === null // @TODO (gua) don't take care of whitelist in case of LIMIT below 2
-                    || $table !== $mainTable
+                    || $table !== $mainTable // @TODO (gua) Inheritance
                     || $this->resultIterator->isInWhitelist($columnName, $table)
                 ) {
                     $columnDescList[$table . '____' . $columnName] = [
@@ -203,11 +204,13 @@ abstract class AbstractQueryFactory implements QueryFactory
                     ];
                     $columnsList[] = $mysqlPlatform->quoteIdentifier($table) . '.' . $mysqlPlatform->quoteIdentifier($columnName) . ' as ' .
                         $connection->quoteIdentifier($table . '____' . $columnName);
+                } else {
+                    $hasExcludedColumns = true;
                 }
             }
         }
 
-        return [$columnDescList, $columnsList, $reconstructedOrderBy];
+        return [$columnDescList, $columnsList, $reconstructedOrderBy, $hasExcludedColumns];
     }
 
     abstract protected function compute(): void;

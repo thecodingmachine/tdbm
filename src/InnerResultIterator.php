@@ -49,6 +49,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
     private $limit;
     private $offset;
     private $columnDescriptors;
+    /** @var MagicQuery */
     private $magicQuery;
 
     /**
@@ -66,6 +67,8 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      * @var LoggerInterface
      */
     private $logger;
+    /** @var bool */
+    private $hasExcludedColumns;
 
     protected $count = null;
 
@@ -77,9 +80,20 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      * @param mixed[] $parameters
      * @param array[] $columnDescriptors
      */
-    public static function createInnerResultIterator(string $magicSql, array $parameters, ?int $limit, ?int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger): self
-    {
-        $iterator =  new static(); // @TODO (gua) Should I know here if it's a partial load ? (to allow to give that state to DBRow and TDBMObject)
+    public static function createInnerResultIterator(
+        string $magicSql,
+        array $parameters,
+        ?int $limit,
+        ?int $offset,
+        array $columnDescriptors,
+        ObjectStorageInterface $objectStorage,
+        ?string $className,
+        TDBMService $tdbmService,
+        MagicQuery $magicQuery,
+        LoggerInterface $logger,
+        bool $hasExcludedColumns
+    ): self {
+        $iterator =  new static();
         $iterator->magicSql = $magicSql;
         $iterator->objectStorage = $objectStorage;
         $iterator->className = $className;
@@ -91,6 +105,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
         $iterator->magicQuery = $magicQuery;
         $iterator->databasePlatform = $iterator->tdbmService->getConnection()->getDatabasePlatform();
         $iterator->logger = $logger;
+        $iterator->hasExcludedColumns = $hasExcludedColumns;
         return $iterator;
     }
 
@@ -224,6 +239,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
                 $primaryKeys = $this->tdbmService->_getPrimaryKeysFromObjectData($mainBeanTableName, $beanData[$mainBeanTableName]);
                 $hash = $this->tdbmService->getObjectHash($primaryKeys);
 
+                /** @var DbRow|null $dbRow */
                 $dbRow = $this->objectStorage->get($mainBeanTableName, $hash);
                 if ($dbRow !== null) {
                     $bean = $dbRow->getTDBMObject();
@@ -233,8 +249,9 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
                         $reflectionClassCache[$actualClassName] = new \ReflectionClass($actualClassName);
                     }
                     // Let's bypass the constructor when creating the bean!
+                    /** @var AbstractTDBMObject $bean */
                     $bean = $reflectionClassCache[$actualClassName]->newInstanceWithoutConstructor();
-                    $bean->_constructFromData($beanData, $this->tdbmService);
+                    $bean->_constructFromData($beanData, $this->tdbmService, !$this->hasExcludedColumns);
                 }
 
                 // The first bean is the one containing the main table.

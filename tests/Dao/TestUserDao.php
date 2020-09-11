@@ -123,4 +123,9 @@ class TestUserDao extends UserBaseDao
         $filterBag[] = $country;
         return $this->find($filterBag);
     }
+
+    public function findForWhitelist()
+    {
+        return $this->tdbmService->findObjects('users', $filter, $parameters, $orderBy, $additionalTablesFetch, $mode, \TheCodingMachine\TDBM\Test\Dao\Bean\UserBean::class, \TheCodingMachine\TDBM\Test\ResultIterator\UserResultIterator::class);
+    }
 }

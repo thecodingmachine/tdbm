@@ -21,6 +21,7 @@ namespace TheCodingMachine\TDBM;
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+use TheCodingMachine\TDBM\Exception\TDBMPartialQueryException;
 use TheCodingMachine\TDBM\Schema\ForeignKeys;
 
 /**
@@ -86,14 +87,14 @@ class DbRow
     /**
      * A list of modified columns, indexed by column name. Value is always true.
      *
-     * @var array
+     * @var array<string, bool>
      */
     private $modifiedColumns = [];
 
     /**
      * A list of modified references, indexed by foreign key name. Value is always true.
      *
-     * @var array
+     * @var array<string, bool>
      */
     private $modifiedReferences = [];
     /**
@@ -105,18 +106,23 @@ class DbRow
      * You should never call the constructor directly. Instead, you should use the
      * TDBMService class that will create TDBMObjects for you.
      *
-     * Used with id!=false when we want to retrieve an existing object
-     * and id==false if we want a new object
-     *
      * @param AbstractTDBMObject $object The object containing this db row
      * @param string $tableName
+     * @param ForeignKeys $foreignKeys
      * @param mixed[] $primaryKeys
      * @param TDBMService $tdbmService
      * @param mixed[] $dbRow
      * @throws TDBMException
      */
-    public function __construct(AbstractTDBMObject $object, string $tableName, ForeignKeys $foreignKeys, array $primaryKeys = array(), TDBMService $tdbmService = null, array $dbRow = [])
-    {
+    public function __construct(
+        AbstractTDBMObject $object,
+        string $tableName,
+        ForeignKeys $foreignKeys,
+        array $primaryKeys = array(),
+        TDBMService $tdbmService = null,
+        array $dbRow = [],
+        bool $isFullyLoaced = null
+    ) {
         $this->object = $object;
         $this->dbTableName = $tableName;
         $this->foreignKeys = $foreignKeys;
@@ -133,9 +139,11 @@ class DbRow
             if (!empty($primaryKeys)) {
                 $this->_setPrimaryKeys($primaryKeys);
                 if (!empty($dbRow)) {
+                    if ($isFullyLoaced === null) {
+                        throw new TDBMInvalidArgumentException('$isFullyLoaced need to be provided if the DbRow is not empty.');
+                    }
                     $this->dbRow = $dbRow;
-                    // @TODO (gua): might not be fully loaded
-                    $this->status = TDBMObjectStateEnum::STATE_LOADED;
+                    $this->status = $isFullyLoaced ? TDBMObjectStateEnum::STATE_LOADED : TDBMObjectStateEnum::STATE_PARTIALLY_LOADED;
                 } else {
                     $this->status = TDBMObjectStateEnum::STATE_NOT_LOADED;
                 }
@@ -173,6 +181,8 @@ class DbRow
             // after saving we are back to a loaded state, hence unmodified.
             $this->modifiedColumns = [];
             $this->modifiedReferences = [];
+        } elseif ($state === TDBMObjectStateEnum::STATE_NOT_LOADED) {
+            $this->dbRow = [];
         }
     }
 
@@ -220,10 +230,10 @@ class DbRow
      */
     public function get(string $var)
     {
-        if ($this->_getStatus() === TDBMObjectStateEnum::STATE_PARTIALLY_LOADED && !array_key_exists($var, $this->dbRow)) {
-            throw new TDBMInvalidArgumentException('Cannot load `'.$var.'` in partially loaded object with data ' . print_r($this->dbRow, true));
-        }
-        if (!isset($this->primaryKeys[$var])) {
+        if (!array_key_exists($var, $this->dbRow)) {
+            if ($this->_getStatus() === TDBMObjectStateEnum::STATE_PARTIALLY_LOADED) {
+                throw new TDBMPartialQueryException($var, $this->dbRow);
+            }
             $this->_dbLoadIfNotLoaded();
         }
 

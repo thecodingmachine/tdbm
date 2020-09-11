@@ -271,7 +271,7 @@ ORDER BY COUNT(users.id);
 SQL;
 
         /** @var Test\Dao\Bean\CountryBean[]|\Porpaginas\Result $beans */
-        $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class, null,CountryResultIterator::class);
+        $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class, null, CountryResultIterator::class);
 
         $count = 0;
         foreach ($beans as $country) {

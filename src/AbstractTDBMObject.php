@@ -99,7 +99,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
             $this->_setStatus(TDBMObjectStateEnum::STATE_DETACHED);
         } else {
             $this->_attach($tdbmService);
-            if (!empty($primaryKeys)) { // @TODO (gua) might not be fully loaded
+            if (!empty($primaryKeys)) {
                 $this->_setStatus(TDBMObjectStateEnum::STATE_NOT_LOADED);
             } else {
                 $this->_setStatus(TDBMObjectStateEnum::STATE_NEW);
@@ -113,15 +113,23 @@ abstract class AbstractTDBMObject implements JsonSerializable
      * @param array<string, array<string, mixed>> $beanData    array<table, array<column, value>>
      * @param TDBMService $tdbmService
      */
-    public function _constructFromData(array $beanData, TDBMService $tdbmService): void
+    public function _constructFromData(array $beanData, TDBMService $tdbmService, bool $isFullyLoaced): void
     {
         $this->tdbmService = $tdbmService;
 
         foreach ($beanData as $table => $columns) {
-            $this->dbRows[$table] = new DbRow($this, $table, static::getForeignKeys($table), $tdbmService->_getPrimaryKeysFromObjectData($table, $columns), $tdbmService, $columns);
+            $this->dbRows[$table] = new DbRow(
+                $this,
+                $table,
+                static::getForeignKeys($table),
+                $tdbmService->_getPrimaryKeysFromObjectData($table, $columns),
+                $tdbmService,
+                $columns,
+                $isFullyLoaced
+            );
         }
 
-        $this->status = TDBMObjectStateEnum::STATE_LOADED; // @TODO might be not fully loaded
+        $this->status = $isFullyLoaced ? TDBMObjectStateEnum::STATE_LOADED : TDBMObjectStateEnum::STATE_PARTIALLY_LOADED;
     }
 
     /**

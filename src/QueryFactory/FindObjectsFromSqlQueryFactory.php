@@ -23,6 +23,8 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
     private $cache;
     private $cachePrefix;
     private $schemaAnalyzer;
+    /** @var bool */
+    private $hasExcludedColumns;
 
     public function __construct(string $mainTable, string $from, $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, SchemaAnalyzer $schemaAnalyzer, Cache $cache, string $cachePrefix)
     {
@@ -43,7 +45,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
         $allFetchedTables = $this->tdbmService->_getRelatedTablesByInheritance($this->mainTable);
 
-        list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy, false);
+        list($columnDescList, $columnsList, $orderString, $hasExcludedColumns) = $this->getColumnsList($this->mainTable, [], $this->orderBy, false);
 
         $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM '.$this->from;
 
@@ -104,6 +106,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         $this->magicSqlCount = $countSql;
         $this->magicSqlSubQuery = $subQuery;
         $this->columnDescList = $columnDescList;
+        $this->hasExcludedColumns = $hasExcludedColumns;
     }
 
     /**
@@ -167,6 +170,11 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         } else {
             return [];
         }
+    }
+
+    public function hasExcludedColumns(): bool
+    {
+        return $this->hasExcludedColumns;
     }
 
     /**

@@ -50,4 +50,9 @@ interface QueryFactory
     public function getSubQueryColumnDescriptors() : array;
 
     public function setResultIterator(ResultIterator $resultIterator) : void;
+
+    /**
+     * @return bool Whether it has or no excluded columns.
+     */
+    public function hasExcludedColumns() : bool;
 }

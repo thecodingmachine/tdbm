@@ -35,8 +35,10 @@ use TheCodingMachine\TDBM\Dao\TestArticleSubQueryDao;
 use TheCodingMachine\TDBM\Dao\TestCountryDao;
 use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
+use TheCodingMachine\TDBM\Exception\TDBMPartialQueryException;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
+use TheCodingMachine\TDBM\Test\Dao\AccountDao;
 use TheCodingMachine\TDBM\Test\Dao\AlbumDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
@@ -2235,5 +2237,55 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->expectException(TDBMException::class);
         $this->expectExceptionMessage('You cannot use in a sub-query a table that has a primary key on more that 1 column.');
         $states->_getSubQuery();
+    }
+
+    // @TODO:
+    // - test can't access partially loaded object
+    // - test can access partially loaded object
+    // - test can refresh partially loaded object
+    // - test can refresh partially loaded RI
+    // What about jsonSerialize ?
+    // test inheritance
+
+    public function testWhitelist(): void
+    {
+        $userDao = new TestUserDao($this->tdbmService);
+        $users = $userDao->findAll();
+
+        $this->assertCount(6, $users);
+        $this->assertEquals('john.smith', $users[0]->getLogin());
+
+//        $this
+
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testExceptionOnNotLoadedAccess(): void
+    {
+        $fileDao = new FileDao($this->tdbmService);
+        $this->expectException(TDBMPartialQueryException::class);
+        $files = $fileDao->findAll();
+        // @TODO empty whitelist and add only id
+        foreach ($files as $file) {
+            $this->assertIsInt($file->getId());
+            $file->getFile();
+        }
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testCanAccessWhitelistedProperties(): void
+    {
+        $accountDao = new AccountDao($this->tdbmService);
+        $accounts = $accountDao->findAll();
+        $accounts->liteWhitelist(); // Empty + id / label
+        foreach ($accounts as $account) {
+            $account->getId();
+            $account->getName();
+        }
+        $this->assertTrue(true);
     }
 }

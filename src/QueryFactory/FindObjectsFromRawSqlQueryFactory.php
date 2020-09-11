@@ -421,4 +421,12 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
     {
         throw new TDBMException('Using resultset generated from findFromRawSql as subqueries is unsupported for now.');
     }
+
+    /**
+     * @return bool Whether it has or no excluded columns.
+     */
+    public function hasExcludedColumns(): bool
+    {
+        return false;
+    }
 }

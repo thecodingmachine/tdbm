@@ -1182,37 +1182,34 @@ EOF
         $whitelistProperty->setDocBlock(new DocBlockGenerator(
             'Columns to fetch from db',
             null,
-            [new VarTag(null,'array<string, bool>', 'Associative array indexed by columns')]
+            [new VarTag(null, 'array<string, bool>', 'Associative array indexed by columns')]
         ));
         $whitelistProperty->setDefaultValue(new PropertyValueGenerator($columnsWithWhitelist));
         $class->addPropertyFromGenerator($whitelistProperty);
 
-        $whitelistAddMethod = new MethodGenerator(
-            'addToWhitelist',
-            [new ParameterGenerator('column', 'string'), new ParameterGenerator('table', 'string', $tableName)],
+        $whitelistSetMethod = new MethodGenerator(
+            'setWhitelist',
+            [new ParameterGenerator('column', 'string') ,new ParameterGenerator('table', 'string', $tableName)],
             MethodGenerator::FLAG_PROTECTED,
             <<<PHP
 if (\$table === '$tableName') {
-    \$this->whitelist[\$column] = true;
-} else {
-    parent::addToWhitelist(\$column, \$table);
+    // Set all variable to false
+    array_walk(\$this->whitelist, function (bool &\$value) {
+        \$value = false;
+    });
+    // Set wanted columns to true
+    foreach (\$columns as \$column) {
+        if (!array_key_exists(\$column, \$this->whitelist)) {
+            throw new \TheCodingMachine\TDBM\TDBMException('Column `' . \$column . '` does not exist on table `$tableName`');
+        }
+        \$this->whitelist[\$column] = true;
+    }
+    return;
 }
+parent::emptyWhitelist(\$table);
 PHP
         );
-        $whitelistAddMethod->setReturnType('void');
-        $whitelistRemoveMethod = new MethodGenerator(
-            'removeFromWhitelist',
-            [new ParameterGenerator('column', 'string'), new ParameterGenerator('table', 'string', $tableName)],
-            MethodGenerator::FLAG_PROTECTED,
-            <<<PHP
-if (\$table === '$tableName') {
-    \$this->whitelist[\$column] = false;
-} else {
-    parent::removeFromWhitelist(\$column, \$table);
-}
-PHP
-        );
-        $whitelistRemoveMethod->setReturnType('void');
+        $whitelistSetMethod->setReturnType('void');
         $whitelistHasMethod = new MethodGenerator(
             'isInWhitelist',
             [new ParameterGenerator('column', 'string'), new ParameterGenerator('table', 'string', $tableName)],
@@ -1225,8 +1222,7 @@ return parent::isInWhitelist(\$column, \$table);
 PHP
         );
         $whitelistHasMethod->setReturnType('bool');
-        $class->addMethodFromGenerator($whitelistAddMethod);
-        $class->addMethodFromGenerator($whitelistRemoveMethod);
+        $class->addMethodFromGenerator($whitelistSetMethod);
         $class->addMethodFromGenerator($whitelistHasMethod);
 
         $file = $this->codeGeneratorListener->onBaseResultIteratorGenerated($file, $this, $this->configuration);

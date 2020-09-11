@@ -179,9 +179,9 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
             if ($this->totalCount === 0) {
                 $this->innerResultIterator = new EmptyInnerResultIterator();
             } elseif ($this->mode === TDBMService::MODE_CURSOR) {
-                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger, $this->queryFactory->hasExcludedColumns());
             } else {
-                $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger, $this->queryFactory->hasExcludedColumns());
             }
         }
 
@@ -199,7 +199,8 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         if ($this->totalCount === 0) {
             return PageIterator::createEmpyIterator($this);
         }
-        return PageIterator::createResultIterator($this, $this->queryFactory->getMagicSql(), $this->parameters, $limit, $offset, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger);
+        // @TODO (gua) check offset < 2 to get full RI
+        return PageIterator::createResultIterator($this, $this->queryFactory->getMagicSql(), $this->parameters, $limit, $offset, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger, $this->queryFactory->hasExcludedColumns());
     }
 
     /**
@@ -395,17 +396,24 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         return $sql;
     }
 
-    protected function addToWhitelist(string $column, string $table) : void
+    /**
+     * @param array $columns The columns names to includes
+     * @param string $table The concerned table, for use in the case of inheritance
+     *
+     * @throws TDBMException If the table is not found in the inheritance schema or If the column do not exist in the table
+     */
+    protected function setWhitelist(string $columns, string $table) : void
     {
         throw new TDBMException('Table `' . $table . '` not found in inheritance Schema.');
     }
 
+    /**
+     * @param string $column The column names to check
+     * @param string $table The concerned table, for use in the case of inheritance
+     *
+     * @throws TDBMException If the table is not found in the inheritance schema or If the column do not exist in the table
+     */
     public function isInWhitelist(string $column, string $table) : bool
-    {
-        throw new TDBMException('Table `' . $table . '` not found in inheritance Schema');
-    }
-
-    protected function removeFromWhitelist(string $column, string $table) : void
     {
         throw new TDBMException('Table `' . $table . '` not found in inheritance Schema');
     }

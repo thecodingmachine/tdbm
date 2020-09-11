@@ -21,6 +21,8 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
      * @var Cache
      */
     private $cache;
+    /** @var bool */
+    private $hasExcludedColumns;
 
     public function __construct(string $mainTable, array $additionalTablesFetch, $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, Cache $cache)
     {
@@ -37,12 +39,13 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
             [
                 $this->magicSql,
                 $this->magicSqlCount,
-                $this->columnDescList
+                $this->columnDescList,
+                $this->hasExcludedColumns
             ] = $this->cache->fetch($key);
             return;
         }
 
-        list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, $this->additionalTablesFetch, $this->orderBy, true);
+        list($columnDescList, $columnsList, $orderString, $hasExcludedColumns) = $this->getColumnsList($this->mainTable, $this->additionalTablesFetch, $this->orderBy, true);
 
         $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$this->mainTable.')';
 
@@ -74,11 +77,18 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
         $this->magicSqlCount = $countSql;
         $this->magicSqlSubQuery = $subQuery;
         $this->columnDescList = $columnDescList;
+        $this->hasExcludedColumns = $hasExcludedColumns;
 
         $this->cache->save($key, [
             $this->magicSql,
             $this->magicSqlCount,
             $this->columnDescList,
+            $this->hasExcludedColumns
         ]);
+    }
+
+    public function hasExcludedColumns(): bool
+    {
+        return $this->hasExcludedColumns;
     }
 }
