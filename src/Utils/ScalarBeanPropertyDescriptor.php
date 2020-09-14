@@ -224,7 +224,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         if ($normalizedType === 'resource') {
             $checkNullable = '';
             if ($isNullable) {
-                $checkNullable = sprintf('$%s !== null && ', $this->column->getName());
+                $checkNullable = sprintf('$%s !== null && ', $variableName);
             }
             $resourceTypeCheck .= <<<EOF
 if (%s!\is_resource($%s)) {
