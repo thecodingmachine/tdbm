@@ -2213,7 +2213,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $compositeFkSourceDao = new CompositeFkSourceDao($this->tdbmService);
         $compositeFkSourceBean = $compositeFkSourceDao->getById(1);
         $json = $compositeFkSourceBean->jsonSerialize(true);
-        $this->assertEquals(1, $json['compositeFkTarget']['id1']);
+        $this->assertEquals(1, $json['compositeFkTarget']['1']['id']);
         $this->assertEquals(1, $json['compositeFkTarget']['id2']);
     }
 
