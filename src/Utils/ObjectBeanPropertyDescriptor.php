@@ -270,9 +270,8 @@ PHP;
                 if ($shouldFlatten) {
                     $rows[] = trim($descriptor->getLazySerializeCode($propertyAccess), '[]');
                 } else {
-                    $varName = $descriptor->getSafeVariableName();
-                    $lazySerializeCode = $descriptor->getLazySerializeCode($varName);
-                    $rows[] = "'$indexName' => ($varName = $propertyAccess->$columnGetterName()) ? $lazySerializeCode : null";
+                    $lazySerializeCode = $descriptor->getLazySerializeCode("$propertyAccess->$columnGetterName()");
+                    $rows[] = "'$indexName' => $lazySerializeCode";
                 }
             } elseif ($descriptor instanceof ScalarBeanPropertyDescriptor) {
                 $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
