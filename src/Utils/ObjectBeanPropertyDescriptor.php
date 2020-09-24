@@ -261,11 +261,13 @@ PHP;
             if ($descriptor instanceof InheritanceReferencePropertyDescriptor) {
                 $descriptor = $descriptor->getNonScalarReferencedPropertyDescriptor();
             }
+            $indexName = ltrim($descriptor->getVariableName(), '$');
+            $columnGetterName = $descriptor->getGetterName();
             if ($descriptor instanceof ObjectBeanPropertyDescriptor) {
-                $rows[] = trim($descriptor->getLazySerializeCode($propertyAccess), '[]');
+                $varName = '$o' . lcfirst($indexName);
+                $lazySerializeCode = $descriptor->getLazySerializeCode($varName);
+                $rows[] = "'$indexName' => ($varName = $propertyAccess->$columnGetterName()) ? $lazySerializeCode : null";
             } elseif ($descriptor instanceof ScalarBeanPropertyDescriptor) {
-                $indexName = ltrim($descriptor->getVariableName(), '$');
-                $columnGetterName = $descriptor->getGetterName();
                 $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
             } else {
                 throw new TDBMException('PropertyDescriptor of class `' . get_class($descriptor) . '` cannot be serialized.');
@@ -277,6 +279,9 @@ PHP;
     private function getBeanPropertyDescriptor(string $column): AbstractBeanPropertyDescriptor
     {
         foreach ($this->foreignBeanDescriptor->getBeanPropertyDescriptors() as $descriptor) {
+            if ($descriptor instanceof ObjectBeanPropertyDescriptor && in_array($column, $descriptor->getForeignKey()->getLocalColumns(), true)) {
+                return $descriptor;
+            }
             if ($descriptor instanceof ScalarBeanPropertyDescriptor && $descriptor->getColumnName() === $column) {
                 return $descriptor;
             }
