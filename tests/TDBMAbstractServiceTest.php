@@ -458,8 +458,12 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('id')->integer()->primaryKey()->autoIncrement()
             ->column('base_object_id')->references('base_objects')->unique()->comment('@JsonCollection');
 
+        $db->table('composite_fk_target_reference')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('label')->string();
+
         $targetTable = $db->table('composite_fk_target')
-            ->column('id_1')->integer()
+            ->column('id_1')->references('composite_fk_target_reference')
             ->column('id_2')->integer()
             ->then()->primaryKey(['id_1', 'id_2']);
         $db->table('composite_fk_source')
@@ -799,6 +803,10 @@ abstract class TDBMAbstractServiceTest extends TestCase
         self::insert($connection, 'person_boats', [
             'person_id' => 1,
             'boat_id' => 1,
+        ]);
+        self::insert($connection, 'composite_fk_target_reference', [
+            'id' => 1,
+            'label' => 'test'
         ]);
         self::insert($connection, 'composite_fk_target', [
             'id_1' => 1,

@@ -258,14 +258,22 @@ PHP;
         $rows = [];
         foreach ($this->getForeignKey()->getUnquotedForeignColumns() as $column) {
             $descriptor = $this->getBeanPropertyDescriptor($column);
+            $shouldFlatten = false;
             if ($descriptor instanceof InheritanceReferencePropertyDescriptor) {
                 $descriptor = $descriptor->getNonScalarReferencedPropertyDescriptor();
+                $shouldFlatten = true;
             }
+
+            $indexName = ltrim($descriptor->getVariableName(), '$');
+            $columnGetterName = $descriptor->getGetterName();
             if ($descriptor instanceof ObjectBeanPropertyDescriptor) {
-                $rows[] = trim($descriptor->getLazySerializeCode($propertyAccess), '[]');
+                if ($shouldFlatten) {
+                    $rows[] = trim($descriptor->getLazySerializeCode($propertyAccess), '[]');
+                } else {
+                    $lazySerializeCode = $descriptor->getLazySerializeCode("$propertyAccess->$columnGetterName()");
+                    $rows[] = "'$indexName' => $lazySerializeCode";
+                }
             } elseif ($descriptor instanceof ScalarBeanPropertyDescriptor) {
-                $indexName = ltrim($descriptor->getVariableName(), '$');
-                $columnGetterName = $descriptor->getGetterName();
                 $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
             } else {
                 throw new TDBMException('PropertyDescriptor of class `' . get_class($descriptor) . '` cannot be serialized.');
@@ -278,6 +286,9 @@ PHP;
     {
         foreach ($this->foreignBeanDescriptor->getBeanPropertyDescriptors() as $descriptor) {
             if ($descriptor instanceof ScalarBeanPropertyDescriptor && $descriptor->getColumnName() === $column) {
+                return $descriptor;
+            }
+            if ($descriptor instanceof ObjectBeanPropertyDescriptor && in_array($column, $descriptor->getForeignKey()->getLocalColumns(), true)) {
                 return $descriptor;
             }
         }
