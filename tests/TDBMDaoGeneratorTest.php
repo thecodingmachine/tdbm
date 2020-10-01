@@ -2297,7 +2297,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $objects = $dao->testFindFromRawSQLOnInherited();
 
         $this->assertNotNull($objects->first());
-        $this->assertEquals(6, $objects->count());
+        $this->assertNotEquals(0, $objects->count());
     }
 
     public function testGeneratedColumnsAreNotPartOfTheConstructor(): void
