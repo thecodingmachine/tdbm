@@ -48,7 +48,7 @@ class ManyToManyRelationshipPathDescriptor
 
     public static function generateModelKey(ForeignKeyConstraint $remoteFk, ForeignKeyConstraint $localFk): string
     {
-        return $remoteFk->getLocalTableName().".".implode("__", $localFk->getUnquotedLocalColumns());
+        return $remoteFk->getLocalTableName() . "." . implode("__", $localFk->getUnquotedLocalColumns());
     }
 
     public function getPivotName(): string
@@ -68,19 +68,19 @@ class ManyToManyRelationshipPathDescriptor
 
         $join = [];
         foreach ($this->joinForeignKeys as $key => $column) {
-            $join[] = $mainTable.'.'.$column.' = pivot.'.$this->joinLocalKeys[$key];
+            $join[] = sprintf('%s.%s = %s.%s', $mainTable, $column, $pivotTable, $this->joinLocalKeys[$key]);
         }
 
-        return $mainTable.' JOIN '.$pivotTable.' pivot ON '.implode(' AND ', $join);
+        return $mainTable . ' JOIN ' . $pivotTable . ' ON ' . implode(' AND ', $join);
     }
 
     public function getPivotWhere(): string
     {
         $paramList = [];
         foreach ($this->whereKeys as $key => $column) {
-            $paramList[] = ' pivot.'.$column." = :param$key";
+            $paramList[] = sprintf('%s.%s = :param%s', $this->pivotTable, $column, $key);
         }
-        return implode(" AND ", $paramList);
+        return implode(' AND ', $paramList);
     }
 
     /**
@@ -91,7 +91,7 @@ class ManyToManyRelationshipPathDescriptor
     {
         $params = [];
         foreach ($primaryKeys as $key => $primaryKeyValue) {
-            $params["param$key"] = $primaryKeyValue;
+            $params['param' . $key] = $primaryKeyValue;
         }
         return $params;
     }
