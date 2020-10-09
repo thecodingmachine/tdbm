@@ -131,7 +131,7 @@ class OrderByAnalyzer
      */
     private function trimDirection(string $sql) : string
     {
-        preg_match('/^((.|\n)*)(\s+(DESC|ASC|))$/Ui', $sql, $matches);
+        preg_match('/^((.|\n)*)(\s+(DESC|ASC))?$/Ui', $sql, $matches);
 
         return $matches[1];
     }
