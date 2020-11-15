@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\DBAL\Driver\Mysqli\Driver as MySQLiDriver;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
@@ -2207,5 +2208,41 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->assertNotNull($objects->first());
         $this->assertEquals(6, $objects->count());
+    }
+
+    public function testMysqlStatementCount(): void
+    {
+        if (! $this->tdbmService->getConnection()->getDriver() instanceof MySQLiDriver) {
+            $this->markTestSkipped('This test only applies for MySQLi driver.');
+        }
+
+        $this->tdbmService->getConnection()->exec('set global max_prepared_stmt_count = 2;');
+        try {
+            $objectBaseDao = new BaseObjectDao($this->tdbmService);
+            $objectInheritedDao = new InheritedObjectDao($this->tdbmService);
+
+            $objectBase = new BaseObjectBean('label-1');
+            $objectBaseDao->save($objectBase);
+            $objectInherited = new InheritedObjectBean($objectBase);
+            $objectInheritedDao->save($objectInherited);
+
+            $objectBase = new BaseObjectBean('label-2');
+            $objectBaseDao->save($objectBase);
+            $objectInherited = new InheritedObjectBean($objectBase);
+            $objectInheritedDao->save($objectInherited);
+
+            $objectBase = new BaseObjectBean('label-3');
+            $objectBaseDao->save($objectBase);
+            $objectInherited = new InheritedObjectBean($objectBase);
+            $objectInheritedDao->save($objectInherited);
+
+            $objects = $objectBaseDao->findAll();
+            $this->assertGreaterThanOrEqual(3, $objects->count());
+            foreach ($objects->take(0, 1) as $objectBean) { $objectBean->getInheritedObject()->getId(); }
+            foreach ($objects->take(1, 2) as $objectBean) { $objectBean->getInheritedObject()->getId(); }
+            foreach ($objects->take(2, 3) as $objectBean) { $objectBean->getInheritedObject()->getId(); }
+        } finally {
+            $this->tdbmService->getConnection()->exec('set global max_prepared_stmt_count = 16382;');
+        }
     }
 }
