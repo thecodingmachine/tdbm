@@ -44,6 +44,7 @@ use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
 use Zend\Code\Generator\PropertyGenerator;
 use function implode;
+use function strtolower;
 use function var_export;
 
 /**
@@ -465,7 +466,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      */
     private function checkForDuplicate(MethodDescriptorInterface $descriptor): void
     {
-        $name = $descriptor->getName();
+        $name = strtolower($descriptor->getName());
         if (!isset($this->descriptorsByMethodName[$name])) {
             $this->descriptorsByMethodName[$name] = [];
         }
