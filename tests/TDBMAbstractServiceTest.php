@@ -418,6 +418,17 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('id')->integer()->primaryKey()->autoIncrement()
             ->column('id_parent_society')->references('inheritance_society');
 
+        // Uppercase table and column names:
+        $db->table('UPPERCASE_A')
+            ->column('id')->integer()->primaryKey()->autoIncrement();
+
+        $db->table('UPPERCASE_B')
+            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('UNIQUE_UPPERCASE_A_ID')->references('UPPERCASE_A')->unique();
+
+        $db->table('UPPERCASE_A')
+            ->column('UPPERCASE_B_ID')->references('UPPERCASE_B');
+
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
