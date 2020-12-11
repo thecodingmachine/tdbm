@@ -470,9 +470,17 @@ class BeanDescriptor implements BeanDescriptorInterface
             $this->descriptorsByMethodName[$name] = [];
         }
         $this->descriptorsByMethodName[$name][] = $descriptor;
-        if (count($this->descriptorsByMethodName[$name]) > 1) {
-            foreach ($this->descriptorsByMethodName[$name] as $duplicateDescriptor) {
-                $duplicateDescriptor->useAlternativeName();
+        $descriptors = $this->descriptorsByMethodName[$name];
+        if (count($descriptors) > 1) {
+            $properties = array_filter($descriptors, function ($descriptor) {
+                return $descriptor instanceof AbstractBeanPropertyDescriptor;
+            });
+            $renameProperties = count($properties) > 1;
+
+            foreach ($descriptors as $descriptor) {
+                if ($renameProperties || !$descriptor instanceof AbstractBeanPropertyDescriptor) {
+                    $descriptor->useAlternativeName();
+                }
             }
         }
     }
