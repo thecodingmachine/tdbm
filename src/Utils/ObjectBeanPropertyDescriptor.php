@@ -292,7 +292,7 @@ PHP;
             if ($descriptor instanceof ScalarBeanPropertyDescriptor && $descriptor->getColumnName() === $column) {
                 return $descriptor;
             }
-            if ($descriptor instanceof ObjectBeanPropertyDescriptor && in_array($column, $descriptor->getForeignKey()->getLocalColumns(), true)) {
+            if ($descriptor instanceof ObjectBeanPropertyDescriptor && in_array($column, $descriptor->getForeignKey()->getUnquotedLocalColumns(), true)) {
                 return $descriptor;
             }
         }

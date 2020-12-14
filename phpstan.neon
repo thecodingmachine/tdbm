@@ -11,7 +11,6 @@ parameters:
      - "#expects TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject, object given.#"
      - "#should return array<TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject> but returns array<int, object>#"
      #- "#expects array<string>, array<int, int|string> given.#"
-     - "/Parameter #. \\$types of method Doctrine\\\\DBAL\\\\Connection::.*() expects array<int\\|string>, array<int, Doctrine\\\\DBAL\\\\Types\\\\Type> given./"
      - '#Method TheCodingMachine\\TDBM\\NativeWeakrefObjectStorage::get\(\) should return TheCodingMachine\\TDBM\\DbRow\|null but returns object\|null.#'
      - '#Method TheCodingMachine\\TDBM\\QueryFactory\\AbstractQueryFactory::.* should return string but returns string\|null.#'
      -
