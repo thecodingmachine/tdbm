@@ -68,7 +68,7 @@ abstract class AbstractBeanPropertyDescriptor implements MethodDescriptorInterfa
      */
     public function getParamAnnotation(): ParamTag
     {
-        return new ParamTag($this->getVariableName(), [ $this->getPhpType() ]);
+        return new ParamTag($this->getSafeVariableName(), [ $this->getPhpType() ]);
     }
 
     public function getVariableName(): string
