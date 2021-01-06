@@ -104,7 +104,60 @@ class TestController extends Controller
     {
         return $this->json($this->userDao->findAll());
    }
-}```
+}
+```
+
+### Supporting several databases
+<small>TDBM 5.2+</small>
+
+It is possible to plug TDBM to several databases.
+In this case, you will first want to declare several database connections in DBAL.
+
+For instance:
+
+**config/packages/doctrine.yaml**
+```yaml
+doctrine:
+    dbal:
+        default_connection: default
+        connections:
+            default:
+                # configure these for your database server
+                url: '%env(resolve:DATABASE_URL)%'
+                driver: 'pdo_mysql'
+                server_version: '5.7'
+                charset: utf8mb4
+            customer:
+                # configure these for your database server
+                url: '%env(resolve:DATABASE_CUSTOMER_URL)%'
+                driver: 'pdo_mysql'
+                server_version: '5.7'
+                charset: utf8mb4
+```
+
+Then, in TDBM, you will use these connections.
+
+**config/packages/tdbm.yaml**
+```yaml
+tdbm:
+    databases:
+        default:
+            bean_namespace: App\Beans
+            dao_namespace: App\Daos
+        customer:
+            connection: doctrine.dbal.customer_connection
+            bean_namespace: App\Customer\Beans
+            dao_namespace: App\Customer\Daos
+```
+
+Notice how the "connection" key is pointing to the instance of DBAL connection you are targeting.
+
+Now, when you want to generate beans and Daos, you will have to target the correct database:
+
+```bash
+$ bin/console tdbm:generate           # targets the default database
+$ bin/console tdbm:generate:customer  # targets the "customer" database
+```
 
 Next step
 ---------
