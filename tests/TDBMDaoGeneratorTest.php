@@ -62,6 +62,8 @@ use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\ArticleBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\BoatBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\FileBaseBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\Generated\UserBaseBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\InheritanceAgencyBean;
+use TheCodingMachine\TDBM\Test\Dao\Bean\InheritanceSocietyBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\InheritedObjectBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\NodeBean;
 use TheCodingMachine\TDBM\Test\Dao\Bean\PersonBean;
@@ -78,6 +80,8 @@ use TheCodingMachine\TDBM\Test\Dao\CountryDao;
 use TheCodingMachine\TDBM\Test\Dao\DogDao;
 use TheCodingMachine\TDBM\Test\Dao\FileDao;
 use TheCodingMachine\TDBM\Test\Dao\Generated\UserBaseDao;
+use TheCodingMachine\TDBM\Test\Dao\InheritanceAgencyDao;
+use TheCodingMachine\TDBM\Test\Dao\InheritanceSocietyDao;
 use TheCodingMachine\TDBM\Test\Dao\InheritedObjectDao;
 use TheCodingMachine\TDBM\Test\Dao\NodeDao;
 use TheCodingMachine\TDBM\Test\Dao\PersonDao;
@@ -2207,5 +2211,16 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->assertNotNull($objects->first());
         $this->assertEquals(6, $objects->count());
+    }
+
+    public function testInheritanceFkWithDifferentPkName(): void
+    {
+        $inheritanceSocietyDao = new InheritanceSocietyDao($this->tdbmService);
+        $inheritanceAgencyDao = new InheritanceAgencyDao($this->tdbmService);
+        $society = new InheritanceSocietyBean('test');
+        $inheritanceSocietyDao->save($society);
+        $this->assertNotNull($society->getId());
+        $agency = new InheritanceAgencyBean($society);
+        $inheritanceAgencyDao->save($agency);
     }
 }
