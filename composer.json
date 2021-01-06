@@ -87,5 +87,8 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "archive": {
+        "exclude": ["/.github", "/tests", "/travis", "/vendor-bin", "/.*", "/composer-require-checker.json", "/couscous.yml", "/phpbench.*", "/phpstan.neon", "/phpunit.*"]
+    }
 }
