@@ -102,7 +102,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     public static function createEmpyIterator(): self
     {
-        $iterator = new self();
+        $iterator = new static();
         $iterator->totalCount = 0;
         $iterator->logger = new NullLogger();
         return $iterator;
