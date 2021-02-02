@@ -152,7 +152,7 @@ tdbm:
 
 Notice how the "connection" key is pointing to the instance of DBAL connection you are targeting.
 
-Last but not least, add your Beans And Daos in the exclude list of Symfony:
+Last but not least, add your Beans and Daos in the exclude list of Symfony:
 
 **config/services.yaml**
 ```yaml
