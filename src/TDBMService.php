@@ -1251,10 +1251,7 @@ class TDBMService
         try {
             return $this->findObjectOrFail($table, $primaryKeys, [], $additionalTablesFetch, $className);
         } catch (NoBeanFoundException $exception) {
-            $primaryKeysStringified = implode(' and ', array_map(function ($key, $value) {
-                return "'".$key."' = ".$value;
-            }, array_keys($primaryKeys), $primaryKeys));
-            throw new NoBeanFoundException("No result found for query on table '".$table."' for ".$primaryKeysStringified, 0, $exception);
+            throw NoBeanFoundException::missPrimaryKeyRecord($table, $primaryKeys, $this->getBeanClassName($table), $exception);
         }
     }
 
