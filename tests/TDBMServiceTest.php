@@ -625,10 +625,10 @@ SQL;
 
     public function testFindObjectByPkException(): void
     {
-        try{
+        try {
             $bean = $this->tdbmService->findObjectByPk('contact', ['id' => -42], [], false, TDBMObject::class);
             $this->assertEquals(true, false);
-        }catch (NoBeanFoundException $exception){
+        } catch (NoBeanFoundException $exception) {
             $this->assertEquals($exception->getMessage(), "No result found for query on table 'contact' for 'id' = -42");
             $this->assertEquals($exception->getPrimaryKeys(), ['id' => -42]);
             $this->assertEquals($exception->getTableName(), 'contact');
