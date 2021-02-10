@@ -1377,7 +1377,7 @@ class TDBMService
     {
         $bean = $this->findObject($mainTable, $filter, $parameters, $additionalTablesFetch, $className);
         if ($bean === null) {
-            throw new NoBeanFoundException("No result found for query on table '".$mainTable."'");
+            throw NoBeanFoundException::missFilterRecord($mainTable);
         }
 
         return $bean;

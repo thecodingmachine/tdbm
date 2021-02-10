@@ -3,21 +3,37 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
+use Exception;
+
 /**
  * An exception thrown if no rows are returned when TDBMService->findObjectOrFail is called.
  */
 class NoBeanFoundException extends TDBMException
 {
 
-    private string $tableName;
-    private string $className;
+    /**
+     * @var string
+     */
+    private $tableName;
+
+    /**
+     * @var string
+     */
+    private $className;
 
     /**
      * @var string[]
      */
-    private array $primaryKeys;
+    private $primaryKeys;
 
-    public static function missPrimaryKeyRecord(string $tableName, array $primaryKeys, string $className, $previous) : self
+    /**
+     * @param string $tableName
+     * @param string[] $primaryKeys
+     * @param string $className
+     * @param Exception $previous
+     * @return NoBeanFoundException
+     */
+    public static function missPrimaryKeyRecord(string $tableName, array $primaryKeys, string $className, Exception $previous) : self
     {
         $primaryKeysStringified = implode(' and ', array_map(function ($key, $value) {
             return "'".$key."' = ".$value;
@@ -58,5 +74,4 @@ class NoBeanFoundException extends TDBMException
     {
         return $this->primaryKeys;
     }
-
 }
