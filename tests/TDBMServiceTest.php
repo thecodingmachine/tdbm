@@ -23,6 +23,7 @@ namespace TheCodingMachine\TDBM;
 
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
+use TheCodingMachine\TDBM\Test\Dao\Bean\ContactBean;
 use Wa72\SimpleLogger\ArrayLogger;
 
 class TDBMServiceTest extends TDBMAbstractServiceTest
@@ -622,14 +623,17 @@ SQL;
         $bean = $this->tdbmService->findObjectOrFail('contact', 'contact.id = :id', ['id' => -42], [], TDBMObject::class);
     }
 
-    /**
-     * @throws NoBeanFoundException
-     */
     public function testFindObjectByPkException(): void
     {
-        $this->expectException(NoBeanFoundException::class);
-        $this->expectExceptionMessage("No result found for query on table 'contact' for 'id' = -42");
-        $bean = $this->tdbmService->findObjectByPk('contact', ['id' => -42], [], false, TDBMObject::class);
+        try {
+            $bean = $this->tdbmService->findObjectByPk('contact', ['id' => -42], [], false, TDBMObject::class);
+            $this->assertEquals(true, false);
+        } catch (NoBeanFoundException $exception) {
+            $this->assertEquals($exception->getMessage(), "No result found for query on table 'contact' for 'id' = -42");
+            $this->assertEquals($exception->getPrimaryKeys(), ['id' => -42]);
+            $this->assertEquals($exception->getTableName(), 'contact');
+            $this->assertEquals($exception->getClassName(), ContactBean::class);
+        }
     }
 
     /**
