@@ -152,6 +152,19 @@ tdbm:
 
 Notice how the "connection" key is pointing to the instance of DBAL connection you are targeting.
 
+Last but not least, add your Beans and Daos in the exclude list of Symfony:
+
+**config/services.yaml**
+```yaml
+App\:
+    resource: '../src/*'
+    exclude:
+        - '../src/{Beans,Daos}'
+        - '../src/Customer/{Beans,Daos}'
+```
+
+Indeed, Symfony overrides the TDBM bundle auto-wiring in its container; the DAOs not using the DBAL default connection won't be able to use the correct DBAL connection otherwise.
+
 Now, when you want to generate beans and Daos, you will have to target the correct database:
 
 ```bash
