@@ -1276,7 +1276,6 @@ EOF
     private function generateFindByDaoCodeForIndex(Index $index, string $beanNamespace, string $beanClassName): ?MethodGenerator
     {
         $columns = $index->getColumns();
-        $usedBeans = [];
 
         /**
          * The list of elements building this index (expressed as columns or foreign keys)
@@ -1302,41 +1301,25 @@ EOF
         }
 
         $parameters = [];
-        //$functionParameters = [];
         $first = true;
         /** @var AbstractBeanPropertyDescriptor $element */
         foreach ($elements as $element) {
             $parameter = new ParameterGenerator(ltrim($element->getSafeVariableName(), '$'));
             if (!$first && !($element->isCompulsory() && $index->isUnique())) {
                 $parameterType = '?';
-            //$functionParameter = '?';
             } else {
                 $parameterType = '';
-                //$functionParameter = '';
             }
             $parameterType .= $element->getPhpType();
             $parameter->setType($parameterType);
             if (!$first && !($element->isCompulsory() && $index->isUnique())) {
                 $parameter->setDefaultValue(null);
             }
-            //$functionParameter .= $element->getPhpType();
-            $elementClassName = $element->getClassName();
-            if ($elementClassName) {
-                $usedBeans[] = $beanNamespace.'\\'.$elementClassName;
-            }
-            //$functionParameter .= ' '.$element->getVariableName();
             if ($first) {
                 $first = false;
-            } /*else {
-                $functionParameter .= ' = null';
-            }*/
-            //$functionParameters[] = $functionParameter;
+            }
             $parameters[] = $parameter;
         }
-
-        //$functionParametersString = implode(', ', $functionParameters);
-
-        $count = 0;
 
         $params = [];
         $filterArrayCode = '';
@@ -1359,12 +1342,11 @@ EOF
             } elseif ($element instanceof ObjectBeanPropertyDescriptor) {
                 $foreignKey = $element->getForeignKey();
                 $columns = SafeFunctions::arrayCombine($foreignKey->getUnquotedLocalColumns(), $foreignKey->getUnquotedForeignColumns());
-                ++$count;
                 $foreignTable = $this->schema->getTable($foreignKey->getForeignTableName());
                 foreach ($columns as $localColumn => $foreignColumn) {
                     // TODO: a foreign key could point to another foreign key. In this case, there is no getter for the pointed column. We don't support this case.
                     $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy, $this->annotationParser);
-                    if ($first || $element->isCompulsory() && $index->isUnique()) {
+                    if ($first || ($element->isCompulsory() && $index->isUnique())) {
                         // First parameter for index is not nullable
                         $filterArrayCode .= '            '.var_export($localColumn, true).' => '.$element->getSafeVariableName().'->'.$targetedElement->getGetterName()."(),\n";
                     } else {
@@ -1378,9 +1360,6 @@ EOF
                 $first = false;
             }
         }
-
-        //$paramsString = implode("\n", $params);
-
 
         $methodName = $this->namingStrategy->getFindByIndexMethodName($index, $elements);
 
@@ -1460,7 +1439,11 @@ return $tables;', var_export($this->table->getName(), true));
         foreach ($relationships as $relationship) {
             if ($relationship instanceof ObjectBeanPropertyDescriptor) {
                 $tdbmFk = ForeignKey::createFromFk($relationship->getForeignKey());
-                $code .= '$this->setRef('.var_export($tdbmFk->getCacheKey(), true).', null, '.var_export($this->table->getName(), true).");\n";
+                $code .= sprintf(
+                    "\$this->setRef(%s, null, %s);\n",
+                    var_export($tdbmFk->getCacheKey(), true),
+                    var_export($this->table->getName(), true)
+                );
             }
         }
 
@@ -1679,10 +1662,21 @@ return $tables;', var_export($this->table->getName(), true));
 
         foreach ($fks as $fk) {
             $tdbmFk = ForeignKey::createFromFk($fk);
+
+            // Override column name in case of inheritance
+            $foreignTableName = $fk->getForeignTableName();
+            $foreignColumns = $fk->getUnquotedForeignColumns();
+            foreach ($foreignColumns as $key => $foreignColumn) {
+                $descriptor = $this->findScalarPropertyDescriptorInTable($foreignTableName, $foreignColumn);
+                if ($descriptor instanceof InheritanceReferencePropertyDescriptor) {
+                    $foreignColumns[$key] = $this->foreignColumnNameInInheritance($descriptor, $foreignColumn);
+                }
+            }
+
             $fkArray[$tdbmFk->getCacheKey()] = [
                 ForeignKey::FOREIGN_TABLE => $fk->getForeignTableName(),
                 ForeignKey::LOCAL_COLUMNS => $fk->getUnquotedLocalColumns(),
-                ForeignKey::FOREIGN_COLUMNS => $fk->getUnquotedForeignColumns(),
+                ForeignKey::FOREIGN_COLUMNS => $foreignColumns,
             ];
         }
 
@@ -1716,6 +1710,39 @@ EOF;
         $method->setBody($code);
 
         return $method;
+    }
+
+    private function findScalarPropertyDescriptorInTable(string $tableName, string $columnName): ?ScalarBeanPropertyDescriptor
+    {
+        $beanDescriptor = $this->registry->getBeanForTableName($tableName);
+        foreach ($beanDescriptor->getBeanPropertyDescriptors() as $descriptor) {
+            if ($descriptor instanceof ScalarBeanPropertyDescriptor && $descriptor->getColumnName() === $columnName) {
+                return $descriptor;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Extract the foreign column name from a InheritanceReferencePropertyDescriptor
+     */
+    private function foreignColumnNameInInheritance(InheritanceReferencePropertyDescriptor $descriptor, string $column): string
+    {
+        $nonReferenceDescriptor = $descriptor->getNonScalarReferencedPropertyDescriptor();
+        if ($nonReferenceDescriptor instanceof ScalarBeanPropertyDescriptor) {
+            return $nonReferenceDescriptor->getColumnName();
+        }
+        if ($nonReferenceDescriptor instanceof ObjectBeanPropertyDescriptor) {
+            $foreignKey = $nonReferenceDescriptor->getForeignKey();
+            $localColumns = $foreignKey->getLocalColumns();
+            $foreignColumns = $foreignKey->getForeignColumns();
+            foreach ($localColumns as $key => $localColumn) {
+                if ($localColumn === $column) {
+                    return $foreignColumns[$key];
+                }
+            }
+        }
+        return $column;
     }
 
     /**
