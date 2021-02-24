@@ -895,7 +895,7 @@ EOF;
                 'getById',
                 $parameters,
                 MethodGenerator::FLAG_PUBLIC,
-                "return \$this->tdbmService->findObjectByPk('$tableName', [" . implode(', ', $primaryKeyFilter) . "], [], \$$lazyLoadingParameterName);",
+                "return \$this->tdbmService->findObjectByPk('$tableName', [" . implode(', ', $primaryKeyFilter) . "], [], \$$lazyLoadingParameterName, '\\$beanClassName');",
                 (new DocBlockGenerator(
                     "Get $beanClassWithoutNameSpace specified by its ID (its primary key).",
                     'If the primary key does not exist, an exception is thrown.',
