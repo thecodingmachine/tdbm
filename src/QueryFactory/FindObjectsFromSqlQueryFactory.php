@@ -24,7 +24,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
     private $cachePrefix;
     private $schemaAnalyzer;
 
-    public function __construct(string $mainTable, string $from, $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, SchemaAnalyzer $schemaAnalyzer, Cache $cache, string $cachePrefix)
+    public function __construct(string $mainTable, string $from, string $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, SchemaAnalyzer $schemaAnalyzer, Cache $cache, string $cachePrefix)
     {
         parent::__construct($tdbmService, $schema, $orderByAnalyzer, $mainTable, $orderBy);
         $this->from = $from;

@@ -32,22 +32,31 @@ use Psr\Log\NullLogger;
  */
 class PageIterator implements Page, \ArrayAccess, \JsonSerializable
 {
-    /**
-     * @var Statement
-     */
+    /** @var Statement */
     protected $statement;
 
+    /** @var bool */
     protected $fetchStarted = false;
+    /** @var ObjectStorageInterface */
     private $objectStorage;
+    /** @var string|null */
     private $className;
 
+    /** @var ResultIterator */
     private $parentResult;
+    /** @var TDBMService */
     private $tdbmService;
+    /** @var string */
     private $magicSql;
+    /** @var mixed[] */
     private $parameters;
+    /** @var int|null */
     private $limit;
+    /** @var int|null */
     private $offset;
+    /** @var array[] */
     private $columnDescriptors;
+    /** @var MagicQuery */
     private $magicQuery;
 
     /**
@@ -57,15 +66,16 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      */
     protected $key = -1;
 
+    /** @var AbstractTDBMObject|null */
     protected $current;
 
+    /** @var InnerResultIteratorInterface */
     private $innerResultIterator;
 
+    /** @var int */
     private $mode;
 
-    /**
-     * @var LoggerInterface
-     */
+    /** @var LoggerInterface */
     private $logger;
 
     private function __construct()
@@ -78,7 +88,7 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      */
     public static function createResultIterator(ResultIterator $parentResult, string $magicSql, array $parameters, int $limit, int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): self
     {
-        $iterator =  new self();
+        $iterator = new self();
         $iterator->parentResult = $parentResult;
         $iterator->magicSql = $magicSql;
         $iterator->objectStorage = $objectStorage;

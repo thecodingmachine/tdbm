@@ -26,7 +26,7 @@ class GenerateCommand extends Command
         $this->configuration = $configuration;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('tdbm:generate')
             ->setDescription('Generates DAOs and beans.')

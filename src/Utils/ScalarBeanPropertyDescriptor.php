@@ -105,14 +105,14 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
     private function getUuidAnnotation(): ?Annotation\UUID
     {
-        /** @var Annotation\UUID $annotation */
+        /** @var Annotation\UUID|null $annotation */
         $annotation = $this->getAnnotations()->findAnnotation(Annotation\UUID::class);
         return $annotation;
     }
 
     private function getAutoincrementAnnotation(): ?Annotation\Autoincrement
     {
-        /** @var Annotation\Autoincrement $annotation */
+        /** @var Annotation\Autoincrement|null $annotation */
         $annotation = $this->getAnnotations()->findAnnotation(Annotation\Autoincrement::class);
         return $annotation;
     }

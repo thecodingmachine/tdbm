@@ -633,7 +633,9 @@ EOF
 
         $interfaces = [ JsonSerializable::class ];
         foreach ($addInterfaceAnnotations as $annotation) {
-            $interfaces[] = $annotation->getName();
+            /** @phpstan-var class-string $className */
+            $className =  $annotation->getName();
+            $interfaces[] = $className;
         }
 
         $class->setImplementedInterfaces($interfaces);
@@ -798,7 +800,9 @@ EOF
 
         $interfaces = [];
         foreach ($addInterfaceOnDaoAnnotations as $annotation) {
-            $interfaces[] = $annotation->getName();
+            /** @phpstan-var class-string $className */
+            $className =  $annotation->getName();
+            $interfaces[] = $className;
         }
 
         $class->setImplementedInterfaces($interfaces);

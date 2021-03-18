@@ -46,11 +46,11 @@ abstract class AbstractQueryFactory implements QueryFactory
      * @var string|null
      */
     protected $magicSqlSubQuery;
+    /** @var array<string, array<string, mixed>>|null */
     protected $columnDescList;
+    /** @var array<int, array{table: string, column: string}>|null */
     protected $subQueryColumnDescList;
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $mainTable;
 
     /**

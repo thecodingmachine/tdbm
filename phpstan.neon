@@ -1,18 +1,18 @@
 parameters:
     level: 7
     inferPrivatePropertyTypeFromConstructor: true
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
     ignoreErrors:
      - "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
      - "#Method .*::.* should return .* but returns .*TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject#"
      - "#Method .*::.* should return .* but returns TheCodingMachine\\\\TDBM\\\\ResultIterator#"
      - '#Strict comparison using === between string and false will always evaluate to false.#'
-     - "#Array \\(array\\<TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject\\>\\) does not accept TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject\\|null.#"
      - "#Call to an undefined method object::#"
      - "#expects TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject, object given.#"
      - "#should return array<TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject> but returns array<int, object>#"
      #- "#expects array<string>, array<int, int|string> given.#"
      - '#Method TheCodingMachine\\TDBM\\NativeWeakrefObjectStorage::get\(\) should return TheCodingMachine\\TDBM\\DbRow\|null but returns object\|null.#'
-     - '#Method TheCodingMachine\\TDBM\\QueryFactory\\AbstractQueryFactory::.* should return string but returns string\|null.#'
      -
         message: '#WeakRef#'
         path: src/WeakrefObjectStorage.php
@@ -20,16 +20,7 @@ parameters:
         message: '#Result of && is always false.#'
         path: src/Test/Dao/Bean/Generated/ArticleBaseBean.php
      -
-        message: '#TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager::__construct\(\) does not call parent constructor from Doctrine\\DBAL\\Schema\\AbstractSchemaManager.#'
-        path: src/Schema/LockFileSchemaManager.php
-     -
-        message: '#is "array". Please provide a more specific .* annotation#'
-        path: src/Test/Dao/Bean/Generated/PlayerBaseBean.php
-     -
-        message: '#Parameter \#1 \$str of method Doctrine\\DBAL\\Platforms\\AbstractPlatform::quoteIdentifier\(\) expects string, string\|null given#'
-        path: src/ResultIterator.php
-     -
-        message: '#Strict comparison using === between int\\|string and null will always evaluate to false#'
+        message: '#Strict comparison using === between int\|string and null will always evaluate to false#'
         path: src/Utils/ScalarBeanPropertyDescriptor.php
     #reportUnmatchedIgnoredErrors: false
 includes:

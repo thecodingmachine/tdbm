@@ -553,29 +553,29 @@ class TDBMService
      *
      * @param string $tableName
      *
-     * @return string
+     * @return class-string
      */
     public function getBeanClassName(string $tableName) : string
     {
         if (isset($this->tableToBeanMap[$tableName])) {
             return $this->tableToBeanMap[$tableName];
-        } else {
-            $key = $this->cachePrefix.'_tableToBean_'.$tableName;
-            $cache = $this->cache->fetch($key);
-            if ($cache) {
-                return $cache;
-            }
-
-            $className = $this->beanNamespace.'\\'.$this->namingStrategy->getBeanClassName($tableName);
-
-            if (!class_exists($className)) {
-                throw new TDBMInvalidArgumentException(sprintf('Could not find class "%s". Does table "%s" exist? If yes, consider regenerating the DAOs and beans.', $className, $tableName));
-            }
-
-            $this->tableToBeanMap[$tableName] = $className;
-            $this->cache->save($key, $className);
-            return $className;
         }
+
+        $key = $this->cachePrefix.'_tableToBean_'.$tableName;
+        $cache = $this->cache->fetch($key);
+        if ($cache) {
+            return $cache;
+        }
+
+        $className = $this->beanNamespace.'\\'.$this->namingStrategy->getBeanClassName($tableName);
+
+        if (!class_exists($className)) {
+            throw new TDBMInvalidArgumentException(sprintf('Could not find class "%s". Does table "%s" exist? If yes, consider regenerating the DAOs and beans.', $className, $tableName));
+        }
+
+        $this->tableToBeanMap[$tableName] = $className;
+        $this->cache->save($key, $className);
+        return $className;
     }
 
     /**
@@ -1199,7 +1199,7 @@ class TDBMService
      * @param mixed[] $primaryKeys
      * @param string[] $additionalTablesFetch
      * @param bool $lazy Whether to perform lazy loading on this object or not
-     * @param string $className
+     * @phpstan-param  class-string|null $className
      *
      * @return AbstractTDBMObject
      *

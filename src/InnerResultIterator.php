@@ -3,11 +3,12 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
+use Doctrine\DBAL\Driver\ResultStatement;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use TheCodingMachine\TDBM\Utils\DbalUtils;
 
 /*
@@ -33,21 +34,29 @@ use TheCodingMachine\TDBM\Utils\DbalUtils;
  */
 class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 {
-    /**
-     * @var Statement
-     */
+    /** @var ResultStatement|Statement */
     protected $statement;
 
+    /** @var bool */
     protected $fetchStarted = false;
+    /** @var ObjectStorageInterface */
     private $objectStorage;
+    /** @var string|null */
     private $className;
 
+    /** @var TDBMService */
     private $tdbmService;
+    /** @var string */
     private $magicSql;
+    /** @var mixed[] */
     private $parameters;
+    /** @var int|null */
     private $limit;
+    /** @var int|null */
     private $offset;
+    /** @var array[] */
     private $columnDescriptors;
+    /** @var MagicQuery */
     private $magicQuery;
 
     /**
@@ -57,18 +66,19 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      */
     protected $key = -1;
 
+    /** @var AbstractTDBMObject|null */
     protected $current = null;
 
+    /** @var AbstractPlatform */
     private $databasePlatform;
 
-    /**
-     * @var LoggerInterface
-     */
+    /** @var LoggerInterface */
     private $logger;
 
+    /** @var int|null */
     protected $count = null;
 
-    private function __construct()
+    final private function __construct()
     {
     }
 
@@ -78,7 +88,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      */
     public static function createInnerResultIterator(string $magicSql, array $parameters, ?int $limit, ?int $offset, array $columnDescriptors, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, LoggerInterface $logger): self
     {
-        $iterator =  new static();
+        $iterator = new static();
         $iterator->magicSql = $magicSql;
         $iterator->objectStorage = $objectStorage;
         $iterator->className = $className;
@@ -124,6 +134,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
         if ($this->fetchStarted && $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             // Optimisation: we don't need a separate "count" SQL request in MySQL.
+            assert($this->statement instanceof Statement);
             $this->count = $this->statement->rowCount();
             return $this->count;
         }
@@ -173,7 +184,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
         $row = $this->statement->fetch(\PDO::FETCH_ASSOC);
         if ($row) {
 
-            // array<tablegroup, array<table, array<column, value>>>
+            /** @var array<string, array<string, array<string, mixed>>> $beansData array<tablegroup, array<table, array<column, value>>>*/
             $beansData = [];
             $allNull = true;
             foreach ($row as $key => $value) {
@@ -203,6 +214,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
             $reflectionClassCache = [];
             $firstBean = true;
+            /** @var array<string, array<string, mixed>> $beanData */
             foreach ($beansData as $beanData) {
 
                 // Let's find the bean class name associated to the bean.
@@ -236,6 +248,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
                         $reflectionClassCache[$actualClassName] = new \ReflectionClass($actualClassName);
                     }
                     // Let's bypass the constructor when creating the bean!
+                    /** @var AbstractTDBMObject $bean */
                     $bean = $reflectionClassCache[$actualClassName]->newInstanceWithoutConstructor();
                     $bean->_constructFromData($beanData, $this->tdbmService);
                 }

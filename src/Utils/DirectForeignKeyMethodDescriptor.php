@@ -23,23 +23,16 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
 {
     use ForeignKeyAnalyzerTrait;
 
-    /**
-     * @var ForeignKeyConstraint
-     */
+    /** @var ForeignKeyConstraint */
     private $foreignKey;
 
+    /** @var bool */
     private $useAlternateName = false;
-    /**
-     * @var Table
-     */
+    /** @var Table */
     private $mainTable;
-    /**
-     * @var NamingStrategyInterface
-     */
+    /** @var NamingStrategyInterface */
     private $namingStrategy;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $beanNamespace;
 
     /**
@@ -182,6 +175,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
         return $parametersCode;
     }
 
+    /** @var bool|null */
     private $hasLocalUniqueIndex;
     /**
      * Check if the ForeignKey have an unique index

@@ -276,7 +276,7 @@ class LockFileSchemaManager extends AbstractSchemaManager
 
     protected function _getPortableSequenceDefinition($sequence)
     {
-        $this->schemaManager->_getPortableSequenceDefinition($sequence);
+        return $this->schemaManager->_getPortableSequenceDefinition($sequence);
     }
 
     protected function _getPortableTableColumnList($table, $database, $tableColumns)

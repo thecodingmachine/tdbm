@@ -20,46 +20,29 @@ use function var_export;
 
 class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterface
 {
-    /**
-     * @var Table
-     */
+    /** @var Table */
     private $pivotTable;
 
+    /** @var bool */
     private $useAlternateName = false;
 
-    /**
-     * @var ForeignKeyConstraint
-     */
+    /** @var ForeignKeyConstraint */
     private $localFk;
 
-    /**
-     * @var ForeignKeyConstraint
-     */
+    /** @var ForeignKeyConstraint */
     private $remoteFk;
-    /**
-     * @var NamingStrategyInterface
-     */
+    /** @var NamingStrategyInterface */
     private $namingStrategy;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $beanNamespace;
-    /**
-     * @var AnnotationParser
-     */
+    /** @var AnnotationParser */
     private $annotationParser;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $localAnnotations;
-    /**
-     * @var array
-     */
+    /** @var array */
     private $remoteAnnotations;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $pathKey;
 
     /**
