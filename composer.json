@@ -33,7 +33,7 @@
         "symfony/filesystem": "^2.7 || ^3 || ^4 || ^5",
         "ramsey/uuid": "^3.7 || ^4.0",
         "doctrine/annotations": "^1.10",
-        "zendframework/zend-code": "^3.4",
+        "laminas/laminas-code": "^4.0",
         "psr/container": "^1",
         "brain-diminished/schema-version-control": "dev-master",
         "ext-PDO": "*",

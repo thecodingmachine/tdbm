@@ -11,14 +11,14 @@ use Doctrine\Inflector\InflectorFactory;
 use Psr\Container\ContainerInterface;
 use TheCodingMachine\TDBM\Schema\ForeignKeys;
 use TheCodingMachine\TDBM\TDBMService;
-use Zend\Code\Generator\AbstractMemberGenerator;
-use Zend\Code\Generator\ClassGenerator;
-use Zend\Code\Generator\DocBlock\Tag\VarTag;
-use Zend\Code\Generator\DocBlockGenerator;
-use Zend\Code\Generator\FileGenerator;
-use Zend\Code\Generator\MethodGenerator;
-use Zend\Code\Generator\ParameterGenerator;
-use Zend\Code\Generator\PropertyGenerator;
+use Laminas\Code\Generator\AbstractMemberGenerator;
+use Laminas\Code\Generator\ClassGenerator;
+use Laminas\Code\Generator\DocBlock\Tag\VarTag;
+use Laminas\Code\Generator\DocBlockGenerator;
+use Laminas\Code\Generator\FileGenerator;
+use Laminas\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\ParameterGenerator;
+use Laminas\Code\Generator\PropertyGenerator;
 use function str_replace;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 use TheCodingMachine\TDBM\TDBMException;
@@ -273,17 +273,8 @@ class $className extends $baseClassName
      */
     private function psr2Fix(string $content): string
     {
-        return str_replace(
-            [
-                "\n\n}\n",
-                "{\n\n    use",
-            ],
-            [
-                '}',
-                "{\n    use",
-            ],
-            $content
-        );
+        // Removes the extra blank line at the end (before: `\n\n`, after: `\n`)
+        return rtrim($content, PHP_EOL) . PHP_EOL;
     }
 
     /**
@@ -559,7 +550,7 @@ BODY;
             Type::GUID => 'string',
         ];
 
-        return isset($map[$type->getName()]) ? $map[$type->getName()] : $type->getName();
+        return $map[$type->getName()] ?? $type->getName();
     }
 
     /**
