@@ -184,13 +184,7 @@ class TDBMService
      */
     public function __construct(ConfigurationInterface $configuration)
     {
-        if (class_exists(WeakReference::class)) {
-            $this->objectStorage = new NativeWeakrefObjectStorage();
-        } elseif (extension_loaded('weakref')) {
-            $this->objectStorage = new WeakrefObjectStorage();
-        } else {
-            $this->objectStorage = new StandardObjectStorage();
-        }
+        $this->objectStorage = new NativeWeakrefObjectStorage();
         $this->connection = $configuration->getConnection();
         $this->cache = $configuration->getCache();
         $this->schemaAnalyzer = $configuration->getSchemaAnalyzer();

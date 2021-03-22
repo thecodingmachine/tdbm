@@ -18,7 +18,7 @@
         }
     ],
     "require" : {
-        "php" : "^7.2 || ^8.0",
+        "php" : "^7.4 || ^8.0",
         "mouf/magic-query" : "^1.4.3",
         "mouf/schema-analyzer": "^1.1.4",
         "doctrine/dbal": "^2.9.2",
@@ -57,9 +57,6 @@
     "conflict": {
         "mouf/database.tdbm": "~5.0.0"
     },
-    "suggest" : {
-        "ext/weakref" : "Allows efficient memory management (in PHP 7.2 only). Useful for batches."
-    },
     "autoload" : {
         "psr-4" : {
             "TheCodingMachine\\TDBM\\" : "src/"
@@ -83,7 +80,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "5.2.x-dev"
+            "dev-master": "5.3.x-dev"
         }
     },
     "minimum-stability": "dev",

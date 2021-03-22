@@ -26,7 +26,6 @@ use WeakReference;
 /**
  * The NativeWeakrefObjectStorage class is used to reference all beans that have been fetched from the database.
  * If a bean is requested twice from TDBM, the NativeWeakrefObjectStorage is used to "cache" the bean.
- * Unlike the StandardObjectStorage, the NativeWeakrefObjectStorage manages memory in a clever way, using WeakReference.
  * WeakReference have been added in PHP 7.4.
  *
  * @author David Negrier

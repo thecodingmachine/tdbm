@@ -14,9 +14,6 @@ parameters:
      #- "#expects array<string>, array<int, int|string> given.#"
      - '#Method TheCodingMachine\\TDBM\\NativeWeakrefObjectStorage::get\(\) should return TheCodingMachine\\TDBM\\DbRow\|null but returns object\|null.#'
      -
-        message: '#WeakRef#'
-        path: src/WeakrefObjectStorage.php
-     -
         message: '#Result of && is always false.#'
         path: src/Test/Dao/Bean/Generated/ArticleBaseBean.php
      -
