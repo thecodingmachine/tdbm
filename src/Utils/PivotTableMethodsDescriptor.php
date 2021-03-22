@@ -61,6 +61,10 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
      * @var string
      */
     private $pathKey;
+    /**
+     * @var string
+     */
+    private $resultIteratorNamespace;
 
     /**
      * @param Table $pivotTable The pivot table
@@ -68,14 +72,22 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
      * @param ForeignKeyConstraint $remoteFk
      * @param NamingStrategyInterface $namingStrategy
      */
-    public function __construct(Table $pivotTable, ForeignKeyConstraint $localFk, ForeignKeyConstraint $remoteFk, NamingStrategyInterface $namingStrategy, string $beanNamespace, AnnotationParser $annotationParser)
-    {
+    public function __construct(
+        Table $pivotTable,
+        ForeignKeyConstraint $localFk,
+        ForeignKeyConstraint $remoteFk,
+        NamingStrategyInterface $namingStrategy,
+        AnnotationParser $annotationParser,
+        string $beanNamespace,
+        string $resultIteratorNamespace
+    ) {
         $this->pivotTable = $pivotTable;
         $this->localFk = $localFk;
         $this->remoteFk = $remoteFk;
         $this->namingStrategy = $namingStrategy;
-        $this->beanNamespace = $beanNamespace;
         $this->annotationParser = $annotationParser;
+        $this->beanNamespace = $beanNamespace;
+        $this->resultIteratorNamespace = $resultIteratorNamespace;
 
         $this->pathKey = ManyToManyRelationshipPathDescriptor::generateModelKey($this->remoteFk, $this->localFk);
     }
@@ -106,6 +118,16 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
     public function getBeanClassName(): string
     {
         return $this->namingStrategy->getBeanClassName($this->remoteFk->getForeignTableName());
+    }
+
+    /**
+     * Returns the name of the class that will be returned by the getter (short name).
+     *
+     * @return string
+     */
+    public function getResultIteratorClassName(): string
+    {
+        return $this->namingStrategy->getResultIteratorClassName($this->remoteFk->getForeignTableName());
     }
 
     /**
@@ -155,12 +177,15 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
 
     public function getManyToManyRelationshipInstantiationCode(): string
     {
-        return 'new \TheCodingMachine\TDBM\Utils\ManyToManyRelationshipPathDescriptor('.var_export($this->remoteFk->getForeignTableName(), true).
-            ', '.var_export($this->remoteFk->getLocalTableName(), true).
-            ', '.$this->getArrayInlineCode($this->remoteFk->getUnquotedForeignColumns()).
-            ', '.$this->getArrayInlineCode($this->remoteFk->getUnquotedLocalColumns()).
-            ', '.$this->getArrayInlineCode($this->localFk->getUnquotedLocalColumns()).
-            ')';
+        return sprintf(
+            "new \\TheCodingMachine\\TDBM\\Utils\\ManyToManyRelationshipPathDescriptor(%s, %s, %s, %s, %s, %s)",
+            var_export($this->remoteFk->getForeignTableName(), true),
+            var_export($this->remoteFk->getLocalTableName(), true),
+            $this->getArrayInlineCode($this->remoteFk->getUnquotedForeignColumns()),
+            $this->getArrayInlineCode($this->remoteFk->getUnquotedLocalColumns()),
+            $this->getArrayInlineCode($this->localFk->getUnquotedLocalColumns()),
+            '\\' . $this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName() . '::class'
+        );
     }
 
     /**

@@ -313,7 +313,7 @@ class BeanDescriptor implements BeanDescriptorInterface
                         continue 2;
                     }
                 }
-                $propertyDescriptor = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser, $this->registry->getBeanForTableName($fk->getForeignTableName()));
+                $propertyDescriptor = new ObjectBeanPropertyDescriptor($table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser, $this->registry->getBeanForTableName($fk->getForeignTableName()), $this->resultIteratorNamespace);
                 // Check that this property is not an inheritance relationship
                 $parentRelationship = $this->schemaAnalyzer->getParentRelationship($table->getName());
                 if ($parentRelationship !== null && $parentRelationship->getName() === $fk->getName()) {
@@ -421,7 +421,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         $descriptors = [];
 
         foreach ($fks as $fk) {
-            $desc = new DirectForeignKeyMethodDescriptor($fk, $this->table, $this->namingStrategy, $this->annotationParser, $this->beanNamespace);
+            $desc = new DirectForeignKeyMethodDescriptor($fk, $this->table, $this->namingStrategy, $this->annotationParser, $this->beanNamespace, $this->resultIteratorNamespace);
             $this->checkForDuplicate($desc);
             $descriptors[] = $desc;
         }
@@ -445,13 +445,13 @@ class BeanDescriptor implements BeanDescriptorInterface
 
             if ($fks[0]->getForeignTableName() === $this->table->getName()) {
                 list($localFk, $remoteFk) = $fks;
-                $desc = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
+                $desc = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->annotationParser, $this->beanNamespace, $this->resultIteratorNamespace);
                 $this->checkForDuplicate($desc);
                 $descs[] = $desc;
             }
             if ($fks[1]->getForeignTableName() === $this->table->getName()) {
                 list($remoteFk, $localFk) = $fks;
-                $desc = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser);
+                $desc = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->annotationParser, $this->beanNamespace, $this->resultIteratorNamespace);
                 $this->checkForDuplicate($desc);
                 $descs[] = $desc;
             }
@@ -765,6 +765,8 @@ EOF
         $baseClassName = $this->namingStrategy->getBaseDaoClassName($tableName);
         $beanClassWithoutNameSpace = $this->namingStrategy->getBeanClassName($tableName);
         $beanClassName = $this->beanNamespace.'\\'.$beanClassWithoutNameSpace;
+        $resultIteratorClassWithoutNameSpace = $this->getResultIteratorClassName();
+        $resultIteratorClass = $this->resultIteratorNamespace.'\\'.$resultIteratorClassWithoutNameSpace;
 
         $findByDaoCodeMethods = $this->generateFindByDaoCode($this->beanNamespace, $beanClassWithoutNameSpace, $class);
 
@@ -855,7 +857,7 @@ if (\$this->defaultSort) {
 } else {
     \$orderBy = null;
 }
-return \$this->tdbmService->findObjects('$tableName', null, [], \$orderBy, [], null, null, \\$this->resultIteratorNamespace\\{$this->getResultIteratorClassName()}::class);
+return \$this->tdbmService->findObjects('$tableName', null, [], \$orderBy, [], null, \\$beanClassName::class, \\$resultIteratorClass::class);
 EOF;
 
         $findAllMethod = new MethodGenerator(
@@ -865,7 +867,7 @@ EOF;
             $findAllBody,
             (new DocBlockGenerator("Get all $beanClassWithoutNameSpace records."))->setWordWrap(false)
         );
-        $findAllMethod->setReturnType($this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName());
+        $findAllMethod->setReturnType($resultIteratorClass);
         $findAllMethod = $this->codeGeneratorListener->onBaseDaoFindAllGenerated($findAllMethod, $this, $this->configuration, $class);
         if ($findAllMethod !== null) {
             $class->addMethodFromGenerator($findAllMethod);
@@ -895,7 +897,7 @@ EOF;
                 'getById',
                 $parameters,
                 MethodGenerator::FLAG_PUBLIC,
-                "return \$this->tdbmService->findObjectByPk('$tableName', [" . implode(', ', $primaryKeyFilter) . "], [], \$$lazyLoadingParameterName);",
+                "return \$this->tdbmService->findObjectByPk('$tableName', [" . implode(', ', $primaryKeyFilter) . "], [], \$$lazyLoadingParameterName, \\$beanClassName::class, \\$resultIteratorClass::class);",
                 (new DocBlockGenerator(
                     "Get $beanClassWithoutNameSpace specified by its ID (its primary key).",
                     'If the primary key does not exist, an exception is thrown.',
@@ -945,7 +947,7 @@ EOF;
 if (\$this->defaultSort && \$orderBy == null) {
     \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
 }
-return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderBy, \$additionalTablesFetch, \$mode, null, \\$this->resultIteratorNamespace\\{$this->getResultIteratorClassName()}::class);
+return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderBy, \$additionalTablesFetch, \$mode, \\$beanClassName::class, \\$resultIteratorClass::class);
 EOF;
 
 
@@ -972,7 +974,7 @@ EOF;
                 ]
             ))->setWordWrap(false)
         );
-        $findMethod->setReturnType($this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName());
+        $findMethod->setReturnType($resultIteratorClass);
         $findMethod = $this->codeGeneratorListener->onBaseDaoFindGenerated($findMethod, $this, $this->configuration, $class);
         if ($findMethod !== null) {
             $class->addMethodFromGenerator($findMethod);
@@ -982,7 +984,7 @@ EOF;
 if (\$this->defaultSort && \$orderBy == null) {
     \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
 }
-return \$this->tdbmService->findObjectsFromSql('$tableName', \$from, \$filter, \$parameters, \$orderBy, \$mode, null, \\$this->resultIteratorNamespace\\{$this->getResultIteratorClassName()}::class);
+return \$this->tdbmService->findObjectsFromSql('$tableName', \$from, \$filter, \$parameters, \$orderBy, \$mode, \\$beanClassName::class, \\$resultIteratorClass::class);
 EOF;
 
         $findFromSqlMethod = new MethodGenerator(
@@ -1014,14 +1016,14 @@ You should not put an alias on the main table name. So your \$from variable shou
                 ]
             ))->setWordWrap(false)
         );
-        $findFromSqlMethod->setReturnType($this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName());
+        $findFromSqlMethod->setReturnType($resultIteratorClass);
         $findFromSqlMethod = $this->codeGeneratorListener->onBaseDaoFindFromSqlGenerated($findFromSqlMethod, $this, $this->configuration, $class);
         if ($findFromSqlMethod !== null) {
             $class->addMethodFromGenerator($findFromSqlMethod);
         }
 
         $findFromRawSqlMethodBody = <<<EOF
-return \$this->tdbmService->findObjectsFromRawSql('$tableName', \$sql, \$parameters, \$mode, null, \$countSql, \\$this->resultIteratorNamespace\\{$this->getResultIteratorClassName()}::class);
+return \$this->tdbmService->findObjectsFromRawSql('$tableName', \$sql, \$parameters, \$mode, \\$beanClassName::class, \$countSql, \\$resultIteratorClass::class);
 EOF;
 
         $findFromRawSqlMethod = new MethodGenerator(
@@ -1049,14 +1051,14 @@ You should not put an alias on the main table name, and select its columns using
                 ]
             ))->setWordWrap(false)
         );
-        $findFromRawSqlMethod->setReturnType($this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName());
+        $findFromRawSqlMethod->setReturnType($resultIteratorClass);
         $findFromRawSqlMethod = $this->codeGeneratorListener->onBaseDaoFindFromRawSqlGenerated($findFromRawSqlMethod, $this, $this->configuration, $class);
         if ($findFromRawSqlMethod !== null) {
             $class->addMethodFromGenerator($findFromRawSqlMethod);
         }
 
         $findOneMethodBody = <<<EOF
-return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters, \$additionalTablesFetch);
+return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters, \$additionalTablesFetch, \\$beanClassName::class, \\$resultIteratorClass::class);
 EOF;
 
 
@@ -1087,7 +1089,7 @@ EOF;
         }
 
         $findOneFromSqlMethodBody = <<<EOF
-return \$this->tdbmService->findObjectFromSql('$tableName', \$from, \$filter, \$parameters);
+return \$this->tdbmService->findObjectFromSql('$tableName', \$from, \$filter, \$parameters, \\$beanClassName::class, \\$resultIteratorClass::class);
 EOF;
 
         $findOneFromSqlMethod = new MethodGenerator(
@@ -1164,6 +1166,7 @@ You should not put an alias on the main table name. So your \$from variable shou
 
         $tableName = $this->table->getName();
 
+        $classNameWithoutNamespace = $this->namingStrategy->getResultIteratorClassName($tableName);
         $className = $this->namingStrategy->getResultIteratorClassName($tableName);
         $baseClassName = $this->namingStrategy->getBaseResultIteratorClassName($tableName);
         $beanClassWithoutNameSpace = $this->namingStrategy->getBeanClassName($tableName);
@@ -1173,12 +1176,18 @@ You should not put an alias on the main table name. So your \$from variable shou
             <<<EOF
 This file has been automatically generated by TDBM.
 DO NOT edit this file, as it might be overwritten.
-If you need to perform changes, edit the $className class instead!
+If you need to perform changes, edit the $classNameWithoutNamespace class instead!
 EOF
         ));
-        $class->addUse(ResultIterator::class);
         $class->setName($baseClassName);
-        $class->setExtendedClass(ResultIterator::class);
+        $extends = $this->getExtendedResultIteratorClassName();
+        if ($extends === null) {
+            $class->addUse(ResultIterator::class);
+            $class->setExtendedClass(ResultIterator::class);
+        } else {
+            $class->addUse($this->resultIteratorNamespace . '\\' . $extends);
+            $class->setExtendedClass($extends);
+        }
 
         $class->setDocBlock((new DocBlockGenerator(
             "The $baseClassName class will iterate over results of $beanClassWithoutNameSpace class.",
@@ -1288,7 +1297,7 @@ EOF
             $fk = $this->isPartOfForeignKey($this->table, $this->table->getColumn($column));
             if ($fk !== null) {
                 if (!isset($elements[$fk->getName()])) {
-                    $elements[$fk->getName()] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser, $this->registry->getBeanForTableName($fk->getForeignTableName()));
+                    $elements[$fk->getName()] = new ObjectBeanPropertyDescriptor($this->table, $fk, $this->namingStrategy, $this->beanNamespace, $this->annotationParser, $this->registry->getBeanForTableName($fk->getForeignTableName()), $this->resultIteratorNamespace);
                 }
             } else {
                 $elements[] = new ScalarBeanPropertyDescriptor($this->table, $this->table->getColumn($column), $this->namingStrategy, $this->annotationParser);
@@ -1455,24 +1464,31 @@ return $tables;', var_export($this->table->getName(), true));
 
     private function generateOnDeleteCode(): ?MethodGenerator
     {
-        $code = '';
+        $setRefsToNullCode = ['parent::onDelete();'];
         $relationships = $this->getPropertiesForTable($this->table);
         foreach ($relationships as $relationship) {
             if ($relationship instanceof ObjectBeanPropertyDescriptor) {
                 $tdbmFk = ForeignKey::createFromFk($relationship->getForeignKey());
-                $code .= '$this->setRef('.var_export($tdbmFk->getCacheKey(), true).', null, '.var_export($this->table->getName(), true).");\n";
+                $foreignTableName = $tdbmFk->getForeignTableName();
+                $setRefsToNullCode[] = sprintf(
+                    '$this->setRef(%s, %s, %s, %s, %s);',
+                    var_export($tdbmFk->getCacheKey(), true),
+                    'null',
+                    var_export($this->table->getName(), true),
+                    '\\' . $this->beanNamespace . '\\' . $this->namingStrategy->getBeanClassName($foreignTableName) . '::class',
+                    '\\' . $this->resultIteratorNamespace . '\\' . $this->namingStrategy->getResultIteratorClassName($foreignTableName) . '::class'
+                );
             }
         }
 
-        if (!$code) {
+        if (count($setRefsToNullCode) === 1) {
             return null;
         }
 
         $method = new MethodGenerator('onDelete');
         $method->setDocBlock(new DocBlockGenerator('Method called when the bean is removed from database.'));
         $method->setReturnType('void');
-        $method->setBody('parent::onDelete();
-'.$code);
+        $method->setBody(implode(PHP_EOL, $setRefsToNullCode));
 
         return $method;
     }
@@ -1649,9 +1665,20 @@ return $tables;', var_export($this->table->getName(), true));
         $parentFk = $this->schemaAnalyzer->getParentRelationship($this->table->getName());
         if ($parentFk !== null) {
             return $this->namingStrategy->getBeanClassName($parentFk->getForeignTableName());
-        } else {
-            return null;
         }
+        return null;
+    }
+
+    /**
+     * Returns the extended result iterator class name (without the namespace), or null if the result iterator is not extended.
+     */
+    public function getExtendedResultIteratorClassName(): ?string
+    {
+        $parentFk = $this->schemaAnalyzer->getParentRelationship($this->table->getName());
+        if ($parentFk !== null) {
+            return $this->namingStrategy->getResultIteratorClassName($parentFk->getForeignTableName());
+        }
+        return null;
     }
 
     /**

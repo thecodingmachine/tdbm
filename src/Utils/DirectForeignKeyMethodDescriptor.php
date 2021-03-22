@@ -41,6 +41,10 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
      * @var string
      */
     private $beanNamespace;
+    /**
+     * @var string
+     */
+    private $resultIteratorNamespace;
 
     /**
      * @param ForeignKeyConstraint $fk The foreign key pointing to our bean
@@ -54,13 +58,15 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
         Table $mainTable,
         NamingStrategyInterface $namingStrategy,
         AnnotationParser $annotationParser,
-        string $beanNamespace
+        string $beanNamespace,
+        string $resultIteratorNamespace
     ) {
         $this->foreignKey = $fk;
         $this->mainTable = $mainTable;
         $this->namingStrategy = $namingStrategy;
         $this->annotationParser = $annotationParser;
         $this->beanNamespace = $beanNamespace;
+        $this->resultIteratorNamespace = $resultIteratorNamespace;
     }
 
     /**
@@ -108,6 +114,16 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
     }
 
     /**
+     * Returns the name of the class that will be returned by the getter (short name).
+     *
+     * @return string
+     */
+    public function getResultIteratorClassName(): string
+    {
+        return $this->namingStrategy->getResultIteratorClassName($this->foreignKey->getLocalTableName());
+    }
+
+    /**
      * Requests the use of an alternative name for this method.
      */
     public function useAlternativeName(): void
@@ -136,10 +152,11 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
             $getter->setReturnType('?' . $classType);
 
             $code = sprintf(
-                'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s)->first();',
+                'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s, null, %s)->first();',
                 var_export($this->foreignKey->getLocalTableName(), true),
                 var_export($tdbmFk->getCacheKey(), true),
-                $this->getFilters($this->foreignKey)
+                $this->getFilters($this->foreignKey),
+                '\\' . $this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName() .'::class'
             );
         } else {
             $getterDocBlock = new DocBlockGenerator(sprintf('Returns the list of %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
@@ -149,10 +166,11 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
             $getter->setReturnType(AlterableResultIterator::class);
 
             $code = sprintf(
-                'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s);',
+                'return $this->retrieveManyToOneRelationshipsStorage(%s, %s, %s, null, %s);',
                 var_export($this->foreignKey->getLocalTableName(), true),
                 var_export($tdbmFk->getCacheKey(), true),
-                $this->getFilters($this->foreignKey)
+                $this->getFilters($this->foreignKey),
+                '\\' . $this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName() .'::class'
             );
         }
 

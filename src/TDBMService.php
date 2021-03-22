@@ -165,6 +165,10 @@ class TDBMService
      * @var string
      */
     private $beanNamespace;
+    /**
+     * @var string
+     */
+    private $resultIteratorNamespace;
 
     /**
      * @var NamingStrategyInterface
@@ -213,6 +217,7 @@ class TDBMService
         }
         $this->orderByAnalyzer = new OrderByAnalyzer($this->cache, $this->cachePrefix);
         $this->beanNamespace = $configuration->getBeanNamespace();
+        $this->resultIteratorNamespace = $configuration->getResultIteratorNamespace();
         $this->namingStrategy = $configuration->getNamingStrategy();
         $this->configuration = $configuration;
     }
@@ -364,7 +369,17 @@ class TDBMService
                 foreach ($incomingFks as $incomingFk) {
                     $filter = SafeFunctions::arrayCombine($incomingFk->getUnquotedLocalColumns(), $pks);
 
-                    $results = $this->findObjects($incomingFk->getLocalTableName(), $filter);
+                    $localTableName = $incomingFk->getLocalTableName();
+                    $results = $this->findObjects(
+                        $localTableName,
+                        $filter,
+                        [],
+                        null,
+                        [],
+                        null,
+                        $this->beanNamespace . '\\' . $this->namingStrategy->getBeanClassName($localTableName),
+                        $this->resultIteratorNamespace . '\\' . $this->namingStrategy->getResultIteratorClassName($localTableName)
+                    );
 
                     foreach ($results as $bean) {
                         $this->deleteCascade($bean);
@@ -1134,7 +1149,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjects(string $mainTable, $filter = null, array $parameters = array(), $orderString = null, array $additionalTablesFetch = array(), ?int $mode = null, string $className = null, string $resultIteratorClass = ResultIterator::class): ResultIterator
+    public function findObjects(string $mainTable, $filter, array $parameters, $orderString, array $additionalTablesFetch, ?int $mode, ?string $className, string $resultIteratorClass): ResultIterator
     {
         if (!is_a($resultIteratorClass, ResultIterator::class, true)) {
             throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.');
@@ -1171,7 +1186,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectsFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), $orderString = null, ?int $mode = null, string $className = null, string $resultIteratorClass = ResultIterator::class): ResultIterator
+    public function findObjectsFromSql(string $mainTable, string $from, $filter, array $parameters, $orderString, ?int $mode, ?string $className, string $resultIteratorClass): ResultIterator
     {
         if (!is_a($resultIteratorClass, ResultIterator::class, true)) {
             throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.');
@@ -1205,15 +1220,17 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectByPk(string $table, array $primaryKeys, array $additionalTablesFetch = array(), bool $lazy = false, string $className = null): AbstractTDBMObject
+    public function findObjectByPk(string $table, array $primaryKeys, array $additionalTablesFetch, bool $lazy, string $className, string $resultIteratorClass): AbstractTDBMObject
     {
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
+        assert(is_a($className, AbstractTDBMObject::class, true), new TDBMInvalidArgumentException('$className should be a `'. AbstractTDBMObject::class. '`. `' . $className . '` provided.'));
         $primaryKeys = $this->_getPrimaryKeysFromObjectData($table, $primaryKeys);
         $hash = $this->getObjectHash($primaryKeys);
 
         $dbRow = $this->objectStorage->get($table, $hash);
         if ($dbRow !== null) {
             $bean = $dbRow->getTDBMObject();
-            if ($className !== null && !is_a($bean, $className)) {
+            if (!is_a($bean, $className)) {
                 throw new TDBMException("TDBM cannot create a bean of class '".$className."'. The requested object was already loaded and its class is '".get_class($bean)."'");
             }
 
@@ -1226,20 +1243,12 @@ class TDBMService
             $tables = $this->_getRelatedTablesByInheritance($table);
             // Only allowed if no inheritance.
             if (count($tables) === 1) {
-                if ($className === null) {
-                    try {
-                        $className = $this->getBeanClassName($table);
-                    } catch (TDBMInvalidArgumentException $e) {
-                        $className = TDBMObject::class;
-                    }
-                }
-
                 // Let's construct the bean
                 if (!isset($this->reflectionClassCache[$className])) {
                     $this->reflectionClassCache[$className] = new \ReflectionClass($className);
                 }
                 // Let's bypass the constructor when creating the bean!
-                /** @var AbstractTDBMObject */
+                /** @var AbstractTDBMObject $bean */
                 $bean = $this->reflectionClassCache[$className]->newInstanceWithoutConstructor();
                 $bean->_constructLazy($table, $primaryKeys, $this);
 
@@ -1249,7 +1258,7 @@ class TDBMService
 
         // Did not find the object in cache? Let's query it!
         try {
-            return $this->findObjectOrFail($table, $primaryKeys, [], $additionalTablesFetch, $className);
+            return $this->findObjectOrFail($table, $primaryKeys, [], $additionalTablesFetch, $className, $resultIteratorClass);
         } catch (NoBeanFoundException $exception) {
             throw NoBeanFoundException::missPrimaryKeyRecord($table, $primaryKeys, $this->getBeanClassName($table), $exception);
         }
@@ -1262,15 +1271,16 @@ class TDBMService
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param mixed[]           $parameters
      * @param string[]          $additionalTablesFetch
-     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param string            $className             The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
      * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters
      *
      * @throws TDBMException
      */
-    public function findObject(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null) : ?AbstractTDBMObject
+    public function findObject(string $mainTable, $filter, array $parameters, array $additionalTablesFetch, string $className, string $resultIteratorClass) : ?AbstractTDBMObject
     {
-        $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className);
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
+        $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className, $resultIteratorClass);
         return $this->getAtMostOneObjectOrFail($objects, $mainTable, $filter, $parameters);
     }
 
@@ -1323,9 +1333,10 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectFromSql(string $mainTable, string $from, $filter = null, array $parameters = array(), ?string $className = null) : ?AbstractTDBMObject
+    public function findObjectFromSql(string $mainTable, string $from, $filter, array $parameters, ?string $className, string $resultIteratorClass) : ?AbstractTDBMObject
     {
-        $objects = $this->findObjectsFromSql($mainTable, $from, $filter, $parameters, null, self::MODE_ARRAY, $className);
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
+        $objects = $this->findObjectsFromSql($mainTable, $from, $filter, $parameters, null, self::MODE_ARRAY, $className, $resultIteratorClass);
         return $this->getAtMostOneObjectOrFail($objects, $mainTable, $filter, $parameters);
     }
 
@@ -1342,7 +1353,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), ?int $mode = null, string $className = null, string $sqlCount = null, string $resultIteratorClass = ResultIterator::class): ResultIterator
+    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters, ?int $mode, ?string $className, ?string $sqlCount, string $resultIteratorClass): ResultIterator
     {
         if (!is_a($resultIteratorClass, ResultIterator::class, true)) {
             throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.');
@@ -1367,15 +1378,16 @@ class TDBMService
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param mixed[]           $parameters
      * @param string[]          $additionalTablesFetch
-     * @param string            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param string            $className             The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
      *
      * @return AbstractTDBMObject The object we want
      *
      * @throws TDBMException
      */
-    public function findObjectOrFail(string $mainTable, $filter = null, array $parameters = array(), array $additionalTablesFetch = array(), string $className = null): AbstractTDBMObject
+    public function findObjectOrFail(string $mainTable, $filter, array $parameters, array $additionalTablesFetch, string $className, string $resultIteratorClass): AbstractTDBMObject
     {
-        $bean = $this->findObject($mainTable, $filter, $parameters, $additionalTablesFetch, $className);
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
+        $bean = $this->findObject($mainTable, $filter, $parameters, $additionalTablesFetch, $className, $resultIteratorClass);
         if ($bean === null) {
             throw NoBeanFoundException::missFilterRecord($mainTable);
         }
@@ -1458,7 +1470,16 @@ class TDBMService
      */
     public function _getRelatedBeans(ManyToManyRelationshipPathDescriptor $pathDescriptor, AbstractTDBMObject $bean): ResultIterator
     {
-        return $this->findObjectsFromSql($pathDescriptor->getTargetName(), $pathDescriptor->getPivotFrom(), $pathDescriptor->getPivotWhere(), $pathDescriptor->getPivotParams($this->getPrimaryKeyValues($bean)));
+        return $this->findObjectsFromSql(
+            $pathDescriptor->getTargetName(),
+            $pathDescriptor->getPivotFrom(),
+            $pathDescriptor->getPivotWhere(),
+            $pathDescriptor->getPivotParams($this->getPrimaryKeyValues($bean)),
+            null,
+            null,
+            null,
+            $pathDescriptor->getResultIteratorClass()
+        );
     }
 
     /**

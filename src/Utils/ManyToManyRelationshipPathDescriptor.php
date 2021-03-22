@@ -3,6 +3,8 @@
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use TheCodingMachine\TDBM\ResultIterator;
+use TheCodingMachine\TDBM\TDBMInvalidArgumentException;
 use function var_export;
 
 class ManyToManyRelationshipPathDescriptor
@@ -28,6 +30,10 @@ class ManyToManyRelationshipPathDescriptor
      * @var array
      */
     private $whereKeys;
+    /**
+     * @var string
+     */
+    private $resultIteratorClass;
 
     /**
      * ManyToManyRelationshipPathDescriptor constructor.
@@ -37,13 +43,15 @@ class ManyToManyRelationshipPathDescriptor
      * @param string[] $joinLocalKeys
      * @param string[] $whereKeys
      */
-    public function __construct(string $targetTable, string $pivotTable, array $joinForeignKeys, array $joinLocalKeys, array $whereKeys)
+    public function __construct(string $targetTable, string $pivotTable, array $joinForeignKeys, array $joinLocalKeys, array $whereKeys, string $resultIteratorClass)
     {
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
         $this->targetTable = $targetTable;
         $this->pivotTable = $pivotTable;
         $this->joinForeignKeys = $joinForeignKeys;
         $this->joinLocalKeys = $joinLocalKeys;
         $this->whereKeys = $whereKeys;
+        $this->resultIteratorClass = $resultIteratorClass;
     }
 
     public static function generateModelKey(ForeignKeyConstraint $remoteFk, ForeignKeyConstraint $localFk): string
@@ -94,5 +102,10 @@ class ManyToManyRelationshipPathDescriptor
             $params['param' . $key] = $primaryKeyValue;
         }
         return $params;
+    }
+
+    public function getResultIteratorClass(): string
+    {
+        return $this->resultIteratorClass;
     }
 }
