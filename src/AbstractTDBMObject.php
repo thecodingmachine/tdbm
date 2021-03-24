@@ -251,27 +251,15 @@ abstract class AbstractTDBMObject implements JsonSerializable
         }
     }
 
-    /**
-     * @param string             $foreignKeyName
-     * @param AbstractTDBMObject $bean
-     */
-    protected function setRef(string $foreignKeyName, AbstractTDBMObject $bean = null, string $tableName = null): void
+    protected function setRef(string $foreignKeyName, ?AbstractTDBMObject $bean, string $tableName, string $className, string $resultIteratorClass): void
     {
-        if ($tableName === null) {
-            if (count($this->dbRows) > 1) {
-                throw new TDBMException('This object is based on several tables. You must specify which table you are retrieving data from.');
-            } elseif (count($this->dbRows) === 1) {
-                $tableName = (string) array_keys($this->dbRows)[0];
-            } else {
-                throw new TDBMException('Please specify a table for this object.');
-            }
-        }
+        assert($bean === null || is_a($bean, $className), new TDBMInvalidArgumentException('$bean should be `null` or `' . $className . '`. `' . ($bean === null ? 'null' : get_class($bean)) . '` provided.'));
 
         if (!isset($this->dbRows[$tableName])) {
             $this->registerTable($tableName);
         }
 
-        $oldLinkedBean = $this->dbRows[$tableName]->getRef($foreignKeyName);
+        $oldLinkedBean = $this->dbRows[$tableName]->getRef($foreignKeyName, $className, $resultIteratorClass);
         if ($oldLinkedBean !== null) {
             $oldLinkedBean->removeManyToOneRelationship($tableName, $foreignKeyName, $this);
         }
@@ -291,7 +279,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return AbstractTDBMObject|null
      */
-    protected function getRef(string $foreignKeyName, ?string $tableName = null) : ?AbstractTDBMObject
+    protected function getRef(string $foreignKeyName, string $tableName, string $className, string $resultIteratorClass) : ?AbstractTDBMObject
     {
         $tableName = $this->checkTableName($tableName);
 
@@ -299,7 +287,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
             return null;
         }
 
-        return $this->dbRows[$tableName]->getRef($foreignKeyName);
+        return $this->dbRows[$tableName]->getRef($foreignKeyName, $className, $resultIteratorClass);
     }
 
     /**
@@ -525,15 +513,16 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return AlterableResultIterator
      */
-    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, array $searchFilter, string $orderString = null) : AlterableResultIterator
+    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, array $searchFilter, ?string $orderString, string $resultIteratorClass) : AlterableResultIterator
     {
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
         $key = $tableName.'___'.$foreignKeyName;
         $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
         if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || (isset($this->manyToOneRelationships[$key]) && $this->manyToOneRelationships[$key]->getUnderlyingResultIterator() !== null)) {
             return $alterableResultIterator;
         }
 
-        $unalteredResultIterator = $this->tdbmService->findObjects($tableName, $searchFilter, [], $orderString);
+        $unalteredResultIterator = $this->tdbmService->findObjects($tableName, $searchFilter, [], $orderString, [], null, null, $resultIteratorClass);
 
         $alterableResultIterator->setResultIterator($unalteredResultIterator->getIterator());
 

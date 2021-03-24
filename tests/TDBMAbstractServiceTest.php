@@ -325,7 +325,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         // Tables using @Json annotations
         $db->table('accounts')
-            ->column('id')->integer()->primaryKey()->autoIncrement()
+            ->column('id')->integer()->primaryKey()->autoIncrement()->notNull()
             ->column('name')->string();
 
         $db->table('nodes')

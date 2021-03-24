@@ -209,7 +209,9 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
                 list($actualClassName, $mainBeanTableName, $tablesUsed) = $this->tdbmService->_getClassNameFromBeanData($beanData);
 
-                if ($this->className !== null) {
+                // @TODO (gua) this is a weird hack to be able to force a TDBMObject...
+                // `$this->className` could be used to override `$actualClassName`
+                if ($this->className !== null && is_a($this->className, TDBMObject::class, true)) {
                     $actualClassName = $this->className;
                 }
 
