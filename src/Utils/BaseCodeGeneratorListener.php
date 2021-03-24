@@ -6,9 +6,9 @@ namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Index;
 use TheCodingMachine\TDBM\ConfigurationInterface;
-use Zend\Code\Generator\ClassGenerator;
-use Zend\Code\Generator\FileGenerator;
-use Zend\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\ClassGenerator;
+use Laminas\Code\Generator\FileGenerator;
+use Laminas\Code\Generator\MethodGenerator;
 
 /**
  * A base class to ease the usage of CodeGeneratorListenerInterface.

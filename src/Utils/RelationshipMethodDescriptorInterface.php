@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
-use Zend\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\MethodGenerator;
 
 interface RelationshipMethodDescriptorInterface extends MethodDescriptorInterface
 {

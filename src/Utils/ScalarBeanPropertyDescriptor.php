@@ -11,12 +11,12 @@ use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
 use \TheCodingMachine\TDBM\Utils\Annotation;
-use Zend\Code\Generator\AbstractMemberGenerator;
-use Zend\Code\Generator\DocBlock\Tag\ParamTag;
-use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
-use Zend\Code\Generator\DocBlockGenerator;
-use Zend\Code\Generator\MethodGenerator;
-use Zend\Code\Generator\ParameterGenerator;
+use Laminas\Code\Generator\AbstractMemberGenerator;
+use Laminas\Code\Generator\DocBlock\Tag\ParamTag;
+use Laminas\Code\Generator\DocBlock\Tag\ReturnTag;
+use Laminas\Code\Generator\DocBlockGenerator;
+use Laminas\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\ParameterGenerator;
 
 /**
  * This class represent a property in a bean (a property has a getter, a setter, etc...).
@@ -105,14 +105,14 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
 
     private function getUuidAnnotation(): ?Annotation\UUID
     {
-        /** @var Annotation\UUID $annotation */
+        /** @var Annotation\UUID|null $annotation */
         $annotation = $this->getAnnotations()->findAnnotation(Annotation\UUID::class);
         return $annotation;
     }
 
     private function getAutoincrementAnnotation(): ?Annotation\Autoincrement
     {
-        /** @var Annotation\Autoincrement $annotation */
+        /** @var Annotation\Autoincrement|null $annotation */
         $annotation = $this->getAnnotations()->findAnnotation(Annotation\Autoincrement::class);
         return $annotation;
     }

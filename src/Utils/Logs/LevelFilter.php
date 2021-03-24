@@ -17,7 +17,7 @@ class LevelFilter extends AbstractLogger
      *
      * @var string[] $levels Logging levels
      */
-    private static $levels = array(
+    private const LEVELS = array(
         LogLevel::EMERGENCY, // 0
         LogLevel::ALERT,     // 1
         LogLevel::CRITICAL,  // 2
@@ -45,8 +45,8 @@ class LevelFilter extends AbstractLogger
     {
         $this->logger = $logger;
 
-        $this->logLevel = array_search($level, self::$levels, true);
-        if ($this->logLevel === false) {
+        $logLevel = array_search($level, self::LEVELS, true);
+        if ($logLevel === false) {
             throw new InvalidArgumentException(
                 sprintf(
                     'Cannot use logging level "%s"',
@@ -54,6 +54,8 @@ class LevelFilter extends AbstractLogger
                 )
             );
         }
+
+        $this->logLevel = $logLevel;
     }
 
     /**
@@ -67,7 +69,7 @@ class LevelFilter extends AbstractLogger
      */
     public function log($level, $message, array $context = array())
     {
-        $levelCode = array_search($level, self::$levels, true);
+        $levelCode = array_search($level, self::LEVELS, true);
         if ($levelCode === false) {
             throw new InvalidArgumentException(
                 sprintf(

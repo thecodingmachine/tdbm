@@ -203,6 +203,7 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     /**
      * @param int $offset
+     * @param int $limit
      *
      * @return \Porpaginas\Page
      */

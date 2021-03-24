@@ -41,41 +41,37 @@ use Traversable;
  */
 class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 {
-    /**
-     * @var Statement
-     */
+    /** @var Statement */
     protected $statement;
 
+    /** @var ObjectStorageInterface */
     private $objectStorage;
+    /** @var string|null */
     private $className;
 
-    /**
-     * @var TDBMService
-     */
+    /** @var TDBMService */
     private $tdbmService;
+    /** @var mixed[] */
     private $parameters;
-    /**
-     * @var MagicQuery
-     */
+    /** @var MagicQuery */
     private $magicQuery;
 
-    /**
-     * @var QueryFactory
-     */
+    /** @var QueryFactory */
     private $queryFactory;
 
-    /**
-     * @var InnerResultIteratorInterface|null
-     */
+    /** @var InnerResultIteratorInterface|null */
     private $innerResultIterator;
 
+    /** @var int|null */
     private $totalCount;
 
+    /** @var int */
     private $mode;
 
+    /** @var LoggerInterface */
     private $logger;
 
-    private function __construct()
+    final private function __construct()
     {
     }
 

@@ -76,6 +76,9 @@ class MapIterator implements Iterator, \JsonSerializable
         $this->iterator->next();
     }
 
+    /**
+     * @return mixed
+     */
     public function key()
     {
         return $this->iterator->key();

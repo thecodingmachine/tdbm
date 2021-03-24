@@ -11,10 +11,10 @@ use TheCodingMachine\TDBM\Schema\ForeignKey;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation;
-use Zend\Code\Generator\AbstractMemberGenerator;
-use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
-use Zend\Code\Generator\DocBlockGenerator;
-use Zend\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\AbstractMemberGenerator;
+use Laminas\Code\Generator\DocBlock\Tag\ReturnTag;
+use Laminas\Code\Generator\DocBlockGenerator;
+use Laminas\Code\Generator\MethodGenerator;
 
 /**
  * Represents a method to get a list of beans from a direct foreign key pointing to our bean.
@@ -23,23 +23,16 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
 {
     use ForeignKeyAnalyzerTrait;
 
-    /**
-     * @var ForeignKeyConstraint
-     */
+    /** @var ForeignKeyConstraint */
     private $foreignKey;
 
+    /** @var bool */
     private $useAlternateName = false;
-    /**
-     * @var Table
-     */
+    /** @var Table */
     private $mainTable;
-    /**
-     * @var NamingStrategyInterface
-     */
+    /** @var NamingStrategyInterface */
     private $namingStrategy;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $beanNamespace;
     /**
      * @var string
@@ -200,6 +193,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
         return $parametersCode;
     }
 
+    /** @var bool|null */
     private $hasLocalUniqueIndex;
     /**
      * Check if the ForeignKey have an unique index

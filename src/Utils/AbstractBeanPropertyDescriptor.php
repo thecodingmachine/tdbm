@@ -5,8 +5,8 @@ namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Table;
 use TheCodingMachine\TDBM\Utils\Annotation\ReadOnly;
-use Zend\Code\Generator\DocBlock\Tag\ParamTag;
-use Zend\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\DocBlock\Tag\ParamTag;
+use Laminas\Code\Generator\MethodGenerator;
 
 /**
  * This class represent a property in a bean (a property has a getter, a setter, etc...).

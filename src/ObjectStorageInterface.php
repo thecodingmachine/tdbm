@@ -6,7 +6,6 @@ namespace TheCodingMachine\TDBM;
 /**
  * Object in charge of referencing all beans that have been fetched from the database.
  * If a bean is requested twice from TDBM, the ObjectStorage is used to "cache" the bean.
- * This interface has 2 implementations: StandardObjectStorage and WeakRefObjectStorage.
  *
  * @author David Negrier
  */

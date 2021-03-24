@@ -23,7 +23,7 @@ class AnnotationParser
 
     /**
      * AnnotationParser constructor.
-     * @param array<string,string> $annotations An array mapping the annotation name to the fully qualified class name
+     * @param array<string, class-string> $annotations An array mapping the annotation name to the fully qualified class name
      */
     public function __construct(array $annotations)
     {
@@ -32,7 +32,7 @@ class AnnotationParser
     }
 
     /**
-     * @param array<string,string> $additionalAnnotations An array associating the name of the annotation in DB comments to the name of a fully qualified Doctrine annotation class
+     * @param array<string,class-string> $additionalAnnotations An array associating the name of the annotation in DB comments to the name of a fully qualified Doctrine annotation class
      */
     public static function buildWithDefaultAnnotations(array $additionalAnnotations): self
     {
@@ -55,7 +55,8 @@ class AnnotationParser
             'AddTrait' => AddTrait::class,
             'AddTraitOnDao' => AddTraitOnDao::class,
         ];
-        $annotations = $defaultAnnotations + $additionalAnnotations;
+        $annotations = array_merge($defaultAnnotations, $additionalAnnotations);
+
         return new self($annotations);
     }
 

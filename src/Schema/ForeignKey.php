@@ -59,6 +59,7 @@ class ForeignKey
         return $this->foreignTable;
     }
 
+    /** @var string|null */
     private $cacheKey;
     public function getCacheKey(): string
     {

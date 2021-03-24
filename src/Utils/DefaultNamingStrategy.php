@@ -15,34 +15,39 @@ use TheCodingMachine\TDBM\Utils\Annotation\Bean;
 
 class DefaultNamingStrategy extends AbstractNamingStrategy
 {
+    /** @var string */
     private $beanPrefix = '';
+    /** @var string */
     private $beanSuffix = '';
+    /** @var string */
     private $baseBeanPrefix = 'Abstract';
+    /** @var string */
     private $baseBeanSuffix = '';
+    /** @var string */
     private $daoPrefix = '';
+    /** @var string */
     private $daoSuffix = 'Dao';
+    /** @var string */
     private $baseDaoPrefix = 'Abstract';
+    /** @var string */
     private $baseDaoSuffix = 'Dao';
+    /** @var string */
     private $resultIteratorPrefix = '';
+    /** @var string */
     private $resultIteratorSuffix = 'ResultIterator';
+    /** @var string */
     private $baseResultIteratorPrefix = 'Abstract';
+    /** @var string */
     private $baseResultIteratorSuffix = 'ResultIterator';
+    /** @var array<string,string> */
     private $exceptions = [];
-    /**
-     * @var AnnotationParser
-     */
+    /** @var AnnotationParser */
     private $annotationParser;
-    /**
-     * @var AbstractSchemaManager
-     */
+    /** @var AbstractSchemaManager */
     private $schemaManager;
-    /**
-     * @var Schema
-     */
+    /** @var Schema */
     private $schema;
-    /**
-     * @var Inflector
-     */
+    /** @var Inflector */
     private $inflector;
 
     public function __construct(AnnotationParser $annotationParser, AbstractSchemaManager $schemaManager)
@@ -202,7 +207,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
     private function tableNameToSingularCamelCase(string $tableName): string
     {
         // Now, let's check if we have a @Bean annotation on it.
-        /** @var Bean $beanAnnotation */
+        /** @var Bean|null $beanAnnotation */
         $beanAnnotation = $this->annotationParser->getTableAnnotations($this->getSchema()->getTable($tableName))->findAnnotation(Bean::class);
         if ($beanAnnotation !== null) {
             return $beanAnnotation->name;

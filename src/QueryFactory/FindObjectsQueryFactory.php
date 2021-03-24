@@ -18,12 +18,10 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
 {
     private $additionalTablesFetch;
     private $filterString;
-    /**
-     * @var Cache
-     */
+    /** @var Cache */
     private $cache;
 
-    public function __construct(string $mainTable, array $additionalTablesFetch, $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, Cache $cache)
+    public function __construct(string $mainTable, array $additionalTablesFetch, string $filterString, $orderBy, TDBMService $tdbmService, Schema $schema, OrderByAnalyzer $orderByAnalyzer, Cache $cache)
     {
         parent::__construct($tdbmService, $schema, $orderByAnalyzer, $mainTable, $orderBy);
         $this->additionalTablesFetch = $additionalTablesFetch;

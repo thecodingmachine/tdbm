@@ -7,59 +7,42 @@ use Doctrine\Common\Inflector\Inflector;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
-use Zend\Code\Generator\DocBlockGenerator;
+use Laminas\Code\Generator\DocBlockGenerator;
 use function implode;
 use function sprintf;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
-use Zend\Code\Generator\DocBlock\Tag\ParamTag;
-use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
-use Zend\Code\Generator\MethodGenerator;
-use Zend\Code\Generator\ParameterGenerator;
+use Laminas\Code\Generator\DocBlock\Tag\ParamTag;
+use Laminas\Code\Generator\DocBlock\Tag\ReturnTag;
+use Laminas\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\ParameterGenerator;
 use function var_export;
 
 class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterface
 {
-    /**
-     * @var Table
-     */
+    /** @var Table */
     private $pivotTable;
 
+    /** @var bool */
     private $useAlternateName = false;
 
-    /**
-     * @var ForeignKeyConstraint
-     */
+    /** @var ForeignKeyConstraint */
     private $localFk;
 
-    /**
-     * @var ForeignKeyConstraint
-     */
+    /** @var ForeignKeyConstraint */
     private $remoteFk;
-    /**
-     * @var NamingStrategyInterface
-     */
+    /** @var NamingStrategyInterface */
     private $namingStrategy;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $beanNamespace;
-    /**
-     * @var AnnotationParser
-     */
+    /** @var AnnotationParser */
     private $annotationParser;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $localAnnotations;
-    /**
-     * @var array
-     */
+    /** @var array */
     private $remoteAnnotations;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $pathKey;
     /**
      * @var string
