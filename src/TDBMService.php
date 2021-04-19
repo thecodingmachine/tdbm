@@ -364,6 +364,13 @@ class TDBMService
                     $filter = SafeFunctions::arrayCombine($incomingFk->getUnquotedLocalColumns(), $pks);
 
                     $localTableName = $incomingFk->getLocalTableName();
+
+                    $className = $this->beanNamespace . '\\' . $this->namingStrategy->getBeanClassName($localTableName);
+                    assert(class_exists($className));
+
+                    $resultIteratorClassName = $this->resultIteratorNamespace . '\\' . $this->namingStrategy->getResultIteratorClassName($localTableName);
+                    assert(class_exists($resultIteratorClassName));
+
                     $results = $this->findObjects(
                         $localTableName,
                         $filter,
@@ -371,8 +378,8 @@ class TDBMService
                         null,
                         [],
                         null,
-                        $this->beanNamespace . '\\' . $this->namingStrategy->getBeanClassName($localTableName),
-                        $this->resultIteratorNamespace . '\\' . $this->namingStrategy->getResultIteratorClassName($localTableName)
+                        $className,
+                        $resultIteratorClassName
                     );
 
                     foreach ($results as $bean) {
@@ -1136,8 +1143,8 @@ class TDBMService
      * @param string|UncheckedOrderBy|null $orderString           The ORDER BY part of the query. Columns from tables different from $mainTable must be prefixed by the table name (in the form: table.column)
      * @param string[]                     $additionalTablesFetch
      * @param int|null                     $mode
-     * @param string                       $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
-     * @param string                       $resultIteratorClass   The name of the resultIterator class to return
+     * @param class-string|null            $className             Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param class-string                 $resultIteratorClass   The name of the resultIterator class to return
      *
      * @return ResultIterator An object representing an array of results
      *
@@ -1173,8 +1180,8 @@ class TDBMService
      * @param mixed[]                      $parameters
      * @param string|UncheckedOrderBy|null $orderString The ORDER BY part of the query. All columns must be prefixed by the table name (in the form: table.column)
      * @param int                          $mode
-     * @param string                       $className   Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
-     * @param string                       $resultIteratorClass   The name of the resultIterator class to return
+     * @param class-string|null            $className   Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param class-string                 $resultIteratorClass   The name of the resultIterator class to return
      *
      * @return ResultIterator An object representing an array of results
      *
@@ -1208,7 +1215,7 @@ class TDBMService
      * @param mixed[] $primaryKeys
      * @param string[] $additionalTablesFetch
      * @param bool $lazy Whether to perform lazy loading on this object or not
-     * @phpstan-param  class-string|null $className
+     * @phpstan-param  class-string $className
      *
      * @return AbstractTDBMObject
      *
@@ -1265,7 +1272,8 @@ class TDBMService
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param mixed[]           $parameters
      * @param string[]          $additionalTablesFetch
-     * @param string            $className             The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param class-string      $className             The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param class-string      $resultIteratorClass
      *
      * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters
      *
@@ -1321,7 +1329,8 @@ class TDBMService
      * @param string            $from       The from sql statement
      * @param string|array|null $filter     The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param mixed[]           $parameters
-     * @param string            $className  Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param class-string|null $className  Optional: The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param class-string      $resultIteratorClass
      *
      * @return AbstractTDBMObject|null The object we want, or null if no object matches the filters
      *
@@ -1339,9 +1348,9 @@ class TDBMService
      * @param string $sql
      * @param mixed[] $parameters
      * @param int|null $mode
-     * @param string|null $className
+     * @param class-string|null $className
      * @param string $sqlCount
-     * @param string $resultIteratorClass The name of the resultIterator class to return
+     * @param class-string $resultIteratorClass The name of the resultIterator class to return
      *
      * @return ResultIterator
      *
@@ -1372,7 +1381,8 @@ class TDBMService
      * @param string|array|null $filter                The SQL filters to apply to the query (the WHERE part). All columns must be prefixed by the table name (in the form: table.column)
      * @param mixed[]           $parameters
      * @param string[]          $additionalTablesFetch
-     * @param string            $className             The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param class-string      $className             The name of the class to instantiate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned
+     * @param class-string      $resultIteratorClass
      *
      * @return AbstractTDBMObject The object we want
      *

@@ -31,7 +31,7 @@ class ManyToManyRelationshipPathDescriptor
      */
     private $whereKeys;
     /**
-     * @var string
+     * @var class-string
      */
     private $resultIteratorClass;
 
@@ -42,6 +42,7 @@ class ManyToManyRelationshipPathDescriptor
      * @param string[] $joinForeignKeys
      * @param string[] $joinLocalKeys
      * @param string[] $whereKeys
+     * @param class-string $resultIteratorClass
      */
     public function __construct(string $targetTable, string $pivotTable, array $joinForeignKeys, array $joinLocalKeys, array $whereKeys, string $resultIteratorClass)
     {
@@ -104,6 +105,9 @@ class ManyToManyRelationshipPathDescriptor
         return $params;
     }
 
+    /**
+     * @return class-string
+     */
     public function getResultIteratorClass(): string
     {
         return $this->resultIteratorClass;

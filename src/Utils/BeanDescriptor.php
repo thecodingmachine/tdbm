@@ -607,6 +607,7 @@ class BeanDescriptor implements BeanDescriptorInterface
             $class->setExtendedClass(AbstractTDBMObject::class);
             $file->setUse(AbstractTDBMObject::class);
         } else {
+            /** @var class-string $extends */
             $class->setExtendedClass($extends);
         }
 
@@ -1190,6 +1191,7 @@ EOF
             $class->setExtendedClass(ResultIterator::class);
         } else {
             $class->addUse($this->resultIteratorNamespace . '\\' . $extends);
+            /** @var class-string $extends */
             $class->setExtendedClass($extends);
         }
 

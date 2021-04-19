@@ -46,7 +46,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     /** @var ObjectStorageInterface */
     private $objectStorage;
-    /** @var string|null */
+    /** @var class-string|null */
     private $className;
 
     /** @var TDBMService */
@@ -77,6 +77,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     /**
      * @param mixed[] $parameters
+     * @param class-string|null $className
      */
     public static function createResultIterator(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): self
     {

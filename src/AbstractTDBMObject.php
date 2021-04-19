@@ -251,6 +251,10 @@ abstract class AbstractTDBMObject implements JsonSerializable
         }
     }
 
+    /**
+     * @param class-string $className
+     * @param class-string $resultIteratorClass
+     */
     protected function setRef(string $foreignKeyName, ?AbstractTDBMObject $bean, string $tableName, string $className, string $resultIteratorClass): void
     {
         assert($bean === null || is_a($bean, $className), new TDBMInvalidArgumentException('$bean should be `null` or `' . $className . '`. `' . ($bean === null ? 'null' : get_class($bean)) . '` provided.'));
@@ -276,6 +280,8 @@ abstract class AbstractTDBMObject implements JsonSerializable
 
     /**
      * @param string $foreignKeyName A unique name for this reference
+     * @param class-string $className
+     * @param class-string $resultIteratorClass
      *
      * @return AbstractTDBMObject|null
      */
