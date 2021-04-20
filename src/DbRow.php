@@ -395,15 +395,16 @@ class DbRow
 
             if ($reference !== null) {
                 $refDbRows = $reference->_getDbRows();
-                $firstRefDbRow = reset($refDbRows);
-                if ($firstRefDbRow === false) {
+                $refDbRow = $refDbRows[$fk->getForeignTableName()] ?? false;
+
+                if ($refDbRow === false) {
                     throw new \RuntimeException('Unexpected error: empty refDbRows'); // @codeCoverageIgnore
                 }
-                if ($firstRefDbRow->_getStatus() === TDBMObjectStateEnum::STATE_DELETED) {
+                if ($refDbRow->_getStatus() === TDBMObjectStateEnum::STATE_DELETED) {
                     throw TDBMMissingReferenceException::referenceDeleted($this->dbTableName, $reference);
                 }
                 $foreignColumns = $fk->getUnquotedForeignColumns();
-                $refBeanValues = $firstRefDbRow->dbRow;
+                $refBeanValues = $refDbRow->dbRow;
                 for ($i = 0, $count = \count($localColumns); $i < $count; ++$i) {
                     $dbRow[$localColumns[$i]] = $refBeanValues[$foreignColumns[$i]];
                 }
