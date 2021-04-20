@@ -262,6 +262,8 @@ class DbRow
 
     /**
      * @param string $foreignKeyName A unique name for this reference
+     * @param class-string $className
+     * @param class-string $resultIteratorClass
      *
      * @return AbstractTDBMObject|null
      */
