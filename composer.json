@@ -46,7 +46,7 @@
         "phpunit/phpunit": "^8.5.8",
         "php-coveralls/php-coveralls": "^2.1",
         "wa72/simplelogger" : "^1.0",
-        "friendsofphp/php-cs-fixer": "^2.16.4",
+        "friendsofphp/php-cs-fixer": "^2.16.4 || ^3.0.0",
         "symfony/process": "^3 || ^4 || ^5",
         "thecodingmachine/tdbm-fluid-schema-builder": "^1.0.0",
         "phpstan/phpstan": "^0.12.81",
