@@ -41,6 +41,7 @@ use TheCodingMachine\TDBM\Dao\TestRoleDao;
 use TheCodingMachine\TDBM\Dao\TestUserDao;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
+use TheCodingMachine\TDBM\Test\Dao\AccessibleDao;
 use TheCodingMachine\TDBM\Test\Dao\AlbumDao;
 use TheCodingMachine\TDBM\Test\Dao\AllNullableDao;
 use TheCodingMachine\TDBM\Test\Dao\AnimalDao;
@@ -89,6 +90,7 @@ use TheCodingMachine\TDBM\Test\Dao\RefNoPrimKeyDao;
 use TheCodingMachine\TDBM\Test\Dao\RoleDao;
 use TheCodingMachine\TDBM\Test\Dao\StateDao;
 use TheCodingMachine\TDBM\Test\Dao\UserDao;
+use TheCodingMachine\TDBM\Test\Dao\ValueDao;
 use TheCodingMachine\TDBM\Utils\PathFinder\NoPathFoundException;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
@@ -2348,7 +2350,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame('Sally', $player->getNamesVirtual());
     }
 
-    private function skipOracle()
+    public function testPivotTableAreProperlyEscaped(): void
+    {
+        $valueDao = new ValueDao($this->tdbmService);
+        $accessibleDao = new AccessibleDao($this->tdbmService);
+
+        $value = $valueDao->getById(1);
+        $accessible = $accessibleDao->getById(1);
+        $this->assertSame(1, $value->getKey());
+        $this->assertSame(1, $accessible->getAdd());
+        $this->assertCount(1, $value->getAccessible());
+        $this->assertCount(1, $accessible->getValues());
+    }
+
+    private function skipOracle(): void
     {
         if (self::getConnection()->getDatabasePlatform() instanceof OraclePlatform) {
             $this->markTestSkipped('Not supported in Oracle');
