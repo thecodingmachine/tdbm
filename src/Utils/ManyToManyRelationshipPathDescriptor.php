@@ -2,14 +2,16 @@
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use TheCodingMachine\TDBM\ResultIterator;
 use TheCodingMachine\TDBM\TDBMInvalidArgumentException;
-use function var_export;
 
+/**
+ * @internal
+ */
 class ManyToManyRelationshipPathDescriptor
 {
-
     /**
      * @var string
      */
@@ -36,9 +38,6 @@ class ManyToManyRelationshipPathDescriptor
     private $resultIteratorClass;
 
     /**
-     * ManyToManyRelationshipPathDescriptor constructor.
-     * @param string $targetTable
-     * @param string $pivotTable
      * @param string[] $joinForeignKeys
      * @param string[] $joinLocalKeys
      * @param string[] $whereKeys
@@ -70,24 +69,30 @@ class ManyToManyRelationshipPathDescriptor
         return $this->targetTable;
     }
 
-    public function getPivotFrom(): string
+    public function getPivotFrom(Connection $connection): string
     {
         $mainTable = $this->targetTable;
         $pivotTable = $this->pivotTable;
 
         $join = [];
         foreach ($this->joinForeignKeys as $key => $column) {
-            $join[] = sprintf('%s.%s = %s.%s', $mainTable, $column, $pivotTable, $this->joinLocalKeys[$key]);
+            $join[] = sprintf(
+                '%s.%s = %s.%s',
+                $connection->quoteIdentifier($mainTable),
+                $connection->quoteIdentifier($column),
+                $connection->quoteIdentifier($pivotTable),
+                $connection->quoteIdentifier($this->joinLocalKeys[$key])
+            );
         }
 
-        return $mainTable . ' JOIN ' . $pivotTable . ' ON ' . implode(' AND ', $join);
+        return $connection->quoteIdentifier($mainTable) . ' JOIN ' . $connection->quoteIdentifier($pivotTable) . ' ON ' . implode(' AND ', $join);
     }
 
-    public function getPivotWhere(): string
+    public function getPivotWhere(Connection $connection): string
     {
         $paramList = [];
         foreach ($this->whereKeys as $key => $column) {
-            $paramList[] = sprintf('%s.%s = :param%s', $this->pivotTable, $column, $key);
+            $paramList[] = sprintf('%s.%s = :param%s', $connection->quoteIdentifier($this->pivotTable), $connection->quoteIdentifier($column), $key);
         }
         return implode(' AND ', $paramList);
     }

@@ -1476,8 +1476,8 @@ class TDBMService
     {
         return $this->findObjectsFromSql(
             $pathDescriptor->getTargetName(),
-            $pathDescriptor->getPivotFrom(),
-            $pathDescriptor->getPivotWhere(),
+            $pathDescriptor->getPivotFrom($this->connection),
+            $pathDescriptor->getPivotWhere($this->connection),
             $pathDescriptor->getPivotParams($this->getPrimaryKeyValues($bean)),
             null,
             null,
