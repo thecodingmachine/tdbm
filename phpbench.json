@@ -1,4 +1,5 @@
 {
-  "bootstrap": "vendor/autoload.php",
-  "path": "tests/Performance"
+  "$schema":"./vendor/phpbench/phpbench/phpbench.schema.json",
+  "runner.bootstrap": "vendor/autoload.php",
+  "runner.path": "tests/Performance"
 }
