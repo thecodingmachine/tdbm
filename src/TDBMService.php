@@ -1474,10 +1474,13 @@ class TDBMService
      */
     public function _getRelatedBeans(ManyToManyRelationshipPathDescriptor $pathDescriptor, AbstractTDBMObject $bean): ResultIterator
     {
+        // Magic Query expect MySQL syntax for quotes
+        $platform = new MySqlPlatform();
+
         return $this->findObjectsFromSql(
             $pathDescriptor->getTargetName(),
-            $pathDescriptor->getPivotFrom($this->connection),
-            $pathDescriptor->getPivotWhere($this->connection),
+            $pathDescriptor->getPivotFrom($platform),
+            $pathDescriptor->getPivotWhere($platform),
             $pathDescriptor->getPivotParams($this->getPrimaryKeyValues($bean)),
             null,
             null,

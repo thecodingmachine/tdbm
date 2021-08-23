@@ -12,3 +12,10 @@ TDBM (The DataBase Machine)
 
 Check out [the documentation at https://thecodingmachine.github.io/tdbm/](https://thecodingmachine.github.io/tdbm/).
 
+## Run the test locally
+
+### Postgres
+
+Run an instance with `docker run -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust postgres:12`
+
+Run the tests with `vendor/bin/phpunit -c phpunit.postgres.xml`
