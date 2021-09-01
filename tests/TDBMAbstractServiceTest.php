@@ -431,6 +431,18 @@ abstract class TDBMAbstractServiceTest extends TestCase
                 ->column('UPPERCASE_B_ID')->references('UPPERCASE_B');
         }
 
+        // Reserved keywords from https://dev.mysql.com/doc/refman/8.0/en/keywords.html
+        // and https://docs.oracle.com/cd/B19306_01/em.102/b40103/app_oracle_reserved_words.htm
+        $db->table('values')
+            ->column('key')->integer()->primaryKey()->autoIncrement();
+
+        $db->table('accessible')
+            ->column('add')->integer()->primaryKey()->autoIncrement();
+
+        $db->table('all')
+            ->column('analyze')->references('values')
+            ->column('and')->references('accessible');
+
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
@@ -779,6 +791,10 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'fk_1' => 1,
             'fk_2' => 1
         ]);
+
+        self::insert($connection, 'values', ['key' => 1]);
+        self::insert($connection, 'accessible', ['add' => 1]);
+        self::insert($connection, 'all', ['analyze' => 1, 'and' => 1]);
     }
 
     public static function insert(Connection $connection, string $tableName, array $data): void

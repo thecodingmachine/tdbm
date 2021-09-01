@@ -2,20 +2,23 @@
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use TheCodingMachine\TDBM\ResultIterator;
 use TheCodingMachine\TDBM\TDBMInvalidArgumentException;
-use function var_export;
 
+/**
+ * @internal
+ */
 class ManyToManyRelationshipPathDescriptor
 {
-
     /**
-     * @var string
+     * @var string Unquoted identifier of the target table
      */
     private $targetTable;
     /**
-     * @var string
+     * @var string Unquoted identifier of the pivot table
      */
     private $pivotTable;
     /**
@@ -36,9 +39,6 @@ class ManyToManyRelationshipPathDescriptor
     private $resultIteratorClass;
 
     /**
-     * ManyToManyRelationshipPathDescriptor constructor.
-     * @param string $targetTable
-     * @param string $pivotTable
      * @param string[] $joinForeignKeys
      * @param string[] $joinLocalKeys
      * @param string[] $whereKeys
@@ -70,24 +70,40 @@ class ManyToManyRelationshipPathDescriptor
         return $this->targetTable;
     }
 
-    public function getPivotFrom(): string
+    /**
+     * Get the `FROM` clause of the query.
+     *
+     * This may have issue handling namespaced table (e.g. mydb.table)
+     */
+    public function getPivotFrom(AbstractPlatform $platform): string
     {
         $mainTable = $this->targetTable;
         $pivotTable = $this->pivotTable;
 
         $join = [];
         foreach ($this->joinForeignKeys as $key => $column) {
-            $join[] = sprintf('%s.%s = %s.%s', $mainTable, $column, $pivotTable, $this->joinLocalKeys[$key]);
+            $join[] = sprintf(
+                '%s.%s = %s.%s',
+                $platform->quoteIdentifier($mainTable),
+                $platform->quoteIdentifier($column),
+                $platform->quoteIdentifier($pivotTable),
+                $platform->quoteIdentifier($this->joinLocalKeys[$key])
+            );
         }
 
-        return $mainTable . ' JOIN ' . $pivotTable . ' ON ' . implode(' AND ', $join);
+        return $platform->quoteIdentifier($mainTable) . ' JOIN ' . $platform->quoteIdentifier($pivotTable) . ' ON ' . implode(' AND ', $join);
     }
 
-    public function getPivotWhere(): string
+    /**
+     * Get the `WHERE` clause of the query.
+     *
+     * This may have issue handling namespaced table (e.g. mydb.table)
+     */
+    public function getPivotWhere(AbstractPlatform $platform): string
     {
         $paramList = [];
         foreach ($this->whereKeys as $key => $column) {
-            $paramList[] = sprintf('%s.%s = :param%s', $this->pivotTable, $column, $key);
+            $paramList[] = sprintf('%s.%s = :param%s', $platform->quoteIdentifier($this->pivotTable), $platform->quoteIdentifier($column), $key);
         }
         return implode(' AND ', $paramList);
     }

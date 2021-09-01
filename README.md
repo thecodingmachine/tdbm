@@ -12,3 +12,10 @@ TDBM (The DataBase Machine)
 
 Check out [the documentation at https://thecodingmachine.github.io/tdbm/](https://thecodingmachine.github.io/tdbm/).
 
+## Run the test locally
+
+You can run the tests with different backend thanks to the following scripts:
+- [./tests/phpunit-pgsql.sh](./tests/phpunit-pgsql.sh)
+- [./tests/phpunit-mariadb.sh](./tests/phpunit-mariadb.sh)
+- [./tests/phpunit-mysql8.sh](./tests/phpunit-mysql8.sh)
+- [./tests/phpunit-oracle.sh](./tests/phpunit-oracle.sh)

@@ -373,11 +373,8 @@ jobs:
       - name: "Updating dependencies"
         run: "composer update"
 
-      - name: "Running PHPBENCH on master branch for comparison"
-        run: "./phpbench.dist.sh run --tag=master --store"
-
-      - name: "Generating comparison"
-        run: "./phpbench.dist.sh report --uuid=tag:current_pr --uuid=tag:master --report='{extends: compare, compare: tag}'"
+      - name: "Running PHPBENCH on master, Generating Report (RESULTS ARE INVERTED AS MASTER IS RUN AFTER CURRENT)"
+        run: "./phpbench.dist.sh run --ref=current_pr --store --report=aggregate"
 
   phpunit-oci8:
     name: "PHPUnit on OCI8"
