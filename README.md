@@ -14,8 +14,8 @@ Check out [the documentation at https://thecodingmachine.github.io/tdbm/](https:
 
 ## Run the test locally
 
-### Postgres
-
-Run an instance with `docker run -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust postgres:12`
-
-Run the tests with `vendor/bin/phpunit -c phpunit.postgres.xml`
+You can run the tests with different backend thanks to the following scripts:
+- [./tests/phpunit-pgsql.sh](./tests/phpunit-pgsql.sh)
+- [./tests/phpunit-mariadb.sh](./tests/phpunit-mariadb.sh)
+- [./tests/phpunit-mysql8.sh](./tests/phpunit-mysql8.sh)
+- [./tests/phpunit-oracle.sh](./tests/phpunit-oracle.sh)
