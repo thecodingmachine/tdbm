@@ -553,6 +553,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
         }
 
         $this->_setStatus(TDBMObjectStateEnum::STATE_NOT_LOADED);
+        $this->manyToOneRelationships = [];
     }
 
     /**
