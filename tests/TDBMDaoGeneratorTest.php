@@ -1154,6 +1154,28 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testDiscardChangesDiscardsRelations(): void
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $countryBean = $countryDao->getById(1);
+
+        $oldCount = $countryBean->getBoatsByAnchorageCountry()->count();
+
+        $this->tdbmService->getConnection()->insert('boats', [
+            'name' => 'RoseBud2',
+            'anchorage_country' => 1,
+            'current_country' => 1,
+            'length' => '13.5',
+        ]);
+
+        $countryBean->discardChanges();
+
+        $this->assertEquals($oldCount + 1, $countryBean->getBoatsByAnchorageCountry()->count());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testDiscardChangesOnNewBeanFails(): void
     {
         $person = new PersonBean('John Foo', new \DateTimeImmutable());
