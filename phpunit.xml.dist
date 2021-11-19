@@ -2,7 +2,7 @@
 
 <phpunit
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/8.5/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
          backupGlobals="false"
          backupStaticAttributes="false"
          colors="true"
@@ -21,25 +21,25 @@
 
     <php>
         <!-- "Real" test database -->
-        <var name="db_host" value="localhost" />
-        <var name="db_username" value="root" />
-        <var name="db_password" value="" />
-        <var name="db_name" value="tdbm_testcase" />
+        <var name="db_host" value="localhost"/>
+        <var name="db_username" value="root"/>
+        <var name="db_password" value=""/>
+        <var name="db_name" value="tdbm_testcase"/>
         <var name="db_port" value="3306"/>
         <var name="db_driver" value="pdo_mysql"/>
     </php>
 
-    <filter>
-  		<whitelist processUncoveredFilesFromWhitelist="true">
-    		<directory suffix=".php">src/</directory>
-    		<exclude>
-                <directory suffix=".php">src/Test</directory>
-                <file>src/Schema/LockFileSchemaManager.php</file>
-    		</exclude>
-  		</whitelist>
-	</filter>
-    <logging>
-        <log type="coverage-html" target="build/coverage"/>
-        <log type="coverage-clover" target="build/logs/clover.xml"/>
-    </logging>
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">src/</directory>
+        </include>
+        <exclude>
+            <directory suffix=".php">src/Test</directory>
+            <file>src/Schema/LockFileSchemaManager.php</file>
+        </exclude>
+        <report>
+            <clover outputFile="build/logs/clover.xml"/>
+            <html outputDirectory="build/coverage"/>
+        </report>
+    </coverage>
 </phpunit>

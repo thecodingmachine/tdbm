@@ -836,7 +836,7 @@ SQL;
         $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, new NullLogger()));
 
         [$sql, $parameters, $counter] = $tdbmService->buildFilterFromFilterBag(new \ArrayIterator(['id' => 1]), self::getConnection()->getDatabasePlatform());
-        $this->assertRegExp('/\(.id. = :tdbmparam1\)/', $sql);
+        $this->assertMatchesRegularExpression('/\(.id. = :tdbmparam1\)/', $sql);
         $this->assertEquals($parameters['tdbmparam1'], 1);
     }
 

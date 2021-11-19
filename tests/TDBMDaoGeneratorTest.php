@@ -149,7 +149,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->tdbmDaoGenerator->generateAllDaosAndBeans();
 
-        $this->assertFileNotExists($dummyFile);
+        $this->assertFileDoesNotExist($dummyFile);
 
         //Check that the lock file was generated
         $this->assertFileExists($schemaFilePath);
