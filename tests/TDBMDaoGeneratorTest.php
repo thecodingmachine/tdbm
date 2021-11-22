@@ -1176,6 +1176,28 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testDiscardChangesDiscardsRowRef(): void
+    {
+        $newExpectedId = 3;
+
+        $userDao = new UserDao($this->tdbmService);
+        $countryDao = new CountryDao($this->tdbmService);
+        $userBean = $userDao->getById(4);
+
+        $oldId = $userBean->getCountry()->getId();
+        $this->assertNotEquals($newExpectedId, $oldId, 'The IDs are the same, the test won\'t have any effect');
+
+        $userBean->setCountry($countryDao->getById($oldId)); // This triggers the `DbRow::setRef` method which causes the issue
+        $this->tdbmService->getConnection()->update('users', ['country_id' => $newExpectedId], ['id' => 4]);
+
+        $userBean->discardChanges();
+
+        $this->assertEquals($newExpectedId, $userBean->getCountry()->getId());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testDiscardChangesOnNewBeanFails(): void
     {
         $person = new PersonBean('John Foo', new \DateTimeImmutable());

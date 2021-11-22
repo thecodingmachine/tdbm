@@ -172,6 +172,8 @@ class DbRow
             // after saving we are back to a loaded state, hence unmodified.
             $this->modifiedColumns = [];
             $this->modifiedReferences = [];
+        } elseif ($state === TDBMObjectStateEnum::STATE_NOT_LOADED) {
+            $this->references = []; // We clear already set references to force re-fetch of those
         }
     }
 
