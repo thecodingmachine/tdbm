@@ -3,11 +3,12 @@ parameters:
     inferPrivatePropertyTypeFromConstructor: true
     checkMissingIterableValueType: false
     checkGenericClassInNonGenericObjectType: false
+    excludePaths:
+     - src/SafeFunctions.php # Temporary exclude, delete this file in PHP ^8.0
     ignoreErrors:
      - "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
      - "#Method .*::.* should return .* but returns .*TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject#"
      - "#Method .*::.* should return .* but returns TheCodingMachine\\\\TDBM\\\\ResultIterator#"
-     - '#Strict comparison using === between string and false will always evaluate to false.#'
      - "#Call to an undefined method object::#"
      - "#expects TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject, object given.#"
      - "#should return array<TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject> but returns array<int, object>#"

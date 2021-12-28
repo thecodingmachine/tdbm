@@ -691,6 +691,7 @@ class TDBMService
                     $this->connection->insert($quotedTableName, $escapedDbRowData, $types);
 
                     if (!$isPkSet && count($primaryKeyColumns) === 1) {
+                        /** @var int|false $id @see OCI8Connection::lastInsertId() */
                         $id = $this->connection->lastInsertId();
 
                         if ($id === false) {

@@ -12,6 +12,8 @@ class SafeFunctions
     /**
      * A wrapper around array_combine that never returns false.
      *
+     * TODO: Remove once we support only PHP ^8.0
+     *
      * @param array<int|string> $keys
      * @param mixed[] $values
      * @return mixed[]
