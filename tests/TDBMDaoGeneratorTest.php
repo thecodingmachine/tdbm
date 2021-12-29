@@ -1161,7 +1161,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $oldCount = $countryBean->getBoatsByAnchorageCountry()->count();
 
-        $this->tdbmService->getConnection()->insert('boats', [
+        self::insert($this->tdbmService->getConnection(), 'boats', [
             'name' => 'RoseBud2',
             'anchorage_country' => 1,
             'current_country' => 1,
@@ -1188,7 +1188,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertNotEquals($newExpectedId, $oldId, 'The IDs are the same, the test won\'t have any effect');
 
         $userBean->setCountry($countryDao->getById($oldId)); // This triggers the `DbRow::setRef` method which causes the issue
-        $this->tdbmService->getConnection()->update('users', ['country_id' => $newExpectedId], ['id' => 4]);
+        self::update($this->tdbmService->getConnection(), 'users', ['country_id' => $newExpectedId], ['id' => 4]);
 
         $userBean->discardChanges();
 

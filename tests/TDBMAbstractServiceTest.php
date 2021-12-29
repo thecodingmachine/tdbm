@@ -797,22 +797,28 @@ abstract class TDBMAbstractServiceTest extends TestCase
         self::insert($connection, 'all', ['analyze' => 1, 'and' => 1]);
     }
 
-    public static function insert(Connection $connection, string $tableName, array $data): void
+    private static function quoteKeys(Connection $connection, array $data): array
     {
         $quotedData = [];
         foreach ($data as $id => $value) {
             $quotedData[$connection->quoteIdentifier($id)] = $value;
         }
-        $connection->insert($connection->quoteIdentifier($tableName), $quotedData);
+        return $quotedData;
     }
 
-    protected static function delete(Connection $connection, string $tableName, array $data): void
+    public static function insert(Connection $connection, string $tableName, array $data): void
     {
-        $quotedData = [];
-        foreach ($data as $id => $value) {
-            $quotedData[$connection->quoteIdentifier($id)] = $value;
-        }
-        $connection->delete($connection->quoteIdentifier($tableName), $quotedData);
+        $connection->insert($connection->quoteIdentifier($tableName), self::quoteKeys($connection, $data));
+    }
+
+    public static function update(Connection $connection, string $tableName, array $data, array $criteria): void
+    {
+        $connection->update($connection->quoteIdentifier($tableName), self::quoteKeys($connection, $data), self::quoteKeys($connection, $criteria));
+    }
+
+    protected static function delete(Connection $connection, string $tableName, array $criteria): void
+    {
+        $connection->delete($connection->quoteIdentifier($tableName), self::quoteKeys($connection, $criteria));
     }
 
     protected static function isMariaDb(Connection $connection): bool
