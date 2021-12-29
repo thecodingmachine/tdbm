@@ -1643,8 +1643,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         // executes after the command finishes
         if (!$process->isSuccessful()) {
-            echo $process->getOutput();
-            $this->fail('Generated code is not PSR-2 compliant');
+            $this->fail('Generated code is not PSR-2 compliant' . PHP_EOL . $process->getErrorOutput());
         }
         $this->assertTrue($process->isSuccessful());
     }

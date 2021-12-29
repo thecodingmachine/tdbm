@@ -297,10 +297,13 @@ class DbRow
 
             // If the foreign key points to the primary key, let's use findObjectByPk
             if ($this->tdbmService->getPrimaryKeyColumns($foreignTableName) === $foreignColumns) {
-                return $this->tdbmService->findObjectByPk($foreignTableName, $filter, [], true, $className, $resultIteratorClass);
+                $reference = $this->tdbmService->findObjectByPk($foreignTableName, $filter, [], true, $className, $resultIteratorClass);
             } else {
-                return $this->tdbmService->findObject($foreignTableName, $filter, [], [], $className, $resultIteratorClass);
+                $reference = $this->tdbmService->findObject($foreignTableName, $filter, [], [], $className, $resultIteratorClass);
             }
+
+            $this->references[$foreignKeyName] = $reference;
+            return $reference;
         }
     }
 
