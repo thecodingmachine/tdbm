@@ -172,6 +172,8 @@ class DbRow
             // after saving we are back to a loaded state, hence unmodified.
             $this->modifiedColumns = [];
             $this->modifiedReferences = [];
+        } elseif ($state === TDBMObjectStateEnum::STATE_NOT_LOADED) {
+            $this->references = []; // We clear already set references to force re-fetch of those
         }
     }
 
@@ -295,10 +297,13 @@ class DbRow
 
             // If the foreign key points to the primary key, let's use findObjectByPk
             if ($this->tdbmService->getPrimaryKeyColumns($foreignTableName) === $foreignColumns) {
-                return $this->tdbmService->findObjectByPk($foreignTableName, $filter, [], true, $className, $resultIteratorClass);
+                $reference = $this->tdbmService->findObjectByPk($foreignTableName, $filter, [], true, $className, $resultIteratorClass);
             } else {
-                return $this->tdbmService->findObject($foreignTableName, $filter, [], [], $className, $resultIteratorClass);
+                $reference = $this->tdbmService->findObject($foreignTableName, $filter, [], [], $className, $resultIteratorClass);
             }
+
+            $this->references[$foreignKeyName] = $reference;
+            return $reference;
         }
     }
 

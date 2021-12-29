@@ -149,7 +149,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         $this->tdbmDaoGenerator->generateAllDaosAndBeans();
 
-        $this->assertFileNotExists($dummyFile);
+        $this->assertFileDoesNotExist($dummyFile);
 
         //Check that the lock file was generated
         $this->assertFileExists($schemaFilePath);
@@ -1154,6 +1154,50 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
+    public function testDiscardChangesDiscardsRelations(): void
+    {
+        $countryDao = new CountryDao($this->tdbmService);
+        $countryBean = $countryDao->getById(1);
+
+        $oldCount = $countryBean->getBoatsByAnchorageCountry()->count();
+
+        self::insert($this->tdbmService->getConnection(), 'boats', [
+            'name' => 'RoseBud2',
+            'anchorage_country' => 1,
+            'current_country' => 1,
+            'length' => '13.5',
+        ]);
+
+        $countryBean->discardChanges();
+
+        $this->assertEquals($oldCount + 1, $countryBean->getBoatsByAnchorageCountry()->count());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
+    public function testDiscardChangesDiscardsRowRef(): void
+    {
+        $newExpectedId = 3;
+
+        $userDao = new UserDao($this->tdbmService);
+        $countryDao = new CountryDao($this->tdbmService);
+        $userBean = $userDao->getById(4);
+
+        $oldId = $userBean->getCountry()->getId();
+        $this->assertNotEquals($newExpectedId, $oldId, 'The IDs are the same, the test won\'t have any effect');
+
+        $userBean->setCountry($countryDao->getById($oldId)); // This triggers the `DbRow::setRef` method which causes the issue
+        self::update($this->tdbmService->getConnection(), 'users', ['country_id' => $newExpectedId], ['id' => 4]);
+
+        $userBean->discardChanges();
+
+        $this->assertEquals($newExpectedId, $userBean->getCountry()->getId());
+    }
+
+    /**
+     * @depends testDaoGeneration
+     */
     public function testDiscardChangesOnNewBeanFails(): void
     {
         $person = new PersonBean('John Foo', new \DateTimeImmutable());
@@ -1599,8 +1643,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 
         // executes after the command finishes
         if (!$process->isSuccessful()) {
-            echo $process->getOutput();
-            $this->fail('Generated code is not PSR-2 compliant');
+            $this->fail('Generated code is not PSR-2 compliant' . PHP_EOL . $process->getErrorOutput());
         }
         $this->assertTrue($process->isSuccessful());
     }
