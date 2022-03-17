@@ -421,7 +421,7 @@ $this->set(%s, $%s, %s);',
 
     public function isReadOnly(): bool
     {
-        return $this->findAnnotation(Annotation\ReadOnly::class) !== null;
+        return $this->findAnnotation(Annotation\ReadOnlyColumn::class) !== null;
     }
 
     private function findAnnotation(string $type): ?object

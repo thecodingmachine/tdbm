@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Table;
-use TheCodingMachine\TDBM\Utils\Annotation\ReadOnly;
+use TheCodingMachine\TDBM\Utils\Annotation\ReadOnlyColumn;
 use Laminas\Code\Generator\DocBlock\Tag\ParamTag;
 use Laminas\Code\Generator\MethodGenerator;
 
