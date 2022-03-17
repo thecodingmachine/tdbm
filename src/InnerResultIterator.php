@@ -135,7 +135,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
         if ($this->fetchStarted && $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             // Optimisation: we don't need a separate "count" SQL request in MySQL.
             assert($this->statement instanceof Statement);
-            $this->count = $this->statement->rowCount();
+            $this->count = (int)$this->statement->rowCount();
             return $this->count;
         }
         return $this->getRowCountViaSqlQuery();
