@@ -1198,7 +1198,7 @@ EOF
         $class->setDocBlock((new DocBlockGenerator(
             "The $baseClassName class will iterate over results of $beanClassWithoutNameSpace class.",
             null,
-            [new Tag\MethodTag('getIterator', ['\\' . $beanClassName . '[]'])]
+            [new Tag\MethodTag('getIterator', ['\\' . $beanClassName . '[]']), new Tag\MethodTag('toArray', ['\\' . $beanClassName . '[]'])]
         ))->setWordWrap(false));
 
         $file = $this->codeGeneratorListener->onBaseResultIteratorGenerated($file, $this, $this->configuration);

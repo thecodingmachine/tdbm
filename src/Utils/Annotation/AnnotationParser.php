@@ -43,7 +43,7 @@ class AnnotationParser
             'ProtectedGetter' => ProtectedGetter::class,
             'ProtectedSetter' => ProtectedSetter::class,
             'ProtectedOneToMany' => ProtectedOneToMany::class,
-            'ReadOnly' => ReadOnly::class,
+            'ReadOnly' => ReadOnlyColumn::class,
             'JsonKey' => JsonKey::class,
             'JsonIgnore' => JsonIgnore::class,
             'JsonInclude' => JsonInclude::class,

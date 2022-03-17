@@ -10,6 +10,6 @@ namespace TheCodingMachine\TDBM\Utils\Annotation;
  *
  * @Annotation
  */
-final class ReadOnly
+final class ReadOnlyColumn
 {
 }
