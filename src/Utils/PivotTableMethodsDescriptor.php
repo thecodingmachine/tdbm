@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
-use Doctrine\Common\Inflector\Inflector;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
@@ -121,7 +120,7 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
     private function getPluralName() : string
     {
         if ($this->isAutoPivot()) {
-            $name = Inflector::pluralize($this->namingStrategy->getAutoPivotEntityName($this->remoteFk, false));
+            $name = TDBMDaoGenerator::toPlural($this->namingStrategy->getAutoPivotEntityName($this->remoteFk, false));
             if ($this->useAlternateName) {
                 $name .= 'By_'.$this->pivotTable->getName();
             }

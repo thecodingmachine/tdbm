@@ -478,6 +478,19 @@ BODY;
     }
 
     /**
+     * Tries to put string to the plural form (if it is singular).
+     * We assume the string is in english.
+     */
+    public static function toPlural(string $str): string
+    {
+        if (self::$inflector === null) {
+            self::$inflector = InflectorFactory::create()->build();
+        }
+
+        return self::$inflector->pluralize($str);
+    }
+
+    /**
      * Put the first letter of the string in lower case.
      * Very useful to transform a class name into a variable name.
      *
