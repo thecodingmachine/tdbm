@@ -5,6 +5,7 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Psr\Log\NullLogger;
+use TheCodingMachine\TDBM\Iterators\CachingIterator;
 use function array_map;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
@@ -164,10 +165,11 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         if ($this->innerResultIterator === null) {
             if ($this->totalCount === 0) {
                 $this->innerResultIterator = new EmptyInnerResultIterator();
-            } elseif ($this->mode === TDBMService::MODE_CURSOR) {
-                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
             } else {
-                $this->innerResultIterator = InnerResultArray::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->queryFactory->getMagicSql(), $this->parameters, null, null, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
+                if ($this->mode === TDBMService::MODE_ARRAY) {
+                    $this->innerResultIterator = new CachingIterator($this->innerResultIterator);
+                }
             }
         }
 
