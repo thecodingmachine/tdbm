@@ -515,6 +515,13 @@ class BeanDescriptor implements BeanDescriptorInterface
         ));
         $method->setParameter(new ParameterGenerator('stopRecursion', 'bool', false));
 
+        /*
+         * Set jsonSerialize's mixed return type for php >= 8
+         */
+        if (version_compare(PHP_VERSION, '8.0.0', '>=')) {
+            $method->setReturnType("mixed");
+        }
+
         if ($parentFk !== null) {
             $body = '$array = parent::jsonSerialize($stopRecursion);';
         } else {
