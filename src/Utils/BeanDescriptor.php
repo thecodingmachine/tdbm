@@ -1370,13 +1370,13 @@ EOF
                 $typeName = $element->getDatabaseType()->getName();
                 if ($typeName === Type::DATETIME_IMMUTABLE) {
                     $filterArrayCode .= sprintf(
-                        "            %s => \$this->tdbmService->getConnection()->convertToDatabaseValue(%s, %s),\n",
+                        "    %s => \$this->tdbmService->getConnection()->convertToDatabaseValue(%s, %s),\n",
                         var_export($element->getColumnName(), true),
                         $element->getSafeVariableName(),
                         var_export($typeName, true)
                     );
                 } else {
-                    $filterArrayCode .= '            '.var_export($element->getColumnName(), true).' => '.$element->getSafeVariableName().",\n";
+                    $filterArrayCode .= '    '.var_export($element->getColumnName(), true).' => '.$element->getSafeVariableName().",\n";
                 }
             } elseif ($element instanceof ObjectBeanPropertyDescriptor) {
                 $foreignKey = $element->getForeignKey();
@@ -1388,10 +1388,10 @@ EOF
                     $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy, $this->annotationParser);
                     if ($first || $element->isCompulsory() && $index->isUnique()) {
                         // First parameter for index is not nullable
-                        $filterArrayCode .= '            '.var_export($localColumn, true).' => '.$element->getSafeVariableName().'->'.$targetedElement->getGetterName()."(),\n";
+                        $filterArrayCode .= '    '.var_export($localColumn, true).' => '.$element->getSafeVariableName().'->'.$targetedElement->getGetterName()."(),\n";
                     } else {
                         // Other parameters for index is not nullable
-                        $filterArrayCode .= '            '.var_export($localColumn, true).' => ('.$element->getSafeVariableName().' !== null) ? '.$element->getSafeVariableName().'->'.$targetedElement->getGetterName()."() : null,\n";
+                        $filterArrayCode .= '    '.var_export($localColumn, true).' => ('.$element->getSafeVariableName().' !== null) ? '.$element->getSafeVariableName().'->'.$targetedElement->getGetterName()."() : null,\n";
                     }
                 }
             }
@@ -1418,7 +1418,7 @@ EOF
             $docBlock->setWordWrap(false);
 
             $body = "\$filter = [
-".$filterArrayCode."        ];
+".$filterArrayCode."];
 return \$this->findOne(\$filter, [], \$additionalTablesFetch);
 ";
         } else {
@@ -1434,7 +1434,7 @@ return \$this->findOne(\$filter, [], \$additionalTablesFetch);
             $docBlock->setWordWrap(false);
 
             $body = "\$filter = [
-".$filterArrayCode."        ];
+".$filterArrayCode."];
 return \$this->find(\$filter, [], \$orderBy, \$additionalTablesFetch, \$mode);
 ";
         }
