@@ -10,7 +10,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use TheCodingMachine\TDBM\QueryFactory\QueryFactory;
-use Porpaginas\Result;
 use Psr\Log\LoggerInterface;
 use TheCodingMachine\TDBM\Utils\DbalUtils;
 use Traversable;
@@ -41,7 +40,7 @@ use function is_int;
 /**
  * Iterator used to retrieve results.
  */
-class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
+class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
 {
     /** @var Statement */
     protected $statement;
@@ -176,13 +175,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         return $this->innerResultIterator;
     }
 
-    /**
-     * @param int $offset
-     * @param int $limit
-     *
-     * @return PageIterator
-     */
-    public function take($offset, $limit)
+    public function take(int $offset, int $limit): PageIterator
     {
         if ($this->totalCount === 0) {
             return PageIterator::createEmpyIterator($this);

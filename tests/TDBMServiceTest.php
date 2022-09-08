@@ -248,7 +248,7 @@ JOIN users ON country.id= users.country_id
 GROUP BY country.id
 HAVING COUNT(users.id) > 1;
 SQL;
-        /** @var Test\Dao\Bean\CountryBean[]|\Porpaginas\Result $beans */
+        /** @var Test\Dao\Bean\CountryBean[]|ResultInterface $beans */
         $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class, null, CountryResultIterator::class);
 
         $count = 0;
@@ -271,7 +271,7 @@ GROUP BY country.id
 ORDER BY COUNT(users.id);
 SQL;
 
-        /** @var Test\Dao\Bean\CountryBean[]|\Porpaginas\Result $beans */
+        /** @var Test\Dao\Bean\CountryBean[]|ResultInterface $beans */
         $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class, null, CountryResultIterator::class);
 
         $count = 0;
@@ -300,7 +300,7 @@ GROUP BY users.id
 ORDER BY MAX(IF(roles.name = 'Admins', 3, IF(roles.name = 'Writers', 2, IF(roles.name = 'Singers', 1, 0)))) DESC
 SQL;
 
-        /** @var Test\Dao\Bean\UserBean[]|\Porpaginas\Result $beans */
+        /** @var Test\Dao\Bean\UserBean[]|ResultInterface $beans */
         $beans = $this->tdbmService->findObjectsFromRawSql('contact', $sql, [], null, Test\Dao\Bean\UserBean::class, null, UserResultIterator::class);
 
         function getCustomOrder(Test\Dao\Bean\UserBean $contact)
