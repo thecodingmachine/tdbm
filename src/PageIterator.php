@@ -5,7 +5,6 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
-use Porpaginas\Page;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -30,7 +29,7 @@ use Psr\Log\NullLogger;
 /**
  * Iterator used to retrieve results.
  */
-class PageIterator implements Page, \ArrayAccess, \JsonSerializable
+class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
 {
     /** @var Statement */
     protected $statement;
@@ -132,46 +131,33 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
         return $this->innerResultIterator;
     }
 
-    /**
-     * @return int
-     */
-    public function getCurrentOffset()
+    public function getCurrentOffset(): int
     {
         return $this->offset;
     }
 
-    /**
-     * @return int
-     */
-    public function getCurrentPage()
+    public function getCurrentPage(): int
     {
         return (int) floor($this->offset / $this->limit) + 1;
     }
 
-    /**
-     * @return int
-     */
-    public function getCurrentLimit()
+    public function getCurrentLimit(): int
     {
         return $this->limit;
     }
 
     /**
      * Return the number of results on the current page of the {@link Result}.
-     *
-     * @return int
      */
-    public function count()
+    public function count(): int
     {
         return $this->getIterator()->count();
     }
 
     /**
      * Return the number of ALL results in the paginatable of {@link Result}.
-     *
-     * @return int
      */
-    public function totalCount()
+    public function totalCount(): int
     {
         return $this->parentResult->count();
     }

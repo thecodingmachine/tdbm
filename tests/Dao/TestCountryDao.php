@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Dao;
 
-use Porpaginas\Result;
+use TheCodingMachine\TDBM\ResultInterface;
 use TheCodingMachine\TDBM\Test\Dao\Bean\CountryBean;
 use TheCodingMachine\TDBM\Test\Dao\Generated\CountryBaseDao;
 
@@ -13,7 +13,7 @@ use TheCodingMachine\TDBM\Test\Dao\Generated\CountryBaseDao;
 class TestCountryDao extends CountryBaseDao
 {
     /**
-     * @return CountryBean[]|Result
+     * @return CountryBean[]|ResultInterface
      */
     public function getCountriesByUserCount()
     {
@@ -29,7 +29,7 @@ SQL;
     }
 
     /**
-     * @return CountryBean[]|Result
+     * @return CountryBean[]|ResultInterface
      */
     public function getCountriesUsingUnion()
     {
@@ -47,7 +47,7 @@ SQL;
     }
 
     /**
-     * @return CountryBean[]|Result
+     * @return CountryBean[]|ResultInterface
      */
     public function getCountriesUsingSimpleQuery()
     {
@@ -61,7 +61,7 @@ SQL;
     }
 
     /**
-     * @return CountryBean[]|Result
+     * @return CountryBean[]|ResultInterface
      */
     public function getCountriesUsingDistinctQuery()
     {

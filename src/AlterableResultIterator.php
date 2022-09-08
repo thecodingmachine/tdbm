@@ -3,17 +3,13 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-use Porpaginas\Arrays\ArrayPage;
-use Porpaginas\Iterator;
-use Porpaginas\Result;
-
 /**
  * This class acts as a wrapper around a result iterator.
  * It can be used to add or remove results from a ResultIterator (or any kind a traversable collection).
  *
  * Note: in the case of TDBM, this is useful to manage many to one relationships
  */
-class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
+class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
 {
     /**
      * @var \Traversable|null
@@ -201,16 +197,10 @@ class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
         throw new TDBMInvalidOperationException('You can unset values in a TDBM result set, even in an alterable one. Use the delete method instead.');
     }
 
-    /**
-     * @param int $offset
-     * @param int $limit
-     *
-     * @return \Porpaginas\Page
-     */
-    public function take($offset, $limit)
+    public function take(int $offset, int $limit): PageInterface
     {
         // TODO: replace this with a class implementing the map method.
-        return new ArrayPage(array_slice($this->toArray(), $offset, $limit), $offset, $limit, count($this->toArray()));
+        return new PageArray(array_slice($this->toArray(), $offset, $limit), $offset, $limit, count($this->toArray()));
     }
 
     /**

@@ -24,7 +24,6 @@
         "doctrine/dbal": "^2.9.2",
         "psr/log": "~1.0",
         "doctrine/inflector": "^1.4.3 || ^2",
-        "beberlei/porpaginas": "~1.0",
         "mouf/classname-mapper": "~1.0",
         "doctrine/cache": "^1.6",
         "greenlion/php-sql-parser": "^4.3.0",
