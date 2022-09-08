@@ -13,6 +13,7 @@ vendor/*
 /.travis/
 /vendor-bin/require-checker/vendor/
 /vendor-bin/couscous/vendor/
+.php-cs-fixer.cache
 .phpunit.result.cache
 /phpbench.sh
 /xdebug/
