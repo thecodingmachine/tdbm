@@ -1,12 +1,12 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use ReflectionClass;
+
 use function array_merge;
 use function in_array;
 

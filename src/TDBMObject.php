@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
@@ -73,7 +74,7 @@ class TDBMObject extends AbstractTDBMObject
      *
      * @return string[]
      */
-    protected function getUsedTables() : array
+    protected function getUsedTables(): array
     {
         $tableNames = array_keys($this->dbRows);
         $tableNames = $this->tdbmService->_getLinkBetweenInheritedTables($tableNames);

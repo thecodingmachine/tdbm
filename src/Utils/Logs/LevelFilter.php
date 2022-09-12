@@ -1,12 +1,12 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM\Utils\Logs;
 
 use Psr\Log\AbstractLogger;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
+
 use function array_search;
 use function sprintf;
 

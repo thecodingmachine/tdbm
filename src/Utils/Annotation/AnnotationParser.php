@@ -1,13 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
-use function array_map;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\DocParser;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
+
+use function array_map;
 use function explode;
 use function implode;
 

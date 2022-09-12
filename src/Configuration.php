@@ -1,6 +1,6 @@
 <?php
-declare(strict_types=1);
 
+declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
@@ -26,7 +26,6 @@ use TheCodingMachine\TDBM\Utils\RootProjectLocator;
 
 class Configuration implements ConfigurationInterface
 {
-
     /**
      * @var string
      */

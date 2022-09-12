@@ -1,12 +1,12 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM\Utils\Annotation;
+
+use TheCodingMachine\TDBM\TDBMException;
 
 use function explode;
 use function preg_match;
 use function strpos;
-use TheCodingMachine\TDBM\TDBMException;
 
 abstract class AbstractTraitAnnotation
 {

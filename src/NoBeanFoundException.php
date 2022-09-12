@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
@@ -10,7 +11,6 @@ use Exception;
  */
 class NoBeanFoundException extends TDBMException
 {
-
     /**
      * @var string
      */
@@ -33,7 +33,7 @@ class NoBeanFoundException extends TDBMException
      * @param Exception $previous
      * @return NoBeanFoundException
      */
-    public static function missPrimaryKeyRecord(string $tableName, array $primaryKeys, string $className, Exception $previous) : self
+    public static function missPrimaryKeyRecord(string $tableName, array $primaryKeys, string $className, Exception $previous): self
     {
         $primaryKeysStringified = implode(' and ', array_map(function ($key, $value) {
             return "'".$key."' = ".$value;
@@ -46,7 +46,7 @@ class NoBeanFoundException extends TDBMException
         return $exception;
     }
 
-    public static function missFilterRecord(string $tableName) : self
+    public static function missFilterRecord(string $tableName): self
     {
         return new self("No result found for query on table '".$tableName."'");
     }

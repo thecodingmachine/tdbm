@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils\PathFinder;
@@ -38,7 +39,7 @@ class PathFinder implements PathFinderInterface
         }
     }
 
-    private function getClassNameMapper() : ClassNameMapper
+    private function getClassNameMapper(): ClassNameMapper
     {
         if ($this->classNameMapper === null) {
             $this->classNameMapper = ClassNameMapper::createFromComposerFile($this->composerFile, $this->rootPath, $this->useAutoloadDev);

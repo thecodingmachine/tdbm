@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
@@ -165,7 +166,7 @@ class DbRow
      *
      * @param string $state
      */
-    public function _setStatus(string $state) : void
+    public function _setStatus(string $state): void
     {
         $this->status = $state;
         if ($state === TDBMObjectStateEnum::STATE_LOADED) {
@@ -269,7 +270,7 @@ class DbRow
      *
      * @return AbstractTDBMObject|null
      */
-    public function getRef(string $foreignKeyName, string $className, string $resultIteratorClass) : ?AbstractTDBMObject
+    public function getRef(string $foreignKeyName, string $className, string $resultIteratorClass): ?AbstractTDBMObject
     {
         if (array_key_exists($foreignKeyName, $this->references)) {
             return $this->references[$foreignKeyName];

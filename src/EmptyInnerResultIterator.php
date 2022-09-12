@@ -1,6 +1,5 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM;
 
 use Iterator;
@@ -10,7 +9,6 @@ use Iterator;
  */
 class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
 {
-
     /**
      * Return the current element
      * @link https://php.net/manual/en/iterator.current.php

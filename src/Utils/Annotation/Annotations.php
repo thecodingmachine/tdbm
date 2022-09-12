@@ -1,11 +1,12 @@
 <?php
-declare(strict_types=1);
 
+declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
-use function array_values;
 use TheCodingMachine\TDBM\TDBMException;
+
+use function array_values;
 
 /**
  * Represents a list of annotations in a column comment.

@@ -1,6 +1,6 @@
 <?php
-declare(strict_types=1);
 
+declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils\PathFinder;
 
@@ -13,5 +13,5 @@ interface PathFinderInterface
      * @return \SplFileInfo
      * @throws NoPathFoundException
      */
-    public function getPath(string $className) : \SplFileInfo;
+    public function getPath(string $className): \SplFileInfo;
 }

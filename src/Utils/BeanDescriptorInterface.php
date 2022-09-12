@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
@@ -15,7 +16,7 @@ interface BeanDescriptorInterface
      *
      * @return Table
      */
-    public function getTable() : Table;
+    public function getTable(): Table;
 
     /**
      * Returns the bean class name (without the namespace).

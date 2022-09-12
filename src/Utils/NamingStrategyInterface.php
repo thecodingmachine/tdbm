@@ -1,6 +1,6 @@
 <?php
-declare(strict_types=1);
 
+declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
@@ -19,7 +19,7 @@ interface NamingStrategyInterface
      * @param string $tableName
      * @return string
      */
-    public function getBeanClassName(string $tableName) : string;
+    public function getBeanClassName(string $tableName): string;
 
     /**
      * Returns the base bean class name from the table name (excluding the namespace).
@@ -27,7 +27,7 @@ interface NamingStrategyInterface
      * @param string $tableName
      * @return string
      */
-    public function getBaseBeanClassName(string $tableName) : string;
+    public function getBaseBeanClassName(string $tableName): string;
 
     /**
      * Returns the name of the DAO class from the table name (excluding the namespace).
@@ -35,7 +35,7 @@ interface NamingStrategyInterface
      * @param string $tableName
      * @return string
      */
-    public function getDaoClassName(string $tableName) : string;
+    public function getDaoClassName(string $tableName): string;
 
     /**
      * Returns the name of the base DAO class from the table name (excluding the namespace).
@@ -43,7 +43,7 @@ interface NamingStrategyInterface
      * @param string $tableName
      * @return string
      */
-    public function getBaseDaoClassName(string $tableName) : string;
+    public function getBaseDaoClassName(string $tableName): string;
 
     /**
      * Returns the name of the ResultIterator class from the table name (excluding the namespace).
@@ -51,7 +51,7 @@ interface NamingStrategyInterface
      * @param string $tableName
      * @return string
      */
-    public function getResultIteratorClassName(string $tableName) : string;
+    public function getResultIteratorClassName(string $tableName): string;
 
     /**
      * Returns the name of the base ResultIterator class from the table name (excluding the namespace).
@@ -59,14 +59,14 @@ interface NamingStrategyInterface
      * @param string $tableName
      * @return string
      */
-    public function getBaseResultIteratorClassName(string $tableName) : string;
+    public function getBaseResultIteratorClassName(string $tableName): string;
 
     /**
      * Returns the class name for the DAO factory.
      *
      * @return string
      */
-    public function getDaoFactoryClassName() : string;
+    public function getDaoFactoryClassName(): string;
 
     /**
      * Returns the getter name generated for the property passed in parameter.

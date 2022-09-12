@@ -1,11 +1,11 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM;
+
+use RuntimeException;
 
 use function array_combine;
 use function error_get_last;
-use RuntimeException;
 
 class SafeFunctions
 {

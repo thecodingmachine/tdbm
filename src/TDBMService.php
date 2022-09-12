@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -21,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace TheCodingMachine\TDBM;
 
-use function class_exists;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\ClearableCache;
 use Doctrine\Common\Cache\VoidCache;
@@ -49,6 +49,8 @@ use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 use WeakReference;
 
+use function class_exists;
+
 /**
  * The TDBMService class is the main TDBM class. It provides methods to retrieve TDBMObject instances
  * from the database.
@@ -58,8 +60,8 @@ use WeakReference;
  */
 class TDBMService
 {
-    const MODE_CURSOR = 1;
-    const MODE_ARRAY = 2;
+    public const MODE_CURSOR = 1;
+    public const MODE_ARRAY = 2;
 
     /**
      * The database connection.
@@ -278,8 +280,8 @@ class TDBMService
                 foreach ($object->_getDbRows() as $dbRow) {
                     $this->removeFromToSaveObjectList($dbRow);
                 }
-            // And continue deleting...
-            // no break
+                // And continue deleting...
+                // no break
             case TDBMObjectStateEnum::STATE_NOT_LOADED:
             case TDBMObjectStateEnum::STATE_LOADED:
                 $this->connection->beginTransaction();
@@ -303,10 +305,10 @@ class TDBMService
                     throw $e;
                 }
                 break;
-            // @codeCoverageIgnoreStart
+                // @codeCoverageIgnoreStart
             default:
                 throw new TDBMInvalidOperationException('Unexpected status for bean');
-            // @codeCoverageIgnoreEnd
+                // @codeCoverageIgnoreEnd
         }
 
         $object->_setStatus(TDBMObjectStateEnum::STATE_DELETED);
@@ -552,7 +554,7 @@ class TDBMService
     /**
      * Generates all the daos and beans.
      */
-    public function generateAllDaosAndBeans(bool $fromLock = false) : void
+    public function generateAllDaosAndBeans(bool $fromLock = false): void
     {
         // Purge cache before generating anything.
         if ($this->cache instanceof ClearableCache) {
@@ -571,7 +573,7 @@ class TDBMService
      *
      * @return class-string
      */
-    public function getBeanClassName(string $tableName) : string
+    public function getBeanClassName(string $tableName): string
     {
         if (isset($this->tableToBeanMap[$tableName])) {
             return $this->tableToBeanMap[$tableName];
@@ -1280,7 +1282,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObject(string $mainTable, $filter, array $parameters, array $additionalTablesFetch, string $className, string $resultIteratorClass) : ?AbstractTDBMObject
+    public function findObject(string $mainTable, $filter, array $parameters, array $additionalTablesFetch, string $className, string $resultIteratorClass): ?AbstractTDBMObject
     {
         assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
         $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className, $resultIteratorClass);
@@ -1337,7 +1339,7 @@ class TDBMService
      *
      * @throws TDBMException
      */
-    public function findObjectFromSql(string $mainTable, string $from, $filter, array $parameters, ?string $className, string $resultIteratorClass) : ?AbstractTDBMObject
+    public function findObjectFromSql(string $mainTable, string $from, $filter, array $parameters, ?string $className, string $resultIteratorClass): ?AbstractTDBMObject
     {
         assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
         $objects = $this->findObjectsFromSql($mainTable, $from, $filter, $parameters, null, self::MODE_ARRAY, $className, $resultIteratorClass);

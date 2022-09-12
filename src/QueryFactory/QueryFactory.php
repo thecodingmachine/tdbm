@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\QueryFactory;
@@ -26,9 +27,9 @@ interface QueryFactory
      */
     public function sort($orderBy): void;
 
-    public function getMagicSql() : string;
+    public function getMagicSql(): string;
 
-    public function getMagicSqlCount() : string;
+    public function getMagicSqlCount(): string;
 
     /**
      * Returns a sub-query to be used in another query.
@@ -36,15 +37,15 @@ interface QueryFactory
      *
      * @return string
      */
-    public function getMagicSqlSubQuery() : string;
+    public function getMagicSqlSubQuery(): string;
 
     /**
      * @return mixed[][] An array of column descriptors. The key might be in the form "$tableName____$columnName". Value is an array with those keys: as, table, column, type, tableGroup
      */
-    public function getColumnDescriptors() : array;
+    public function getColumnDescriptors(): array;
 
     /**
      * @return array<int, array{table: string, column: string}> An array of column descriptors.
      */
-    public function getSubQueryColumnDescriptors() : array;
+    public function getSubQueryColumnDescriptors(): array;
 }

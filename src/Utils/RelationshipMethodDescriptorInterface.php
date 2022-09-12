@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
@@ -12,7 +13,7 @@ interface RelationshipMethodDescriptorInterface extends MethodDescriptorInterfac
      *
      * @return string
      */
-    public function getName() : string;
+    public function getName(): string;
 
     /**
      * Returns the name of the class that will be returned by the getter (short name).
@@ -31,19 +32,19 @@ interface RelationshipMethodDescriptorInterface extends MethodDescriptorInterfac
      *
      * @return MethodGenerator[]
      */
-    public function getCode() : array;
+    public function getCode(): array;
 
     /**
      * Returns an array of classes that needs a "use" for this method.
      *
      * @return string[]
      */
-    public function getUsedClasses() : array;
+    public function getUsedClasses(): array;
 
     /**
      * Returns the code to past in jsonSerialize.
      *
      * @return string
      */
-    public function getJsonSerializeCode() : string;
+    public function getJsonSerializeCode(): string;
 }

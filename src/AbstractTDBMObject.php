@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
@@ -285,7 +286,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return AbstractTDBMObject|null
      */
-    protected function getRef(string $foreignKeyName, string $tableName, string $className, string $resultIteratorClass) : ?AbstractTDBMObject
+    protected function getRef(string $foreignKeyName, string $tableName, string $className, string $resultIteratorClass): ?AbstractTDBMObject
     {
         $tableName = $this->checkTableName($tableName);
 
@@ -463,7 +464,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return \SplObjectStorage
      */
-    private function getRelationshipStorage(string $pivotTableName) : \SplObjectStorage
+    private function getRelationshipStorage(string $pivotTableName): \SplObjectStorage
     {
         return $this->relationships[$pivotTableName] ?? $this->relationships[$pivotTableName] = new \SplObjectStorage();
     }
@@ -476,7 +477,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return AlterableResultIterator
      */
-    private function getManyToOneAlterableResultIterator(string $tableName, string $foreignKeyName) : AlterableResultIterator
+    private function getManyToOneAlterableResultIterator(string $tableName, string $foreignKeyName): AlterableResultIterator
     {
         $key = $tableName.'___'.$foreignKeyName;
 
@@ -519,7 +520,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return AlterableResultIterator
      */
-    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, array $searchFilter, ?string $orderString, string $resultIteratorClass) : AlterableResultIterator
+    protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, array $searchFilter, ?string $orderString, string $resultIteratorClass): AlterableResultIterator
     {
         assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
         $key = $tableName.'___'.$foreignKeyName;
@@ -566,7 +567,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return string
      */
-    public function _getStatus() : string
+    public function _getStatus(): string
     {
         if ($this->status === null) {
             throw new TDBMException(sprintf('Your bean for class %s has no status. It is likely that you overloaded the __construct method and forgot to call parent::__construct.', get_class($this)));
@@ -640,12 +641,12 @@ abstract class AbstractTDBMObject implements JsonSerializable
      *
      * @return string[]
      */
-    abstract protected function getUsedTables() : array;
+    abstract protected function getUsedTables(): array;
 
     /**
      * Method called when the bean is removed from database.
      */
-    protected function onDelete() : void
+    protected function onDelete(): void
     {
     }
 

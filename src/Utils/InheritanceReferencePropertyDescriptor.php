@@ -1,6 +1,5 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Column;
