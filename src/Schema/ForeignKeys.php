@@ -1,6 +1,5 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM\Schema;
 
 class ForeignKeys

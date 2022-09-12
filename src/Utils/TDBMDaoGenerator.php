@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
@@ -19,15 +20,17 @@ use Laminas\Code\Generator\FileGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\ParameterGenerator;
 use Laminas\Code\Generator\PropertyGenerator;
-use function str_replace;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Filesystem\Filesystem;
+
+use function str_replace;
 use function strpos;
 use function substr;
 use function var_export;
+
 use const PHP_EOL;
 
 /**
@@ -280,7 +283,7 @@ class $className extends $baseClassName
     /**
      * Writes the PHP ResultIterator file with typed accessors.
      */
-    private function generateResultIterator(BeanDescriptor $beanDescriptor) : void
+    private function generateResultIterator(BeanDescriptor $beanDescriptor): void
     {
         $resultIteratorClassName = $beanDescriptor->getResultIteratorClassName();
         $resultIteratorBaseClassName = $beanDescriptor->getBaseResultIteratorClassName();
@@ -331,7 +334,7 @@ class $resultIteratorClassName extends $resultIteratorBaseClassName
      * @param BeanDescriptor[] $beanDescriptors
      * @throws TDBMException
      */
-    private function generateFactory(array $beanDescriptors) : void
+    private function generateFactory(array $beanDescriptors): void
     {
         $daoNamespace = $this->configuration->getDaoNamespace();
         $daoFactoryClassName = $this->namingStrategy->getDaoFactoryClassName();
@@ -438,7 +441,7 @@ BODY;
      *
      * @return string
      */
-    public static function toCamelCase(string $str) : string
+    public static function toCamelCase(string $str): string
     {
         $str = str_replace(array('`', '"', '[', ']'), '', $str);
 
@@ -523,7 +526,7 @@ BODY;
         }
     }
 
-    private function dumpFile(string $fileName, string $content) : void
+    private function dumpFile(string $fileName, string $content): void
     {
         $this->ensureDirectoryExist($fileName);
         $fileSystem = new Filesystem();
@@ -538,7 +541,7 @@ BODY;
      *
      * @return string The PHP type
      */
-    public static function dbalTypeToPhpType(Type $type) : string
+    public static function dbalTypeToPhpType(Type $type): string
     {
         $map = [
             Type::TARRAY => 'array',

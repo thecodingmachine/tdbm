@@ -1,10 +1,10 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
+
 use function is_array;
 use function is_int;
 

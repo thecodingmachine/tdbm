@@ -1,6 +1,5 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM\Performance;
 
 use Doctrine\Common\Cache\ArrayCache;
@@ -20,6 +19,7 @@ use TheCodingMachine\TDBM\TDBMService;
 use TheCodingMachine\TDBM\Test\Dao\UserDao;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
+
 use function dirname;
 use function getenv;
 use function glob;
@@ -162,7 +162,7 @@ class ManyToOneBench
      */
     private $configuration;
 
-    protected function getConfiguration() : ConfigurationInterface
+    protected function getConfiguration(): ConfigurationInterface
     {
         if ($this->configuration === null) {
             return self::createConfiguration();

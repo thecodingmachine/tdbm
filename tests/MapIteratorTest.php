@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -29,7 +30,7 @@ class MapIteratorTest extends TestCase
 {
     public function testIteratorAggregate(): void
     {
-        $mapIterator = new MapIterator(new class implements IteratorAggregate {
+        $mapIterator = new MapIterator(new class () implements IteratorAggregate {
             public $property1 = "Public property one";
             public $property2 = "Public property two";
             public $property3 = "Public property three";

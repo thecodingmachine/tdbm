@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -74,7 +75,7 @@ class NativeWeakrefObjectStorage implements ObjectStorageInterface
      *
      * @return DbRow|null
      */
-    public function get(string $tableName, $id) : ?DbRow
+    public function get(string $tableName, $id): ?DbRow
     {
         if (isset($this->objects[$tableName][$id])) {
             return $this->objects[$tableName][$id]->get();

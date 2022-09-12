@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\QueryFactory;
@@ -11,6 +12,7 @@ use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMService;
+
 use function implode;
 
 /**
@@ -140,7 +142,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
      *
      * @return ForeignKeyConstraint[]
      */
-    private function getChildrenRelationshipForeignKeys(string $tableName) : array
+    private function getChildrenRelationshipForeignKeys(string $tableName): array
     {
         return $this->fromCache($this->cachePrefix.'_childrenrelationshipfks_'.$tableName, function () use ($tableName) {
             return $this->getChildrenRelationshipForeignKeysWithoutCache($tableName);
@@ -152,7 +154,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
      *
      * @return ForeignKeyConstraint[]
      */
-    private function getChildrenRelationshipForeignKeysWithoutCache(string $tableName) : array
+    private function getChildrenRelationshipForeignKeysWithoutCache(string $tableName): array
     {
         $children = $this->schemaAnalyzer->getChildrenRelationships($tableName);
 

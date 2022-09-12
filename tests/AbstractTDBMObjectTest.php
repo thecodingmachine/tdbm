@@ -3,6 +3,7 @@
 namespace TheCodingMachine\TDBM;
 
 use PHPUnit\Framework\TestCase;
+
 use function foo\func;
 
 class AbstractTDBMObjectTest extends TestCase

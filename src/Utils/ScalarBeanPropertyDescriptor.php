@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
@@ -10,7 +11,7 @@ use Doctrine\DBAL\Types\Type;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
-use \TheCodingMachine\TDBM\Utils\Annotation;
+use TheCodingMachine\TDBM\Utils\Annotation;
 use Laminas\Code\Generator\AbstractMemberGenerator;
 use Laminas\Code\Generator\DocBlock\Tag\ParamTag;
 use Laminas\Code\Generator\DocBlock\Tag\ReturnTag;
@@ -93,7 +94,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         return $this->column->getNotnull() && !$this->isAutoincrement() && $this->column->getDefault() === null && !$this->hasUuidAnnotation();
     }
 
-    private function isAutoincrement() : bool
+    private function isAutoincrement(): bool
     {
         return $this->column->getAutoincrement() || $this->getAutoincrementAnnotation() !== null;
     }
@@ -241,7 +242,7 @@ EOF;
 
         $paramType = null;
         if ($this->isTypeHintable()) {
-            $paramType = ($isNullable?'?':'').$normalizedType;
+            $paramType = ($isNullable ? '?' : '').$normalizedType;
         }
 
         $getter = new MethodGenerator($columnGetterName);
@@ -382,7 +383,7 @@ $this->set(%s, $%s, %s);',
      *
      * @return bool
      */
-    public function canBeSerialized() : bool
+    public function canBeSerialized(): bool
     {
         $type = $this->column->getType();
 
@@ -399,7 +400,7 @@ $this->set(%s, $%s, %s);',
      *
      * @return bool
      */
-    public function isTypeHintable() : bool
+    public function isTypeHintable(): bool
     {
         $type = $this->getPhpType();
         $invalidScalarTypes = [

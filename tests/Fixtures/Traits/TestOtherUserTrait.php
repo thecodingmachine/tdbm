@@ -1,6 +1,5 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM\Fixtures\Traits;
 
 trait TestOtherUserTrait

@@ -1,16 +1,18 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
-use function array_unique;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
-use function in_array;
 use TheCodingMachine\TDBM\OrderByAnalyzer;
 use TheCodingMachine\TDBM\TDBMInvalidArgumentException;
 use TheCodingMachine\TDBM\TDBMService;
 use TheCodingMachine\TDBM\UncheckedOrderBy;
+
+use function array_unique;
+use function in_array;
 
 abstract class AbstractQueryFactory implements QueryFactory
 {
@@ -226,7 +228,7 @@ abstract class AbstractQueryFactory implements QueryFactory
         return implode('_``_', $relatedTables);
     }
 
-    public function getMagicSql() : string
+    public function getMagicSql(): string
     {
         if ($this->magicSql === null) {
             $this->compute();
@@ -235,7 +237,7 @@ abstract class AbstractQueryFactory implements QueryFactory
         return $this->magicSql;
     }
 
-    public function getMagicSqlCount() : string
+    public function getMagicSqlCount(): string
     {
         if ($this->magicSqlCount === null) {
             $this->compute();
@@ -244,7 +246,7 @@ abstract class AbstractQueryFactory implements QueryFactory
         return $this->magicSqlCount;
     }
 
-    public function getMagicSqlSubQuery() : string
+    public function getMagicSqlSubQuery(): string
     {
         if ($this->magicSqlSubQuery === null) {
             $this->compute();
@@ -253,7 +255,7 @@ abstract class AbstractQueryFactory implements QueryFactory
         return $this->magicSqlSubQuery;
     }
 
-    public function getColumnDescriptors() : array
+    public function getColumnDescriptors(): array
     {
         if ($this->columnDescList === null) {
             $this->compute();
@@ -265,7 +267,7 @@ abstract class AbstractQueryFactory implements QueryFactory
     /**
      * @return array<int, array{table: string, column: string}> An array of column descriptors.
      */
-    public function getSubQueryColumnDescriptors() : array
+    public function getSubQueryColumnDescriptors(): array
     {
         if ($this->subQueryColumnDescList === null) {
             $columns = $this->tdbmService->getPrimaryKeyColumns($this->mainTable);

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
@@ -43,6 +44,7 @@ use Laminas\Code\Generator\FileGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\ParameterGenerator;
 use Laminas\Code\Generator\PropertyGenerator;
+
 use function implode;
 use function strtolower;
 use function var_export;
@@ -186,7 +188,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      *
      * @return ForeignKeyConstraint|null
      */
-    private function isPartOfForeignKey(Table $table, Column $column) : ?ForeignKeyConstraint
+    private function isPartOfForeignKey(Table $table, Column $column): ?ForeignKeyConstraint
     {
         $localColumnName = $column->getName();
         foreach ($table->getForeignKeys() as $foreignKey) {
@@ -365,7 +367,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         return $beanPropertyDescriptorsMap;
     }
 
-    private function generateBeanConstructor() : MethodGenerator
+    private function generateBeanConstructor(): MethodGenerator
     {
         $constructorProperties = $this->getConstructorProperties();
 
@@ -1603,7 +1605,7 @@ return $tables;', var_export($this->table->getName(), true));
      *
      * @return string
      */
-    public function getBeanClassName() : string
+    public function getBeanClassName(): string
     {
         return $this->namingStrategy->getBeanClassName($this->table->getName());
     }
@@ -1613,7 +1615,7 @@ return $tables;', var_export($this->table->getName(), true));
      *
      * @return string
      */
-    public function getBaseBeanClassName() : string
+    public function getBaseBeanClassName(): string
     {
         return $this->namingStrategy->getBaseBeanClassName($this->table->getName());
     }
@@ -1623,7 +1625,7 @@ return $tables;', var_export($this->table->getName(), true));
      *
      * @return string
      */
-    public function getDaoClassName() : string
+    public function getDaoClassName(): string
     {
         return $this->namingStrategy->getDaoClassName($this->table->getName());
     }
@@ -1633,7 +1635,7 @@ return $tables;', var_export($this->table->getName(), true));
      *
      * @return string
      */
-    public function getBaseDaoClassName() : string
+    public function getBaseDaoClassName(): string
     {
         return $this->namingStrategy->getBaseDaoClassName($this->table->getName());
     }
@@ -1643,7 +1645,7 @@ return $tables;', var_export($this->table->getName(), true));
      *
      * @return string
      */
-    public function getResultIteratorClassName() : string
+    public function getResultIteratorClassName(): string
     {
         return $this->namingStrategy->getResultIteratorClassName($this->table->getName());
     }
@@ -1653,7 +1655,7 @@ return $tables;', var_export($this->table->getName(), true));
      *
      * @return string
      */
-    public function getBaseResultIteratorClassName() : string
+    public function getBaseResultIteratorClassName(): string
     {
         return $this->namingStrategy->getBaseResultIteratorClassName($this->table->getName());
     }

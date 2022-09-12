@@ -1,4 +1,5 @@
 <?php
+
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
 use Doctrine\Common\Annotations\Annotation\Required;

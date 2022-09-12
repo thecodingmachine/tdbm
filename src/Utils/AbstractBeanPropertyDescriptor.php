@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
@@ -180,7 +181,7 @@ abstract class AbstractBeanPropertyDescriptor implements MethodDescriptorInterfa
      *
      * @return bool
      */
-    abstract public function isTypeHintable() : bool;
+    abstract public function isTypeHintable(): bool;
 
     /**
      * Returns true if the property is tagged with the "ReadOnly" annotation.

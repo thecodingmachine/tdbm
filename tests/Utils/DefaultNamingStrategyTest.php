@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
@@ -25,7 +26,7 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
      */
     private function getDefaultNamingStrategyWithStubTables(array $tables)
     {
-        $stubSchemaManager = new class($tables, self::getConnection(), new MySqlPlatform()) extends MySqlSchemaManager {
+        $stubSchemaManager = new class ($tables, self::getConnection(), new MySqlPlatform()) extends MySqlSchemaManager {
             private $tables;
 
             /**

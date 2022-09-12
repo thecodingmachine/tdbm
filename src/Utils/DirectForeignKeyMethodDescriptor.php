@@ -67,7 +67,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
      *
      * @return string
      */
-    public function getName() : string
+    public function getName(): string
     {
         if (!$this->useAlternateName) {
             return 'get' . $this->getPropertyName();
@@ -87,7 +87,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
      *
      * @return string
      */
-    private function getPropertyName() : string
+    private function getPropertyName(): string
     {
         $name = $this->foreignKey->getLocalTableName();
         if ($this->hasLocalUniqueIndex()) {
@@ -129,7 +129,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
      *
      * @return MethodGenerator[]
      */
-    public function getCode() : array
+    public function getCode(): array
     {
         $beanClass = $this->getBeanClassName();
         $tdbmFk = ForeignKey::createFromFk($this->foreignKey);
@@ -176,7 +176,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
         return [ $getter ];
     }
 
-    private function getFilters(ForeignKeyConstraint $fk) : string
+    private function getFilters(ForeignKeyConstraint $fk): string
     {
         $counter = 0;
         $parameters = [];
@@ -224,7 +224,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
      *
      * @return string[]
      */
-    public function getUsedClasses() : array
+    public function getUsedClasses(): array
     {
         return [$this->getBeanClassName()];
     }
@@ -234,7 +234,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
      *
      * @return string
      */
-    public function getJsonSerializeCode() : string
+    public function getJsonSerializeCode(): string
     {
         /** @var Annotation\JsonCollection|null $jsonCollection */
         $jsonCollection = $this->findAnnotation(Annotation\JsonCollection::class);

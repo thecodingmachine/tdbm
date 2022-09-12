@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
@@ -7,14 +8,15 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
 use Laminas\Code\Generator\DocBlockGenerator;
-use function implode;
-use function sprintf;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
 use Laminas\Code\Generator\DocBlock\Tag\ParamTag;
 use Laminas\Code\Generator\DocBlock\Tag\ReturnTag;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\ParameterGenerator;
+
+use function implode;
+use function sprintf;
 use function var_export;
 
 class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterface
@@ -87,7 +89,7 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
      *
      * @return string
      */
-    public function getName() : string
+    public function getName(): string
     {
         return 'get'.$this->getPluralName();
     }
@@ -117,7 +119,7 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
      *
      * @return string
      */
-    private function getPluralName() : string
+    private function getPluralName(): string
     {
         if ($this->isAutoPivot()) {
             $name = TDBMDaoGenerator::toPlural($this->namingStrategy->getAutoPivotEntityName($this->remoteFk, false));
@@ -137,7 +139,7 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
      *
      * @return string
      */
-    private function getSingularName() : string
+    private function getSingularName(): string
     {
         if ($this->isAutoPivot()) {
             $name = $this->namingStrategy->getAutoPivotEntityName($this->remoteFk, false);
@@ -193,7 +195,7 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
      *
      * @return MethodGenerator[]
      */
-    public function getCode() : array
+    public function getCode(): array
     {
         $singularName = $this->getSingularName();
         $pluralName = $this->getPluralName();
@@ -262,7 +264,7 @@ Exiting relationships will be removed and replaced by the provided relationships
      *
      * @return string[]
      */
-    public function getUsedClasses() : array
+    public function getUsedClasses(): array
     {
         return [$this->getBeanClassName()];
     }
@@ -272,7 +274,7 @@ Exiting relationships will be removed and replaced by the provided relationships
      *
      * @return string
      */
-    public function getJsonSerializeCode() : string
+    public function getJsonSerializeCode(): string
     {
         if ($this->findRemoteAnnotation(Annotation\JsonIgnore::class) ||
             $this->findLocalAnnotation(Annotation\JsonInclude::class) ||

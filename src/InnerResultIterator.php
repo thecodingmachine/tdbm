@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
@@ -183,7 +184,6 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
     {
         $row = $this->statement->fetch(\PDO::FETCH_ASSOC);
         if ($row) {
-
             /** @var array<string, array<string, array<string, mixed>>> $beansData array<tablegroup, array<table, array<column, value>>>*/
             $beansData = [];
             $allNull = true;
@@ -216,7 +216,6 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
             $firstBean = true;
             /** @var array<string, array<string, mixed>> $beanData */
             foreach ($beansData as $beanData) {
-
                 // Let's find the bean class name associated to the bean.
 
                 list($actualClassName, $mainBeanTableName, $tablesUsed) = $this->tdbmService->_getClassNameFromBeanData($beanData);

@@ -1,6 +1,5 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM;
 
 use BrainDiminished\SchemaVersionControl\SchemaVersionControlService;
@@ -12,6 +11,7 @@ use Doctrine\DBAL\Schema\Table;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\Utils\ColumnsReorderer;
 use TheCodingMachine\TDBM\Utils\ImmutableCaster;
+
 use function array_map;
 use function array_values;
 use function file_exists;

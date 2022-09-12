@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
@@ -58,7 +59,7 @@ class OrderByAnalyzer
      *
      * @return array[]
      */
-    public function analyzeOrderBy(string $orderBy) : array
+    public function analyzeOrderBy(string $orderBy): array
     {
         $key = $this->cachePrefix.'_order_by_analysis_'.$orderBy;
         $results = $this->cache->fetch($key);
@@ -75,7 +76,7 @@ class OrderByAnalyzer
      * @param string $orderBy
      * @return array[]
      */
-    private function analyzeOrderByNoCache(string $orderBy) : array
+    private function analyzeOrderByNoCache(string $orderBy): array
     {
         $sqlParser = new PHPSQLParser();
         $sql = 'SELECT 1 FROM a ORDER BY '.$orderBy;
@@ -129,7 +130,7 @@ class OrderByAnalyzer
      *
      * @return string
      */
-    private function trimDirection(string $sql) : string
+    private function trimDirection(string $sql): string
     {
         preg_match('/^(.*)(\s+(DESC|ASC|))*$/Ui', $sql, $matches);
 

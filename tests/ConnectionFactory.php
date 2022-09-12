@@ -1,6 +1,5 @@
 <?php
 
-
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\EventManager;

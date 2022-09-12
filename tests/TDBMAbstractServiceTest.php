@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -43,7 +44,9 @@ use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
+
 use function stripos;
+
 use const PHP_EOL;
 
 abstract class TDBMAbstractServiceTest extends TestCase
@@ -129,7 +132,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         $this->tdbmService = new TDBMService($this->getConfiguration());
     }
 
-    protected function getDummyGeneratorListener() : DummyGeneratorListener
+    protected function getDummyGeneratorListener(): DummyGeneratorListener
     {
         if ($this->dummyGeneratorListener === null) {
             $this->dummyGeneratorListener = new DummyGeneratorListener();
@@ -142,7 +145,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         return self::$cache;
     }
 
-    protected function getConfiguration() : ConfigurationInterface
+    protected function getConfiguration(): ConfigurationInterface
     {
         if ($this->configuration === null) {
             $this->configuration = new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), $this->getCache(), null, null, [$this->getDummyGeneratorListener()]);

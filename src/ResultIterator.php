@@ -1,22 +1,24 @@
 <?php
+
 declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Psr\Log\NullLogger;
-use function array_map;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
-use function array_pop;
-use function is_array;
-use function is_int;
 use Mouf\Database\MagicQuery;
 use TheCodingMachine\TDBM\QueryFactory\QueryFactory;
 use Porpaginas\Result;
 use Psr\Log\LoggerInterface;
 use TheCodingMachine\TDBM\Utils\DbalUtils;
 use Traversable;
+
+use function array_map;
+use function array_pop;
+use function is_array;
+use function is_int;
 
 /*
  Copyright (C) 2006-2017 David Négrier - THE CODING MACHINE
@@ -318,7 +320,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * @return ResultIterator
      */
-    public function withOrder($orderBy) : ResultIterator
+    public function withOrder($orderBy): ResultIterator
     {
         $clone = clone $this;
         if ($this->totalCount === 0) {
@@ -342,7 +344,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      *
      * @return ResultIterator
      */
-    public function withParameters(array $parameters) : ResultIterator
+    public function withParameters(array $parameters): ResultIterator
     {
         $clone = clone $this;
         if ($this->totalCount === 0) {
