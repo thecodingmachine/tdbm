@@ -444,8 +444,7 @@ If your default namespace for your application is not <code>App</code>, you shou
 <h2 id="accessing-daos">Accessing DAOs</h2>
 <p>Because Symfony 4 comes by default with auto-wiring of services, you can simply inject the generated DAOs in your
 controllers or services to use them.</p>
-<pre><code class="language-php">
-namespace App\Controller;
+<pre><code class="language-php">namespace App\Controller;
 
 use App\Daos\UserDao;
 use Symfony\Component\Routing\Annotation\Route;
@@ -472,12 +471,54 @@ class TestController extends Controller
     {
         return $this-&gt;json($this-&gt;userDao-&gt;findAll());
    }
-}```
-
-Next step
----------
-
-Let's now learn how to [access the database](quickstart.html).</code></pre>
+}</code></pre>
+<h3 id="supporting-several-databases">Supporting several databases</h3>
+<p><small>TDBM 5.2+</small></p>
+<p>It is possible to plug TDBM to several databases.
+In this case, you will first want to declare several database connections in DBAL.</p>
+<p>For instance:</p>
+<p><strong>config/packages/doctrine.yaml</strong></p>
+<pre><code class="language-yaml">doctrine:
+    dbal:
+        default_connection: default
+        connections:
+            default:
+                # configure these for your database server
+                url: '%env(resolve:DATABASE_URL)%'
+                driver: 'pdo_mysql'
+                server_version: '5.7'
+                charset: utf8mb4
+            customer:
+                # configure these for your database server
+                url: '%env(resolve:DATABASE_CUSTOMER_URL)%'
+                driver: 'pdo_mysql'
+                server_version: '5.7'
+                charset: utf8mb4</code></pre>
+<p>Then, in TDBM, you will use these connections.</p>
+<p><strong>config/packages/tdbm.yaml</strong></p>
+<pre><code class="language-yaml">tdbm:
+    databases:
+        default:
+            bean_namespace: App\Beans
+            dao_namespace: App\Daos
+        customer:
+            connection: doctrine.dbal.customer_connection
+            bean_namespace: App\Customer\Beans
+            dao_namespace: App\Customer\Daos</code></pre>
+<p>Notice how the &quot;connection&quot; key is pointing to the instance of DBAL connection you are targeting.</p>
+<p>Last but not least, add your Beans and Daos in the exclude list of Symfony:</p>
+<p><strong>config/services.yaml</strong></p>
+<pre><code class="language-yaml">App\:
+    resource: '../src/*'
+    exclude:
+        - '../src/{Beans,Daos}'
+        - '../src/Customer/{Beans,Daos}'</code></pre>
+<p>Indeed, Symfony overrides the TDBM bundle auto-wiring in its container; the DAOs not using the DBAL default connection won't be able to use the correct DBAL connection otherwise.</p>
+<p>Now, when you want to generate beans and Daos, you will have to target the correct database:</p>
+<pre><code class="language-bash">$ bin/console tdbm:generate           # targets the default database
+$ bin/console tdbm:generate:customer  # targets the "customer" database</code></pre>
+<h2 id="next-step">Next step</h2>
+<p>Let's now learn how to <a href="quickstart.html">access the database</a>.</p>
 
                     <p class="fork-and-edit">
                         Found a typo? Something is wrong in this documentation? Just
@@ -495,7 +536,7 @@ Let's now learn how to [access the database](quickstart.html).</code></pre>
         <footer class="row" id="footer">
             <div class="col-xs-12">
                 Made with <span class="pulse2 glyphicon glyphicon-heart" style="color: red" aria-hidden="true"></span><span class="sr-only">love</span> by <a href="https://www.thecodingmachine.com/"><img src="https://thecodingmachine.github.io/tdbm/img/logo.png" alt="TheCodingMachine"></a> for all open-source lovers
-                <span class="copyright">&copy; 2016 - 2020 <a href="https://www.thecodingmachine.com/">TheCodingMachine</a> - All Rights Reserved</span>
+                <span class="copyright">&copy; 2016 - 2022 <a href="https://www.thecodingmachine.com/">TheCodingMachine</a> - All Rights Reserved</span>
                 Powered by <a href="http://couscous.io/">Couscous</a></span>
             </div>
         </footer>
