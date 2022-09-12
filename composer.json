@@ -68,6 +68,11 @@
             "TheCodingMachine\\TDBM\\" : "tests/"
         }
     },
+    "config": {
+        "allow-plugins": {
+            "bamarni/composer-bin-plugin": true
+        }
+    },
     "scripts": {
         "phpstan": "php -d memory_limit=3G vendor/bin/phpstan analyse src -c phpstan.neon --no-progress -vvv",
         "require-checker": "composer-require-checker check --config-file=composer-require-checker.json",
