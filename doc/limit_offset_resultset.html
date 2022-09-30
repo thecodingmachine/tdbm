@@ -473,11 +473,6 @@ $firstNames = $users-&gt;map(function(User $user) {
 <li><code>toArray()</code>: will cast the <code>PageIterator</code> into a plain old PHP array.</li>
 <li><code>map(callable $callback)</code>: will call the <code>$callback</code> on every bean of the page and return the matching array.</li>
 </ul>
-<h2 id="implements-porpiginas">Implements Porpiginas</h2>
-<p>If you are already familiar with <a href="https://github.com/beberlei/porpaginas">beberlei/porpaginas</a>, you probably noticed
-that TDBM result sets implement Porpaginas interfaces (the <code>Result</code> and <code>Page</code> concept comes from Porpaginas).</p>
-<p>This means that you can easily migrate to and from any ORM that uses Porpaginas for its results. You can also
-use any pagination library compatible with Porpaginas, like Pagerfanta.</p>
 <h2 id="next-step">Next step</h2>
 <p>Let's now learn how to <a href="generating_daos.html">regenerate DAOs</a> when your data model changes.
 Or if you want to have a look at advanced stuff, learn how to <a href="modeling_inheritance.html">model inheritance in your database</a>.</p>
