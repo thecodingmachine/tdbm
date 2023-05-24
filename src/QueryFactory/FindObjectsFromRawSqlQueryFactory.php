@@ -5,6 +5,8 @@ namespace TheCodingMachine\TDBM\QueryFactory;
 
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
+use PHPSQLParser\builders\OrderByBuilder;
+use PHPSQLParser\builders\SelectStatementBuilder;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\TDBMService;
 use PHPSQLParser\PHPSQLCreator;
@@ -103,7 +105,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
      * @param mixed[] $parsedSql
      * @param null|string $sqlCount
      * @return mixed[] An array of 3 elements: [$processedSql, $processedSqlCount, $columnDescriptors]
-     * @throws \PHPSQLParser\exceptions\UnsupportedFeatureException
+     * @throws \PHPSQLParser\exceptions\UnsupportedFeatureException|\PHPSQLParser\exceptions\UnableToCreateSQLException
      */
     private function processParsedUnionQuery(array $parsedSql, ?string $sqlCount): array
     {
@@ -117,9 +119,9 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
 
             // Let's reparse the returned SQL (not the most efficient way of doing things)
             $parser = new PHPSQLParser();
-            $parsedSql = $parser->parse($selectProcessedSql);
+            $parsedSelectSql = $parser->parse($selectProcessedSql);
 
-            $parsedSqlList[] = $parsedSql;
+            $parsedSqlList[] = $parsedSelectSql;
         }
 
         // Let's rebuild the UNION query
@@ -130,10 +132,29 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
 
         $generator = new PHPSQLCreator();
 
-        $processedSql = $generator->create($query);
+        // Replaced the default generator by our own to add parenthesis around each SELECT
+        $processedSql = $this->buildUnion($query);
         $processedSqlCount = $generator->create($countQuery);
 
+        // Let's add the ORDER BY if any
+        if (isset($parsedSql['0']['ORDER'])) {
+            $orderByBuilder = new OrderByBuilder();
+            $processedSql .= " " . $orderByBuilder->build($parsedSql['0']['ORDER']);
+        }
+
         return [$processedSql, $sqlCount ?? $processedSqlCount, $columnDescriptors];
+    }
+
+    /**
+     * @param mixed[] $parsed
+     */
+    private function buildUnion(array $parsed): string
+    {
+        $selectBuilder = new SelectStatementBuilder();
+
+        return implode(' UNION ', array_map(function ($clause) use ($selectBuilder) {
+            return '(' . $selectBuilder->build($clause) . ')';
+        }, $parsed['UNION']));
     }
 
     /**
