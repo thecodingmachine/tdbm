@@ -41,4 +41,9 @@ interface ObjectStorageInterface
      * @param string|int $id
      */
     public function remove(string $tableName, $id): void;
+
+    /**
+     * Removes all objects from the storage.
+     */
+    public function clear(): void;
 }
