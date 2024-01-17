@@ -1554,4 +1554,14 @@ class TDBMService
     {
         $this->logger = new LevelFilter($this->rootLogger, $level);
     }
+
+    /**
+     * Clear TDBM's bean cache
+     *
+     * This can be used in long-running processes to cleanup everything.
+     */
+    public function clearBeanCache(): void
+    {
+        $this->objectStorage->clear();
+    }
 }
