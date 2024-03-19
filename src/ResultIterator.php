@@ -81,7 +81,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      * @param mixed[] $parameters
      * @param class-string|null $className
      */
-    public static function createResultIterator(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): self
+    public static function createResultIterator(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): static
     {
         $iterator =  new static();
         if ($mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
@@ -99,7 +99,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         return $iterator;
     }
 
-    public static function createEmpyIterator(): self
+    public static function createEmpyIterator(): static
     {
         $iterator = new static();
         $iterator->totalCount = 0;
