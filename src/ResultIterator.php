@@ -65,15 +65,15 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     private $innerResultIterator;
 
     /** @var int|null */
-    protected $totalCount;
+    private $totalCount;
 
     /** @var int */
     private $mode;
 
     /** @var LoggerInterface */
-    protected $logger;
+    private $logger;
 
-    protected function __construct()
+    final private function __construct()
     {
     }
 
@@ -83,7 +83,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public static function createResultIterator(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): self
     {
-        $iterator =  new self();
+        $iterator =  new static();
         if ($mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
             throw new TDBMException("Unknown fetch mode: '".$mode."'");
         }
@@ -101,7 +101,10 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     public static function createEmpyIterator(): self
     {
-        return new EmptyResultIterator();
+        $iterator = new static();
+        $iterator->totalCount = 0;
+        $iterator->logger = new NullLogger();
+        return $iterator;
     }
 
     protected function executeCountQuery(): void
