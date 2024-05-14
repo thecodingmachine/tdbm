@@ -83,7 +83,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public static function createResultIterator(QueryFactory $queryFactory, array $parameters, ObjectStorageInterface $objectStorage, ?string $className, TDBMService $tdbmService, MagicQuery $magicQuery, int $mode, LoggerInterface $logger): self
     {
-        $iterator =  new static();
+        $iterator =  new self();
         if ($mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
             throw new TDBMException("Unknown fetch mode: '".$mode."'");
         }
