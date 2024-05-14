@@ -73,18 +73,18 @@ class ManyToOneBench
             $connection->exec($sqlStmt);
         }
 
-        for ($i = 1; $i<200; $i++) {
+        for ($i = 1; $i < 200; $i++) {
             TDBMAbstractServiceTest::insert($connection, 'countries', [
                 'id' => $i,
                 'label' => 'Country '.$i,
             ]);
         }
 
-        for ($i = 1; $i<1000; $i++) {
+        for ($i = 1; $i < 1000; $i++) {
             TDBMAbstractServiceTest::insert($connection, 'users', [
                 'id' => $i,
                 'name' => 'User '.$i,
-                'country_id' => ($i%199) +1,
+                'country_id' => ($i % 199) + 1,
             ]);
         }
     }

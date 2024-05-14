@@ -42,4 +42,21 @@ class AbstractTDBMObjectTest extends TestCase
         $this->assertEquals(0, $d->count());
     }
 
+    public function testEmptyPageIterator()
+    {
+        $a = ResultIterator::createEmpyIterator();
+        $b = $a->take(0, 10);
+        foreach ($b as $empty) {
+            throw new \LogicException("Not supposed to iterate on an empty page iterator.");
+        }
+        $this->assertEquals(0, $b->count());
+        $this->assertEquals([], $b->toArray());
+        $this->assertEquals(0, $b->totalCount());
+        $c = $b->map(function ($foo) {
+        });
+        foreach ($c as $empty) {
+            throw new \LogicException("Not supposed to iterate on an empty iterator.");
+        }
+        $this->assertEquals([], $c->toArray());
+    }
 }

@@ -65,15 +65,15 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     private $innerResultIterator;
 
     /** @var int|null */
-    private $totalCount;
+    protected $totalCount;
 
     /** @var int */
     private $mode;
 
     /** @var LoggerInterface */
-    private $logger;
+    protected $logger;
 
-    final private function __construct()
+    protected function __construct()
     {
     }
 
@@ -101,10 +101,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 
     public static function createEmpyIterator(): self
     {
-        $iterator = new static();
-        $iterator->totalCount = 0;
-        $iterator->logger = new NullLogger();
-        return $iterator;
+        return new EmptyResultIterator();
     }
 
     protected function executeCountQuery(): void
