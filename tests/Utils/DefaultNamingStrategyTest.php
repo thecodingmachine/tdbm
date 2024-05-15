@@ -131,7 +131,7 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
 
     public function testBeanAnnotation(): void
     {
-        $table = new Table('chevaux', [], [], [], 0, ['comment'=>'@Bean(name="Cheval")']);
+        $table = new Table('chevaux', [], [], [], 0, ['comment' => '@Bean(name="Cheval")']);
         $strategy = $this->getDefaultNamingStrategyWithStubTables([$table]);
         $this->assertSame('ChevalDao', $strategy->getDaoClassName('chevaux'));
     }
