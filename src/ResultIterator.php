@@ -184,7 +184,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function take($offset, $limit)
     {
-        if ($this->totalCount === 0) {
+        if ($this instanceof EmptyResultIterator) {
             return PageIterator::createEmpyIterator($this);
         }
         return PageIterator::createResultIterator($this, $this->queryFactory->getMagicSql(), $this->parameters, $limit, $offset, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger);
