@@ -403,7 +403,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 $item['delim'] = ',';
                 $innerColumns[] = $item;
             }
-            $innerColumns[count($innerColumns)-1]['delim'] = false;
+            $innerColumns[count($innerColumns) - 1]['delim'] = false;
             $parsedSql['SELECT'] = $innerColumns;
 
             $parsedSql = [

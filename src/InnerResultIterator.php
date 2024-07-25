@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\DBAL\Driver\ResultStatement;
+use Doctrine\DBAL\ForwardCompatibility\Result;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Statement;
@@ -135,7 +136,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
         if ($this->fetchStarted && $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             // Optimisation: we don't need a separate "count" SQL request in MySQL.
-            assert($this->statement instanceof Statement);
+            assert($this->statement instanceof Statement || $this->statement instanceof Result);
             $this->count = (int)$this->statement->rowCount();
             return $this->count;
         }

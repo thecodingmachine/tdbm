@@ -120,7 +120,7 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
     public function getIterator()
     {
         if ($this->innerResultIterator === null) {
-            if ($this->parentResult->count() === 0) {
+            if ($this->parentResult instanceof EmptyResultIterator) {
                 $this->innerResultIterator = new EmptyInnerResultIterator();
             } elseif ($this->mode === TDBMService::MODE_CURSOR) {
                 $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);

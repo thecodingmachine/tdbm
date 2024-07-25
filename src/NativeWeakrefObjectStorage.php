@@ -94,6 +94,14 @@ class NativeWeakrefObjectStorage implements ObjectStorageInterface
         unset($this->objects[$tableName][$id]);
     }
 
+    /**
+     * Removes all objects from the storage.
+     */
+    public function clear(): void
+    {
+        $this->objects = array();
+    }
+
     private function cleanupDanglingWeakRefs(): void
     {
         foreach ($this->objects as $tableName => $table) {

@@ -211,9 +211,9 @@ abstract class TDBMAbstractServiceTest extends TestCase
             ->column('manager_id')->references('contact')->null();
 
         $db->table('users')
-            ->addAnnotation('AddTrait', ['name'=>TestUserTrait::class], false)
-            ->addAnnotation('AddTrait', ['name'=>TestOtherUserTrait::class, 'modifiers'=>['\\'.TestOtherUserTrait::class.'::method1 insteadof \\'.TestUserTrait::class, '\\'.TestUserTrait::class.'::method1 as method1renamed']], false)
-            ->addAnnotation('AddTraitOnDao', ['name'=>TestUserDaoTrait::class], false)
+            ->addAnnotation('AddTrait', ['name' => TestUserTrait::class], false)
+            ->addAnnotation('AddTrait', ['name' => TestOtherUserTrait::class, 'modifiers' => ['\\'.TestOtherUserTrait::class.'::method1 insteadof \\'.TestUserTrait::class, '\\'.TestUserTrait::class.'::method1 as method1renamed']], false)
+            ->addAnnotation('AddTraitOnDao', ['name' => TestUserDaoTrait::class], false)
             ->implementsInterface(TestUserInterface::class)
             ->implementsInterfaceOnDao(TestUserDaoInterface::class)
             ->extends('contact')
@@ -721,7 +721,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         self::insert($connection, 'tracks', [
             'album_id' => 1,
-            'title' =>'Pigs on the Wing 1',
+            'title' => 'Pigs on the Wing 1',
             // Note: Oracle does not have a TIME column type
             'duration' => $timeType->convertToDatabaseValue(new DateTimeImmutable('1970-01-01 00:01:25'), $connection->getDatabasePlatform()),
         ]);

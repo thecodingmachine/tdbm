@@ -30,7 +30,7 @@ class NativeWeakrefObjectStorageTest extends TestCase
         $objectStorage = new NativeWeakrefObjectStorage();
         $dbRow = $this->createMock(DbRow::class);
 
-        for ($i=0; $i<10001; $i++) {
+        for ($i = 0; $i < 10001; $i++) {
             $objectStorage->set('foo', $i, clone $dbRow);
         }
         $this->assertNull($objectStorage->get('foo', 42));

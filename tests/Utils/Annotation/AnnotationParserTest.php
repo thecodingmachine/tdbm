@@ -19,7 +19,7 @@ class AnnotationParserTest extends TestCase
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class
         ]);
-        $column = new Column('foo', Type::getType(Type::STRING), ['comment'=>'@UUID']);
+        $column = new Column('foo', Type::getType(Type::STRING), ['comment' => '@UUID']);
         $table = new Table('bar');
         $annotations = $parser->getColumnAnnotations($column, $table);
 
@@ -40,7 +40,7 @@ class AnnotationParserTest extends TestCase
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class
         ]);
-        $column = new Column('foo', Type::getType(Type::STRING), ['comment'=>"\n@UUID"]);
+        $column = new Column('foo', Type::getType(Type::STRING), ['comment' => "\n@UUID"]);
         $table = new Table('bar');
         $annotations = $parser->getColumnAnnotations($column, $table);
 
@@ -54,7 +54,7 @@ class AnnotationParserTest extends TestCase
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class
         ]);
-        $column = new Column('foo', Type::getType(Type::STRING), ['comment'=>"\n@UUID\n@Autoincrement"]);
+        $column = new Column('foo', Type::getType(Type::STRING), ['comment' => "\n@UUID\n@Autoincrement"]);
         $table = new Table('bar');
         $annotations = $parser->getColumnAnnotations($column, $table);
 
@@ -68,7 +68,7 @@ class AnnotationParserTest extends TestCase
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class
         ]);
-        $table = new Table('bar', [], [], [], 0, ['comment'=>"@UUID\n@UUID"]);
+        $table = new Table('bar', [], [], [], 0, ['comment' => "@UUID\n@UUID"]);
         $annotations = $parser->getTableAnnotations($table);
 
         $this->expectException(TDBMException::class);
@@ -81,7 +81,7 @@ class AnnotationParserTest extends TestCase
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class
         ]);
-        $table = new Table('bar', [], [], [], 0, ['comment'=>'@UUID("v4")']);
+        $table = new Table('bar', [], [], [], 0, ['comment' => '@UUID("v4")']);
         $annotations = $parser->getTableAnnotations($table);
 
         $annotation = $annotations->findAnnotation(UUID::class);
@@ -94,7 +94,7 @@ class AnnotationParserTest extends TestCase
             'UUID' => UUID::class,
         ]);
         // First generation UUID did not use the Doctrine syntax.
-        $table = new Table('bar', [], [], [], 0, ['comment'=>'@UUID v4']);
+        $table = new Table('bar', [], [], [], 0, ['comment' => '@UUID v4']);
         $annotations = $parser->getTableAnnotations($table);
 
         $annotation = $annotations->findAnnotation(UUID::class);
