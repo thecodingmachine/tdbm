@@ -35,7 +35,7 @@
         "doctrine/annotations": "^1.10",
         "laminas/laminas-code": "^4.7",
         "psr/container": "^1 || ^2",
-        "brain-diminished/schema-version-control": "dev-master",
+        "brain-diminished/schema-version-control": "^1.0.5",
         "ext-PDO": "*",
         "ext-json": "*",
         "ext-hash": "*",
