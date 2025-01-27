@@ -27,6 +27,7 @@ use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\Configuration;
 use TheCodingMachine\TDBM\SchemaLockFileDumper;
@@ -110,7 +111,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
     public function testTableWithLazyLoadingColumn(): void
     {
         $table = $this->schema->createTable('lazy_loading');
-        $table->addColumn('lazyLoading', Type::BOOLEAN);
+        $table->addColumn('lazyLoading', Types::BOOLEAN);
         $table->setPrimaryKey(['lazyLoading']);
         $sqlStmts = $this->schema->getMigrateFromSql($this->getConnection()->getSchemaManager()->createSchema(), $this->getConnection()->getDatabasePlatform());
 

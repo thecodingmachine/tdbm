@@ -211,7 +211,7 @@ class DbRow
                 $this->dbRow[$key] = $types[$key]->convertToPHPValue($value, $connection->getDatabasePlatform());
             }
 
-            $result->closeCursor();
+            $result->free();
 
             $this->status = TDBMObjectStateEnum::STATE_LOADED;
         }

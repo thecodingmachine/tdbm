@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\Utils;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Inflector\Inflector;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
@@ -544,26 +545,25 @@ BODY;
     public static function dbalTypeToPhpType(Type $type): string
     {
         $map = [
-            Type::TARRAY => 'array',
-            Type::SIMPLE_ARRAY => 'array',
-            'json' => 'array',  // 'json' is supported from Doctrine DBAL 2.6 only.
-            Type::JSON_ARRAY => 'array',
-            Type::BIGINT => 'string',
-            Type::BOOLEAN => 'bool',
-            Type::DATETIME_IMMUTABLE => '\DateTimeImmutable',
-            Type::DATETIMETZ_IMMUTABLE => '\DateTimeImmutable',
-            Type::DATE_IMMUTABLE => '\DateTimeImmutable',
-            Type::TIME_IMMUTABLE => '\DateTimeImmutable',
-            Type::DECIMAL => 'string',
-            Type::INTEGER => 'int',
-            Type::OBJECT => 'string',
-            Type::SMALLINT => 'int',
-            Type::STRING => 'string',
-            Type::TEXT => 'string',
-            Type::BINARY => 'resource',
-            Type::BLOB => 'resource',
-            Type::FLOAT => 'float',
-            Type::GUID => 'string',
+            Types::ARRAY => 'array',
+            Types::SIMPLE_ARRAY => 'array',
+            Types::JSON => 'array',
+            Types::BIGINT => 'string',
+            Types::BOOLEAN => 'bool',
+            Types::DATETIME_IMMUTABLE => '\DateTimeImmutable',
+            Types::DATETIMETZ_IMMUTABLE => '\DateTimeImmutable',
+            Types::DATE_IMMUTABLE => '\DateTimeImmutable',
+            Types::TIME_IMMUTABLE => '\DateTimeImmutable',
+            Types::DECIMAL => 'string',
+            Types::INTEGER => 'int',
+            Types::OBJECT => 'string',
+            Types::SMALLINT => 'int',
+            Types::STRING => 'string',
+            Types::TEXT => 'string',
+            Types::BINARY => 'resource',
+            Types::BLOB => 'resource',
+            Types::FLOAT => 'float',
+            Types::GUID => 'string',
         ];
 
         return $map[$type->getName()] ?? $type->getName();

@@ -7,6 +7,7 @@ use Psr\Log\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
+use Stringable;
 use function array_search;
 use function sprintf;
 
@@ -62,12 +63,12 @@ class LevelFilter extends AbstractLogger
      * Logs with an arbitrary level.
      *
      * @param mixed  $level
-     * @param string $message
+     * @param Stringable|string $message
      * @param array  $context
      *
      * @return void
      */
-    public function log($level, $message, array $context = array())
+    public function log($level, $message, array $context = []): void
     {
         $levelCode = array_search($level, self::LEVELS, true);
         if ($levelCode === false) {

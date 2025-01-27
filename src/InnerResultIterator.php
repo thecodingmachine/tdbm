@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-use Doctrine\DBAL\Driver\ResultStatement;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use Psr\Log\LoggerInterface;
@@ -35,8 +35,8 @@ use TheCodingMachine\TDBM\Utils\DbalUtils;
  */
 class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 {
-    /** @var ResultStatement|Statement */
-    protected $statement;
+    /** @var Result */
+    protected $result;
 
     /** @var bool */
     protected $fetchStarted = false;
@@ -117,7 +117,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
         $this->logger->debug('Running SQL request: '.$sql);
 
-        $this->statement = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters, DbalUtils::generateTypes($this->parameters));
+        $this->result = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters, DbalUtils::generateTypes($this->parameters));
 
         $this->fetchStarted = true;
     }
@@ -135,8 +135,8 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
         if ($this->fetchStarted && $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             // Optimisation: we don't need a separate "count" SQL request in MySQL.
-            assert($this->statement instanceof Statement);
-            $this->count = (int)$this->statement->rowCount();
+            assert($this->result instanceof Result);
+            $this->count = (int)$this->result->rowCount();
             return $this->count;
         }
         return $this->getRowCountViaSqlQuery();
@@ -152,7 +152,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
         $this->logger->debug('Running count SQL request: '.$countSql);
 
-        $this->count = (int) $this->tdbmService->getConnection()->fetchColumn($countSql, $this->parameters, 0, DbalUtils::generateTypes($this->parameters));
+        $this->count = (int) $this->tdbmService->getConnection()->fetchOne($countSql, $this->parameters, DbalUtils::generateTypes($this->parameters));
         return $this->count;
     }
 
@@ -182,7 +182,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      */
     public function next(): void
     {
-        $row = $this->statement->fetch(\PDO::FETCH_ASSOC);
+        $row = $this->result->fetchAssociative();
         if ($row) {
             /** @var array<string, array<string, array<string, mixed>>> $beansData array<tablegroup, array<table, array<column, value>>>*/
             $beansData = [];

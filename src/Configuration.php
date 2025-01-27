@@ -221,7 +221,10 @@ class Configuration implements ConfigurationInterface
      */
     private function getConnectionUniqueId(): string
     {
-        return hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
+        $params = $this->connection->getParams();
+        $host = $params['host'] ?? null;
+        $port = $params['port'] ?? null;
+        return hash('md4', $host.'-'.$port.'-'.$this->connection->getDatabase().'-'.$this->connection->getDatabasePlatform()->getName());
     }
 
     /**

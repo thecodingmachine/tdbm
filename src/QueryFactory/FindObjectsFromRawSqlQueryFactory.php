@@ -252,7 +252,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                     ]
                 ];
                 $formattedSelect[] = $astColumn;
-                if (in_array($columnName, $pkColumns)) {
+                if (array_key_exists($columnName, $pkColumns)) {
                     $formattedCountSelect[] = $astColumn;
                 }
                 $columnDescriptors[$alias] = [
@@ -322,7 +322,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         if ($this->isDistinctQuery($parsedSql)) {
             // Only MySQL can do DISTINCT counts.
             // Other databases should wrap the query
-            if (!$this->tdbmService->getConnection()->getSchemaManager()->getDatabasePlatform() instanceof MySqlPlatform) {
+            if (!$this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
                 return $this->generateWrappedSqlCount($parsedSql);
             }
 

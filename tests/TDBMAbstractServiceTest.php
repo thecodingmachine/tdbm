@@ -32,6 +32,7 @@ use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use PHPUnit\Framework\TestCase;
 use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\FluidSchema\TdbmFluidSchema;
@@ -171,7 +172,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
     private static function initSchema(Connection $connection): void
     {
-        $fromSchema = $connection->getSchemaManager()->createSchema();
+        $fromSchema = $connection->createSchemaManager()->createSchema();
         $toSchema = clone $fromSchema;
 
         $db = new TdbmFluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
@@ -717,7 +718,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'child_id' => 2
         ]);
 
-        $timeType = Type::getType(Type::TIME_IMMUTABLE);
+        $timeType = Type::getType(Types::TIME_IMMUTABLE);
 
         self::insert($connection, 'tracks', [
             'album_id' => 1,
@@ -829,7 +830,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         if (!$connection->getDatabasePlatform() instanceof MySqlPlatform) {
             return false;
         }
-        $version = $connection->fetchColumn('SELECT VERSION()');
+        $version = $connection->fetchOne('SELECT VERSION()');
         return stripos($version, 'maria') !== false;
     }
 }

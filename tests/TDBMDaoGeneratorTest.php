@@ -109,7 +109,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     protected function setUp(): void
     {
         parent::setUp();
-        $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
+        $schemaManager = $this->tdbmService->getConnection()->createSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $schemaLockFileDumper = new SchemaLockFileDumper($this->tdbmService->getConnection(), new ArrayCache(), Configuration::getDefaultLockFilePath());
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
@@ -126,7 +126,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             unlink($schemaFilePath);
         }
         //let's check we cannot call get schema without a lock file
-        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->createSchemaManager(), new ArrayCache(), 'prefix_');
         $schemaLockFileDumper = new SchemaLockFileDumper(self::getConnection(), new ArrayCache(), Configuration::getDefaultLockFilePath());
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
@@ -182,7 +182,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $configuration = new Configuration('UnknownVendor\\Dao', 'UnknownVendor\\Bean', self::getConnection(), $this->getNamingStrategy());
 
-        $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
+        $schemaManager = $this->tdbmService->getConnection()->createSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $schemaLockFileDumper = new SchemaLockFileDumper($this->tdbmService->getConnection(), new ArrayCache(), Configuration::getDefaultLockFilePath());
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
