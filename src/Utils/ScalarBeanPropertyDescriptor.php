@@ -8,6 +8,7 @@ use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
@@ -388,8 +389,8 @@ $this->set(%s, $%s, %s);',
         $type = $this->column->getType();
 
         $unserialisableTypes = [
-            Type::BLOB,
-            Type::BINARY
+            Types::BLOB,
+            Types::BINARY
         ];
 
         return \in_array($type->getName(), $unserialisableTypes, true) === false;

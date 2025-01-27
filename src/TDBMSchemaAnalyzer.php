@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-use BrainDiminished\SchemaVersionControl\SchemaVersionControlService;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Column;
@@ -70,7 +69,10 @@ class TDBMSchemaAnalyzer
     public function getCachePrefix(): string
     {
         if ($this->cachePrefix === null) {
-            $this->cachePrefix = hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
+            $params = $this->connection->getParams();
+            $host = $params['host'] ?? null;
+            $port = $params['port'] ?? null;
+            $this->cachePrefix = hash('md4', $host.'-'.$port.'-'.$this->connection->getDatabase().'-'.$this->connection->getDatabasePlatform()->getName());
         }
 
         return $this->cachePrefix;

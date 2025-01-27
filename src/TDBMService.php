@@ -26,7 +26,7 @@ use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\ClearableCache;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception as DBALException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;

@@ -5,6 +5,7 @@ namespace TheCodingMachine\TDBM\Utils;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 
 class ImmutableCaster
 {
@@ -24,10 +25,10 @@ class ImmutableCaster
     private static function toImmutableType(Column $column): void
     {
         $mapping = [
-            Type::DATE => Type::DATE_IMMUTABLE,
-            Type::DATETIME => Type::DATETIME_IMMUTABLE,
-            Type::DATETIMETZ => Type::DATETIMETZ_IMMUTABLE,
-            Type::TIME => Type::TIME_IMMUTABLE
+            Types::DATE_MUTABLE => Types::DATE_IMMUTABLE,
+            Types::DATETIME_MUTABLE => Types::DATETIME_IMMUTABLE,
+            Types::DATETIMETZ_MUTABLE => Types::DATETIMETZ_IMMUTABLE,
+            Types::TIME_MUTABLE => Types::TIME_IMMUTABLE
         ];
 
         $typeName = $column->getType()->getName();

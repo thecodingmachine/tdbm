@@ -92,7 +92,7 @@ class InnerResultArray extends InnerResultIterator
         if ($offset < 0 || filter_var($offset, FILTER_VALIDATE_INT) === false) {
             throw new TDBMInvalidOffsetException('Trying to access result set using offset "'.$offset.'". An offset must be a positive integer.');
         }
-        if ($this->statement === null) {
+        if ($this->result === null) {
             $this->executeQuery();
         }
         while (!isset($this->results[$offset])) {

@@ -10,6 +10,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use JsonSerializable;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use PhpParser\Comment\Doc;
@@ -1370,7 +1371,7 @@ EOF
             $params[] = $element->getParamAnnotation();
             if ($element instanceof ScalarBeanPropertyDescriptor) {
                 $typeName = $element->getDatabaseType()->getName();
-                if ($typeName === Type::DATETIME_IMMUTABLE) {
+                if ($typeName === Types::DATETIME_IMMUTABLE) {
                     $filterArrayCode .= sprintf(
                         "    %s => \$this->tdbmService->getConnection()->convertToDatabaseValue(%s, %s),\n",
                         var_export($element->getColumnName(), true),

@@ -10,14 +10,14 @@ class FindObjectsFromRawSqlQueryFactoryTest extends TDBMAbstractServiceTest
 {
     public function testGetSubQueryColumnDescriptors(): void
     {
-        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this->tdbmService, $this->tdbmService->getConnection()->getSchemaManager()->createSchema(), 'country', 'SELECT country.* FROM country');
+        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this->tdbmService, $this->tdbmService->getConnection()->createSchemaManager()->createSchema(), 'country', 'SELECT country.* FROM country');
         $this->expectException(TDBMException::class);
         $queryFactory->getSubQueryColumnDescriptors();
     }
 
     public function testGetMagicSqlSubQuery(): void
     {
-        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this->tdbmService, $this->tdbmService->getConnection()->getSchemaManager()->createSchema(), 'country', 'SELECT country.* FROM country');
+        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this->tdbmService, $this->tdbmService->getConnection()->createSchemaManager()->createSchema(), 'country', 'SELECT country.* FROM country');
         $this->expectException(TDBMException::class);
         $queryFactory->getMagicSqlSubQuery();
     }
