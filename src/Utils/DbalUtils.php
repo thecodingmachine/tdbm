@@ -34,6 +34,8 @@ class DbalUtils
                 $types[$key] = Connection::PARAM_INT_ARRAY;
             } elseif (is_int($value)) {
                 $types[$key] = ParameterType::INTEGER;
+            } elseif (is_bool($value)) {
+                $types[$key] = ParameterType::BOOLEAN;
             }
         }
 

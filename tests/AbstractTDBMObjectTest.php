@@ -44,7 +44,7 @@ class AbstractTDBMObjectTest extends TestCase
 
     public function testEmptyPageIterator()
     {
-        $a = ResultIterator::createEmpyIterator();
+        $a = EmptyResultIterator::createEmpyIterator();
         $b = $a->take(0, 10);
         foreach ($b as $empty) {
             throw new \LogicException("Not supposed to iterate on an empty page iterator.");
