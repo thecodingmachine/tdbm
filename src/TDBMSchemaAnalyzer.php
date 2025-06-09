@@ -6,14 +6,13 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Types\DateType;
-use Doctrine\DBAL\Types\Type;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
-use TheCodingMachine\TDBM\Utils\ImmutableCaster;
+
+use function hash;
+use function serialize;
 
 /**
  * This class is used to analyze the schema and return valuable information / hints.
@@ -68,14 +67,7 @@ class TDBMSchemaAnalyzer
      */
     public function getCachePrefix(): string
     {
-        if ($this->cachePrefix === null) {
-            $params = $this->connection->getParams();
-            $host = $params['host'] ?? null;
-            $port = $params['port'] ?? null;
-            $this->cachePrefix = hash('md4', $host.'-'.$port.'-'.$this->connection->getDatabase().'-'.$this->connection->getDatabasePlatform()->getName());
-        }
-
-        return $this->cachePrefix;
+        return $this->cachePrefix ??= hash('md4', serialize($this->connection->getParams()));
     }
 
     /**

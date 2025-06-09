@@ -4,20 +4,14 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Schema\Table;
-use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\SchemaVersionControl\SchemaVersionControlService;
 use TheCodingMachine\TDBM\Utils\ColumnsReorderer;
 use TheCodingMachine\TDBM\Utils\ImmutableCaster;
 
-use function array_map;
-use function array_values;
 use function file_exists;
 use function hash;
-use function implode;
-use function in_array;
+use function serialize;
 
 /**
  * Load / save schema in the tdbm.lock file.
@@ -67,14 +61,7 @@ class SchemaLockFileDumper
      */
     public function getCachePrefix(): string
     {
-        if ($this->cachePrefix === null) {
-            $params = $this->connection->getParams();
-            $host = $params['host'] ?? null;
-            $port = $params['port'] ?? null;
-            $this->cachePrefix = hash('md4', $host.'-'.$port.'-'.$this->connection->getDatabase().'-'.$this->connection->getDatabasePlatform()?->getName());
-        }
-
-        return $this->cachePrefix;
+        return $this->cachePrefix ??= hash('md4', serialize($this->connection->getParams()));
     }
 
     public function getLockFilePath(): string

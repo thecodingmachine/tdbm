@@ -10,9 +10,6 @@ use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\Schema\LockFileSchemaManager;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
-use TheCodingMachine\TDBM\Utils\Annotation\Autoincrement;
-use TheCodingMachine\TDBM\Utils\Annotation\UUID;
-use TheCodingMachine\TDBM\Utils\BaseCodeGeneratorListener;
 use TheCodingMachine\TDBM\Utils\CodeGeneratorEventDispatcher;
 use TheCodingMachine\TDBM\Utils\CodeGeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
@@ -23,6 +20,9 @@ use TheCodingMachine\TDBM\Utils\PathFinder\PathFinderInterface;
 use Psr\Log\LoggerInterface;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\RootProjectLocator;
+
+use function hash;
+use function serialize;
 
 class Configuration implements ConfigurationInterface
 {
@@ -221,10 +221,7 @@ class Configuration implements ConfigurationInterface
      */
     private function getConnectionUniqueId(): string
     {
-        $params = $this->connection->getParams();
-        $host = $params['host'] ?? null;
-        $port = $params['port'] ?? null;
-        return hash('md4', $host.'-'.$port.'-'.$this->connection->getDatabase().'-'.$this->connection->getDatabasePlatform()->getName());
+        return hash('md4', serialize($this->connection->getParams()));
     }
 
     /**
