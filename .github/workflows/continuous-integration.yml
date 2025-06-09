@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
 
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
@@ -28,7 +28,7 @@ jobs:
           tools: "cs2pr"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
@@ -54,7 +54,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
 
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
@@ -64,7 +64,7 @@ jobs:
           tools: "cs2pr"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
@@ -96,7 +96,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 2
 
@@ -109,7 +109,7 @@ jobs:
           tools: "cs2pr"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
@@ -122,7 +122,7 @@ jobs:
         run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"
 
       # PHPStan is run after PHPUnit because we want to analyze the generated files too.
       - name: "Run a static analysis with phpstan/phpstan"
@@ -149,7 +149,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 2
 
@@ -161,7 +161,7 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
@@ -174,7 +174,7 @@ jobs:
         run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"
 
   phpunit-prefer-lowest:
     name: "PHPUnit with prefer-lowest"
@@ -196,7 +196,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 2
 
@@ -208,7 +208,7 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
@@ -221,7 +221,7 @@ jobs:
         run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"
 
   phpunit-mariadb105:
     name: "PHPUnit on MariaDB 10.5"
@@ -242,7 +242,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 2
 
@@ -254,7 +254,7 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
@@ -267,7 +267,7 @@ jobs:
         run: "vendor/bin/phpunit -c phpunit.mariadb.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"
 
   phpunit-postgresql:
     name: "PHPUnit on PostgreSQL"
@@ -293,7 +293,7 @@ jobs:
           --health-retries 5
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 2
 
@@ -305,7 +305,7 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
@@ -318,7 +318,7 @@ jobs:
         run: "vendor/bin/phpunit -c phpunit.postgres.github.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"
 
   phpunit-phpbench:
     name: "PHPBench"
@@ -340,7 +340,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 0
 
@@ -352,7 +352,7 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
@@ -393,7 +393,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
 
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
@@ -403,7 +403,7 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
@@ -416,4 +416,4 @@ jobs:
         run: "vendor/bin/phpunit -c phpunit.oracle.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"
