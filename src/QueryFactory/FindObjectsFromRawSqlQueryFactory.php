@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM\QueryFactory;
 
-use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use PHPSQLParser\builders\OrderByBuilder;
 use PHPSQLParser\builders\SelectStatementBuilder;
@@ -403,7 +403,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 $item['delim'] = ',';
                 $innerColumns[] = $item;
             }
-            $innerColumns[count($innerColumns)-1]['delim'] = false;
+            $innerColumns[count($innerColumns) - 1]['delim'] = false;
             $parsedSql['SELECT'] = $innerColumns;
 
             $parsedSql = [

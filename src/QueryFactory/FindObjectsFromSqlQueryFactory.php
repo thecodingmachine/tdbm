@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace TheCodingMachine\TDBM\QueryFactory;
 
 use Doctrine\Common\Cache\Cache;
-use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;

@@ -6,8 +6,8 @@ use Psr\Log\AbstractLogger;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
-
 use Stringable;
+
 use function array_search;
 use function sprintf;
 

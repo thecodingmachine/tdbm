@@ -1334,7 +1334,7 @@ EOF
             $parameter = new ParameterGenerator(ltrim($element->getSafeVariableName(), '$'));
             if (!$first && !($element->isCompulsory() && $index->isUnique())) {
                 $parameterType = '?';
-            //$functionParameter = '?';
+                //$functionParameter = '?';
             } else {
                 $parameterType = '';
                 //$functionParameter = '';
@@ -1766,7 +1766,7 @@ EOF;
      * @param string $indent
      * @return string
      */
-    private function psr2VarExport($var, string $indent=''): string
+    private function psr2VarExport($var, string $indent = ''): string
     {
         if (is_array($var)) {
             $indexed = array_keys($var) === range(0, count($var) - 1);
