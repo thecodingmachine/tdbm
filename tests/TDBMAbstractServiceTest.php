@@ -25,16 +25,12 @@ namespace TheCodingMachine\TDBM;
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Event\Listeners\OracleSessionInit;
-use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use PHPUnit\Framework\TestCase;
-use TheCodingMachine\FluidSchema\FluidSchema;
 use TheCodingMachine\FluidSchema\TdbmFluidSchema;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserDaoInterface;
 use TheCodingMachine\TDBM\Fixtures\Interfaces\TestUserInterface;
@@ -42,13 +38,10 @@ use TheCodingMachine\TDBM\Fixtures\Traits\TestOtherUserTrait;
 use TheCodingMachine\TDBM\Fixtures\Traits\TestUserDaoTrait;
 use TheCodingMachine\TDBM\Fixtures\Traits\TestUserTrait;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
-use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 
 use function stripos;
-
-use const PHP_EOL;
 
 abstract class TDBMAbstractServiceTest extends TestCase
 {

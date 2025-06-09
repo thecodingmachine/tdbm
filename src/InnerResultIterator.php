@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Result;
-use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use Psr\Log\LoggerInterface;
 use TheCodingMachine\TDBM\Utils\DbalUtils;

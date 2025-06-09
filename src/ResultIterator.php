@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Psr\Log\NullLogger;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
