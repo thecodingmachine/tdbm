@@ -177,7 +177,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         throw new TDBMInvalidOperationException('You can set values in a TDBM result set, even in an alterable one. Use the add method instead.');
     }
@@ -193,7 +193,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         throw new TDBMInvalidOperationException('You can unset values in a TDBM result set, even in an alterable one. Use the delete method instead.');
     }

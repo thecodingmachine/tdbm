@@ -106,7 +106,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return void
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         throw new TDBMInvalidOperationException('You cannot set values in a TDBM result set.');
     }
@@ -120,7 +120,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return void
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         throw new TDBMInvalidOperationException('You cannot unset values in a TDBM result set.');
     }

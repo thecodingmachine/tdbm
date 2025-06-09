@@ -19,7 +19,7 @@
     ],
     "require" : {
         "php": "^7.4 || ^8.0",
-        "mouf/magic-query": "2.0.x-dev",
+        "mouf/magic-query": "^2.0",
         "mouf/schema-analyzer": "^2.0",
         "doctrine/dbal": "^3.0",
         "psr/log": "^1 || ^2 || ^3",
