@@ -35,7 +35,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run PHP-CS-Fixer on src/"
         run: "vendor/bin/php-cs-fixer fix src/ --dry-run --stop-on-violation --format=checkstyle | cs2pr"
@@ -71,7 +71,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run require-checker"
         run: "composer require-checker"
@@ -116,7 +116,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
@@ -168,7 +168,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
@@ -215,7 +215,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer update --no-interaction --no-progress --no-suggest --prefer-lowest"
+        run: "composer update --no-interaction --no-progress --prefer-lowest"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
@@ -261,7 +261,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.mariadb.xml --coverage-clover=coverage.xml"
@@ -312,7 +312,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.postgres.github.xml --coverage-clover=coverage.xml"
@@ -359,7 +359,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Running PHPBench on current branch"
         run: "./phpbench.dist.sh run --tag=current_pr --store"
@@ -410,7 +410,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.oracle.xml --coverage-clover=coverage.xml"
