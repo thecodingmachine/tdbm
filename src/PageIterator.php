@@ -241,7 +241,7 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->getIterator()->offsetSet($offset, $value);
     }
@@ -257,7 +257,7 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         $this->getIterator()->offsetUnset($offset);
     }
