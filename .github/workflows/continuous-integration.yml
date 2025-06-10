@@ -135,7 +135,6 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.4"
           - "8.0"
 
     services:
@@ -183,7 +182,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.4"
+          - "8.0"
 
     services:
       mysql:
@@ -323,11 +322,13 @@ jobs:
   phpunit-phpbench:
     name: "PHPBench"
     runs-on: "ubuntu-latest"
+    # TODO: Re-enable this job once the dependencies are fixed
+    if: false # Current master branch dependencies are broken because it requires dbal3 and brain-diminished/schema-version-control
 
     strategy:
       matrix:
         php-version:
-          - "7.4"
+          - "8.0"
 
     services:
       mysql:
