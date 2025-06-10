@@ -1,0 +1,277 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\AbstractTDBMObject\:\:relationshipStorageToArray\(\) should return array\<TheCodingMachine\\TDBM\\AbstractTDBMObject\> but returns list\<object\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/AbstractTDBMObject.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\DBAL\\Schema\\AbstractSchemaManager\:\:_getPortableFunctionDefinition\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\DBAL\\Schema\\AbstractSchemaManager\:\:_getPortableFunctionsList\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\DBAL\\Schema\\AbstractSchemaManager\:\:_getPortableTriggerDefinition\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\DBAL\\Schema\\AbstractSchemaManager\:\:_getPortableTriggersList\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\DBAL\\Schema\\AbstractSchemaManager\:\:_getPortableUserDefinition\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\DBAL\\Schema\\AbstractSchemaManager\:\:_getPortableUsersList\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\DBAL\\Schema\\AbstractSchemaManager\:\:getFilterSchemaAssetsExpression\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableFunctionDefinition\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableFunctionDefinition\(\) has parameter \$function with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableFunctionsList\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableFunctionsList\(\) has parameter \$functions with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableTriggerDefinition\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableTriggerDefinition\(\) has parameter \$trigger with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableTriggersList\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableTriggersList\(\) has parameter \$triggers with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableUserDefinition\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableUserDefinition\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableUsersList\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:_getPortableUsersList\(\) has parameter \$users with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\Schema\\LockFileSchemaManager\:\:getFilterSchemaAssetsExpression\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Schema/LockFileSchemaManager.php
+
+		-
+			message: '#^Property TheCodingMachine\\TDBM\\SchemaLockFileDumper\:\:\$cachePrefix \(string\) on left side of \?\?\= is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: src/SchemaLockFileDumper.php
+
+		-
+			message: '#^Method Doctrine\\DBAL\\Schema\\Table\:\:addUniqueIndex\(\) invoked with 4 parameters, 1\-3 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/SchemaVersionControl/SchemaBuilder.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaBuilder\:\:buildColumn\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/SchemaVersionControl/SchemaBuilder.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaBuilder\:\:buildForeignKeyConstraint\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/SchemaVersionControl/SchemaBuilder.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaBuilder\:\:buildIndex\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/SchemaVersionControl/SchemaBuilder.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaBuilder\:\:buildIndex\(\) has parameter \$indexDesc with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/SchemaVersionControl/SchemaBuilder.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaBuilder\:\:buildIndex\(\) has parameter \$name with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/SchemaVersionControl/SchemaBuilder.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaBuilder\:\:buildTable\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/SchemaVersionControl/SchemaBuilder.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaBuilder\:\:getPrimaryKeyColumns\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/SchemaVersionControl/SchemaBuilder.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaNormalizer\:\:normalizeColumn\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/SchemaVersionControl/SchemaNormalizer.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaNormalizer\:\:normalizeForeignKeyConstraint\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/SchemaVersionControl/SchemaNormalizer.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaNormalizer\:\:normalizeForeignReference\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/SchemaVersionControl/SchemaNormalizer.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaNormalizer\:\:normalizeIndex\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/SchemaVersionControl/SchemaNormalizer.php
+
+		-
+			message: '#^Method TheCodingMachine\\TDBM\\SchemaVersionControl\\SchemaNormalizer\:\:normalizeTable\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/SchemaVersionControl/SchemaNormalizer.php
+
+		-
+			message: '#^Parameter \#1 \$input of static method Symfony\\Component\\Yaml\\Yaml\:\:parse\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/SchemaVersionControl/SchemaVersionControlService.php
+
+		-
+			message: '#^Property TheCodingMachine\\TDBM\\TDBMSchemaAnalyzer\:\:\$cachePrefix \(string\) on left side of \?\?\= is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: src/TDBMSchemaAnalyzer.php
+
+		-
+			message: '#^Property TheCodingMachine\\TDBM\\TDBMSchemaAnalyzer\:\:\$schema is unused\.$#'
+			identifier: property.unused
+			count: 1
+			path: src/TDBMSchemaAnalyzer.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between TheCodingMachine\\TDBM\\AbstractTDBMObject and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: src/TDBMService.php
+
+		-
+			message: '#^Property TheCodingMachine\\TDBM\\Utils\\BeanDescriptor\:\:\$daoNamespace is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Utils/BeanDescriptor.php
+
+		-
+			message: '#^Property TheCodingMachine\\TDBM\\Utils\\Annotation\\JsonFormat\:\:\$method \(string\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: src/Utils/DirectForeignKeyMethodDescriptor.php
+
+		-
+			message: '#^Property TheCodingMachine\\TDBM\\Utils\\Annotation\\JsonFormat\:\:\$method \(string\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: src/Utils/ObjectBeanPropertyDescriptor.php
+
+		-
+			message: '#^Property TheCodingMachine\\TDBM\\Utils\\Annotation\\JsonFormat\:\:\$method \(string\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: src/Utils/PivotTableMethodsDescriptor.php
+
+		-
+			message: '#^Variable \$args in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: src/Utils/ScalarBeanPropertyDescriptor.php
+
+		-
+			message: '#^Parameter \#2 \$callback of function preg_replace_callback expects callable\(array\<string\>\)\: string, Closure\(array\)\: \(string\|null\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Utils/StringUtils.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Utils/StringUtils.php

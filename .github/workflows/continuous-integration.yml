@@ -365,13 +365,13 @@ jobs:
         run: "./phpbench.dist.sh run --tag=current_pr --store"
 
       - name: "Reverting any change (that could have been triggered by composer install)"
-        run: "git checkout -- ."
+        run: "git checkout -- . && rm composer.lock"
 
       - name: "Switching to master branch"
         run: "git checkout master"
 
-      - name: "Updating dependencies"
-        run: "composer update"
+      - name: "Install master dependencies"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Running PHPBENCH on master, Generating Report (RESULTS ARE INVERTED AS MASTER IS RUN AFTER CURRENT)"
         run: "./phpbench.dist.sh run --ref=current_pr --store --report=aggregate"

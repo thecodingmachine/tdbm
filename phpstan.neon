@@ -1,18 +1,28 @@
+includes:
+	- phpstan-baseline.neon
+
 parameters:
     level: 7
     inferPrivatePropertyTypeFromConstructor: true
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
     excludePaths:
      - src/SafeFunctions.php # Temporary exclude, delete this file in PHP ^8.0
+     - src/Test/* # Files generated during TDBM test
+     - src/AlterableResultIterator.php # TODO: Add tentative return type
+     - src/EmptyInnerResultIterator.php # TODO: Add tentative return type
+     - src/PageIterator.php # TODO: Add tentative return type
+     - src/ResultIterator.php # TODO: Add tentative return type
+     - src/InnerResultIterator.php # TODO: Add tentative return type
+     - src/InnerResultArray.php # TODO: Add tentative return type
+     - src/MapIterator.php # TODO: Add tentative return type
+     - src/TDBMObject.php # TODO: Add tentative return type
     ignoreErrors:
-     - "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
-     - "#Method .*::.* should return .* but returns .*TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject#"
-     - "#Method .*::.* should return .* but returns TheCodingMachine\\\\TDBM\\\\ResultIterator#"
+     -
+       identifier: missingType.iterableValue
+     -
+       identifier: missingType.generics
+     #- "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
      - "#Call to an undefined method object::#"
      - "#expects TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject, object given.#"
-     - "#should return array<TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject> but returns array<int, object>#"
-     #- "#expects array<string>, array<int, int|string> given.#"
      - '#Method TheCodingMachine\\TDBM\\NativeWeakrefObjectStorage::get\(\) should return TheCodingMachine\\TDBM\\DbRow\|null but returns object\|null.#'
      -
         message: '#Result of && is always false.#'
@@ -21,6 +31,4 @@ parameters:
         message: '#Strict comparison using === between int\|string and null will always evaluate to false#'
         path: src/Utils/ScalarBeanPropertyDescriptor.php
     #reportUnmatchedIgnoredErrors: false
-includes:
-    - vendor/thecodingmachine/phpstan-strict-rules/phpstan-strict-rules.neon
 
