@@ -23,7 +23,7 @@ abstract class AbstractTraitAnnotation
     private $insteadOf = [];
 
     /**
-     * @var array<string, string>
+     * @var array<non-empty-string, non-empty-string>
      */
     private $as = [];
 
@@ -44,7 +44,7 @@ abstract class AbstractTraitAnnotation
         foreach ($modifiers as $modifier) {
             if (preg_match('/(.*?)\s*insteadof\s(.*)/', $modifier, $matches) === 1) {
                 $this->insteadOf[$matches[1]] = $matches[2];
-            } elseif (preg_match('/(.*?)\s*as\s(.*)/', $modifier, $matches) === 1) {
+            } elseif (preg_match('/(.+?)\s*as\s(.+)/', $modifier, $matches) === 1) {
                 $this->as[$matches[1]] = $matches[2];
             } else {
                 throw new TDBMException('In annotation @AddTrait, the modifiers parameter must be passed either a "insteadof" or a "as" clause. For instance: \'@AddTrait("Foo\\A", modifiers={"A::foo insteadof B", "A::bar as baz"})\'');
@@ -70,7 +70,7 @@ abstract class AbstractTraitAnnotation
     /**
      * A list of "as" clauses. Key: method name to be renamed, Value: method name
      *
-     * @return array<string,string>
+     * @return array<non-empty-string,non-empty-string>
      */
     public function getAs(): array
     {

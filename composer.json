@@ -48,8 +48,7 @@
         "friendsofphp/php-cs-fixer": "^3.11",
         "symfony/process": "^3 || ^4 || ^5",
         "thecodingmachine/tdbm-fluid-schema-builder": "^v2.0.0",
-        "phpstan/phpstan": "^0.12.81",
-        "thecodingmachine/phpstan-strict-rules": "^0.12.1",
+        "phpstan/phpstan": "^2.0",
         "bamarni/composer-bin-plugin": "^1.4.1",
         "phpbench/phpbench": "^1.1"
     },
