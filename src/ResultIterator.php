@@ -160,7 +160,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
      *
      * @return InnerResultIteratorInterface
      */
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         if ($this->innerResultIterator === null) {
             if ($this->totalCount === 0) {
@@ -199,7 +199,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return $this->getIterator()->offsetExists($offset);
     }
@@ -217,7 +217,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->getIterator()->offsetGet($offset);
     }
@@ -271,7 +271,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.4.0
      */
-    public function jsonSerialize($stopRecursion = false)
+    public function jsonSerialize($stopRecursion = false): mixed
     {
         return array_map(function (AbstractTDBMObject $item) use ($stopRecursion) {
             return $item->jsonSerialize($stopRecursion);

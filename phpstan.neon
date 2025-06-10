@@ -5,22 +5,13 @@ parameters:
     level: 7
     inferPrivatePropertyTypeFromConstructor: true
     excludePaths:
-     - src/SafeFunctions.php # Temporary exclude, delete this file in PHP ^8.0
      - src/Test/* # Files generated during TDBM test
-     - src/AlterableResultIterator.php # TODO: Add tentative return type
-     - src/EmptyInnerResultIterator.php # TODO: Add tentative return type
-     - src/PageIterator.php # TODO: Add tentative return type
-     - src/ResultIterator.php # TODO: Add tentative return type
-     - src/InnerResultIterator.php # TODO: Add tentative return type
-     - src/InnerResultArray.php # TODO: Add tentative return type
-     - src/MapIterator.php # TODO: Add tentative return type
-     - src/TDBMObject.php # TODO: Add tentative return type
     ignoreErrors:
      -
        identifier: missingType.iterableValue
      -
        identifier: missingType.generics
-     #- "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
+     - "#Method JsonSerializable::jsonSerialize\\(\\) invoked with 1 parameter, 0 required.#"
      - "#Call to an undefined method object::#"
      - "#expects TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject, object given.#"
      - '#Method TheCodingMachine\\TDBM\\NativeWeakrefObjectStorage::get\(\) should return TheCodingMachine\\TDBM\\DbRow\|null but returns object\|null.#'

@@ -64,7 +64,7 @@ class TDBMObject extends AbstractTDBMObject
      *
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         throw new TDBMException('Json serialization is only implemented for generated beans.');
     }

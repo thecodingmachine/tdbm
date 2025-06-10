@@ -140,7 +140,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->toArray()[$offset]);
     }
@@ -158,7 +158,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->toArray()[$offset];
     }
@@ -209,7 +209,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         if ($this->resultIterator instanceof \Countable && $this->alterations->count() === 0) {
             return $this->resultIterator->count();
@@ -222,7 +222,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @return \Traversable
      */
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         if ($this->alterations->count() === 0) {
             if ($this->resultIterator !== null) {
@@ -245,7 +245,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return $this->toArray();
     }

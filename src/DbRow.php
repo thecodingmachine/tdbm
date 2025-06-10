@@ -294,7 +294,7 @@ class DbRow
             $foreignColumns = $fk->getUnquotedForeignColumns();
             $foreignTableName = $fk->getForeignTableName();
 
-            $filter = SafeFunctions::arrayCombine($foreignColumns, $values);
+            $filter = array_combine($foreignColumns, $values);
 
             // If the foreign key points to the primary key, let's use findObjectByPk
             if ($this->tdbmService->getPrimaryKeyColumns($foreignTableName) === $foreignColumns) {
