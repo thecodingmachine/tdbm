@@ -18,7 +18,7 @@
         }
     ],
     "require" : {
-        "php": "^7.4 || ^8.0",
+        "php": "^8.0",
         "mouf/magic-query": "^2.0",
         "mouf/schema-analyzer": "^2.0",
         "doctrine/dbal": "^3.6",
