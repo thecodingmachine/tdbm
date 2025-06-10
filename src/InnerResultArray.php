@@ -52,7 +52,7 @@ class InnerResultArray extends InnerResultIterator
      *
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         try {
             $this->toIndex($offset);
@@ -76,7 +76,7 @@ class InnerResultArray extends InnerResultIterator
      *
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         $this->toIndex($offset);
 
@@ -121,7 +121,7 @@ class InnerResultArray extends InnerResultIterator
      * Overloads the rewind implementation.
      * Do not reexecute the query.
      */
-    public function rewind()
+    public function rewind(): void
     {
         if (!$this->fetchStarted) {
             $this->executeQuery();

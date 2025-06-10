@@ -34,8 +34,7 @@ use TheCodingMachine\TDBM\Utils\DbalUtils;
  */
 class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 {
-    /** @var Result */
-    protected $result;
+    protected ?Result $result = null;
 
     /** @var bool */
     protected $fetchStarted = false;
@@ -126,7 +125,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         if ($this->count !== null) {
             return $this->count;
@@ -160,7 +159,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @return AbstractTDBMObject
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->current;
     }
@@ -170,7 +169,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @return int
      */
-    public function key()
+    public function key(): mixed
     {
         return $this->key;
     }
@@ -269,7 +268,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
     /**
      * Moves the cursor to the beginning of the result set.
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->executeQuery();
         $this->key = -1;
@@ -280,7 +279,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->current !== null;
     }
@@ -301,7 +300,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         throw new TDBMInvalidOperationException('You cannot access this result set via index because it was fetched in CURSOR mode. Use ARRAY_MODE instead.');
     }
@@ -319,7 +318,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         throw new TDBMInvalidOperationException('You cannot access this result set via index because it was fetched in CURSOR mode. Use ARRAY_MODE instead.');
     }

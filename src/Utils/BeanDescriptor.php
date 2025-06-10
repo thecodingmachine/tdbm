@@ -9,18 +9,14 @@ use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use JsonSerializable;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
-use PhpParser\Comment\Doc;
 use Ramsey\Uuid\Uuid;
 use TheCodingMachine\TDBM\AbstractTDBMObject;
 use TheCodingMachine\TDBM\AlterableResultIterator;
 use TheCodingMachine\TDBM\ConfigurationInterface;
-use TheCodingMachine\TDBM\InnerResultIterator;
 use TheCodingMachine\TDBM\ResultIterator;
-use TheCodingMachine\TDBM\SafeFunctions;
 use TheCodingMachine\TDBM\Schema\ForeignKey;
 use TheCodingMachine\TDBM\Schema\ForeignKeys;
 use TheCodingMachine\TDBM\TDBMException;
@@ -46,6 +42,7 @@ use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\ParameterGenerator;
 use Laminas\Code\Generator\PropertyGenerator;
 
+use function array_combine;
 use function implode;
 use function strtolower;
 use function var_export;
@@ -517,13 +514,7 @@ class BeanDescriptor implements BeanDescriptorInterface
             ]
         ));
         $method->setParameter(new ParameterGenerator('stopRecursion', 'bool', false));
-
-        /*
-         * Set jsonSerialize's mixed return type for php >= 8
-         */
-        if (version_compare(PHP_VERSION, '8.0.0', '>=')) {
-            $method->setReturnType("mixed");
-        }
+        $method->setReturnType("mixed");
 
         if ($parentFk !== null) {
             $body = '$array = parent::jsonSerialize($stopRecursion);';
@@ -1383,7 +1374,7 @@ EOF
                 }
             } elseif ($element instanceof ObjectBeanPropertyDescriptor) {
                 $foreignKey = $element->getForeignKey();
-                $columns = SafeFunctions::arrayCombine($foreignKey->getUnquotedLocalColumns(), $foreignKey->getUnquotedForeignColumns());
+                $columns = array_combine($foreignKey->getUnquotedLocalColumns(), $foreignKey->getUnquotedForeignColumns());
                 ++$count;
                 $foreignTable = $this->schema->getTable($foreignKey->getForeignTableName());
                 foreach ($columns as $localColumn => $foreignColumn) {

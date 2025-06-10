@@ -64,14 +64,14 @@ class MapIterator implements Iterator, \JsonSerializable
      *
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         $callable = $this->callable;
 
         return $callable($this->iterator->current());
     }
 
-    public function next()
+    public function next(): void
     {
         $this->iterator->next();
     }
@@ -79,17 +79,17 @@ class MapIterator implements Iterator, \JsonSerializable
     /**
      * @return mixed
      */
-    public function key()
+    public function key(): mixed
     {
         return $this->iterator->key();
     }
 
-    public function valid()
+    public function valid(): bool
     {
         return $this->iterator->valid();
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         $this->iterator->rewind();
     }
@@ -104,7 +104,7 @@ class MapIterator implements Iterator, \JsonSerializable
         return iterator_to_array($this);
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return $this->toArray();
     }
