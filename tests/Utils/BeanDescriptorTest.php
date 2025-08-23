@@ -55,7 +55,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
     protected function setUp(): void
     {
         parent::setUp();
-        $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
+        $schemaManager = $this->tdbmService->getConnection()->createSchemaManager();
         $this->schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $this->schema = $schemaManager->createSchema();
         $schemaLockFileDumper = new SchemaLockFileDumper($this->tdbmService->getConnection(), new VoidCache(), Configuration::getDefaultLockFilePath());
@@ -113,7 +113,7 @@ class BeanDescriptorTest extends TDBMAbstractServiceTest
         $table = $this->schema->createTable('lazy_loading');
         $table->addColumn('lazyLoading', Types::BOOLEAN);
         $table->setPrimaryKey(['lazyLoading']);
-        $sqlStmts = $this->schema->getMigrateFromSql($this->getConnection()->getSchemaManager()->createSchema(), $this->getConnection()->getDatabasePlatform());
+        $sqlStmts = $this->schema->getMigrateFromSql($this->getConnection()->createSchemaManager()->createSchema(), $this->getConnection()->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
             $this->getConnection()->exec($sqlStmt);

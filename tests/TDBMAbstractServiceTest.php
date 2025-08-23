@@ -150,7 +150,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
     protected function getNamingStrategy()
     {
-        $strategy = new DefaultNamingStrategy(AnnotationParser::buildWithDefaultAnnotations([]), self::getConnection()->getSchemaManager());
+        $strategy = new DefaultNamingStrategy(AnnotationParser::buildWithDefaultAnnotations([]), self::getConnection()->createSchemaManager());
         $strategy->setBeanPrefix('');
         $strategy->setBeanSuffix('Bean');
         $strategy->setBaseBeanPrefix('');

@@ -43,7 +43,7 @@ class SchemaLockFileDumperTest extends TDBMAbstractServiceTest
 
     public function testSchemaLock(): void
     {
-        $schemaFromConnec = self::getConnection()->getSchemaManager()->createSchema();
+        $schemaFromConnec = self::getConnection()->createSchemaManager()->createSchema();
         $tableNames = [];
         //lock file doesn't save the database name so we have to replace it manually.
         ImmutableCaster::castSchemaToImmutable($schemaFromConnec);

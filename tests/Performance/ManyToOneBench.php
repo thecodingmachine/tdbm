@@ -53,7 +53,7 @@ class ManyToOneBench
 
     private static function initSchema(Connection $connection): void
     {
-        $fromSchema = $connection->getSchemaManager()->createSchema();
+        $fromSchema = $connection->createSchemaManager()->createSchema();
         $toSchema = clone $fromSchema;
 
         $db = new TdbmFluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
@@ -91,7 +91,7 @@ class ManyToOneBench
 
     private static function generateDaosAndBeans(Connection $connection): void
     {
-        $schemaManager = $connection->getSchemaManager();
+        $schemaManager = $connection->createSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $schemaLockFileDumper = new SchemaLockFileDumper($connection, new ArrayCache(), Configuration::getDefaultLockFilePath());
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);

@@ -36,7 +36,7 @@ class TDBMSchemaAnalyzerTest extends TDBMAbstractServiceTest
     protected function setUp(): void
     {
         parent::setUp();
-        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->createSchemaManager(), new ArrayCache(), 'prefix_');
         $schemaLockFileDumper = new SchemaLockFileDumper(self::getConnection(), new ArrayCache(), Configuration::getDefaultLockFilePath());
         $this->tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
     }

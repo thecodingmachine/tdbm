@@ -120,7 +120,7 @@ class Configuration implements ConfigurationInterface
         }
         $this->lockFilePath = $lockFilePath;
         $schemaLockFileDumper = new SchemaLockFileDumper($this->connection, $this->cache, $this->getLockFilePath());
-        $lockFileSchemaManager = new LockFileSchemaManager($this->connection->getSchemaManager(), $schemaLockFileDumper);
+        $lockFileSchemaManager = new LockFileSchemaManager($this->connection->createSchemaManager(), $schemaLockFileDumper);
         if ($schemaAnalyzer !== null) {
             $this->schemaAnalyzer = $schemaAnalyzer;
         } else {

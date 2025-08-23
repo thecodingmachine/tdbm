@@ -33,7 +33,7 @@ class ConnectionFactory
             // Let's forcefully delete the connection!
             //$adminConn->exec("select 'alter system kill session ''' || sid || ',' || serial# || ''';' from v\$session where username = '".strtoupper($dbName)."'");
 
-            $adminConn->getSchemaManager()->dropAndCreateDatabase($dbName);
+            $adminConn->createSchemaManager()->dropAndCreateDatabase($dbName);
 
             $dbConnection = self::createConnection($dbDriver, $dbHost, $dbPort, $dbName, $dbPassword, $dbName);
         } else {
@@ -47,7 +47,7 @@ class ConnectionFactory
 
             $adminConn = DriverManager::getConnection($connectionParams, $config);
 
-            $adminConn->getSchemaManager()->dropAndCreateDatabase($dbName);
+            $adminConn->createSchemaManager()->dropAndCreateDatabase($dbName);
 
             $connectionParams['dbname'] = $dbName;
 

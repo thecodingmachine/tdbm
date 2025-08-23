@@ -17,7 +17,7 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
 {
     private function getDefaultNamingStrategy()
     {
-        return new DefaultNamingStrategy(AnnotationParser::buildWithDefaultAnnotations([]), $this->getConnection()->getSchemaManager());
+        return new DefaultNamingStrategy(AnnotationParser::buildWithDefaultAnnotations([]), $this->getConnection()->createSchemaManager());
     }
 
     /**

@@ -19,7 +19,7 @@ class AlteredConfigurationTest extends TestCase
     public function testAlteredConfiguration(): void
     {
         $connection = $this->getMockBuilder(Connection::class)->disableOriginalConstructor()->getMock();
-        $connection->method('getSchemaManager')->willReturn($this->createMock(AbstractSchemaManager::class));
+        $connection->method('createSchemaManager')->willReturn($this->createMock(AbstractSchemaManager::class));
         $namingStrategy = $this->getMockBuilder(NamingStrategyInterface::class)->disableOriginalConstructor()->getMock();
         $cache = $this->getMockBuilder(Cache::class)->disableOriginalConstructor()->getMock();
         $logger = $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock();

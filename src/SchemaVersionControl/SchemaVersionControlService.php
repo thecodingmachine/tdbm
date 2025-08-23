@@ -36,7 +36,7 @@ class SchemaVersionControlService
      */
     public function getCurrentSchema(): Schema
     {
-        return $this->connection->getSchemaManager()->createSchema();
+        return $this->connection->createSchemaManager()->createSchema();
     }
 
     /**
