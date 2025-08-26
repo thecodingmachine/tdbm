@@ -31,15 +31,6 @@ class SchemaVersionControlService
     }
 
     /**
-     * Get the current schema used in database.
-     * @return Schema
-     */
-    public function getCurrentSchema(): Schema
-    {
-        return $this->connection->createSchemaManager()->createSchema();
-    }
-
-    /**
      * Load schema from config file.
      * @return Schema
      */
@@ -64,7 +55,8 @@ class SchemaVersionControlService
      */
     public function dumpSchema(): void
     {
-        $schema = $this->getCurrentSchema();
+        $schemaManager = $this->connection->createSchemaManager();
+        $schema = $schemaManager->createSchema();
         $normalizer = new SchemaNormalizer();
         $desc = $normalizer->normalize($schema);
         $yamlSchema = Yaml::dump(['schema' => $desc], 10, 2);

@@ -32,6 +32,8 @@ class SchemaNormalizer
         foreach ($schema->getTables() as $table) {
             $schemaDesc['tables'][$table->getName()] = $this->normalizeTable($table);
         }
+        ksort($schemaDesc['tables']);
+
         return $schemaDesc;
     }
 
@@ -39,8 +41,9 @@ class SchemaNormalizer
     {
         $tableDesc = [];
 
-        if ($table->hasPrimaryKey()) {
-            $pk_columns = $table->getPrimaryKey()->getUnquotedColumns();
+        $primaryKey = $table->getPrimaryKey();
+        if ($primaryKey) {
+            $pk_columns = $primaryKey->getUnquotedColumns();
         } else {
             $pk_columns = [];
         }
@@ -103,8 +106,8 @@ class SchemaNormalizer
         if ($column->getComment() !== null) {
             $columnDesc['comment'] = $column->getComment();
         }
-        if (!empty($column->getCustomSchemaOptions())) {
-            $columnDesc['custom'] = $column->getCustomSchemaOptions();
+        if (!empty($column->getPlatformOptions())) {
+            $columnDesc['custom'] = $column->getPlatformOptions();
         }
 
         if (count($columnDesc) > 1) {
@@ -117,10 +120,10 @@ class SchemaNormalizer
     protected function normalizeForeignKeyConstraint(ForeignKeyConstraint $foreignKeyConstraint)
     {
         $constraintDesc = [];
-        if (count($foreignKeyConstraint->getColumns()) > 1) {
-            $constraintDesc['columns'] = $foreignKeyConstraint->getColumns();
+        if (count($foreignKeyConstraint->getLocalColumns()) > 1) {
+            $constraintDesc['columns'] = $foreignKeyConstraint->getLocalColumns();
         } else {
-            $constraintDesc['column'] = $foreignKeyConstraint->getColumns()[0];
+            $constraintDesc['column'] = $foreignKeyConstraint->getLocalColumns()[0];
         }
 
         $constraintDesc['references'] = $this->normalizeForeignReference($foreignKeyConstraint);
@@ -135,8 +138,8 @@ class SchemaNormalizer
         $referenceDesc = [];
         $foreignTableName = $foreignKeyConstraint->getForeignTableName();
         $foreignTable = $this->schema->getTable($foreignTableName);
-        if ($foreignTable->hasPrimaryKey()
-            && $foreignTable->getPrimaryKeyColumns() == $foreignKeyConstraint->getForeignColumns()) {
+        $foreignPrimaryKey = $foreignTable->getPrimaryKey();
+        if ($foreignPrimaryKey && $foreignPrimaryKey->getColumns() == $foreignKeyConstraint->getForeignColumns()) {
             $referenceDesc = $foreignKeyConstraint->getForeignTableName();
         } else {
             $referenceDesc['table'] = $foreignKeyConstraint->getForeignTableName();

@@ -92,7 +92,7 @@ class SchemaBuilder
             $column->setComment($columnDesc['comment']);
         }
         if (isset($columnDesc['custom'])) {
-            $column->setCustomSchemaOptions($columnDesc['custom']);
+            $column->setPlatformOptions($columnDesc['custom']);
         }
     }
 
