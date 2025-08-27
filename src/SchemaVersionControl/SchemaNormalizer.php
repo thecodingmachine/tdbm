@@ -6,6 +6,7 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaConfig;
 use Doctrine\DBAL\Schema\Table;
 
 /**
@@ -16,18 +17,21 @@ use Doctrine\DBAL\Schema\Table;
  */
 class SchemaNormalizer
 {
-    /** @var Schema */
-    protected $schema;
+    protected Schema $schema;
+    protected SchemaConfig $schemaConfig;
 
     /**
      * Normalize a Schema object into an array descriptor
-     * @param Schema $schema
      * @return array
      */
-    public function normalize(Schema $schema): array
+    public function normalize(Schema $schema, SchemaConfig $schemaConfig): array
     {
         $this->schema = $schema;
+        $this->schemaConfig = $schemaConfig;
         $schemaDesc = [];
+        if (!empty($this->schemaConfig->getDefaultTableOptions())) {
+            $schemaDesc['default_table_options'] = $this->schemaConfig->getDefaultTableOptions();
+        }
         $schemaDesc['tables'] = [];
         foreach ($schema->getTables() as $table) {
             $schemaDesc['tables'][$table->getName()] = $this->normalizeTable($table);
@@ -107,7 +111,10 @@ class SchemaNormalizer
             $columnDesc['comment'] = $column->getComment();
         }
         if (!empty($column->getPlatformOptions())) {
-            $columnDesc['custom'] = $column->getPlatformOptions();
+            $custom = array_diff_assoc($column->getPlatformOptions(), $this->schemaConfig->getDefaultTableOptions());
+            if (!empty($custom)) {
+                $columnDesc['custom'] = $custom;
+            }
         }
 
         if (count($columnDesc) > 1) {

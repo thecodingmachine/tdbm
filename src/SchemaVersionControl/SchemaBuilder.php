@@ -4,6 +4,7 @@ namespace TheCodingMachine\TDBM\SchemaVersionControl;
 
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaConfig;
 use Doctrine\DBAL\Schema\Table;
 
 /**
@@ -25,7 +26,9 @@ class SchemaBuilder
     public function build(array $schemaDesc): Schema
     {
         $this->schemaDesc = $schemaDesc;
-        $schema = new Schema();
+        $schemaConfig = new SchemaConfig();
+        $schemaConfig->setDefaultTableOptions($schemaDesc['default_table_options'] ?? []);
+        $schema = new Schema([], [], $schemaConfig);
         foreach ($schemaDesc['tables'] as $name => $tableDesc) {
             $table = $schema->createTable($name);
             $this->buildTable($tableDesc, $table);
