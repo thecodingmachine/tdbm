@@ -261,7 +261,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
         } else {
             $code = <<<PHP
 \$array['$index'] = array_map(function ($class $variableName) {
-    return ${variableName}->$format;
+    return {$variableName}->$format;
 }, \$this->$getter()->toArray());
 PHP;
         }

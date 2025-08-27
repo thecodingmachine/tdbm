@@ -1292,7 +1292,6 @@ EOF
     private function generateFindByDaoCodeForIndex(Index $index, string $beanNamespace, string $beanClassName): ?MethodGenerator
     {
         $columns = $index->getColumns();
-        $usedBeans = [];
 
         /**
          * The list of elements building this index (expressed as columns or foreign keys)
@@ -1318,41 +1317,22 @@ EOF
         }
 
         $parameters = [];
-        //$functionParameters = [];
         $first = true;
         /** @var AbstractBeanPropertyDescriptor $element */
         foreach ($elements as $element) {
             $parameter = new ParameterGenerator(ltrim($element->getSafeVariableName(), '$'));
-            if (!$first && !($element->isCompulsory() && $index->isUnique())) {
-                $parameterType = '?';
-                //$functionParameter = '?';
-            } else {
-                $parameterType = '';
-                //$functionParameter = '';
-            }
+
+            $parameterType = !$first && (!$index->isUnique() || !$element->isCompulsory()) ? '?' : '';
             $parameterType .= $element->getPhpType();
             $parameter->setType($parameterType);
-            if (!$first && !($element->isCompulsory() && $index->isUnique())) {
+
+            if (!$first && !$index->isUnique()) {
                 $parameter->setDefaultValue(null);
             }
-            //$functionParameter .= $element->getPhpType();
-            $elementClassName = $element->getClassName();
-            if ($elementClassName) {
-                $usedBeans[] = $beanNamespace.'\\'.$elementClassName;
-            }
-            //$functionParameter .= ' '.$element->getVariableName();
-            if ($first) {
-                $first = false;
-            } /*else {
-                $functionParameter .= ' = null';
-            }*/
-            //$functionParameters[] = $functionParameter;
+
             $parameters[] = $parameter;
+            $first = false;
         }
-
-        //$functionParametersString = implode(', ', $functionParameters);
-
-        $count = 0;
 
         $params = [];
         $filterArrayCode = '';
@@ -1375,12 +1355,11 @@ EOF
             } elseif ($element instanceof ObjectBeanPropertyDescriptor) {
                 $foreignKey = $element->getForeignKey();
                 $columns = array_combine($foreignKey->getUnquotedLocalColumns(), $foreignKey->getUnquotedForeignColumns());
-                ++$count;
                 $foreignTable = $this->schema->getTable($foreignKey->getForeignTableName());
                 foreach ($columns as $localColumn => $foreignColumn) {
                     // TODO: a foreign key could point to another foreign key. In this case, there is no getter for the pointed column. We don't support this case.
                     $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy, $this->annotationParser);
-                    if ($first || $element->isCompulsory() && $index->isUnique()) {
+                    if ($first || ($element->isCompulsory() && $index->isUnique())) {
                         // First parameter for index is not nullable
                         $filterArrayCode .= '    '.var_export($localColumn, true).' => '.$element->getSafeVariableName().'->'.$targetedElement->getGetterName()."(),\n";
                     } else {
@@ -1394,9 +1373,6 @@ EOF
                 $first = false;
             }
         }
-
-        //$paramsString = implode("\n", $params);
-
 
         $methodName = $this->namingStrategy->getFindByIndexMethodName($index, $elements);
 

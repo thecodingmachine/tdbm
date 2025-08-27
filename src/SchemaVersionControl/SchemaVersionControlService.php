@@ -57,7 +57,7 @@ class SchemaVersionControlService
     {
         $schemaManager = $this->connection->createSchemaManager();
         $schemaConfig = $schemaManager->createSchemaConfig();
-        $schema = $schemaManager->createSchema();
+        $schema = $schemaManager->introspectSchema();
         $normalizer = new SchemaNormalizer();
         $desc = $normalizer->normalize($schema, $schemaConfig);
         $yamlSchema = Yaml::dump(['schema' => $desc], 10, 2);
