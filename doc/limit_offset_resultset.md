@@ -112,6 +112,16 @@ Pages (retrieved with the `take` method) also have additional methods you can ca
 - `map(callable $callback)`: will call the `$callback` on every bean of the page and return the matching array.
 
 
+Implements Porpiginas
+---------------------
+
+If you are already familiar with [beberlei/porpaginas](https://github.com/beberlei/porpaginas), you probably noticed
+that TDBM result sets implement Porpaginas interfaces (the `Result` and `Page` concept comes from Porpaginas).
+
+This means that you can easily migrate to and from any ORM that uses Porpaginas for its results. You can also
+use any pagination library compatible with Porpaginas, like Pagerfanta.
+
+
 Next step
 ---------
 
