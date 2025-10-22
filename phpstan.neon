@@ -16,9 +16,6 @@ parameters:
      - "#expects TheCodingMachine\\\\TDBM\\\\AbstractTDBMObject, object given.#"
      - '#Method TheCodingMachine\\TDBM\\NativeWeakrefObjectStorage::get\(\) should return TheCodingMachine\\TDBM\\DbRow\|null but returns object\|null.#'
      -
-        message: '#Result of && is always false.#'
-        path: src/Test/Dao/Bean/Generated/ArticleBaseBean.php
-     -
         message: '#Strict comparison using === between int\|string and null will always evaluate to false#'
         path: src/Utils/ScalarBeanPropertyDescriptor.php
     #reportUnmatchedIgnoredErrors: false
