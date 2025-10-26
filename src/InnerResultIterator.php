@@ -244,6 +244,9 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
                 $dbRow = $this->objectStorage->get($mainBeanTableName, $hash);
                 if ($dbRow !== null) {
                     $bean = $dbRow->getTDBMObject();
+                    if ($bean->_getStatus() === TDBMObjectStateEnum::STATE_NOT_LOADED) {
+                        $bean->_constructFromData($beanData, $this->tdbmService);
+                    }
                 } else {
                     // Let's construct the bean
                     if (!isset($reflectionClassCache[$actualClassName])) {

@@ -2408,6 +2408,65 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertCount(1, $accessible->getValues());
     }
 
+    public function testHydrateLazyLoadedBean(): void
+    {
+        $countryDao = new TestCountryDao($this->tdbmService);
+        $country = $countryDao->getById(1, true);
+        $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $country->_getStatus());
+        $countryDao->findByIds([1])->toArray(); // This `->toArray` consumes the iterator and hence resolves the objects
+        $this->assertSame(TDBMObjectStateEnum::STATE_LOADED, $country->_getStatus());
+    }
+
+    public function testHydrateNotLoadedBeanReference(): void
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $countryDao = new TestCountryDao($this->tdbmService);
+        $users = $userDao->findAll()->toArray();
+        $countriesIds = [];
+        foreach ($users as $user) {
+            assert($user instanceof UserBean);
+            $countriesIds[] = $user->getCountry()->getId();
+            $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $user->getCountry()->_getStatus());
+        }
+
+        $countryDao->findByIds($countriesIds)->toArray(); // This `->toArray` consumes the iterator and hence resolves the objects
+        foreach ($users as $user) {
+            assert($user instanceof UserBean);
+            $this->assertSame(TDBMObjectStateEnum::STATE_LOADED, $user->getCountry()->_getStatus());
+        }
+    }
+
+    public function testHydrateNotLoadedBeans(): void
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $countryDao = new TestCountryDao($this->tdbmService);
+        $users = $userDao->findAll()->toArray();
+        $countriesIds = [];
+        foreach ($users as $user) {
+            assert($user instanceof UserBean);
+            $countriesIds[] = $user->getCountry()->getId();
+            $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $user->getCountry()->_getStatus());
+        }
+
+        $countries = $countryDao->findByIds($countriesIds);
+        foreach ($countries as $country) {
+            assert($country instanceof CountryBean);
+            $this->assertSame(TDBMObjectStateEnum::STATE_LOADED, $country->_getStatus());
+        }
+    }
+
+    public function testHydrateGetByIdAfterLazyLoad(): void
+    {
+        // FIXME: It is not trivial to fix as `\TheCodingMachine\TDBM\TDBMService::findObjectOrFail` creates its own bean.
+        //    Hence, any existing reference to the original bean won't get the change.
+        $this->markTestIncomplete('Test is failing because we retrieve the bean from the storage and do not hydrate it');
+        $countryDao = new TestCountryDao($this->tdbmService);
+        $country = $countryDao->getById(1, true);
+        $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $country->_getStatus());
+        $country = $countryDao->getById(1);
+        $this->assertSame(TDBMObjectStateEnum::STATE_LOADED, $country->_getStatus()); // This is failing
+    }
+
     private function skipOracle(): void
     {
         if (self::getConnection()->getDatabasePlatform() instanceof OraclePlatform) {
