@@ -77,4 +77,12 @@ SQL;
 
         return $this->findFromRawSql($sql);
     }
+
+    /**
+     * @return CountryBean[]|Result
+     */
+    public function findByIds(array $ids)
+    {
+        return $this->find('id IN (:ids)', ['ids' => $ids]);
+    }
 }
