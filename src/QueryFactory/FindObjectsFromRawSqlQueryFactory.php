@@ -232,7 +232,9 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
             }
 
             $table = $this->schema->getTable($tableName);
-            $pkColumns = $table->getPrimaryKeyColumns();
+            $primaryKey = $table->getPrimaryKey();
+            assert($primaryKey !== null, 'TDBM Only works on tables with primary keys');
+            $pkColumns = $primaryKey->getUnquotedColumns();
             foreach ($table->getColumns() as $column) {
                 $columnName = $column->getName();
                 $alias = AbstractQueryFactory::getColumnAlias($tableName, $columnName);
@@ -252,7 +254,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                     ]
                 ];
                 $formattedSelect[] = $astColumn;
-                if (array_key_exists($columnName, $pkColumns)) {
+                if (in_array($columnName, $pkColumns, true)) {
                     $formattedCountSelect[] = $astColumn;
                 }
                 $columnDescriptors[$alias] = [

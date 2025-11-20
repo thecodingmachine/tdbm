@@ -444,12 +444,12 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         foreach ($sqlStmts as $sqlStmt) {
             //echo $sqlStmt."\n";
-            $connection->exec($sqlStmt);
+            $connection->executeStatement($sqlStmt);
         }
 
         // Let's generate computed columns
         if ($connection->getDatabasePlatform() instanceof MySqlPlatform && !self::isMariaDb($connection)) {
-            $connection->exec('CREATE TABLE `players` (
+            $connection->executeStatement('CREATE TABLE `players` (
                `id` INT UNSIGNED AUTO_INCREMENT NOT NULL,
                `player_and_games` JSON NOT NULL,
                `names_virtual` VARCHAR(20) GENERATED ALWAYS AS (`player_and_games` ->> \'$.name\') NOT NULL COMMENT \'@ReadOnly\',
