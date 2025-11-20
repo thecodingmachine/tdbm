@@ -3,7 +3,6 @@
 namespace TheCodingMachine\TDBM\Performance;
 
 use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
@@ -11,7 +10,6 @@ use TheCodingMachine\FluidSchema\TdbmFluidSchema;
 use TheCodingMachine\TDBM\Configuration;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 use TheCodingMachine\TDBM\ConnectionFactory;
-use TheCodingMachine\TDBM\DummyGeneratorListener;
 use TheCodingMachine\TDBM\SchemaLockFileDumper;
 use TheCodingMachine\TDBM\TDBMAbstractServiceTest;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
@@ -70,7 +68,7 @@ class ManyToOneBench
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
-            $connection->exec($sqlStmt);
+            $connection->executeStatement($sqlStmt);
         }
 
         for ($i = 1; $i < 200; $i++) {
