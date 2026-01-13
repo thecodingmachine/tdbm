@@ -88,7 +88,7 @@ class AnnotationParser
     {
         $options = $table->getOptions();
         if (isset($options['comment'])) {
-            return $this->parse($options['comment'], ' comment in table '.$table->getName());
+            return $this->parse($options['comment'], 'comment in table `' . $table->getName() . '`');
         }
         return new Annotations([]);
     }
@@ -99,6 +99,6 @@ class AnnotationParser
         if ($comment === null) {
             return new Annotations([]);
         }
-        return $this->parse($comment, sprintf('comment of column %s in table %s', $column->getName(), $table->getName()));
+        return $this->parse($comment, sprintf('comment of column `%s` in table `%s`', $column->getName(), $table->getName()));
     }
 }
