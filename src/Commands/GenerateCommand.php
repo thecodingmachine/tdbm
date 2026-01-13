@@ -41,7 +41,7 @@ class GenerateCommand extends Command
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // TODO: externalize composer.json file for autoloading (no more parameters for generateAllDaosAndBeans)
 
