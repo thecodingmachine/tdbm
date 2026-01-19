@@ -425,6 +425,9 @@ class BeanDescriptor implements BeanDescriptorInterface
             $this->checkForDuplicate($desc);
             $descriptors[] = $desc;
         }
+        usort($descriptors, function (DirectForeignKeyMethodDescriptor $a, DirectForeignKeyMethodDescriptor $b) {
+            return $b->getForeignKey()->getName() <=> $a->getForeignKey()->getName();
+        });
 
         $this->directForeignKeysDescriptors = $descriptors;
         return $this->directForeignKeysDescriptors;
