@@ -2464,6 +2464,14 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame(TDBMObjectStateEnum::STATE_LOADED, $country->_getStatus()); // This is failing
     }
 
+    public function testGetByIdLazyLoadFailsOnInheritance(): void
+    {
+        $this->expectException(TDBMCannotLazyLoadInheritanceException::class);
+        $this->expectExceptionMessage('Failed to lazy load the tables (person, contact, users) as they are part of inheritance.');
+        $userDao = new UserDao($this->tdbmService);
+        $userDao->getById(1, true);
+    }
+
     private function skipOracle(): void
     {
         if (self::getConnection()->getDatabasePlatform() instanceof OraclePlatform) {

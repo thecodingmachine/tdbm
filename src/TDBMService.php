@@ -1253,6 +1253,8 @@ class TDBMService
 
                 return $bean;
             }
+
+            throw TDBMCannotLazyLoadInheritanceException::create($tables);
         }
 
         // Did not find the object in cache? Let's query it!
