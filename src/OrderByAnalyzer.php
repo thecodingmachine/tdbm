@@ -132,8 +132,12 @@ class OrderByAnalyzer
      */
     private function trimDirection(string $sql): string
     {
-        preg_match('/^(.*)(\s+(DESC|ASC|))*$/Ui', $sql, $matches);
+        if (str_ends_with($sql, ' ASC')) {
+            $sql = substr($sql, 0, -4);
+        } elseif (str_ends_with($sql, ' DESC')) {
+            $sql = substr($sql, 0, -5);
+        }
 
-        return $matches[1];
+        return rtrim($sql, " \t\r\n");
     }
 }
