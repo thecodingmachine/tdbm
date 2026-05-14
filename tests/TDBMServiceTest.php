@@ -24,13 +24,13 @@ namespace TheCodingMachine\TDBM;
 
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
+use Psr\Log\Test\TestLogger;
 use TheCodingMachine\TDBM\Test\Dao\Bean\ContactBean;
 use TheCodingMachine\TDBM\Test\ResultIterator\ContactResultIterator;
 use TheCodingMachine\TDBM\Test\ResultIterator\CountryResultIterator;
 use TheCodingMachine\TDBM\Test\ResultIterator\PersonResultIterator;
 use TheCodingMachine\TDBM\Test\ResultIterator\RoleResultIterator;
 use TheCodingMachine\TDBM\Test\ResultIterator\UserResultIterator;
-use Wa72\SimpleLogger\ArrayLogger;
 
 class TDBMServiceTest extends TDBMAbstractServiceTest
 {
@@ -808,14 +808,14 @@ SQL;
 
     public function testLogger(): void
     {
-        $arrayLogger = new ArrayLogger();
-        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, $arrayLogger));
+        $testLogger = new TestLogger();
+        $tdbmService = new TDBMService(new Configuration('TheCodingMachine\\TDBM\\Test\\Dao\\Bean', 'TheCodingMachine\\TDBM\\Test\\Dao', self::getConnection(), $this->getNamingStrategy(), null, null, $testLogger));
 
         $tdbmService->setLogLevel(LogLevel::DEBUG);
         $beans = $tdbmService->findObjects('contact', null, [], 'contact.id ASC', [], null, TDBMObject::class, ContactResultIterator::class);
         $beans->first();
 
-        $this->assertNotEmpty($arrayLogger->get());
+        $this->assertTrue($testLogger->hasRecords(LogLevel::DEBUG));
     }
 
     public function testFindObjectsCountWithOneToManyLink(): void
