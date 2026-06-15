@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "8.0"
+          - "8.2"
 
     steps:
       - name: "Checkout"
@@ -50,7 +50,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "8.0"
+          - "8.2"
 
     steps:
       - name: "Checkout"
@@ -76,58 +76,6 @@ jobs:
       - name: "Run require-checker"
         run: "composer require-checker"
 
-  phpunit-mysql57:
-    name: "PHPUnit on MySQL 5.7 and PhpStan"
-    runs-on: "ubuntu-latest"
-
-    strategy:
-      matrix:
-        php-version:
-          - "8.0"
-
-    services:
-      mysql:
-        image: "mysql:5.7"
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: true
-          MYSQL_ROOT_PASSWORD:
-        ports:
-          - "3306:3306"
-
-    steps:
-      - name: "Checkout"
-        uses: "actions/checkout@v4"
-        with:
-          fetch-depth: 2
-
-      - name: "Install PHP"
-        uses: "shivammathur/setup-php@v2"
-        with:
-          php-version: "${{ matrix.php-version }}"
-          extensions: ""
-          coverage: "pcov"
-          tools: "cs2pr"
-
-      - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v4"
-        with:
-          path: "~/.composer/cache"
-          key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
-          restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
-
-      - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress"
-
-      - name: "Run PHPUnit"
-        run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
-
-      - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v5"
-
-      # PHPStan is run after PHPUnit because we want to analyze the generated files too.
-      - name: "Run a static analysis with phpstan/phpstan"
-        run: "composer phpstan -- --error-format=checkstyle | cs2pr"
-
   phpunit-mysql8:
     name: "PHPUnit on MySQL 8"
     runs-on: "ubuntu-latest"
@@ -135,7 +83,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "8.0"
+          - "8.2"
 
     services:
       mysql:
@@ -182,7 +130,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "8.0"
+          - "8.2"
 
     services:
       mysql:
@@ -229,7 +177,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "8.0"
+          - "8.2"
 
     services:
       mysql:
@@ -275,7 +223,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "8.0"
+          - "8.2"
 
     services:
       postgres:
@@ -326,7 +274,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "8.0"
+          - "8.2"
 
     services:
       mysql:
@@ -385,7 +333,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "8.0"
+          - "8.2"
 
     services:
       oracle:
