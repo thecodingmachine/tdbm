@@ -116,7 +116,7 @@ class DbRow
      * @param mixed[] $dbRow
      * @throws TDBMException
      */
-    public function __construct(AbstractTDBMObject $object, string $tableName, ForeignKeys $foreignKeys, array $primaryKeys = array(), TDBMService $tdbmService = null, array $dbRow = [])
+    public function __construct(AbstractTDBMObject $object, string $tableName, ForeignKeys $foreignKeys, array $primaryKeys = [], TDBMService $tdbmService = null, array $dbRow = [])
     {
         $this->object = $object;
         $this->dbTableName = $tableName;
@@ -193,15 +193,15 @@ class DbRow
             }
             $connection = $this->tdbmService->getConnection();
 
-            list($sql_where, $parameters) = $this->tdbmService->buildFilterFromFilterBag($this->primaryKeys, $connection->getDatabasePlatform());
+            [$sql_where, $parameters] = $this->tdbmService->buildFilterFromFilterBag($this->primaryKeys, $connection->getDatabasePlatform());
 
-            $sql = 'SELECT * FROM '.$connection->quoteIdentifier($this->dbTableName).' WHERE '.$sql_where;
+            $sql = 'SELECT * FROM ' . $connection->quoteIdentifier($this->dbTableName) . ' WHERE ' . $sql_where;
             $result = $connection->executeQuery($sql, $parameters);
 
             $row = $result->fetchAssociative();
 
             if ($row === false) {
-                throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \".$sql_where.\" with data \"".var_export($parameters, true)."\".");
+                throw new TDBMException("Could not retrieve object from table \"$this->dbTableName\" using filter \".$sql_where.\" with data \"" . var_export($parameters, true) . "\".");
             }
 
             $this->dbRow = [];

@@ -82,7 +82,7 @@ abstract class AbstractQueryFactory implements QueryFactory
      * @param bool $canAddAdditionalTablesFetch Set to true if the function can add additional tables to fetch (so if the factory generates its own FROM clause)
      * @return mixed[] A 3 elements array: [$columnDescList, $columnsList, $reconstructedOrderBy]
      */
-    protected function getColumnsList(string $mainTable, array $additionalTablesFetch = array(), $orderBy = null, bool $canAddAdditionalTablesFetch = false): array
+    protected function getColumnsList(string $mainTable, array $additionalTablesFetch = [], $orderBy = null, bool $canAddAdditionalTablesFetch = false): array
     {
         // From the table name and the additional tables we want to fetch, let's build a list of all tables
         // that must be part of the select columns.
@@ -127,9 +127,9 @@ abstract class AbstractQueryFactory implements QueryFactory
                         if ($canAddAdditionalTablesFetch) {
                             $additionalTablesFetch[] = $orderByColumn['table'];
                         } else {
-                            $sortColumnName = 'sort_column_'.$sortColumn;
+                            $sortColumnName = 'sort_column_' . $sortColumn;
                             $mysqlPlatform = new MySqlPlatform();
-                            $columnsList[] = $mysqlPlatform->quoteIdentifier($orderByColumn['table']).'.'.$mysqlPlatform->quoteIdentifier($orderByColumn['column']).' as '.$sortColumnName;
+                            $columnsList[] = $mysqlPlatform->quoteIdentifier($orderByColumn['table']) . '.' . $mysqlPlatform->quoteIdentifier($orderByColumn['column']) . ' as ' . $sortColumnName;
                             $columnDescList[$sortColumnName] = [
                                 'tableGroup' => null,
                             ];
@@ -139,18 +139,18 @@ abstract class AbstractQueryFactory implements QueryFactory
                     if ($securedOrderBy) {
                         // Let's protect via MySQL since we go through MagicJoin
                         $mysqlPlatform = new MySqlPlatform();
-                        $reconstructedOrderBys[] = ($orderByColumn['table'] !== null ? $mysqlPlatform->quoteIdentifier($orderByColumn['table']).'.' : '').$mysqlPlatform->quoteIdentifier($orderByColumn['column']).' '.$orderByColumn['direction'];
+                        $reconstructedOrderBys[] = ($orderByColumn['table'] !== null ? $mysqlPlatform->quoteIdentifier($orderByColumn['table']) . '.' : '') . $mysqlPlatform->quoteIdentifier($orderByColumn['column']) . ' ' . $orderByColumn['direction'];
                     }
                 } elseif ($orderByColumn['type'] === 'expr') {
-                    $sortColumnName = 'sort_column_'.$sortColumn;
-                    $columnsList[] = $orderByColumn['expr'].' as '.$connection->quoteIdentifier($sortColumnName);
+                    $sortColumnName = 'sort_column_' . $sortColumn;
+                    $columnsList[] = $orderByColumn['expr'] . ' as ' . $connection->quoteIdentifier($sortColumnName);
                     $columnDescList[$sortColumnName] = [
                         'tableGroup' => null,
                     ];
                     ++$sortColumn;
 
                     if ($securedOrderBy) {
-                        throw new TDBMInvalidArgumentException('Invalid ORDER BY column: "'.$orderByColumn['expr'].'". If you want to use expression in your ORDER BY clause, you must wrap them in a UncheckedOrderBy object. For instance: new UncheckedOrderBy("col1 + col2 DESC")');
+                        throw new TDBMInvalidArgumentException('Invalid ORDER BY column: "' . $orderByColumn['expr'] . '". If you want to use expression in your ORDER BY clause, you must wrap them in a UncheckedOrderBy object. For instance: new UncheckedOrderBy("col1 + col2 DESC")');
                     }
                 }
             }
@@ -205,11 +205,11 @@ abstract class AbstractQueryFactory implements QueryFactory
 
     public static function getColumnAlias(string $tableName, string $columnName): string
     {
-        $alias = $tableName.'____'.$columnName;
+        $alias = $tableName . '____' . $columnName;
         if (strlen($alias) <= 30) { // Older oracle version had a limit of 30 characters for identifiers
             return $alias;
         }
-        return substr($columnName, 0, 20) . crc32($tableName.'____'.$columnName);
+        return substr($columnName, 0, 20) . crc32($tableName . '____' . $columnName);
     }
 
     abstract protected function compute(): void;
@@ -275,7 +275,7 @@ abstract class AbstractQueryFactory implements QueryFactory
             foreach ($columns as $column) {
                 $descriptors[] = [
                     'table' => $this->mainTable,
-                    'column' => $column
+                    'column' => $column,
                 ];
             }
             $this->subQueryColumnDescList = $descriptors;

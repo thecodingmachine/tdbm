@@ -242,12 +242,12 @@ class TDBMServiceTest extends TDBMAbstractServiceTest
         $this->onlyMySql();
 
         $sql = <<<SQL
-SELECT country.*, GROUP_CONCAT(users.id) AS ids
-FROM country
-JOIN users ON country.id= users.country_id
-GROUP BY country.id
-HAVING COUNT(users.id) > 1;
-SQL;
+            SELECT country.*, GROUP_CONCAT(users.id) AS ids
+            FROM country
+            JOIN users ON country.id= users.country_id
+            GROUP BY country.id
+            HAVING COUNT(users.id) > 1;
+            SQL;
         /** @var Test\Dao\Bean\CountryBean[]|\Porpaginas\Result $beans */
         $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class, null, CountryResultIterator::class);
 
@@ -264,12 +264,12 @@ SQL;
         $this->onlyMySql();
 
         $sql = <<<SQL
-SELECT country.*, GROUP_CONCAT(users.id) AS ids
-FROM country
-JOIN users ON country.id= users.country_id
-GROUP BY country.id
-ORDER BY COUNT(users.id);
-SQL;
+            SELECT country.*, GROUP_CONCAT(users.id) AS ids
+            FROM country
+            JOIN users ON country.id= users.country_id
+            GROUP BY country.id
+            ORDER BY COUNT(users.id);
+            SQL;
 
         /** @var Test\Dao\Bean\CountryBean[]|\Porpaginas\Result $beans */
         $beans = $this->tdbmService->findObjectsFromRawSql('country', $sql, [], null, Test\Dao\Bean\CountryBean::class, null, CountryResultIterator::class);
@@ -290,15 +290,15 @@ SQL;
         $this->onlyMySql();
 
         $sql = <<<SQL
-SELECT `person`.*, `contact`.*, `users`.*
-FROM `contact`
-JOIN `users` ON `users`.`id` = `contact`.`id`
-JOIN `person` ON `person`.`id` = `users`.`id`
-JOIN `users_roles` ON users.id = users_roles.user_id
-JOIN `roles` ON roles.id = users_roles.role_id
-GROUP BY users.id
-ORDER BY MAX(IF(roles.name = 'Admins', 3, IF(roles.name = 'Writers', 2, IF(roles.name = 'Singers', 1, 0)))) DESC
-SQL;
+            SELECT `person`.*, `contact`.*, `users`.*
+            FROM `contact`
+            JOIN `users` ON `users`.`id` = `contact`.`id`
+            JOIN `person` ON `person`.`id` = `users`.`id`
+            JOIN `users_roles` ON users.id = users_roles.user_id
+            JOIN `roles` ON roles.id = users_roles.role_id
+            GROUP BY users.id
+            ORDER BY MAX(IF(roles.name = 'Admins', 3, IF(roles.name = 'Writers', 2, IF(roles.name = 'Singers', 1, 0)))) DESC
+            SQL;
 
         /** @var Test\Dao\Bean\UserBean[]|\Porpaginas\Result $beans */
         $beans = $this->tdbmService->findObjectsFromRawSql('contact', $sql, [], null, Test\Dao\Bean\UserBean::class, null, UserResultIterator::class);
@@ -455,18 +455,14 @@ SQL;
     {
         $beans = $this->tdbmService->findObjects('person', null, [], 'person.id ASC', [], null, TDBMObject::class, ResultIterator::class);
 
-        $results = $beans->map(function ($item) {
-            return $item->getProperty('id', 'person');
-        })->toArray();
+        $results = $beans->map(fn($item) => $item->getProperty('id', 'person'))->toArray();
 
         $this->assertEquals([1, 2, 3, 4, 6], $results);
 
         // Same test with page
         $page = $beans->take(0, 2);
 
-        $results = $page->map(function ($item) {
-            return $item->getProperty('id', 'person');
-        })->toArray();
+        $results = $page->map(fn($item) => $item->getProperty('id', 'person'))->toArray();
 
         $this->assertEquals([1, 2], $results);
     }
@@ -677,7 +673,7 @@ SQL;
             'roles',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right',
-            array('right' => 'CAN_SING'),
+            ['right' => 'CAN_SING'],
             'roles.name DESC',
             null,
             null,
@@ -698,7 +694,7 @@ SQL;
             '#{azerty',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right',
-            array('right' => 'CAN_SING'),
+            ['right' => 'CAN_SING'],
             'name DESC',
             null,
             null,
@@ -717,7 +713,7 @@ SQL;
             'roles',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right GROUP BY roles.name',
-            array('right' => 'CAN_SING'),
+            ['right' => 'CAN_SING'],
             'name DESC',
             null,
             null,
@@ -736,7 +732,7 @@ SQL;
         $this->tdbmService->findObjectsFromRawSql(
             '#{azerty',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label WHERE rights.label = :right',
-            array('right' => 'CAN_SING'),
+            ['right' => 'CAN_SING'],
             null,
             TDBMObject::class,
             null,
@@ -750,7 +746,7 @@ SQL;
             'roles',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right AND name = :name',
-            array('right' => 'CAN_SING', 'name' => 'Singers'),
+            ['right' => 'CAN_SING', 'name' => 'Singers'],
             null,
             RoleResultIterator::class
         );
@@ -768,7 +764,7 @@ SQL;
             'roles',
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right',
-            array('right' => 'CAN_SING'),
+            ['right' => 'CAN_SING'],
             null,
             RoleResultIterator::class
         );
@@ -780,7 +776,7 @@ SQL;
             'person',
             'person',
             'name LIKE :name OR name LIKE :name2',
-            array('name' => 'Robert Marley', 'name2' => 'Bill Shakespeare'),
+            ['name' => 'Robert Marley', 'name2' => 'Bill Shakespeare'],
             null,
             null,
             TDBMObject::class,
@@ -796,7 +792,7 @@ SQL;
             'users',
             'users',
             'login LIKE :login OR login LIKE :login2',
-            array('login' => 'robert.marley', 'login2' => 'bill.shakespeare'),
+            ['login' => 'robert.marley', 'login2' => 'bill.shakespeare'],
             'users.login DESC',
             null,
             TDBMObject::class,

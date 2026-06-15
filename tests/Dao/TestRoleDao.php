@@ -22,7 +22,7 @@ class TestRoleDao extends RoleBaseDao
         return $this->findFromSql(
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right',
-            array('right' => 'CAN_SING'),
+            ['right' => 'CAN_SING'],
             $orderBy
         );
     }
@@ -51,7 +51,7 @@ class TestRoleDao extends RoleBaseDao
         return $this->findOneFromSql(
             'roles JOIN roles_rights ON roles.id = roles_rights.role_id JOIN rights ON rights.label = roles_rights.right_label',
             'rights.label = :right AND name = :name',
-            array('right' => 'CAN_SING', 'name' => 'Singers')
+            ['right' => 'CAN_SING', 'name' => 'Singers']
         );
     }
 }

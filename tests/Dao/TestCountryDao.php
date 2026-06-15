@@ -19,12 +19,12 @@ class TestCountryDao extends CountryBaseDao
     public function getCountriesByUserCount()
     {
         $sql = <<<SQL
-SELECT country.*
-FROM country
-LEFT JOIN users ON users.country_id = country.id
-GROUP BY country.id, country.label
-ORDER BY COUNT(users.id) DESC
-SQL;
+            SELECT country.*
+            FROM country
+            LEFT JOIN users ON users.country_id = country.id
+            GROUP BY country.id, country.label
+            ORDER BY COUNT(users.id) DESC
+            SQL;
 
         return $this->findFromRawSql($sql);
     }
@@ -35,14 +35,14 @@ SQL;
     public function getCountriesUsingUnion()
     {
         $sql = <<<SQL
-SELECT country.*
-FROM country
-WHERE country.id = 1
-UNION
-SELECT country.*
-FROM country
-WHERE country.id = 2
-SQL;
+            SELECT country.*
+            FROM country
+            WHERE country.id = 1
+            UNION
+            SELECT country.*
+            FROM country
+            WHERE country.id = 2
+            SQL;
 
         return $this->findFromRawSql($sql);
     }
@@ -53,10 +53,10 @@ SQL;
     public function getCountriesUsingSimpleQuery()
     {
         $sql = <<<SQL
-SELECT country.*
-FROM country
-WHERE country.id = 1
-SQL;
+            SELECT country.*
+            FROM country
+            WHERE country.id = 1
+            SQL;
 
         return $this->findFromRawSql($sql);
     }
@@ -69,11 +69,11 @@ SQL;
         // Note: there are many users whose country is ID 2 (UK).
         // But the distinct should return only one country (including the count() call)
         $sql = <<<SQL
-SELECT DISTINCT country.*
-FROM country
-LEFT JOIN users ON users.country_id = country.id 
-WHERE country_id=2
-SQL;
+            SELECT DISTINCT country.*
+            FROM country
+            LEFT JOIN users ON users.country_id = country.id
+            WHERE country_id=2
+            SQL;
 
         return $this->findFromRawSql($sql);
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Fixtures\Traits;
 
 use function password_verify;

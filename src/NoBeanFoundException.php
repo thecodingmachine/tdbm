@@ -35,10 +35,8 @@ class NoBeanFoundException extends TDBMException
      */
     public static function missPrimaryKeyRecord(string $tableName, array $primaryKeys, string $className, Exception $previous): self
     {
-        $primaryKeysStringified = implode(' and ', array_map(function ($key, $value) {
-            return "'".$key."' = ".$value;
-        }, array_keys($primaryKeys), $primaryKeys));
-        $exception = new self("No result found for query on table '".$tableName."' for ".$primaryKeysStringified, 0, $previous);
+        $primaryKeysStringified = implode(' and ', array_map(fn($key, $value) => "'" . $key . "' = " . $value, array_keys($primaryKeys), $primaryKeys));
+        $exception = new self("No result found for query on table '" . $tableName . "' for " . $primaryKeysStringified, 0, $previous);
         $exception->tableName = $tableName;
         $exception->primaryKeys = $primaryKeys;
         $exception->className = $className;
@@ -48,7 +46,7 @@ class NoBeanFoundException extends TDBMException
 
     public static function missFilterRecord(string $tableName): self
     {
-        return new self("No result found for query on table '".$tableName."'");
+        return new self("No result found for query on table '" . $tableName . "'");
     }
 
     /**

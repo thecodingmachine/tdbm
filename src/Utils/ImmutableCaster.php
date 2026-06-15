@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Column;
@@ -28,7 +30,7 @@ class ImmutableCaster
             Types::DATE_MUTABLE => Types::DATE_IMMUTABLE,
             Types::DATETIME_MUTABLE => Types::DATETIME_IMMUTABLE,
             Types::DATETIMETZ_MUTABLE => Types::DATETIMETZ_IMMUTABLE,
-            Types::TIME_MUTABLE => Types::TIME_IMMUTABLE
+            Types::TIME_MUTABLE => Types::TIME_IMMUTABLE,
         ];
 
         $typeName = $column->getType()->getName();

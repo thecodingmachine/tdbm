@@ -37,11 +37,8 @@ jobs:
       - name: "Install dependencies with composer"
         run: "composer install --no-interaction --no-progress"
 
-      - name: "Run PHP-CS-Fixer on src/"
-        run: "vendor/bin/php-cs-fixer fix src/ --dry-run --stop-on-violation --format=checkstyle | cs2pr"
-
-      - name: "Run PHP-CS-Fixer on tests/"
-        run: "vendor/bin/php-cs-fixer fix tests/ --dry-run --stop-on-violation --format=checkstyle | cs2pr"
+      - name: "Run PHP-CS-Fixer"
+        run: "vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation --format=checkstyle | cs2pr"
 
   require-checker:
     name: "Composer require checker"

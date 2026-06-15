@@ -91,7 +91,7 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
      */
     public function getName(): string
     {
-        return 'get'.$this->getPluralName();
+        return 'get' . $this->getPluralName();
     }
 
     /**
@@ -124,12 +124,12 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
         if ($this->isAutoPivot()) {
             $name = TDBMDaoGenerator::toPlural($this->namingStrategy->getAutoPivotEntityName($this->remoteFk, false));
             if ($this->useAlternateName) {
-                $name .= 'By_'.$this->pivotTable->getName();
+                $name .= 'By_' . $this->pivotTable->getName();
             }
         } elseif (!$this->useAlternateName) {
             $name = $this->remoteFk->getForeignTableName();
         } else {
-            $name = $this->remoteFk->getForeignTableName().'By_'.$this->pivotTable->getName();
+            $name = $this->remoteFk->getForeignTableName() . 'By_' . $this->pivotTable->getName();
         }
         return TDBMDaoGenerator::toCamelCase($name);
     }
@@ -144,12 +144,12 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
         if ($this->isAutoPivot()) {
             $name = $this->namingStrategy->getAutoPivotEntityName($this->remoteFk, false);
             if ($this->useAlternateName) {
-                $name .= 'By_'.$this->pivotTable->getName();
+                $name .= 'By_' . $this->pivotTable->getName();
             }
         } elseif (!$this->useAlternateName) {
             $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName());
         } else {
-            $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()).'By_'.$this->pivotTable->getName();
+            $name = TDBMDaoGenerator::toSingular($this->remoteFk->getForeignTableName()) . 'By_' . $this->pivotTable->getName();
         }
         return TDBMDaoGenerator::toCamelCase($name);
     }
@@ -182,12 +182,12 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
         foreach ($values as $value) {
             $items[] = var_export($value, true);
         }
-        return '['.implode(', ', $items).']';
+        return '[' . implode(', ', $items) . ']';
     }
 
     public function getManyToManyRelationshipKey(): string
     {
-        return $this->remoteFk->getLocalTableName().".".implode("__", $this->localFk->getUnquotedLocalColumns());
+        return $this->remoteFk->getLocalTableName() . "." . implode("__", $this->localFk->getUnquotedLocalColumns());
     }
 
     /**
@@ -201,8 +201,8 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
         $pluralName = $this->getPluralName();
         $remoteBeanName = $this->getBeanClassName();
         $variableName = TDBMDaoGenerator::toVariableName($remoteBeanName);
-        $fqcnRemoteBeanName = '\\'.$this->beanNamespace.'\\'.$remoteBeanName;
-        $pluralVariableName = $variableName.'s';
+        $fqcnRemoteBeanName = '\\' . $this->beanNamespace . '\\' . $remoteBeanName;
+        $pluralVariableName = $variableName . 's';
 
         $pathKey = var_export($this->pathKey, true);
 
@@ -210,14 +210,14 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
 
         $getter = new MethodGenerator($this->getName());
         $getterDocBlock = new DocBlockGenerator(sprintf('Returns the list of %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
-        $getterDocBlock->setTag(new ReturnTag([ $fqcnRemoteBeanName.'[]' ]));
+        $getterDocBlock->setTag(new ReturnTag([$fqcnRemoteBeanName . '[]']));
         $getterDocBlock->setWordWrap(false);
         $getter->setDocBlock($getterDocBlock);
         $getter->setReturnType('array');
         $getter->setBody(sprintf('return $this->_getRelationships(%s);', $pathKey));
 
 
-        $adder = new MethodGenerator('add'.$singularName);
+        $adder = new MethodGenerator('add' . $singularName);
         $adderDocBlock = new DocBlockGenerator(sprintf('Adds a relationship with %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
         $adderDocBlock->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
         $adderDocBlock->setWordWrap(false);
@@ -226,7 +226,7 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
         $adder->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
         $adder->setBody(sprintf('$this->addRelationship(%s, $%s);', $localTableName, $variableName));
 
-        $remover = new MethodGenerator('remove'.$singularName);
+        $remover = new MethodGenerator('remove' . $singularName);
         $removerDocBlock = new DocBlockGenerator(sprintf('Deletes the relationship with %s associated to this bean via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
         $removerDocBlock->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
         $removerDocBlock->setWordWrap(false);
@@ -235,7 +235,7 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
         $remover->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
         $remover->setBody(sprintf('$this->_removeRelationship(%s, $%s);', $localTableName, $variableName));
 
-        $has = new MethodGenerator('has'.$singularName);
+        $has = new MethodGenerator('has' . $singularName);
         $hasDocBlock = new DocBlockGenerator(sprintf('Returns whether this bean is associated with %s via the %s pivot table.', $remoteBeanName, $this->pivotTable->getName()));
         $hasDocBlock->setTag(new ParamTag($variableName, [ $fqcnRemoteBeanName ]));
         $hasDocBlock->setTag(new ReturnTag([ 'bool' ]));
@@ -245,10 +245,10 @@ class PivotTableMethodsDescriptor implements RelationshipMethodDescriptorInterfa
         $has->setParameter(new ParameterGenerator($variableName, $fqcnRemoteBeanName));
         $has->setBody(sprintf('return $this->hasRelationship(%s, $%s);', $pathKey, $variableName));
 
-        $setter = new MethodGenerator('set'.$pluralName);
+        $setter = new MethodGenerator('set' . $pluralName);
         $setterDocBlock = new DocBlockGenerator(sprintf('Sets all relationships with %s associated to this bean via the %s pivot table.
 Exiting relationships will be removed and replaced by the provided relationships.', $remoteBeanName, $this->pivotTable->getName()));
-        $setterDocBlock->setTag(new ParamTag($pluralVariableName, [ $fqcnRemoteBeanName.'[]' ]));
+        $setterDocBlock->setTag(new ParamTag($pluralVariableName, [$fqcnRemoteBeanName . '[]']));
         $setterDocBlock->setTag(new ReturnTag([ 'void' ]));
         $setterDocBlock->setWordWrap(false);
         $setter->setDocBlock($setterDocBlock);
@@ -276,9 +276,9 @@ Exiting relationships will be removed and replaced by the provided relationships
      */
     public function getJsonSerializeCode(): string
     {
-        if ($this->findRemoteAnnotation(Annotation\JsonIgnore::class) ||
-            $this->findLocalAnnotation(Annotation\JsonInclude::class) ||
-            $this->findLocalAnnotation(Annotation\JsonRecursive::class)) {
+        if ($this->findRemoteAnnotation(Annotation\JsonIgnore::class)
+            || $this->findLocalAnnotation(Annotation\JsonInclude::class)
+            || $this->findLocalAnnotation(Annotation\JsonRecursive::class)) {
             return '';
         }
 
@@ -298,17 +298,17 @@ Exiting relationships will be removed and replaced by the provided relationships
         $class = $this->getBeanClassName();
         $getter = $this->getName();
         $code = <<<PHP
-\$array['$index'] = array_map(function ($class \$object) {
-    return \$object->$format;
-}, \$this->$getter());
-PHP;
+            \$array['$index'] = array_map(function ($class \$object) {
+                return \$object->$format;
+            }, \$this->$getter());
+            PHP;
         if (!$isIncluded) {
             $code = preg_replace('(\n)', '\0    ', $code);
             $code = <<<PHP
-if (!\$stopRecursion) {
-    $code
-};
-PHP;
+                if (!\$stopRecursion) {
+                    $code
+                };
+                PHP;
         }
         return $code;
     }

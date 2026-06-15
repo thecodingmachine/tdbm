@@ -124,7 +124,7 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
         $table = new Table('chevaux');
         $strategy = $this->getDefaultNamingStrategyWithStubTables([$table]);
         $strategy->setExceptions([
-            'chevaux' => 'Cheval'
+            'chevaux' => 'Cheval',
         ]);
         $this->assertSame('ChevalDao', $strategy->getDaoClassName('chevaux'));
     }

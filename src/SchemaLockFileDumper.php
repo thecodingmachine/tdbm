@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\Cache\Cache;
@@ -75,7 +77,7 @@ class SchemaLockFileDumper
     public function getSchema(bool $ignoreCache = false): Schema
     {
         if ($this->schema === null) {
-            $cacheKey = $this->getCachePrefix().'_immutable_schema';
+            $cacheKey = $this->getCachePrefix() . '_immutable_schema';
             if (!$ignoreCache && $this->cache->contains($cacheKey)) {
                 $this->schema = $this->cache->fetch($cacheKey);
             } elseif (!file_exists($this->getLockFilePath())) {
@@ -94,6 +96,6 @@ class SchemaLockFileDumper
     public function generateLockFile(): void
     {
         $this->schemaVersionControlService->dumpSchema();
-        \chmod($this->getLockFilePath(), 0664);
+        \chmod($this->getLockFilePath(), 0o664);
     }
 }

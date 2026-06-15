@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Schema\Index;
@@ -31,7 +33,7 @@ class CodeGeneratorEventDispatcherTest extends TestCase
     public function setUp(): void
     {
         $this->dispatcher = new CodeGeneratorEventDispatcher([new BaseCodeGeneratorListener()]);
-        $this->nullDispatcher = new CodeGeneratorEventDispatcher([new class () implements CodeGeneratorListenerInterface {
+        $this->nullDispatcher = new CodeGeneratorEventDispatcher([new class implements CodeGeneratorListenerInterface {
             public function onBaseBeanGenerated(FileGenerator $fileGenerator, BeanDescriptor $beanDescriptor, ConfigurationInterface $configuration): ?FileGenerator
             {
                 return null;

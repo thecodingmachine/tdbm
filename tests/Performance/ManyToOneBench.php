@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Performance;
 
 use Doctrine\Common\Cache\ArrayCache;
@@ -74,14 +76,14 @@ class ManyToOneBench
         for ($i = 1; $i < 200; $i++) {
             TDBMAbstractServiceTest::insert($connection, 'countries', [
                 'id' => $i,
-                'label' => 'Country '.$i,
+                'label' => 'Country ' . $i,
             ]);
         }
 
         for ($i = 1; $i < 1000; $i++) {
             TDBMAbstractServiceTest::insert($connection, 'users', [
                 'id' => $i,
-                'name' => 'User '.$i,
+                'name' => 'User ' . $i,
                 'country_id' => ($i % 199) + 1,
             ]);
         }
@@ -95,7 +97,7 @@ class ManyToOneBench
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
         $tdbmDaoGenerator = new TDBMDaoGenerator(self::createConfiguration(), $tdbmSchemaAnalyzer);
         $rootPath = __DIR__ . '/../';
-        self::recursiveDelete(__DIR__. '/../../src/Test/Dao/');
+        self::recursiveDelete(__DIR__ . '/../../src/Test/Dao/');
 
         $tdbmDaoGenerator->generateAllDaosAndBeans();
     }

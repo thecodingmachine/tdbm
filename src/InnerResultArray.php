@@ -90,7 +90,7 @@ class InnerResultArray extends InnerResultIterator
     private function toIndex($offset): void
     {
         if ($offset < 0 || filter_var($offset, FILTER_VALIDATE_INT) === false) {
-            throw new TDBMInvalidOffsetException('Trying to access result set using offset "'.$offset.'". An offset must be a positive integer.');
+            throw new TDBMInvalidOffsetException('Trying to access result set using offset "' . $offset . '". An offset must be a positive integer.');
         }
         if ($this->result === null) {
             $this->executeQuery();
@@ -98,7 +98,7 @@ class InnerResultArray extends InnerResultIterator
         while (!isset($this->results[$offset])) {
             $this->next();
             if ($this->current === null) {
-                throw new TDBMInvalidOffsetException('Offset "'.$offset.'" does not exist in result set.');
+                throw new TDBMInvalidOffsetException('Offset "' . $offset . '" does not exist in result set.');
             }
         }
     }

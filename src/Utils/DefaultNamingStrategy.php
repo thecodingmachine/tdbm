@@ -146,7 +146,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      */
     public function getBeanClassName(string $tableName): string
     {
-        return $this->beanPrefix.$this->tableNameToSingularCamelCase($tableName).$this->beanSuffix;
+        return $this->beanPrefix . $this->tableNameToSingularCamelCase($tableName) . $this->beanSuffix;
     }
 
     /**
@@ -157,7 +157,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      */
     public function getBaseBeanClassName(string $tableName): string
     {
-        return $this->baseBeanPrefix.$this->tableNameToSingularCamelCase($tableName).$this->baseBeanSuffix;
+        return $this->baseBeanPrefix . $this->tableNameToSingularCamelCase($tableName) . $this->baseBeanSuffix;
     }
 
     /**
@@ -168,7 +168,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      */
     public function getDaoClassName(string $tableName): string
     {
-        return $this->daoPrefix.$this->tableNameToSingularCamelCase($tableName).$this->daoSuffix;
+        return $this->daoPrefix . $this->tableNameToSingularCamelCase($tableName) . $this->daoSuffix;
     }
 
     /**
@@ -179,7 +179,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      */
     public function getBaseDaoClassName(string $tableName): string
     {
-        return $this->baseDaoPrefix.$this->tableNameToSingularCamelCase($tableName).$this->baseDaoSuffix;
+        return $this->baseDaoPrefix . $this->tableNameToSingularCamelCase($tableName) . $this->baseDaoSuffix;
     }
 
     /**
@@ -190,7 +190,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      */
     public function getResultIteratorClassName(string $tableName): string
     {
-        return $this->resultIteratorPrefix.$this->tableNameToSingularCamelCase($tableName).$this->resultIteratorSuffix;
+        return $this->resultIteratorPrefix . $this->tableNameToSingularCamelCase($tableName) . $this->resultIteratorSuffix;
     }
 
     /**
@@ -201,7 +201,7 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
      */
     public function getBaseResultIteratorClassName(string $tableName): string
     {
-        return $this->baseResultIteratorPrefix.$this->tableNameToSingularCamelCase($tableName).$this->baseResultIteratorSuffix;
+        return $this->baseResultIteratorPrefix . $this->tableNameToSingularCamelCase($tableName) . $this->baseResultIteratorSuffix;
     }
 
     private function tableNameToSingularCamelCase(string $tableName): string
@@ -319,12 +319,12 @@ class DefaultNamingStrategy extends AbstractNamingStrategy
             if ($alternativeName) {
                 $camelizedColumns = array_map(['TheCodingMachine\\TDBM\\Utils\\TDBMDaoGenerator', 'toCamelCase'], $foreignKey->getUnquotedLocalColumns());
 
-                $name .= 'By'.implode('And', $camelizedColumns);
+                $name .= 'By' . implode('And', $camelizedColumns);
             }
         } else {
             $column = $foreignKey->getUnquotedLocalColumns()[0];
             // Let's remove any _id or id_.
-            if (strpos(strtolower($column), 'id_') === 0) {
+            if (str_starts_with(strtolower($column), 'id_')) {
                 $column = substr($column, 3);
             }
             if (strrpos(strtolower($column), '_id') === strlen($column) - 3) {

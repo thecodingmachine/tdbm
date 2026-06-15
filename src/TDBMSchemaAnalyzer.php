@@ -92,7 +92,7 @@ class TDBMSchemaAnalyzer
     public function generateLockFile(): void
     {
         $this->schemaLockFileDumper->generateLockFile();
-        \chmod($this->getLockFilePath(), 0664);
+        \chmod($this->getLockFilePath(), 0o664);
     }
 
     /**
@@ -104,7 +104,7 @@ class TDBMSchemaAnalyzer
      */
     public function getPivotTableLinkedToTable(string $tableName): array
     {
-        $cacheKey = $this->getCachePrefix().'_pivottables_link_'.$tableName;
+        $cacheKey = $this->getCachePrefix() . '_pivottables_link_' . $tableName;
         if ($this->cache->contains($cacheKey)) {
             return $this->cache->fetch($cacheKey);
         }
@@ -137,9 +137,7 @@ class TDBMSchemaAnalyzer
     public function getIncomingForeignKeys(string $tableName): array
     {
         $junctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
-        $junctionTableNames = array_map(function (Table $table) {
-            return $table->getName();
-        }, $junctionTables);
+        $junctionTableNames = array_map(fn(Table $table) => $table->getName(), $junctionTables);
         $childrenRelationships = $this->schemaAnalyzer->getChildrenRelationships($tableName);
 
         $fks = [];

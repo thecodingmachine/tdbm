@@ -45,18 +45,16 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
 
         $allFetchedTables = $this->tdbmService->_getRelatedTablesByInheritance($this->mainTable);
 
-        list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, [], $this->orderBy, false);
+        [$columnDescList, $columnsList, $orderString] = $this->getColumnsList($this->mainTable, [], $this->orderBy, false);
 
-        $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM '.$this->from;
+        $sql = 'SELECT DISTINCT ' . implode(', ', $columnsList) . ' FROM ' . $this->from;
 
         // Let's compute the COUNT.
         $pkColumnNames = $this->tdbmService->getPrimaryKeyColumns($this->mainTable);
-        $pkColumnNames = array_map(function ($pkColumn) use ($mySqlPlatform) {
-            return $mySqlPlatform->quoteIdentifier($this->mainTable).'.'.$mySqlPlatform->quoteIdentifier($pkColumn);
-        }, $pkColumnNames);
+        $pkColumnNames = array_map(fn($pkColumn) => $mySqlPlatform->quoteIdentifier($this->mainTable) . '.' . $mySqlPlatform->quoteIdentifier($pkColumn), $pkColumnNames);
 
-        $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM '.$this->from;
-        $subQuery = 'SELECT DISTINCT '.implode(', ', $pkColumnNames).' FROM '.$this->from;
+        $countSql = 'SELECT COUNT(DISTINCT ' . implode(', ', $pkColumnNames) . ') FROM ' . $this->from;
+        $subQuery = 'SELECT DISTINCT ' . implode(', ', $pkColumnNames) . ' FROM ' . $this->from;
 
         // Add joins on inherited tables if necessary
         if (count($allFetchedTables) > 1) {
@@ -89,13 +87,13 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         }
 
         if (!empty($this->filterString)) {
-            $sql .= ' WHERE '.$this->filterString;
-            $countSql .= ' WHERE '.$this->filterString;
-            $subQuery .= ' WHERE '.$this->filterString;
+            $sql .= ' WHERE ' . $this->filterString;
+            $countSql .= ' WHERE ' . $this->filterString;
+            $subQuery .= ' WHERE ' . $this->filterString;
         }
 
         if (!empty($orderString)) {
-            $sql .= ' ORDER BY '.$orderString;
+            $sql .= ' ORDER BY ' . $orderString;
         }
 
         if (stripos($countSql, 'GROUP BY') !== false) {
@@ -115,9 +113,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
      */
     private function getParentRelationshipForeignKeys(string $tableName): array
     {
-        return $this->fromCache($this->cachePrefix.'_parentrelationshipfks_'.$tableName, function () use ($tableName) {
-            return $this->getParentRelationshipForeignKeysWithoutCache($tableName);
-        });
+        return $this->fromCache($this->cachePrefix . '_parentrelationshipfks_' . $tableName, fn() => $this->getParentRelationshipForeignKeysWithoutCache($tableName));
     }
 
     /**
@@ -144,9 +140,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
      */
     private function getChildrenRelationshipForeignKeys(string $tableName): array
     {
-        return $this->fromCache($this->cachePrefix.'_childrenrelationshipfks_'.$tableName, function () use ($tableName) {
-            return $this->getChildrenRelationshipForeignKeysWithoutCache($tableName);
-        });
+        return $this->fromCache($this->cachePrefix . '_childrenrelationshipfks_' . $tableName, fn() => $this->getChildrenRelationshipForeignKeysWithoutCache($tableName));
     }
 
     /**
@@ -159,9 +153,7 @@ class FindObjectsFromSqlQueryFactory extends AbstractQueryFactory
         $children = $this->schemaAnalyzer->getChildrenRelationships($tableName);
 
         if (!empty($children)) {
-            $fksTables = array_map(function (ForeignKeyConstraint $fk) {
-                return $this->getChildrenRelationshipForeignKeys($fk->getLocalTableName());
-            }, $children);
+            $fksTables = array_map(fn(ForeignKeyConstraint $fk) => $this->getChildrenRelationshipForeignKeys($fk->getLocalTableName()), $children);
 
             $fks = array_merge($children, ...$fksTables);
 

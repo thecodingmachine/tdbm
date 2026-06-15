@@ -128,9 +128,7 @@ class AlterableResultIteratorTest extends TestCase
 
         $alterableResultIterator = new AlterableResultIterator($iterator);
 
-        $map = $alterableResultIterator->map(function ($item) {
-            return $item->foo;
-        });
+        $map = $alterableResultIterator->map(fn($item) => $item->foo);
 
         $this->assertEquals(['bar'], iterator_to_array($map));
     }

@@ -98,7 +98,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         } elseif (isset($parsedSql['UNION'])) {
             [$processedSql, $processedSqlCount, $columnDescriptors] = $this->processParsedUnionQuery($parsedSql, $sqlCount);
         } else {
-            throw new TDBMException('Unable to analyze query "'.$sql.'"');
+            throw new TDBMException('Unable to analyze query "' . $sql . '"');
         }
 
         return [$processedSql, $processedSqlCount, $columnDescriptors];
@@ -155,9 +155,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
     {
         $selectBuilder = new SelectStatementBuilder();
 
-        return implode(' UNION ', array_map(function ($clause) use ($selectBuilder) {
-            return '(' . $selectBuilder->build($clause) . ')';
-        }, $parsed['UNION']));
+        return implode(' UNION ', array_map(fn($clause) => '(' . $selectBuilder->build($clause) . ')', $parsed['UNION']));
     }
 
     /**
@@ -168,7 +166,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
     private function processParsedSelectQuery(array $parsedSql, ?string $sqlCount): array
     {
         // 1: let's reformat the SELECT and construct our columns
-        list($select, $countSelect, $columnDescriptors) = $this->formatSelect($parsedSql['SELECT']);
+        [$select, $countSelect, $columnDescriptors] = $this->formatSelect($parsedSql['SELECT']);
         $generator = new PHPSQLCreator();
         $parsedSql['SELECT'] = $select;
         $processedSql = $generator->create($parsedSql);
@@ -245,13 +243,13 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                         'delim' => '.',
                         'parts' => [
                             $tableName,
-                            $columnName
-                        ]
+                            $columnName,
+                        ],
                     ],
                     'alias' => [
                         'as' => true,
                         'name' => $connection->quoteIdentifier($alias),
-                    ]
+                    ],
                 ];
                 $formattedSelect[] = $astColumn;
                 if (in_array($columnName, $pkColumns, true)) {
@@ -270,7 +268,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
 
         $missingTables = array_diff($relatedTables, $fetchedTables);
         if (!empty($missingTables)) {
-            throw new TDBMException('Missing tables '.implode(', ', $missingTables).' in SELECT statement');
+            throw new TDBMException('Missing tables ' . implode(', ', $missingTables) . ' in SELECT statement');
         }
 
         for ($i = 0; $i < count($formattedSelect) - 1; $i++) {
@@ -335,10 +333,10 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
         } else {
             $countSubExpr = [
                 [
-                'expr_type' => 'colref',
-                'base_expr' => '*',
-                'sub_tree' => false
-                ]
+                    'expr_type' => 'colref',
+                    'base_expr' => '*',
+                    'sub_tree' => false,
+                ],
             ];
         }
 
@@ -391,7 +389,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 'sub_tree' => array_merge([[
                     'expr_type' => 'reserved',
                     'base_expr' => 'DISTINCT',
-                    'delim' => ','
+                    'delim' => ',',
                 ]], $group),
                 'delim' => false,
             ]];
@@ -399,7 +397,7 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
             $innerColumns = [[
                 'expr_type' => 'reserved',
                 'base_expr' => 'DISTINCT',
-                'delim' => ' '
+                'delim' => ' ',
             ]];
             foreach ($group as $item) {
                 $item['delim'] = ',';
@@ -409,66 +407,54 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
             $parsedSql['SELECT'] = $innerColumns;
 
             $parsedSql = [
-                'SELECT' =>
-                    [
-                        0 =>
-                            [
-                                'expr_type' => 'aggregate_function',
-                                'alias' =>
-                                    [
-                                        'as' => true,
-                                        'name' => 'cnt',
-                                        'base_expr' => 'AS cnt',
-                                        'no_quotes' =>
-                                            [
-                                                'delim' => false,
-                                                'parts' =>
-                                                    [
-                                                        0 => 'cnt',
-                                                    ],
-                                            ],
-                                    ],
-                                'base_expr' => 'COUNT',
-                                'sub_tree' =>
-                                    [
-                                        0 =>
-                                            [
-                                                'expr_type' => 'colref',
-                                                'base_expr' => '*',
-                                                'sub_tree' => false,
-                                            ],
-                                    ],
+                'SELECT' => [
+                    0 => [
+                        'expr_type' => 'aggregate_function',
+                        'alias' => [
+                            'as' => true,
+                            'name' => 'cnt',
+                            'base_expr' => 'AS cnt',
+                            'no_quotes' => [
                                 'delim' => false,
+                                'parts' => [
+                                    0 => 'cnt',
+                                ],
                             ],
-                    ],
-                'FROM' =>
-                    [
-                        0 =>
-                            [
-                                'expr_type' => 'subquery',
-                                'alias' =>
-                                    [
-                                        'as' => false,
-                                        'name' => 'subquery',
-                                        'no_quotes' =>
-                                            [
-                                                'delim' => false,
-                                                'parts' =>
-                                                    [
-                                                        0 => 'subquery',
-                                                    ],
-                                            ],
-                                        'base_expr' => 'subquery',
-                                    ],
-                                'hints' => false,
-                                'join_type' => 'JOIN',
-                                'ref_type' => false,
-                                'ref_clause' => false,
-                                //'base_expr' => 'SELECT id FROM country',
-                                'sub_tree' => $parsedSql
+                        ],
+                        'base_expr' => 'COUNT',
+                        'sub_tree' => [
+                            0 => [
+                                'expr_type' => 'colref',
+                                'base_expr' => '*',
+                                'sub_tree' => false,
                             ],
+                        ],
+                        'delim' => false,
                     ],
-                ];
+                ],
+                'FROM' => [
+                    0 => [
+                        'expr_type' => 'subquery',
+                        'alias' => [
+                            'as' => false,
+                            'name' => 'subquery',
+                            'no_quotes' => [
+                                'delim' => false,
+                                'parts' => [
+                                    0 => 'subquery',
+                                ],
+                            ],
+                            'base_expr' => 'subquery',
+                        ],
+                        'hints' => false,
+                        'join_type' => 'JOIN',
+                        'ref_type' => false,
+                        'ref_clause' => false,
+                        //'base_expr' => 'SELECT id FROM country',
+                        'sub_tree' => $parsedSql,
+                    ],
+                ],
+            ];
         }
         return $parsedSql;
     }
@@ -491,8 +477,8 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                     [
                         'expr_type' => 'colref',
                         'base_expr' => '*',
-                        'sub_tree' => false
-                    ]
+                        'sub_tree' => false,
+                    ],
                 ],
                 'delim' => false,
             ]],
@@ -500,10 +486,10 @@ class FindObjectsFromRawSqlQueryFactory implements QueryFactory
                 'expr_type' => 'subquery',
                 'alias' => [
                     'as' => true,
-                    'name' => '____query'
+                    'name' => '____query',
                 ],
                 'sub_tree' => $parsedSql,
-            ]]
+            ]],
         ];
     }
 

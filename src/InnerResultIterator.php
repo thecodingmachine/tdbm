@@ -77,9 +77,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
     /** @var int|null */
     protected $count = null;
 
-    final private function __construct()
-    {
-    }
+    final private function __construct() {}
 
     /**
      * @param mixed[] $parameters
@@ -113,7 +111,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
     {
         $sql = $this->getQuery();
 
-        $this->logger->debug('Running SQL request: '.$sql);
+        $this->logger->debug('Running SQL request: ' . $sql);
 
         $this->result = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters, DbalUtils::generateTypes($this->parameters));
 
@@ -134,7 +132,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
         if ($this->fetchStarted && $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             // Optimisation: we don't need a separate "count" SQL request in MySQL.
             assert($this->result instanceof Result);
-            $this->count = (int)$this->result->rowCount();
+            $this->count = (int) $this->result->rowCount();
             return $this->count;
         }
         return $this->getRowCountViaSqlQuery();
@@ -146,9 +144,9 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      */
     private function getRowCountViaSqlQuery(): int
     {
-        $countSql = 'SELECT COUNT(1) FROM ('.$this->getQuery().') c';
+        $countSql = 'SELECT COUNT(1) FROM (' . $this->getQuery() . ') c';
 
-        $this->logger->debug('Running count SQL request: '.$countSql);
+        $this->logger->debug('Running count SQL request: ' . $countSql);
 
         $this->count = (int) $this->tdbmService->getConnection()->fetchOne($countSql, $this->parameters, DbalUtils::generateTypes($this->parameters));
         return $this->count;
@@ -216,7 +214,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
             foreach ($beansData as $beanData) {
                 // Let's find the bean class name associated to the bean.
 
-                list($actualClassName, $mainBeanTableName, $tablesUsed) = $this->tdbmService->_getClassNameFromBeanData($beanData);
+                [$actualClassName, $mainBeanTableName, $tablesUsed] = $this->tdbmService->_getClassNameFromBeanData($beanData);
 
                 // @TODO (gua) this is a weird hack to be able to force a TDBMObject...
                 // `$this->className` could be used to override `$actualClassName`

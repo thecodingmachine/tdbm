@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
 use BadMethodCallException;
@@ -18,7 +20,7 @@ class AddTraitTest extends TestCase
     public function testGetName(): void
     {
         $trait = new AddTrait(['name' => TestUserTrait::class]);
-        $this->assertSame('\\'.TestUserTrait::class, $trait->getName());
+        $this->assertSame('\\' . TestUserTrait::class, $trait->getName());
     }
 
     public function testModifiers(): void

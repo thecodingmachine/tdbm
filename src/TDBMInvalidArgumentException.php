@@ -11,6 +11,6 @@ class TDBMInvalidArgumentException extends \InvalidArgumentException
      */
     public static function badType(string $expectedType, $value, string $location): self
     {
-        return new self("Invalid argument passed to '$location'. Expecting a $expectedType. Got a ".gettype($value).'.');
+        return new self("Invalid argument passed to '$location'. Expecting a $expectedType. Got a " . gettype($value) . '.');
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils\Logs;
 
 use Psr\Log\AbstractLogger;
@@ -18,7 +20,7 @@ class LevelFilter extends AbstractLogger
      *
      * @var string[] $levels Logging levels
      */
-    private const LEVELS = array(
+    private const LEVELS = [
         LogLevel::EMERGENCY, // 0
         LogLevel::ALERT,     // 1
         LogLevel::CRITICAL,  // 2
@@ -26,8 +28,8 @@ class LevelFilter extends AbstractLogger
         LogLevel::WARNING,   // 4
         LogLevel::NOTICE,    // 5
         LogLevel::INFO,      // 6
-        LogLevel::DEBUG      // 7
-    );
+        LogLevel::DEBUG,      // 7
+    ];
 
     /**
      * @var int

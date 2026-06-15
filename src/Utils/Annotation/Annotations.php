@@ -40,9 +40,7 @@ class Annotations
      */
     public function findAnnotations(string $annotationType): array
     {
-        return array_values(array_filter($this->annotations, function ($annotation) use ($annotationType) {
-            return is_a($annotation, $annotationType);
-        }));
+        return array_values(array_filter($this->annotations, fn($annotation) => is_a($annotation, $annotationType)));
     }
 
     /**

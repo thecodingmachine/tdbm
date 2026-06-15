@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Connection;
@@ -46,7 +48,7 @@ class ManyToManyRelationshipPathDescriptor
      */
     public function __construct(string $targetTable, string $pivotTable, array $joinForeignKeys, array $joinLocalKeys, array $whereKeys, string $resultIteratorClass)
     {
-        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `' . ResultIterator::class . '`. `' . $resultIteratorClass . '` provided.'));
         $this->targetTable = $targetTable;
         $this->pivotTable = $pivotTable;
         $this->joinForeignKeys = $joinForeignKeys;

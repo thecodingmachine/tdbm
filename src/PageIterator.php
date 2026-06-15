@@ -79,9 +79,7 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
     /** @var LoggerInterface */
     private $logger;
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     /**
      * @param mixed[] $parameters
@@ -288,8 +286,6 @@ class PageIterator implements Page, \ArrayAccess, \JsonSerializable
      */
     public function jsonSerialize(): mixed
     {
-        return array_map(function (AbstractTDBMObject $item) {
-            return $item->jsonSerialize();
-        }, $this->toArray());
+        return array_map(fn(AbstractTDBMObject $item) => $item->jsonSerialize(), $this->toArray());
     }
 }

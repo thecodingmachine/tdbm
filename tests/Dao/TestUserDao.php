@@ -57,7 +57,7 @@ class TestUserDao extends UserBaseDao
      */
     public function getUsersByLoginStartingWith($login = null, $mode = null): UserResultIterator
     {
-        return $this->find('login LIKE :login', ['login' => $login.'%'], null, [], $mode);
+        return $this->find('login LIKE :login', ['login' => $login . '%'], null, [], $mode);
     }
 
     /**
@@ -119,7 +119,7 @@ class TestUserDao extends UserBaseDao
     public function getUsersByComplexFilterBag(CountryBean $country, array $names)
     {
         $filterBag = [
-            'person.name' => $names
+            'person.name' => $names,
         ];
         $filterBag[] = $country;
         return $this->find($filterBag);

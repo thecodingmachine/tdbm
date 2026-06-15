@@ -115,7 +115,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         //$this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
     }
 
-    public function testGetSchemaCrashWithoutLock()
+    public function testGetSchemaCrashWithoutLock(): void
     {
         //let's delete the lock file
         $schemaFilePath = Configuration::getDefaultLockFilePath();
@@ -134,7 +134,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         // Remove all previously generated files.
         $this->recursiveDelete($this->rootPath . 'src/Test/Dao/');
-        mkdir($this->rootPath . 'src/Test/Dao/Generated', 0755, true);
+        mkdir($this->rootPath . 'src/Test/Dao/Generated', 0o755, true);
         // Let's generate a dummy file to see it is indeed removed.
         $dummyFile = $this->rootPath . 'src/Test/Dao/Generated/foobar.php';
         touch($dummyFile);
@@ -887,7 +887,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertEquals('bill.shakespeare', $userDecoded['login']);
 
         // test serialization of dates.
-        $this->assertTrue(is_string($userDecoded['createdAt']));
+        $this->assertIsString($userDecoded['createdAt']);
         $this->assertEquals('2015-10-24', (new \DateTimeImmutable($userDecoded['createdAt']))->format('Y-m-d'));
         $this->assertNull($userDecoded['modifiedAt']);
 
@@ -1629,7 +1629,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $allNullableDao->save($allNullable);
         $id = $allNullable->getId();
 
-        $this->assertTrue(is_int($id));
+        $this->assertIsInt($id);
     }
 
     /**
@@ -1712,7 +1712,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // Let's insert a row without telling TDBM to trigger an error!
         self::insert($this->getConnection(), 'sailed_countries', [
             'boat_id' => 1,
-            'country_id' => 2
+            'country_id' => 2,
         ]);
 
         $boatBean->addCountry($countryDao->getById(2));
@@ -2123,7 +2123,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $pinkFloyd = $artists->getById(1);
         $children = $pinkFloyd->getChildrenByArtistsRelations();
 
-        $this->assertEquals(1, count($children));
+        $this->assertCount(1, $children);
         $this->assertEquals(2, $children[0]->getId());
     }
 
@@ -2188,7 +2188,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testOptionnalParametersCanBeNullInFindOneBy()
+    public function testOptionnalParametersCanBeNullInFindOneBy(): void
     {
         $albumDao = new AlbumDao($this->tdbmService);
         $artist = new ArtistBean('Marcel');
@@ -2200,7 +2200,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testRequiredParametersCannotBeNullInFindOneBy()
+    public function testRequiredParametersCannotBeNullInFindOneBy(): void
     {
         $albumDao = new AlbumDao($this->tdbmService);
         $artist = new ArtistBean('Marcel');
@@ -2355,24 +2355,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $player = new PlayerBean([
             'id' => 1,
             'name' => 'Sally',
-            'games_played' =>
-                [
-                    'Battlefield' =>
-                        [
-                            'weapon' => 'sniper rifle',
-                            'rank' => 'Sergeant V',
-                            'level' => 20,
-                        ],
-                    'Crazy Tennis' =>
-                        [
-                            'won' => 4,
-                            'lost' => 1,
-                        ],
-                    'Puzzler' =>
-                        [
-                            'time' => 7,
-                        ],
+            'games_played' => [
+                'Battlefield' => [
+                    'weapon' => 'sniper rifle',
+                    'rank' => 'Sergeant V',
+                    'level' => 20,
                 ],
+                'Crazy Tennis' => [
+                    'won' => 4,
+                    'lost' => 1,
+                ],
+                'Puzzler' => [
+                    'time' => 7,
+                ],
+            ],
         ]);
 
         $dao->save($player);

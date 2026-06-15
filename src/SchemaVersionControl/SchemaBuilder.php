@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\SchemaVersionControl;
 
 use Doctrine\DBAL\Schema\Column;
@@ -36,7 +38,7 @@ class SchemaBuilder
         return $schema;
     }
 
-    protected function buildTable(array $tableDesc, Table $table)
+    protected function buildTable(array $tableDesc, Table $table): void
     {
         $pk_columns = [];
 
@@ -70,7 +72,7 @@ class SchemaBuilder
         }
     }
 
-    protected function buildColumn(array $columnDesc, Column $column)
+    protected function buildColumn(array $columnDesc, Column $column): void
     {
         if (isset($columnDesc['fixed'])) {
             $column->setFixed($columnDesc['fixed']);
@@ -99,7 +101,7 @@ class SchemaBuilder
         }
     }
 
-    protected function buildForeignKeyConstraint(array $constraintDesc, Table $table, string $name)
+    protected function buildForeignKeyConstraint(array $constraintDesc, Table $table, string $name): void
     {
         if (isset($constraintDesc['column'])) {
             $localColumns = [$constraintDesc['column']];
@@ -138,7 +140,7 @@ class SchemaBuilder
         return $pkColumns;
     }
 
-    protected function buildIndex($indexDesc, Table $table, $name)
+    protected function buildIndex($indexDesc, Table $table, $name): void
     {
         if (!is_array($indexDesc)) {
             $indexDesc = ['column' => $indexDesc];

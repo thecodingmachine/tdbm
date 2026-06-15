@@ -73,9 +73,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     /** @var LoggerInterface */
     private $logger;
 
-    final private function __construct()
-    {
-    }
+    final private function __construct() {}
 
     /**
      * @param mixed[] $parameters
@@ -85,7 +83,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     {
         $iterator =  new static();
         if ($mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
-            throw new TDBMException("Unknown fetch mode: '".$mode."'");
+            throw new TDBMException("Unknown fetch mode: '" . $mode . "'");
         }
 
         $iterator->queryFactory = $queryFactory;
@@ -110,7 +108,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
     protected function executeCountQuery(): void
     {
         $sql = $this->magicQuery->buildPreparedStatement($this->queryFactory->getMagicSqlCount(), $this->parameters);
-        $this->logger->debug('Running count query: '.$sql);
+        $this->logger->debug('Running count query: ' . $sql);
         $this->totalCount = (int) $this->tdbmService->getConnection()->fetchOne($sql, $this->parameters, DbalUtils::generateTypes($this->parameters));
     }
 
@@ -280,9 +278,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
      */
     public function jsonSerialize($stopRecursion = false): mixed
     {
-        return array_map(function (AbstractTDBMObject $item) use ($stopRecursion) {
-            return $item->jsonSerialize($stopRecursion);
-        }, $this->toArray());
+        return array_map(fn(AbstractTDBMObject $item) => $item->jsonSerialize($stopRecursion), $this->toArray());
     }
 
     /**
@@ -378,7 +374,7 @@ class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
         $pkDesc = array_pop($primaryKeyColumnDescs);
 
         $mysqlPlatform = new MySqlPlatform();
-        $sql = $mysqlPlatform->quoteIdentifier($pkDesc['table']).'.'.$mysqlPlatform->quoteIdentifier($pkDesc['column']).' IN ('.$sql.')';
+        $sql = $mysqlPlatform->quoteIdentifier($pkDesc['table']) . '.' . $mysqlPlatform->quoteIdentifier($pkDesc['column']) . ' IN (' . $sql . ')';
 
         return $sql;
     }

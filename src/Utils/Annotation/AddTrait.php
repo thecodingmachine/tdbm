@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
 /**
@@ -9,6 +11,4 @@ namespace TheCodingMachine\TDBM\Utils\Annotation;
  *   @Attribute("modifiers", type = "array<string>"),
  * })
  */
-final class AddTrait extends AbstractTraitAnnotation
-{
-}
+final class AddTrait extends AbstractTraitAnnotation {}

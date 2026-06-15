@@ -149,7 +149,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
                 var_export($this->foreignKey->getLocalTableName(), true),
                 var_export($tdbmFk->getCacheKey(), true),
                 $this->getFilters($this->foreignKey),
-                '\\' . $this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName() .'::class'
+                '\\' . $this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName() . '::class'
             );
         } else {
             $getterDocBlock = new DocBlockGenerator(sprintf('Returns the list of %s pointing to this bean via the %s column.', $beanClass, implode(', ', $this->foreignKey->getUnquotedLocalColumns())));
@@ -163,7 +163,7 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
                 var_export($this->foreignKey->getLocalTableName(), true),
                 var_export($tdbmFk->getCacheKey(), true),
                 $this->getFilters($this->foreignKey),
-                '\\' . $this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName() .'::class'
+                '\\' . $this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName() . '::class'
             );
         }
 
@@ -185,10 +185,10 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
 
         foreach ($fk->getUnquotedLocalColumns() as $columnName) {
             $fkColumn = $fkForeignColumns[$counter];
-            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName().'.'.$columnName, true), var_export($fkColumn, true), var_export($this->foreignKey->getForeignTableName(), true));
+            $parameters[] = sprintf('%s => $this->get(%s, %s)', var_export($fk->getLocalTableName() . '.' . $columnName, true), var_export($fkColumn, true), var_export($this->foreignKey->getForeignTableName(), true));
             ++$counter;
         }
-        $parametersCode = '['.implode(', ', $parameters).']';
+        $parametersCode = '[' . implode(', ', $parameters) . ']';
 
         return $parametersCode;
     }
@@ -260,18 +260,18 @@ class DirectForeignKeyMethodDescriptor implements RelationshipMethodDescriptorIn
             $code = "\$array['$index'] = (\$object = \$this->$getter()) ? \$object->$format : null;";
         } else {
             $code = <<<PHP
-\$array['$index'] = array_map(function ($class $variableName) {
-    return {$variableName}->$format;
-}, \$this->$getter()->toArray());
-PHP;
+                \$array['$index'] = array_map(function ($class $variableName) {
+                    return {$variableName}->$format;
+                }, \$this->$getter()->toArray());
+                PHP;
         }
         if (!$isIncluded) {
             $code = preg_replace('(\n)', '\0    ', $code);
             $code = <<<PHP
-if (!\$stopRecursion) {
-    $code
-}
-PHP;
+                if (!\$stopRecursion) {
+                    $code
+                }
+                PHP;
         }
         return $code;
     }

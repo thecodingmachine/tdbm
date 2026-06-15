@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM;
 
 use Doctrine\Common\EventManager;
@@ -37,13 +39,13 @@ class ConnectionFactory
 
             $dbConnection = self::createConnection($dbDriver, $dbHost, $dbPort, $dbName, $dbPassword, $dbName);
         } else {
-            $connectionParams = array(
+            $connectionParams = [
                 'user' => $dbUserName,
                 'password' => $dbPassword,
                 'host' => $dbHost,
                 'port' => $dbPort,
                 'driver' => $dbDriver,
-            );
+            ];
 
             $adminConn = DriverManager::getConnection($connectionParams, $config);
 
@@ -70,20 +72,20 @@ class ConnectionFactory
         $dbDriver = $dbDriver;
 
         if ($dbDriver === 'pdo_sqlite') {
-            $connectionParams = array(
+            $connectionParams = [
                 'memory' => true,
                 'driver' => 'pdo_sqlite',
-            );
+            ];
             $dbConnection = DriverManager::getConnection($connectionParams, $config);
         } elseif ($dbDriver === 'oci8') {
             $evm = new EventManager();
-            $evm->addEventSubscriber(new OracleSessionInit(array(
+            $evm->addEventSubscriber(new OracleSessionInit([
                 'NLS_TIME_FORMAT' => 'HH24:MI:SS',
                 'NLS_DATE_FORMAT' => 'YYYY-MM-DD HH24:MI:SS',
                 'NLS_TIMESTAMP_FORMAT' => 'YYYY-MM-DD HH24:MI:SS',
-            )));
+            ]));
 
-            $connectionParams = array(
+            $connectionParams = [
                 'servicename' => 'XE',
                 'user' => $dbUserName,
                 'password' => $dbPassword,
@@ -92,18 +94,18 @@ class ConnectionFactory
                 'driver' => $dbDriver,
                 'dbname' => $dbName,
                 'charset' => 'AL32UTF8',
-            );
+            ];
             $dbConnection = DriverManager::getConnection($connectionParams, $config, $evm);
             $dbConnection->setAutoCommit(true);
         } else {
-            $connectionParams = array(
+            $connectionParams = [
                 'user' => $dbUserName,
                 'password' => $dbPassword,
                 'host' => $dbHost,
                 'port' => $dbPort,
                 'driver' => $dbDriver,
                 'dbname' => $dbName,
-            );
+            ];
             $dbConnection = DriverManager::getConnection($connectionParams, $config);
         }
 

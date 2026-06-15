@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils\Logs;
 
 use PHPUnit\Framework\TestCase;
@@ -8,13 +10,13 @@ use Psr\Log\LogLevel;
 
 class LevelFilterTest extends TestCase
 {
-    public function testIsPsrLog()
+    public function testIsPsrLog(): void
     {
         $levelFilter = new LevelFilter($this->getMockLoggerInterface(), LogLevel::DEBUG);
         $this->assertInstanceOf('\Psr\Log\LoggerInterface', $levelFilter);
     }
 
-    public function testLog()
+    public function testLog(): void
     {
         $loggerInterface = $this->getMockLoggerInterface();
 
@@ -39,14 +41,14 @@ class LevelFilterTest extends TestCase
         $levelFilter->log(LogLevel::WARNING, 'TEST WARNING MESSAGE');
     }
 
-    public function testInvalidConstructorLogLevel()
+    public function testInvalidConstructorLogLevel(): void
     {
         // We expect an exception to be thrown when specifying an invalid logging level in the constructor
         $this->expectException('\Psr\Log\InvalidArgumentException');
         $levelFilter = new LevelFilter($this->getMockLoggerInterface(), 'InvalidLogLevel');
     }
 
-    public function testInvalidLogLogLevel()
+    public function testInvalidLogLogLevel(): void
     {
         // We expect an exception to be thrown when specifying an invalid logging level in the log method parameter
         $levelFilter = new LevelFilter($this->getMockLoggerInterface(), LogLevel::DEBUG);

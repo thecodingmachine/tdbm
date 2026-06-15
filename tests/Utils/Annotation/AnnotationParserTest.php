@@ -18,7 +18,7 @@ class AnnotationParserTest extends TestCase
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,
-            'Autoincrement' => Autoincrement::class
+            'Autoincrement' => Autoincrement::class,
         ]);
         $column = new Column('foo', Type::getType(Types::STRING), ['comment' => '@UUID']);
         $table = new Table('bar');
@@ -39,7 +39,7 @@ class AnnotationParserTest extends TestCase
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,
-            'Autoincrement' => Autoincrement::class
+            'Autoincrement' => Autoincrement::class,
         ]);
         $column = new Column('foo', Type::getType(Types::STRING), ['comment' => "\n@UUID"]);
         $table = new Table('bar');
@@ -53,7 +53,7 @@ class AnnotationParserTest extends TestCase
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,
-            'Autoincrement' => Autoincrement::class
+            'Autoincrement' => Autoincrement::class,
         ]);
         $column = new Column('foo', Type::getType(Types::STRING), ['comment' => "\n@UUID\n@Autoincrement"]);
         $table = new Table('bar');
@@ -67,7 +67,7 @@ class AnnotationParserTest extends TestCase
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,
-            'Autoincrement' => Autoincrement::class
+            'Autoincrement' => Autoincrement::class,
         ]);
         $table = new Table('bar', [], [], [], [], ['comment' => "@UUID\n@UUID"]);
         $annotations = $parser->getTableAnnotations($table);
@@ -80,7 +80,7 @@ class AnnotationParserTest extends TestCase
     {
         $parser = new AnnotationParser([
             'UUID' => UUID::class,
-            'Autoincrement' => Autoincrement::class
+            'Autoincrement' => Autoincrement::class,
         ]);
         $table = new Table('bar', [], [], [], [], ['comment' => '@UUID("v4")']);
         $annotations = $parser->getTableAnnotations($table);

@@ -258,7 +258,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      */
     protected function setRef(string $foreignKeyName, ?AbstractTDBMObject $bean, string $tableName, string $className, string $resultIteratorClass): void
     {
-        assert($bean === null || is_a($bean, $className), new TDBMInvalidArgumentException('$bean should be `null` or `' . $className . '`. `' . ($bean === null ? 'null' : get_class($bean)) . '` provided.'));
+        assert($bean === null || is_a($bean, $className), new TDBMInvalidArgumentException('$bean should be `null` or `' . $className . '`. `' . ($bean === null ? 'null' : $bean::class) . '` provided.'));
 
         if (!isset($this->dbRows[$tableName])) {
             $this->registerTable($tableName);
@@ -479,7 +479,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
      */
     private function getManyToOneAlterableResultIterator(string $tableName, string $foreignKeyName): AlterableResultIterator
     {
-        $key = $tableName.'___'.$foreignKeyName;
+        $key = $tableName . '___' . $foreignKeyName;
 
         return $this->manyToOneRelationships[$key] ?? $this->manyToOneRelationships[$key] = new AlterableResultIterator();
     }
@@ -522,8 +522,8 @@ abstract class AbstractTDBMObject implements JsonSerializable
      */
     protected function retrieveManyToOneRelationshipsStorage(string $tableName, string $foreignKeyName, array $searchFilter, ?string $orderString, string $resultIteratorClass): AlterableResultIterator
     {
-        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
-        $key = $tableName.'___'.$foreignKeyName;
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `' . ResultIterator::class . '`. `' . $resultIteratorClass . '` provided.'));
+        $key = $tableName . '___' . $foreignKeyName;
         $alterableResultIterator = $this->getManyToOneAlterableResultIterator($tableName, $foreignKeyName);
         if ($this->status === TDBMObjectStateEnum::STATE_DETACHED || $this->status === TDBMObjectStateEnum::STATE_NEW || (isset($this->manyToOneRelationships[$key]) && $this->manyToOneRelationships[$key]->getUnderlyingResultIterator() !== null)) {
             return $alterableResultIterator;
@@ -646,9 +646,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
     /**
      * Method called when the bean is removed from database.
      */
-    protected function onDelete(): void
-    {
-    }
+    protected function onDelete(): void {}
 
     /**
      * Returns the foreign keys used by this bean.
@@ -660,7 +658,7 @@ abstract class AbstractTDBMObject implements JsonSerializable
 
     public function _getManyToManyRelationshipDescriptor(string $pathKey): ManyToManyRelationshipPathDescriptor
     {
-        throw new TDBMException('Could not find many to many relationship descriptor key for "'.$pathKey.'"');
+        throw new TDBMException('Could not find many to many relationship descriptor key for "' . $pathKey . '"');
     }
 
     /**

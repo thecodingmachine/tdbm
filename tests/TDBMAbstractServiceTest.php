@@ -114,7 +114,7 @@ abstract class TDBMAbstractServiceTest extends TestCase
         return self::$dbConnection;
     }
 
-    protected function onlyMySql()
+    protected function onlyMySql(): void
     {
         if (!self::getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             $this->markTestSkipped('MySQL specific test');
@@ -517,32 +517,32 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         self::insert($connection, 'roles', [
             'name' => 'Admins',
-            'created_at' => '2015-10-24'
+            'created_at' => '2015-10-24',
         ]);
         self::insert($connection, 'roles', [
             'name' => 'Writers',
-            'created_at' => '2015-10-24'
+            'created_at' => '2015-10-24',
         ]);
         self::insert($connection, 'roles', [
             'name' => 'Singers',
-            'created_at' => '2015-10-24'
+            'created_at' => '2015-10-24',
         ]);
 
         self::insert($connection, 'roles_rights', [
             'role_id' => 1,
-            'right_label' => 'CAN_SING'
+            'right_label' => 'CAN_SING',
         ]);
         self::insert($connection, 'roles_rights', [
             'role_id' => 3,
-            'right_label' => 'CAN_SING'
+            'right_label' => 'CAN_SING',
         ]);
         self::insert($connection, 'roles_rights', [
             'role_id' => 1,
-            'right_label' => 'CAN_WRITE'
+            'right_label' => 'CAN_WRITE',
         ]);
         self::insert($connection, 'roles_rights', [
             'role_id' => 2,
-            'right_label' => 'CAN_WRITE'
+            'right_label' => 'CAN_WRITE',
         ]);
 
         self::insert($connection, 'users', [
@@ -550,28 +550,28 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'login' => 'john.smith',
             'password' => null,
             'status' => 'on',
-            'country_id' => 2
+            'country_id' => 2,
         ]);
         self::insert($connection, 'users', [
             'id' => 2,
             'login' => 'jean.dupont',
             'password' => null,
             'status' => 'on',
-            'country_id' => 1
+            'country_id' => 1,
         ]);
         self::insert($connection, 'users', [
             'id' => 3,
             'login' => 'robert.marley',
             'password' => null,
             'status' => 'off',
-            'country_id' => 3
+            'country_id' => 3,
         ]);
         self::insert($connection, 'users', [
             'id' => 4,
             'login' => 'bill.shakespeare',
             'password' => null,
             'status' => 'off',
-            'country_id' => 2
+            'country_id' => 2,
         ]);
 
         self::insert($connection, 'users_roles', [
@@ -602,15 +602,15 @@ abstract class TDBMAbstractServiceTest extends TestCase
 
         self::insert($connection, 'accounts', [
             'id' => 1,
-            'name' => 'root'
+            'name' => 'root',
         ]);
         self::insert($connection, 'accounts', [
             'id' => 2,
-            'name' => 'user'
+            'name' => 'user',
         ]);
         self::insert($connection, 'accounts', [
             'id' => 3,
-            'name' => 'www'
+            'name' => 'www',
         ]);
         self::insert($connection, 'nodes', [
             'id' => 1,
@@ -635,13 +635,13 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'name' => 'var',
             'created_at' => (new DateTime('last year'))->format('Y-m-d 00:00:00'),
             'parent_id' => 1,
-            'alias_id' => 3
+            'alias_id' => 3,
         ]);
         self::insert($connection, 'nodes', [
             'id' => 5,
             'name' => 'www',
             'created_at' => (new DateTime('last week'))->format('Y-m-d 00:00:00'),
-            'parent_id' => 4
+            'parent_id' => 4,
         ]);
         self::insert($connection, 'nodes', [
             'id' => 6,
@@ -650,65 +650,65 @@ abstract class TDBMAbstractServiceTest extends TestCase
             'created_at' => (new DateTime('now'))->format('Y-m-d 00:00:00'),
             'size' => 512,
             'weight' => 42.5,
-            'parent_id' => 5
+            'parent_id' => 5,
         ]);
         self::insert($connection, 'nodes', [
             'id' => 7,
             'name' => 'index.html',
             'created_at' => (new DateTime('now'))->format('Y-m-d 00:00:00'),
             'alias_id' => 6,
-            'parent_id' => 1
+            'parent_id' => 1,
         ]);
         self::insert($connection, 'nodes', [
             'id' => 8,
             'name' => 'index.htm',
             'created_at' => (new DateTime('now'))->format('Y-m-d 00:00:00'),
             'alias_id' => 7,
-            'parent_id' => 1
+            'parent_id' => 1,
         ]);
         self::insert($connection, 'nodes_guests', [
             'node_id' => 6,
-            'guest_id' => 1
+            'guest_id' => 1,
         ]);
         self::insert($connection, 'nodes_guests', [
             'node_id' => 6,
-            'guest_id' => 3
+            'guest_id' => 3,
         ]);
         self::insert($connection, 'node_entries', [
             'node_id' => 6,
-            'entry' => '<h1>'
+            'entry' => '<h1>',
         ]);
         self::insert($connection, 'node_entries', [
             'node_id' => 6,
-            'entry' => 'Hello, World'
+            'entry' => 'Hello, World',
         ]);
         self::insert($connection, 'node_entries', [
             'node_id' => 6,
-            'entry' => '</h1>'
+            'entry' => '</h1>',
         ]);
 
 
         self::insert($connection, 'artists', [
             'id' => 1,
-            'name' => 'Pink Floyd'
+            'name' => 'Pink Floyd',
         ]);
         self::insert($connection, 'artists', [
             'id' => 2,
-            'name' => 'Roger Waters'
+            'name' => 'Roger Waters',
         ]);
         self::insert($connection, 'artists', [
             'id' => 3,
-            'name' => 'David Gilmour'
+            'name' => 'David Gilmour',
         ]);
         self::insert($connection, 'albums', [
             'id' => 1,
             'artist_id' => 1,
             'account_id' => 1,
-            'title' => 'Animals'
+            'title' => 'Animals',
         ]);
         self::insert($connection, 'artists_relations', [
             'parent_id' => 1,
-            'child_id' => 2
+            'child_id' => 2,
         ]);
 
         $timeType = Type::getType(Types::TIME_IMMUTABLE);
@@ -741,27 +741,27 @@ abstract class TDBMAbstractServiceTest extends TestCase
         ]);
         self::insert($connection, 'featuring', [
             'track_id' => 1,
-            'artist_id' => 2
+            'artist_id' => 2,
         ]);
         self::insert($connection, 'featuring', [
             'track_id' => 2,
-            'artist_id' => 3
+            'artist_id' => 3,
         ]);
         self::insert($connection, 'featuring', [
             'track_id' => 2,
-            'artist_id' => 2
+            'artist_id' => 2,
         ]);
         self::insert($connection, 'featuring', [
             'track_id' => 3,
-            'artist_id' => 2
+            'artist_id' => 2,
         ]);
         self::insert($connection, 'featuring', [
             'track_id' => 4,
-            'artist_id' => 2
+            'artist_id' => 2,
         ]);
         self::insert($connection, 'featuring', [
             'track_id' => 5,
-            'artist_id' => 2
+            'artist_id' => 2,
         ]);
 
         self::insert($connection, 'boats', [
@@ -777,16 +777,16 @@ abstract class TDBMAbstractServiceTest extends TestCase
         ]);
         self::insert($connection, 'composite_fk_target_reference', [
             'id' => 1,
-            'label' => 'test'
+            'label' => 'test',
         ]);
         self::insert($connection, 'composite_fk_target', [
             'id_1' => 1,
-            'id_2' => 1
+            'id_2' => 1,
         ]);
         self::insert($connection, 'composite_fk_source', [
             'id' => 1,
             'fk_1' => 1,
-            'fk_2' => 1
+            'fk_2' => 1,
         ]);
 
         self::insert($connection, 'values', ['key' => 1]);

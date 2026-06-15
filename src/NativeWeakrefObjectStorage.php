@@ -39,7 +39,7 @@ class NativeWeakrefObjectStorage implements ObjectStorageInterface
      *
      * @var WeakReference[][]
      */
-    private $objects = array();
+    private $objects = [];
 
     /**
      * Every 10000 set in the dataset, we perform a cleanup to ensure the WeakRef instances
@@ -99,7 +99,7 @@ class NativeWeakrefObjectStorage implements ObjectStorageInterface
      */
     public function clear(): void
     {
-        $this->objects = array();
+        $this->objects = [];
     }
 
     private function cleanupDanglingWeakRefs(): void

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils;
 
 class RootProjectLocator
@@ -9,6 +11,6 @@ class RootProjectLocator
         $reflection = new \ReflectionClass(\Composer\Autoload\ClassLoader::class);
         $file = $reflection->getFileName();
         assert($file !== false);
-        return dirname($file, 3).'/';
+        return dirname($file, 3) . '/';
     }
 }

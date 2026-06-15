@@ -60,6 +60,6 @@ class PathFinder implements PathFinderInterface
         if (empty($paths)) {
             throw NoPathFoundException::create($className);
         }
-        return new \SplFileInfo($this->rootPath.'/'.$paths[0]);
+        return new \SplFileInfo($this->rootPath . '/' . $paths[0]);
     }
 }

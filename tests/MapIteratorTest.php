@@ -30,7 +30,7 @@ class MapIteratorTest extends TestCase
 {
     public function testIteratorAggregate(): void
     {
-        $mapIterator = new MapIterator(new class () implements IteratorAggregate {
+        $mapIterator = new MapIterator(new class implements IteratorAggregate {
             public $property1 = "Public property one";
             public $property2 = "Public property two";
             public $property3 = "Public property three";
@@ -39,9 +39,7 @@ class MapIteratorTest extends TestCase
             {
                 return new ArrayIterator($this);
             }
-        }, function ($item) {
-            return $item;
-        });
+        }, fn($item) => $item);
 
         self::assertCount(3, $mapIterator);
     }
@@ -49,25 +47,19 @@ class MapIteratorTest extends TestCase
     public function testConstructorException1(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
-        $mapIterator = new MapIterator(new \DateTime(), function ($item) {
-            return $item;
-        });
+        $mapIterator = new MapIterator(new \DateTime(), fn($item) => $item);
     }
 
     public function testConstructorException2(): void
     {
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
-        $mapIterator = new MapIterator(array(1, 2, 3), function () {
-            return $item;
-        });
+        $mapIterator = new MapIterator([1, 2, 3], fn() => $item);
     }
 
     public function testJsonSerialize(): void
     {
-        $value = array(1, 2, 3);
-        $mapIterator = new MapIterator($value, function ($item) {
-            return $item;
-        });
+        $value = [1, 2, 3];
+        $mapIterator = new MapIterator($value, fn($item) => $item);
 
         $this->assertEquals($value, json_decode(json_encode($mapIterator), true));
     }

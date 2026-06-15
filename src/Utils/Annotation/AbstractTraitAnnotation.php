@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils\Annotation;
 
 use TheCodingMachine\TDBM\TDBMException;
@@ -54,7 +56,7 @@ abstract class AbstractTraitAnnotation
 
     public function getName(): string
     {
-        return '\\'.ltrim($this->name, '\\');
+        return '\\' . ltrim($this->name, '\\');
     }
 
     /**

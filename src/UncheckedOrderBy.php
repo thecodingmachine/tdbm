@@ -42,6 +42,6 @@ class UncheckedOrderBy
      */
     public function __toString()
     {
-        return 'UncheckedOrderBy_'.$this->orderBy;
+        return 'UncheckedOrderBy_' . $this->orderBy;
     }
 }

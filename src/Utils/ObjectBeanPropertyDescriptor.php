@@ -229,8 +229,8 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
         }
 
         if ($this->findAnnotation(Annotation\JsonCollection::class)) {
-            if ($this->findAnnotation(Annotation\JsonInclude::class) ||
-                $this->findAnnotation(Annotation\JsonRecursive::class)) {
+            if ($this->findAnnotation(Annotation\JsonInclude::class)
+                || $this->findAnnotation(Annotation\JsonRecursive::class)) {
                 return '';
             }
             $isIncluded = false;
@@ -263,12 +263,12 @@ class ObjectBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
             $code = $recursiveCode;
         } else {
             $code = <<<PHP
-if (\$stopRecursion) {
-    $lazyCode
-} else {
-    $recursiveCode
-}
-PHP;
+                if (\$stopRecursion) {
+                    $lazyCode
+                } else {
+                    $recursiveCode
+                }
+                PHP;
         }
         return $code;
     }
@@ -296,7 +296,7 @@ PHP;
             } elseif ($descriptor instanceof ScalarBeanPropertyDescriptor) {
                 $rows[] = "'$indexName' => $propertyAccess->$columnGetterName()";
             } else {
-                throw new TDBMException('PropertyDescriptor of class `' . get_class($descriptor) . '` cannot be serialized.');
+                throw new TDBMException('PropertyDescriptor of class `' . $descriptor::class . '` cannot be serialized.');
             }
         }
         return '[' . implode(', ', $rows) . ']';
@@ -312,7 +312,7 @@ PHP;
                 return $descriptor;
             }
         }
-        throw new TDBMException('PropertyDescriptor for `'.$this->table->getName().'`.`' . $column . '` not found in `' . $this->foreignBeanDescriptor->getTable()->getName() . '`');
+        throw new TDBMException('PropertyDescriptor for `' . $this->table->getName() . '`.`' . $column . '` not found in `' . $this->foreignBeanDescriptor->getTable()->getName() . '`');
     }
 
     /**

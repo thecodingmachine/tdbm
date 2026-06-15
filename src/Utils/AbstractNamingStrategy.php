@@ -27,7 +27,7 @@ abstract class AbstractNamingStrategy implements NamingStrategyInterface
      */
     public function getGetterName(AbstractBeanPropertyDescriptor $property): string
     {
-        return 'get'.$this->getUpperCamelCaseName($property);
+        return 'get' . $this->getUpperCamelCaseName($property);
     }
 
     /**
@@ -38,7 +38,7 @@ abstract class AbstractNamingStrategy implements NamingStrategyInterface
      */
     public function getSetterName(AbstractBeanPropertyDescriptor $property): string
     {
-        return 'set'.$this->getUpperCamelCaseName($property);
+        return 'set' . $this->getUpperCamelCaseName($property);
     }
 
     /**
@@ -49,7 +49,7 @@ abstract class AbstractNamingStrategy implements NamingStrategyInterface
      */
     public function getVariableName(AbstractBeanPropertyDescriptor $property): string
     {
-        return '$'.$this->getLowerCamelCaseName($property);
+        return '$' . $this->getLowerCamelCaseName($property);
     }
 
     /**
@@ -74,7 +74,7 @@ abstract class AbstractNamingStrategy implements NamingStrategyInterface
         $methodNameComponent = array_map([$this, 'getUpperCamelCaseName'], $elements);
 
         if ($index->isUnique()) {
-            return 'findOneBy'.implode('And', $methodNameComponent);
+            return 'findOneBy' . implode('And', $methodNameComponent);
         } else {
             return 'findBy' . implode('And', $methodNameComponent);
         }

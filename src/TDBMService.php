@@ -141,7 +141,7 @@ class TDBMService
     /**
      * @var \ReflectionClass[]
      */
-    private $reflectionClassCache = array();
+    private $reflectionClassCache = [];
 
     /**
      * @var LoggerInterface
@@ -240,7 +240,7 @@ class TDBMService
     public function setFetchMode(int $mode): self
     {
         if ($mode !== self::MODE_CURSOR && $mode !== self::MODE_ARRAY) {
-            throw new TDBMException("Unknown fetch mode: '".$this->mode."'");
+            throw new TDBMException("Unknown fetch mode: '" . $this->mode . "'");
         }
         $this->mode = $mode;
 
@@ -420,15 +420,15 @@ class TDBMService
 
             foreach ($filter_bag as $column => $value) {
                 if (is_int($column)) {
-                    list($subSqlPart, $subParameters, $counter) = $this->buildFilterFromFilterBag($value, $platform, $counter);
+                    [$subSqlPart, $subParameters, $counter] = $this->buildFilterFromFilterBag($value, $platform, $counter);
                     $sqlParts[] = $subSqlPart;
                     $parameters += $subParameters;
                 } else {
-                    $paramName = 'tdbmparam'.$counter;
+                    $paramName = 'tdbmparam' . $counter;
                     if (is_array($value)) {
-                        $sqlParts[] = $platform->quoteIdentifier($column).' IN (:'.$paramName.')';
+                        $sqlParts[] = $platform->quoteIdentifier($column) . ' IN (:' . $paramName . ')';
                     } else {
-                        $sqlParts[] = $platform->quoteIdentifier($column).' = :'.$paramName;
+                        $sqlParts[] = $platform->quoteIdentifier($column) . ' = :' . $paramName;
                     }
                     $parameters[$paramName] = $value;
                     ++$counter;
@@ -450,8 +450,8 @@ class TDBMService
             $primaryKeys = $dbRow->_getPrimaryKeys();
 
             foreach ($primaryKeys as $column => $value) {
-                $paramName = 'tdbmparam'.$counter;
-                $sqlParts[] = $platform->quoteIdentifier($dbRow->_getDbTableName()).'.'.$platform->quoteIdentifier($column).' = :'.$paramName;
+                $paramName = 'tdbmparam' . $counter;
+                $sqlParts[] = $platform->quoteIdentifier($dbRow->_getDbTableName()) . '.' . $platform->quoteIdentifier($column) . ' = :' . $paramName;
                 $parameters[$paramName] = $value;
                 ++$counter;
             }
@@ -574,13 +574,13 @@ class TDBMService
             return $this->tableToBeanMap[$tableName];
         }
 
-        $key = $this->cachePrefix.'_tableToBean_'.$tableName;
+        $key = $this->cachePrefix . '_tableToBean_' . $tableName;
         $cache = $this->cache->fetch($key);
         if ($cache) {
             return $cache;
         }
 
-        $className = $this->beanNamespace.'\\'.$this->namingStrategy->getBeanClassName($tableName);
+        $className = $this->beanNamespace . '\\' . $this->namingStrategy->getBeanClassName($tableName);
 
         if (!class_exists($className)) {
             throw new TDBMInvalidArgumentException(sprintf('Could not find class "%s". Does table "%s" exist? If yes, consider regenerating the DAOs and beans.', $className, $tableName));
@@ -613,7 +613,7 @@ class TDBMService
             if ($status === TDBMObjectStateEnum::STATE_NEW) {
                 $dbRows = $object->_getDbRows();
 
-                $unindexedPrimaryKeys = array();
+                $unindexedPrimaryKeys = [];
 
                 foreach ($dbRows as $dbRow) {
                     if ($dbRow->_getStatus() == TDBMObjectStateEnum::STATE_SAVING) {
@@ -797,7 +797,7 @@ class TDBMService
     {
         foreach ($object->_getCachedRelationships() as $pivotTableName => $storage) {
             $tableDescriptor = $this->tdbmSchemaAnalyzer->getSchema()->getTable($pivotTableName);
-            list($localFk, $remoteFk) = $this->getPivotTableForeignKeys($pivotTableName, $object);
+            [$localFk, $remoteFk] = $this->getPivotTableForeignKeys($pivotTableName, $object);
 
             $toRemoveFromStorage = [];
 
@@ -931,7 +931,7 @@ class TDBMService
         $table = $dbRow->_getDbTableName();
 
         $primaryKeyColumns = $this->getPrimaryKeyColumns($table);
-        $values = array();
+        $values = [];
         $dbRowValues = $dbRow->_getDbRow();
         foreach ($primaryKeyColumns as $column) {
             if (isset($dbRowValues[$column])) {
@@ -1013,10 +1013,8 @@ class TDBMService
         sort($tables);
 
         return $this->fromCache(
-            $this->cachePrefix.'_linkbetweeninheritedtables_'.implode('__split__', $tables),
-            function () use ($tables) {
-                return $this->_getLinkBetweenInheritedTablesWithoutCache($tables);
-            }
+            $this->cachePrefix . '_linkbetweeninheritedtables_' . implode('__split__', $tables),
+            fn() => $this->_getLinkBetweenInheritedTablesWithoutCache($tables)
         );
     }
 
@@ -1062,9 +1060,7 @@ class TDBMService
      */
     public function _getRelatedTablesByInheritance(string $table): array
     {
-        return $this->fromCache($this->cachePrefix.'_relatedtables_'.$table, function () use ($table) {
-            return $this->_getRelatedTablesByInheritanceWithoutCache($table);
-        });
+        return $this->fromCache($this->cachePrefix . '_relatedtables_' . $table, fn() => $this->_getRelatedTablesByInheritanceWithoutCache($table));
     }
 
     /**
@@ -1151,7 +1147,7 @@ class TDBMService
     public function findObjects(string $mainTable, $filter, array $parameters, $orderString, array $additionalTablesFetch, ?int $mode, ?string $className, string $resultIteratorClass): ResultIterator
     {
         if (!is_a($resultIteratorClass, ResultIterator::class, true)) {
-            throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.');
+            throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `' . ResultIterator::class . '`. `' . $resultIteratorClass . '` provided.');
         }
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1162,7 +1158,7 @@ class TDBMService
 
         // We quote in MySQL because MagicJoin requires MySQL style quotes
         $mysqlPlatform = new MySqlPlatform();
-        list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter, $mysqlPlatform);
+        [$filterString, $additionalParameters] = $this->buildFilterFromFilterBag($filter, $mysqlPlatform);
 
         $parameters = array_merge($parameters, $additionalParameters);
 
@@ -1188,7 +1184,7 @@ class TDBMService
     public function findObjectsFromSql(string $mainTable, string $from, $filter, array $parameters, $orderString, ?int $mode, ?string $className, string $resultIteratorClass): ResultIterator
     {
         if (!is_a($resultIteratorClass, ResultIterator::class, true)) {
-            throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.');
+            throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `' . ResultIterator::class . '`. `' . $resultIteratorClass . '` provided.');
         }
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1199,7 +1195,7 @@ class TDBMService
 
         // We quote in MySQL because MagicJoin requires MySQL style quotes
         $mysqlPlatform = new MySqlPlatform();
-        list($filterString, $additionalParameters) = $this->buildFilterFromFilterBag($filter, $mysqlPlatform);
+        [$filterString, $additionalParameters] = $this->buildFilterFromFilterBag($filter, $mysqlPlatform);
 
         $parameters = array_merge($parameters, $additionalParameters);
 
@@ -1221,8 +1217,8 @@ class TDBMService
      */
     public function findObjectByPk(string $table, array $primaryKeys, array $additionalTablesFetch, bool $lazy, string $className, string $resultIteratorClass): AbstractTDBMObject
     {
-        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
-        assert(is_a($className, AbstractTDBMObject::class, true), new TDBMInvalidArgumentException('$className should be a `'. AbstractTDBMObject::class. '`. `' . $className . '` provided.'));
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `' . ResultIterator::class . '`. `' . $resultIteratorClass . '` provided.'));
+        assert(is_a($className, AbstractTDBMObject::class, true), new TDBMInvalidArgumentException('$className should be a `' . AbstractTDBMObject::class . '`. `' . $className . '` provided.'));
         $primaryKeys = $this->_getPrimaryKeysFromObjectData($table, $primaryKeys);
         $hash = $this->getObjectHash($primaryKeys);
 
@@ -1230,7 +1226,7 @@ class TDBMService
         if ($dbRow !== null) {
             $bean = $dbRow->getTDBMObject();
             if (!is_a($bean, $className)) {
-                throw new TDBMException("TDBM cannot create a bean of class '".$className."'. The requested object was already loaded and its class is '".get_class($bean)."'");
+                throw new TDBMException("TDBM cannot create a bean of class '" . $className . "'. The requested object was already loaded and its class is '" . $bean::class . "'");
             }
 
             return $bean;
@@ -1279,7 +1275,7 @@ class TDBMService
      */
     public function findObject(string $mainTable, $filter, array $parameters, array $additionalTablesFetch, string $className, string $resultIteratorClass): ?AbstractTDBMObject
     {
-        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `' . ResultIterator::class . '`. `' . $resultIteratorClass . '` provided.'));
         $objects = $this->findObjects($mainTable, $filter, $parameters, null, $additionalTablesFetch, self::MODE_ARRAY, $className, $resultIteratorClass);
         return $this->getAtMostOneObjectOrFail($objects, $mainTable, $filter, $parameters);
     }
@@ -1301,7 +1297,7 @@ class TDBMService
         if ($count > 1) {
             $additionalErrorInfos = '';
             if (is_string($filter) && !empty($parameters)) {
-                $additionalErrorInfos = ' for filter "' . $filter.'"';
+                $additionalErrorInfos = ' for filter "' . $filter . '"';
                 foreach ($parameters as $fieldName => $parameter) {
                     if (is_array($parameter)) {
                         $value = '(' . implode(',', $parameter) . ')';
@@ -1336,7 +1332,7 @@ class TDBMService
      */
     public function findObjectFromSql(string $mainTable, string $from, $filter, array $parameters, ?string $className, string $resultIteratorClass): ?AbstractTDBMObject
     {
-        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `' . ResultIterator::class . '`. `' . $resultIteratorClass . '` provided.'));
         $objects = $this->findObjectsFromSql($mainTable, $from, $filter, $parameters, null, self::MODE_ARRAY, $className, $resultIteratorClass);
         return $this->getAtMostOneObjectOrFail($objects, $mainTable, $filter, $parameters);
     }
@@ -1357,7 +1353,7 @@ class TDBMService
     public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters, ?int $mode, ?string $className, ?string $sqlCount, string $resultIteratorClass): ResultIterator
     {
         if (!is_a($resultIteratorClass, ResultIterator::class, true)) {
-            throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.');
+            throw new TDBMInvalidArgumentException('$resultIteratorClass should be a `' . ResultIterator::class . '`. `' . $resultIteratorClass . '` provided.');
         }
         // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
@@ -1388,7 +1384,7 @@ class TDBMService
      */
     public function findObjectOrFail(string $mainTable, $filter, array $parameters, array $additionalTablesFetch, string $className, string $resultIteratorClass): AbstractTDBMObject
     {
-        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `'. ResultIterator::class. '`. `' . $resultIteratorClass . '` provided.'));
+        assert(is_a($resultIteratorClass, ResultIterator::class, true), new TDBMInvalidArgumentException('$resultIteratorClass should be a `' . ResultIterator::class . '`. `' . $resultIteratorClass . '` provided.'));
         $bean = $this->findObject($mainTable, $filter, $parameters, $additionalTablesFetch, $className, $resultIteratorClass);
         if ($bean === null) {
             throw NoBeanFoundException::missFilterRecord($mainTable);
@@ -1501,9 +1497,7 @@ class TDBMService
         $table1 = $fks[0]->getForeignTableName();
         $table2 = $fks[1]->getForeignTableName();
 
-        $beanTables = array_map(function (DbRow $dbRow) {
-            return $dbRow->_getDbTableName();
-        }, $bean->_getDbRows());
+        $beanTables = array_map(fn(DbRow $dbRow) => $dbRow->_getDbTableName(), $bean->_getDbRows());
 
         if (in_array($table1, $beanTables)) {
             return [$fks[0], $fks[1]];

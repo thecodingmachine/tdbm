@@ -33,7 +33,7 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
 
     protected function compute(): void
     {
-        $key = 'FindObjectsQueryFactory_'.$this->mainTable.'__'.implode('_/_', $this->additionalTablesFetch).'__'.$this->filterString.'__'.$this->orderBy;
+        $key = 'FindObjectsQueryFactory_' . $this->mainTable . '__' . implode('_/_', $this->additionalTablesFetch) . '__' . $this->filterString . '__' . $this->orderBy;
         if ($this->cache->contains($key)) {
             [
                 $this->magicSql,
@@ -44,36 +44,34 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
             return;
         }
 
-        list($columnDescList, $columnsList, $orderString) = $this->getColumnsList($this->mainTable, $this->additionalTablesFetch, $this->orderBy, true);
+        [$columnDescList, $columnsList, $orderString] = $this->getColumnsList($this->mainTable, $this->additionalTablesFetch, $this->orderBy, true);
 
-        $sql = 'SELECT DISTINCT '.implode(', ', $columnsList).' FROM MAGICJOIN('.$this->mainTable.')';
+        $sql = 'SELECT DISTINCT ' . implode(', ', $columnsList) . ' FROM MAGICJOIN(' . $this->mainTable . ')';
 
         $pkColumnNames = $this->tdbmService->getPrimaryKeyColumns($this->mainTable);
         $mysqlPlatform = new MySqlPlatform();
-        $pkColumnNames = array_map(function ($pkColumn) use ($mysqlPlatform) {
-            return $mysqlPlatform->quoteIdentifier($this->mainTable).'.'.$mysqlPlatform->quoteIdentifier($pkColumn);
-        }, $pkColumnNames);
+        $pkColumnNames = array_map(fn($pkColumn) => $mysqlPlatform->quoteIdentifier($this->mainTable) . '.' . $mysqlPlatform->quoteIdentifier($pkColumn), $pkColumnNames);
 
-        $subQuery = 'SELECT DISTINCT '.implode(', ', $pkColumnNames).' FROM MAGICJOIN('.$this->mainTable.')';
+        $subQuery = 'SELECT DISTINCT ' . implode(', ', $pkColumnNames) . ' FROM MAGICJOIN(' . $this->mainTable . ')';
 
         if (!empty($this->filterString)) {
-            $sql .= ' WHERE '.$this->filterString;
-            $subQuery .= ' WHERE '.$this->filterString;
+            $sql .= ' WHERE ' . $this->filterString;
+            $subQuery .= ' WHERE ' . $this->filterString;
         }
 
         if (count($pkColumnNames) === 1 || $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
-            $countSql = 'SELECT COUNT(DISTINCT '.implode(', ', $pkColumnNames).') FROM MAGICJOIN('.$this->mainTable.')';
+            $countSql = 'SELECT COUNT(DISTINCT ' . implode(', ', $pkColumnNames) . ') FROM MAGICJOIN(' . $this->mainTable . ')';
             if (!empty($this->filterString)) {
-                $countSql .= ' WHERE '.$this->filterString;
+                $countSql .= ' WHERE ' . $this->filterString;
             }
         } elseif ($this->tdbmService->getConnection()->getDatabasePlatform() instanceof OraclePlatform) {
-            $countSql = 'SELECT COUNT(*) FROM ('.$subQuery.')';
+            $countSql = 'SELECT COUNT(*) FROM (' . $subQuery . ')';
         } else {
-            $countSql = 'SELECT COUNT(*) FROM ('.$subQuery.') tmp';
+            $countSql = 'SELECT COUNT(*) FROM (' . $subQuery . ') tmp';
         }
 
         if (!empty($orderString)) {
-            $sql .= ' ORDER BY '.$orderString;
+            $sql .= ' ORDER BY ' . $orderString;
         }
 
         $this->magicSql = $sql;
@@ -85,7 +83,7 @@ class FindObjectsQueryFactory extends AbstractQueryFactory
             $this->magicSql,
             $this->magicSqlCount,
             $this->columnDescList,
-            $this->magicSqlSubQuery
+            $this->magicSqlSubQuery,
         ]);
     }
 }

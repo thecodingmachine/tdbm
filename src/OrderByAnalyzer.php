@@ -61,7 +61,7 @@ class OrderByAnalyzer
      */
     public function analyzeOrderBy(string $orderBy): array
     {
-        $key = $this->cachePrefix.'_order_by_analysis_'.$orderBy;
+        $key = $this->cachePrefix . '_order_by_analysis_' . $orderBy;
         $results = $this->cache->fetch($key);
         if ($results !== false) {
             return $results;
@@ -79,7 +79,7 @@ class OrderByAnalyzer
     private function analyzeOrderByNoCache(string $orderBy): array
     {
         $sqlParser = new PHPSQLParser();
-        $sql = 'SELECT 1 FROM a ORDER BY '.$orderBy;
+        $sql = 'SELECT 1 FROM a ORDER BY ' . $orderBy;
         $parsed = $sqlParser->parse($sql, true);
 
         $results = [];

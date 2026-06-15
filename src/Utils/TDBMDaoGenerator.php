@@ -93,13 +93,9 @@ class TDBMDaoGenerator
 
         // Remove all beans and daos from junction tables
         $junctionTables = $this->configuration->getSchemaAnalyzer()->detectJunctionTables(true);
-        $junctionTableNames = array_map(function (Table $table) {
-            return $table->getName();
-        }, $junctionTables);
+        $junctionTableNames = array_map(fn(Table $table) => $table->getName(), $junctionTables);
 
-        $tableList = array_filter($tableList, function (Table $table) use ($junctionTableNames) {
-            return !in_array($table->getName(), $junctionTableNames, true);
-        });
+        $tableList = array_filter($tableList, fn(Table $table) => !in_array($table->getName(), $junctionTableNames, true));
 
         $this->cleanUpGenerated();
 
@@ -132,19 +128,19 @@ class TDBMDaoGenerator
      */
     private function cleanUpGenerated(): void
     {
-        $generatedBeanDir = $this->configuration->getPathFinder()->getPath($this->configuration->getBeanNamespace().'\\Generated\\Xxx')->getPath();
+        $generatedBeanDir = $this->configuration->getPathFinder()->getPath($this->configuration->getBeanNamespace() . '\\Generated\\Xxx')->getPath();
         $this->deleteAllPhpFiles($generatedBeanDir);
 
-        $generatedDaoDir = $this->configuration->getPathFinder()->getPath($this->configuration->getDaoNamespace().'\\Generated\\Xxx')->getPath();
+        $generatedDaoDir = $this->configuration->getPathFinder()->getPath($this->configuration->getDaoNamespace() . '\\Generated\\Xxx')->getPath();
         $this->deleteAllPhpFiles($generatedDaoDir);
 
-        $generatedResultIteratorDir = $this->configuration->getPathFinder()->getPath($this->configuration->getResultIteratorNamespace().'\\Generated\\Xxx')->getPath();
+        $generatedResultIteratorDir = $this->configuration->getPathFinder()->getPath($this->configuration->getResultIteratorNamespace() . '\\Generated\\Xxx')->getPath();
         $this->deleteAllPhpFiles($generatedResultIteratorDir);
     }
 
     private function deleteAllPhpFiles(string $directory): void
     {
-        $files = glob($directory.'/*.php', GLOB_NOSORT);
+        $files = glob($directory . '/*.php', GLOB_NOSORT);
         if ($files === false) {
             return;
         }
@@ -170,7 +166,7 @@ class TDBMDaoGenerator
             return;
         }
 
-        $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($beannamespace.'\\Generated\\'.$baseClassName)->getPathname();
+        $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($beannamespace . '\\Generated\\' . $baseClassName)->getPathname();
 
         $fileContent = $file->generate();
 
@@ -182,7 +178,7 @@ class TDBMDaoGenerator
 
         $this->dumpFile($possibleBaseFileName, $fileContent);
 
-        $possibleFileName = $this->configuration->getPathFinder()->getPath($beannamespace.'\\'.$className)->getPathname();
+        $possibleFileName = $this->configuration->getPathFinder()->getPath($beannamespace . '\\' . $className)->getPathname();
 
         if (!file_exists($possibleFileName)) {
             $tableName = $table->getName();
@@ -232,7 +228,7 @@ class $className extends $baseClassName
 
         $beanClassWithoutNameSpace = $beanClassName;
 
-        $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($daonamespace.'\\Generated\\'.$baseClassName)->getPathname();
+        $possibleBaseFileName = $this->configuration->getPathFinder()->getPath($daonamespace . '\\Generated\\' . $baseClassName)->getPathname();
 
         $fileContent = $file->generate();
 
@@ -245,7 +241,7 @@ class $className extends $baseClassName
         $this->dumpFile($possibleBaseFileName, $fileContent);
 
 
-        $possibleFileName = $this->configuration->getPathFinder()->getPath($daonamespace.'\\'.$className)->getPathname();
+        $possibleFileName = $this->configuration->getPathFinder()->getPath($daonamespace . '\\' . $className)->getPathname();
 
         // Now, let's generate the "editable" class
         if (!file_exists($possibleFileName)) {
@@ -300,10 +296,10 @@ class $className extends $baseClassName
         $commentEnd = strpos($fileContent, ' */') + 3;
         $fileContent = substr($fileContent, 0, $commentEnd) . "\n\ndeclare(strict_types=1);" . substr($fileContent, $commentEnd + 1);
 
-        $baseResultIteratorFilePath = $this->configuration->getPathFinder()->getPath($resultIteratorBaseNamespace.'\\'.$resultIteratorBaseClassName)->getPathname();
+        $baseResultIteratorFilePath = $this->configuration->getPathFinder()->getPath($resultIteratorBaseNamespace . '\\' . $resultIteratorBaseClassName)->getPathname();
         $this->dumpFile($baseResultIteratorFilePath, $fileContent);
 
-        $resultIteratorFilePath = $this->configuration->getPathFinder()->getPath($resultIteratorNamespace.'\\'.$resultIteratorClassName)->getPathname();
+        $resultIteratorFilePath = $this->configuration->getPathFinder()->getPath($resultIteratorNamespace . '\\' . $resultIteratorClassName)->getPathname();
         // Now, let's generate the "editable" class
         if (!file_exists($resultIteratorFilePath)) {
             $str = "<?php
@@ -344,21 +340,21 @@ class $resultIteratorClassName extends $resultIteratorBaseClassName
         $file->setDocBlock(
             new DocBlockGenerator(
                 <<<DOC
-This file has been automatically generated by TDBM.
-DO NOT edit this file, as it might be overwritten.
-DOC
+                    This file has been automatically generated by TDBM.
+                    DO NOT edit this file, as it might be overwritten.
+                    DOC
             )
         );
         $class = new ClassGenerator();
         $file->setClass($class);
         $class->setName($daoFactoryClassName);
-        $file->setNamespace($daoNamespace.'\\Generated');
+        $file->setNamespace($daoNamespace . '\\Generated');
 
         $class->setDocBlock(new DocBlockGenerator("The $daoFactoryClassName provides an easy access to all DAOs generated by TDBM."));
 
         $containerProperty = new PropertyGenerator('container');
         $containerProperty->setVisibility(AbstractMemberGenerator::VISIBILITY_PRIVATE);
-        $containerProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, ['\\'.ContainerInterface::class])]));
+        $containerProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, ['\\' . ContainerInterface::class])]));
         $class->addPropertyFromGenerator($containerProperty);
 
         $constructorMethod = new MethodGenerator(
@@ -382,14 +378,14 @@ DOC
             $daoInstanceProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, ['\\' . $daoNamespace . '\\' . $daoClassName, 'null'])]));
             $class->addPropertyFromGenerator($daoInstanceProperty);
 
-            $fullClassNameVarExport = var_export($daoNamespace.'\\'.$daoClassName, true);
+            $fullClassNameVarExport = var_export($daoNamespace . '\\' . $daoClassName, true);
             $getterBody = <<<BODY
-if (!\$this->$daoInstanceName) {
-    \$this->$daoInstanceName = \$this->container->get($fullClassNameVarExport);
-}
+                if (!\$this->$daoInstanceName) {
+                    \$this->$daoInstanceName = \$this->container->get($fullClassNameVarExport);
+                }
 
-return \$this->$daoInstanceName;
-BODY;
+                return \$this->$daoInstanceName;
+                BODY;
 
             $getterMethod = new MethodGenerator(
                 'get' . $daoClassName,
@@ -397,7 +393,7 @@ BODY;
                 MethodGenerator::FLAG_PUBLIC,
                 $getterBody
             );
-            $getterMethod->setReturnType($daoNamespace.'\\'.$daoClassName);
+            $getterMethod->setReturnType($daoNamespace . '\\' . $daoClassName);
             $getterMethod = $this->configuration->getCodeGeneratorListener()->onDaoFactoryGetterGenerated($getterMethod, $beanDescriptor, $this->configuration, $class);
             if ($getterMethod !== null) {
                 $class->addMethodFromGenerator($getterMethod);
@@ -419,7 +415,7 @@ BODY;
         $file = $this->configuration->getCodeGeneratorListener()->onDaoFactoryGenerated($file, $beanDescriptors, $this->configuration);
 
         if ($file !== null) {
-            $possibleFileName = $this->configuration->getPathFinder()->getPath($daoNamespace.'\\Generated\\'.$daoFactoryClassName)->getPathname();
+            $possibleFileName = $this->configuration->getPathFinder()->getPath($daoNamespace . '\\Generated\\' . $daoFactoryClassName)->getPathname();
 
             $fileContent = $file->generate();
 
@@ -444,9 +440,9 @@ BODY;
      */
     public static function toCamelCase(string $str): string
     {
-        $str = str_replace(array('`', '"', '[', ']'), '', $str);
+        $str = str_replace(['`', '"', '[', ']'], '', $str);
 
-        $str = strtoupper(substr($str, 0, 1)).substr($str, 1);
+        $str = strtoupper(substr($str, 0, 1)) . substr($str, 1);
         while (true) {
             $pos = strpos($str, '_');
             if ($pos === false) {
@@ -458,7 +454,7 @@ BODY;
 
             $before = substr($str, 0, $pos);
             $after = substr($str, $pos + 1);
-            $str = $before.strtoupper(substr($after, 0, 1)).substr($after, 1);
+            $str = $before . strtoupper(substr($after, 0, 1)) . substr($after, 1);
         }
 
         return $str;
@@ -504,7 +500,7 @@ BODY;
      */
     public static function toVariableName(string $str): string
     {
-        return strtolower(substr($str, 0, 1)).substr($str, 1);
+        return strtolower(substr($str, 0, 1)) . substr($str, 1);
     }
 
     /**
@@ -519,10 +515,10 @@ BODY;
         $dirName = dirname($fileName);
         if (!file_exists($dirName)) {
             $old = umask(0);
-            $result = mkdir($dirName, 0775, true);
+            $result = mkdir($dirName, 0o775, true);
             umask($old);
             if ($result === false) {
-                throw new TDBMException("Unable to create directory: '".$dirName."'.");
+                throw new TDBMException("Unable to create directory: '" . $dirName . "'.");
             }
         }
     }
@@ -532,7 +528,7 @@ BODY;
         $this->ensureDirectoryExist($fileName);
         $fileSystem = new Filesystem();
         $fileSystem->dumpFile($fileName, $content);
-        @chmod($fileName, 0664);
+        @chmod($fileName, 0o664);
     }
 
     /**

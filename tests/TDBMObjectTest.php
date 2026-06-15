@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM;
 
 use PHPUnit\Framework\TestCase;
 
 class TDBMObjectTest extends TestCase
 {
-    public function testJsonSerialize()
+    public function testJsonSerialize(): void
     {
         $object = new TDBMObject();
         $this->expectException(TDBMException::class);

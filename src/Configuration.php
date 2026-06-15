@@ -256,7 +256,7 @@ class Configuration implements ConfigurationInterface
      */
     public static function getDefaultLockFilePath(): string
     {
-        return RootProjectLocator::getRootLocationPath().'tdbm.lock.yml';
+        return RootProjectLocator::getRootLocationPath() . 'tdbm.lock.yml';
     }
 
     public function getLockFilePath(): string

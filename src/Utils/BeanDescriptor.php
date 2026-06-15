@@ -215,9 +215,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      */
     public function getConstructorProperties(): array
     {
-        $constructorProperties = array_filter($this->beanPropertyDescriptors, static function (AbstractBeanPropertyDescriptor $property) {
-            return !$property instanceof InheritanceReferencePropertyDescriptor && $property->isCompulsory() && !$property->isReadOnly();
-        });
+        $constructorProperties = array_filter($this->beanPropertyDescriptors, static fn(AbstractBeanPropertyDescriptor $property) => !$property instanceof InheritanceReferencePropertyDescriptor && $property->isCompulsory() && !$property->isReadOnly());
 
         return $constructorProperties;
     }
@@ -230,9 +228,7 @@ class BeanDescriptor implements BeanDescriptorInterface
     public function getPropertiesWithDefault(): array
     {
         $properties = $this->getPropertiesForTable($this->table);
-        $defaultProperties = array_filter($properties, function (AbstractBeanPropertyDescriptor $property) {
-            return $property->hasDefault();
-        });
+        $defaultProperties = array_filter($properties, fn(AbstractBeanPropertyDescriptor $property) => $property->hasDefault());
 
         return $defaultProperties;
     }
@@ -244,9 +240,7 @@ class BeanDescriptor implements BeanDescriptorInterface
      */
     public function getExposedProperties(): array
     {
-        $exposedProperties = array_filter($this->beanPropertyDescriptors, function (AbstractBeanPropertyDescriptor $property) {
-            return !$property instanceof InheritanceReferencePropertyDescriptor && $property->getTable()->getName() === $this->table->getName();
-        });
+        $exposedProperties = array_filter($this->beanPropertyDescriptors, fn(AbstractBeanPropertyDescriptor $property) => !$property instanceof InheritanceReferencePropertyDescriptor && $property->getTable()->getName() === $this->table->getName());
 
         return $exposedProperties;
     }
@@ -387,7 +381,7 @@ class BeanDescriptor implements BeanDescriptorInterface
             $constructorDocBlock->setTag($property->getParamAnnotation());
 
             if ($property->getTable()->getName() === $this->table->getName()) {
-                $assigns[] = $property->getConstructorAssignCode()."\n";
+                $assigns[] = $property->getConstructorAssignCode() . "\n";
             } else {
                 $parentConstructorArguments[] = $property->getSafeVariableName();
             }
@@ -396,7 +390,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         $parentConstructorCode = sprintf("parent::__construct(%s);\n", implode(', ', $parentConstructorArguments));
 
         foreach ($this->getPropertiesWithDefault() as $property) {
-            $assigns[] = $property->assignToDefaultCode()."\n";
+            $assigns[] = $property->assignToDefaultCode() . "\n";
         }
 
         $body = $parentConstructorCode . implode('', $assigns);
@@ -444,13 +438,13 @@ class BeanDescriptor implements BeanDescriptorInterface
             $fks = array_values($table->getForeignKeys());
 
             if ($fks[0]->getForeignTableName() === $this->table->getName()) {
-                list($localFk, $remoteFk) = $fks;
+                [$localFk, $remoteFk] = $fks;
                 $desc = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->annotationParser, $this->beanNamespace, $this->resultIteratorNamespace);
                 $this->checkForDuplicate($desc);
                 $descs[] = $desc;
             }
             if ($fks[1]->getForeignTableName() === $this->table->getName()) {
-                list($remoteFk, $localFk) = $fks;
+                [$remoteFk, $localFk] = $fks;
                 $desc = new PivotTableMethodsDescriptor($table, $localFk, $remoteFk, $this->namingStrategy, $this->annotationParser, $this->beanNamespace, $this->resultIteratorNamespace);
                 $this->checkForDuplicate($desc);
                 $descs[] = $desc;
@@ -473,9 +467,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         $this->descriptorsByMethodName[$name][] = $descriptor;
         $descriptors = $this->descriptorsByMethodName[$name];
         if (count($descriptors) > 1) {
-            $properties = array_filter($descriptors, function ($descriptor) {
-                return $descriptor instanceof AbstractBeanPropertyDescriptor;
-            });
+            $properties = array_filter($descriptors, fn($descriptor) => $descriptor instanceof AbstractBeanPropertyDescriptor);
             $renameProperties = count($properties) > 1;
 
             foreach ($descriptors as $descriptor) {
@@ -510,7 +502,7 @@ class BeanDescriptor implements BeanDescriptorInterface
             null,
             [
                 new ParamTag('$stopRecursion', ['bool'], 'Parameter used internally by TDBM to stop embedded objects from embedding other objects.'),
-                new ReturnTag(['array'])
+                new ReturnTag(['array']),
             ]
         ));
         $method->setParameter(new ParameterGenerator('stopRecursion', 'bool', false));
@@ -595,7 +587,7 @@ class BeanDescriptor implements BeanDescriptorInterface
         $classes = $this->generateExtendsAndUseStatements($parentFk);
 
         foreach ($classes as $useClass) {
-            $file->setUse($this->beanNamespace.'\\'.$useClass);
+            $file->setUse($this->beanNamespace . '\\' . $useClass);
         }
 
         /*$uses = array_map(function ($className) {
@@ -623,9 +615,9 @@ class BeanDescriptor implements BeanDescriptorInterface
         $file->setDocBlock(new DocBlockGenerator(
             'This file has been automatically generated by TDBM.',
             <<<EOF
-DO NOT edit this file, as it might be overwritten.
-If you need to perform changes, edit the $className class instead!
-EOF
+                DO NOT edit this file, as it might be overwritten.
+                If you need to perform changes, edit the $className class instead!
+                EOF
         ));
 
         $class->setDocBlock(new DocBlockGenerator("The $baseClassName class maps the '$tableName' table in database."));
@@ -699,7 +691,7 @@ EOF
         $foreignKeysProperty = new PropertyGenerator('foreignKeys');
         $foreignKeysProperty->setStatic(true);
         $foreignKeysProperty->setVisibility(AbstractMemberGenerator::VISIBILITY_PRIVATE);
-        $foreignKeysProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, ['\\'.ForeignKeys::class])]));
+        $foreignKeysProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, ['\\' . ForeignKeys::class])]));
         $class->addPropertyFromGenerator($foreignKeysProperty);
 
         $method = $this->generateGetForeignKeys($fks);
@@ -763,14 +755,14 @@ EOF
 
         $primaryKeyColumns = TDBMDaoGenerator::getPrimaryKeyColumnsOrFail($this->table);
 
-        list($defaultSort, $defaultSortDirection) = $this->getDefaultSortColumnFromAnnotation($this->table);
+        [$defaultSort, $defaultSortDirection] = $this->getDefaultSortColumnFromAnnotation($this->table);
 
         $className = $this->namingStrategy->getDaoClassName($tableName);
         $baseClassName = $this->namingStrategy->getBaseDaoClassName($tableName);
         $beanClassWithoutNameSpace = $this->namingStrategy->getBeanClassName($tableName);
-        $beanClassName = $this->beanNamespace.'\\'.$beanClassWithoutNameSpace;
+        $beanClassName = $this->beanNamespace . '\\' . $beanClassWithoutNameSpace;
         $resultIteratorClassWithoutNameSpace = $this->getResultIteratorClassName();
-        $resultIteratorClass = $this->resultIteratorNamespace.'\\'.$resultIteratorClassWithoutNameSpace;
+        $resultIteratorClass = $this->resultIteratorNamespace . '\\' . $resultIteratorClassWithoutNameSpace;
 
         $findByDaoCodeMethods = $this->generateFindByDaoCode($this->beanNamespace, $beanClassWithoutNameSpace, $class);
 
@@ -783,10 +775,10 @@ EOF
 
         $file->setDocBlock(new DocBlockGenerator(
             <<<EOF
-This file has been automatically generated by TDBM.
-DO NOT edit this file, as it might be overwritten.
-If you need to perform changes, edit the $className class instead!
-EOF
+                This file has been automatically generated by TDBM.
+                DO NOT edit this file, as it might be overwritten.
+                If you need to perform changes, edit the $className class instead!
+                EOF
         ));
 
         $file->setNamespace($this->generatedDaoNamespace);
@@ -814,7 +806,7 @@ EOF
         $this->registerTraits($class, AddTraitOnDao::class);
 
         $tdbmServiceProperty = new PropertyGenerator('tdbmService');
-        $tdbmServiceProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, ['\\'.TDBMService::class])]));
+        $tdbmServiceProperty->setDocBlock(new DocBlockGenerator(null, null, [new VarTag(null, ['\\' . TDBMService::class])]));
         $class->addPropertyFromGenerator($tdbmServiceProperty);
 
         $defaultSortProperty = new PropertyGenerator('defaultSort', $defaultSort);
@@ -846,7 +838,7 @@ EOF
                 "Persist the $beanClassWithoutNameSpace instance.",
                 null,
                 [
-                    new ParamTag('obj', [$beanClassWithoutNameSpace], 'The bean to save.')
+                    new ParamTag('obj', [$beanClassWithoutNameSpace], 'The bean to save.'),
                 ]
             ))->setWordWrap(false)
         );
@@ -858,13 +850,13 @@ EOF
         }
 
         $findAllBody = <<<EOF
-if (\$this->defaultSort) {
-    \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
-} else {
-    \$orderBy = null;
-}
-return \$this->tdbmService->findObjects('$tableName', null, [], \$orderBy, [], null, \\$beanClassName::class, \\$resultIteratorClass::class);
-EOF;
+            if (\$this->defaultSort) {
+                \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
+            } else {
+                \$orderBy = null;
+            }
+            return \$this->tdbmService->findObjects('$tableName', null, [], \$orderBy, [], null, \\$beanClassName::class, \\$resultIteratorClass::class);
+            EOF;
 
         $findAllMethod = new MethodGenerator(
             'findAll',
@@ -896,8 +888,8 @@ EOF;
             }
             $parameters[] = new ParameterGenerator($lazyLoadingParameterName, 'bool', false);
             $parametersTag[] = new ParamTag($lazyLoadingParameterName, ['bool'], 'If set to true, the object will not be loaded right away. Instead, it will be loaded when you first try to access a method of the object.');
-            $parametersTag[] = new ReturnTag(['\\'.$beanClassName]);
-            $parametersTag[] = new ThrowsTag('\\'.TDBMException::class);
+            $parametersTag[] = new ReturnTag(['\\' . $beanClassName]);
+            $parametersTag[] = new ThrowsTag('\\' . TDBMException::class);
 
             $getByIdMethod = new MethodGenerator(
                 'getById',
@@ -918,19 +910,19 @@ EOF;
         }
 
         $deleteMethodBody = <<<EOF
-if (\$cascade === true) {
-    \$this->tdbmService->deleteCascade(\$obj);
-} else {
-    \$this->tdbmService->delete(\$obj);
-}
-EOF;
+            if (\$cascade === true) {
+                \$this->tdbmService->deleteCascade(\$obj);
+            } else {
+                \$this->tdbmService->delete(\$obj);
+            }
+            EOF;
 
 
         $deleteMethod = new MethodGenerator(
             'delete',
             [
                 new ParameterGenerator('obj', $beanClassName),
-                new ParameterGenerator('cascade', 'bool', false)
+                new ParameterGenerator('cascade', 'bool', false),
             ],
             MethodGenerator::FLAG_PUBLIC,
             $deleteMethodBody,
@@ -938,7 +930,7 @@ EOF;
                 "Get all $beanClassWithoutNameSpace records.",
                 null,
                 [
-                    new ParamTag('obj', ['\\'.$beanClassName], 'The object to delete'),
+                    new ParamTag('obj', ['\\' . $beanClassName], 'The object to delete'),
                     new ParamTag('cascade', ['bool'], 'If true, it will delete all objects linked to $obj'),
                 ]
             ))->setWordWrap(false)
@@ -950,11 +942,11 @@ EOF;
         }
 
         $findMethodBody = <<<EOF
-if (\$this->defaultSort && \$orderBy == null) {
-    \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
-}
-return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderBy, \$additionalTablesFetch, \$mode, \\$beanClassName::class, \\$resultIteratorClass::class);
-EOF;
+            if (\$this->defaultSort && \$orderBy == null) {
+                \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
+            }
+            return \$this->tdbmService->findObjects('$tableName', \$filter, \$parameters, \$orderBy, \$additionalTablesFetch, \$mode, \\$beanClassName::class, \\$resultIteratorClass::class);
+            EOF;
 
 
         $findMethod = new MethodGenerator(
@@ -976,7 +968,7 @@ EOF;
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the filter'),
                     new ParamTag('orderBy', ['mixed'], 'The order string'),
                     new ParamTag('additionalTablesFetch', ['string[]'], 'A list of additional tables to fetch (for performance improvement)'),
-                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.')
+                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.'),
                 ]
             ))->setWordWrap(false)
         );
@@ -987,11 +979,11 @@ EOF;
         }
 
         $findFromSqlMethodBody = <<<EOF
-if (\$this->defaultSort && \$orderBy == null) {
-    \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
-}
-return \$this->tdbmService->findObjectsFromSql('$tableName', \$from, \$filter, \$parameters, \$orderBy, \$mode, \\$beanClassName::class, \\$resultIteratorClass::class);
-EOF;
+            if (\$this->defaultSort && \$orderBy == null) {
+                \$orderBy = '$tableName.'.\$this->defaultSort.' '.\$this->defaultDirection;
+            }
+            return \$this->tdbmService->findObjectsFromSql('$tableName', \$from, \$filter, \$parameters, \$orderBy, \$mode, \\$beanClassName::class, \\$resultIteratorClass::class);
+            EOF;
 
         $findFromSqlMethod = new MethodGenerator(
             'findFromSql',
@@ -1007,18 +999,20 @@ EOF;
             $findFromSqlMethodBody,
             (new DocBlockGenerator(
                 "Get a list of $beanClassWithoutNameSpace specified by its filters.",
-                "Unlike the `find` method that guesses the FROM part of the statement, here you can pass the \$from part.
+                <<<EOF
+                    Unlike the `find` method that guesses the FROM part of the statement, here you can pass the \$from part.
 
-You should not put an alias on the main table name. So your \$from variable should look like:
+                    You should not put an alias on the main table name. So your \$from variable should look like:
 
-   \"$tableName JOIN ... ON ...\"",
+                       "$tableName JOIN ... ON ..."
+                    EOF,
                 [
                     new ParamTag('from', ['string'], 'The sql from statement'),
                     new ParamTag('filter', ['mixed'], 'The filter bag (see TDBMService::findObjects for complete description)'),
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the filter'),
                     new ParamTag('orderBy', ['mixed'], 'The order string'),
                     new ParamTag('additionalTablesFetch', ['string[]'], 'A list of additional tables to fetch (for performance improvement)'),
-                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.')
+                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.'),
                 ]
             ))->setWordWrap(false)
         );
@@ -1029,8 +1023,8 @@ You should not put an alias on the main table name. So your \$from variable shou
         }
 
         $findFromRawSqlMethodBody = <<<EOF
-return \$this->tdbmService->findObjectsFromRawSql('$tableName', \$sql, \$parameters, \$mode, \\$beanClassName::class, \$countSql, \\$resultIteratorClass::class);
-EOF;
+            return \$this->tdbmService->findObjectsFromRawSql('$tableName', \$sql, \$parameters, \$mode, \\$beanClassName::class, \$countSql, \\$resultIteratorClass::class);
+            EOF;
 
         $findFromRawSqlMethod = new MethodGenerator(
             'findFromRawSql',
@@ -1044,16 +1038,18 @@ EOF;
             $findFromRawSqlMethodBody,
             (new DocBlockGenerator(
                 "Get a list of $beanClassWithoutNameSpace from a SQL query.",
-                "Unlike the `find` and `findFromSql` methods, here you can pass the whole \$sql query.
+                <<<EOF
+                    Unlike the `find` and `findFromSql` methods, here you can pass the whole \$sql query.
 
-You should not put an alias on the main table name, and select its columns using `*`. So the SELECT part of you \$sql should look like:
+                    You should not put an alias on the main table name, and select its columns using `*`. So the SELECT part of you \$sql should look like:
 
-   \"SELECT $tableName .* FROM ...\"",
+                       "SELECT $tableName .* FROM ..."
+                    EOF,
                 [
                     new ParamTag('sql', ['string'], 'The sql query'),
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the query'),
                     new ParamTag('countSql', ['string', 'null'], 'The sql query that provides total count of rows (automatically computed if not provided)'),
-                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.')
+                    new ParamTag('mode', ['int', 'null'], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.'),
                 ]
             ))->setWordWrap(false)
         );
@@ -1064,8 +1060,8 @@ You should not put an alias on the main table name, and select its columns using
         }
 
         $findOneMethodBody = <<<EOF
-return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters, \$additionalTablesFetch, \\$beanClassName::class, \\$resultIteratorClass::class);
-EOF;
+            return \$this->tdbmService->findObject('$tableName', \$filter, \$parameters, \$additionalTablesFetch, \\$beanClassName::class, \\$resultIteratorClass::class);
+            EOF;
 
 
         $findOneMethod = new MethodGenerator(
@@ -1084,7 +1080,7 @@ EOF;
                     new ParamTag('filter', ['mixed'], 'The filter bag (see TDBMService::findObjects for complete description)'),
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the filter'),
                     new ParamTag('additionalTablesFetch', ['string[]'], 'A list of additional tables to fetch (for performance improvement)'),
-                    new ReturnTag(['\\'.$beanClassName, 'null'])
+                    new ReturnTag(['\\' . $beanClassName, 'null']),
                 ]
             ))->setWordWrap(false)
         );
@@ -1095,8 +1091,8 @@ EOF;
         }
 
         $findOneFromSqlMethodBody = <<<EOF
-return \$this->tdbmService->findObjectFromSql('$tableName', \$from, \$filter, \$parameters, \\$beanClassName::class, \\$resultIteratorClass::class);
-EOF;
+            return \$this->tdbmService->findObjectFromSql('$tableName', \$from, \$filter, \$parameters, \\$beanClassName::class, \\$resultIteratorClass::class);
+            EOF;
 
         $findOneFromSqlMethod = new MethodGenerator(
             'findOneFromSql',
@@ -1109,16 +1105,18 @@ EOF;
             $findOneFromSqlMethodBody,
             (new DocBlockGenerator(
                 "Get a single $beanClassWithoutNameSpace specified by its filters.",
-                "Unlike the `findOne` method that guesses the FROM part of the statement, here you can pass the \$from part.
+                <<<EOF
+                    Unlike the `findOne` method that guesses the FROM part of the statement, here you can pass the \$from part.
 
-You should not put an alias on the main table name. So your \$from variable should look like:
+                    You should not put an alias on the main table name. So your \$from variable should look like:
 
-    \"$tableName JOIN ... ON ...\"",
+                        "$tableName JOIN ... ON ..."
+                    EOF,
                 [
                     new ParamTag('from', ['string'], 'The sql from statement'),
                     new ParamTag('filter', ['mixed'], 'The filter bag (see TDBMService::findObjects for complete description)'),
                     new ParamTag('parameters', ['mixed[]'], 'The parameters associated with the filter'),
-                    new ReturnTag(['\\'.$beanClassName, 'null'])
+                    new ReturnTag(['\\' . $beanClassName, 'null']),
                 ]
             ))->setWordWrap(false)
         );
@@ -1176,14 +1174,14 @@ You should not put an alias on the main table name. So your \$from variable shou
         $className = $this->namingStrategy->getResultIteratorClassName($tableName);
         $baseClassName = $this->namingStrategy->getBaseResultIteratorClassName($tableName);
         $beanClassWithoutNameSpace = $this->namingStrategy->getBeanClassName($tableName);
-        $beanClassName = $this->beanNamespace.'\\'.$beanClassWithoutNameSpace;
+        $beanClassName = $this->beanNamespace . '\\' . $beanClassWithoutNameSpace;
 
         $file->setDocBlock(new DocBlockGenerator(
             <<<EOF
-This file has been automatically generated by TDBM.
-DO NOT edit this file, as it might be overwritten.
-If you need to perform changes, edit the $classNameWithoutNamespace class instead!
-EOF
+                This file has been automatically generated by TDBM.
+                DO NOT edit this file, as it might be overwritten.
+                If you need to perform changes, edit the $classNameWithoutNamespace class instead!
+                EOF
         ));
         $class->setName($baseClassName);
         $extends = $this->getExtendedResultIteratorClassName();
@@ -1255,9 +1253,7 @@ EOF
                 }
             }
         }
-        usort($methods, static function (MethodGenerator $methodA, MethodGenerator $methodB) {
-            return $methodA->getName() <=> $methodB->getName();
-        });
+        usort($methods, static fn(MethodGenerator $methodA, MethodGenerator $methodB) => $methodA->getName() <=> $methodB->getName());
 
         return $methods;
     }
@@ -1350,7 +1346,7 @@ EOF
                         var_export($typeName, true)
                     );
                 } else {
-                    $filterArrayCode .= '    '.var_export($element->getColumnName(), true).' => '.$element->getSafeVariableName().",\n";
+                    $filterArrayCode .= '    ' . var_export($element->getColumnName(), true) . ' => ' . $element->getSafeVariableName() . ",\n";
                 }
             } elseif ($element instanceof ObjectBeanPropertyDescriptor) {
                 $foreignKey = $element->getForeignKey();
@@ -1361,10 +1357,10 @@ EOF
                     $targetedElement = new ScalarBeanPropertyDescriptor($foreignTable, $foreignTable->getColumn($foreignColumn), $this->namingStrategy, $this->annotationParser);
                     if ($first || ($element->isCompulsory() && $index->isUnique())) {
                         // First parameter for index is not nullable
-                        $filterArrayCode .= '    '.var_export($localColumn, true).' => '.$element->getSafeVariableName().'->'.$targetedElement->getGetterName()."(),\n";
+                        $filterArrayCode .= '    ' . var_export($localColumn, true) . ' => ' . $element->getSafeVariableName() . '->' . $targetedElement->getGetterName() . "(),\n";
                     } else {
                         // Other parameters for index is not nullable
-                        $filterArrayCode .= '    '.var_export($localColumn, true).' => ('.$element->getSafeVariableName().' !== null) ? '.$element->getSafeVariableName().'->'.$targetedElement->getGetterName()."() : null,\n";
+                        $filterArrayCode .= '    ' . var_export($localColumn, true) . ' => (' . $element->getSafeVariableName() . ' !== null) ? ' . $element->getSafeVariableName() . '->' . $targetedElement->getGetterName() . "() : null,\n";
                     }
                 }
             }
@@ -1381,16 +1377,18 @@ EOF
         if ($index->isUnique()) {
             $parameters[] = new ParameterGenerator('additionalTablesFetch', 'array', []);
             $params[] = new ParamTag('additionalTablesFetch', [ 'string[]' ], 'A list of additional tables to fetch (for performance improvement)');
-            $params[] = new ReturnTag([ '\\'.$beanNamespace.'\\'.$beanClassName, 'null' ]);
-            $method->setReturnType('?\\'.$beanNamespace.'\\'.$beanClassName);
+            $params[] = new ReturnTag(['\\' . $beanNamespace . '\\' . $beanClassName, 'null']);
+            $method->setReturnType('?\\' . $beanNamespace . '\\' . $beanClassName);
 
-            $docBlock = new DocBlockGenerator("Get a $beanClassName filtered by ".implode(', ', $commentArguments). '.', null, $params);
+            $docBlock = new DocBlockGenerator("Get a $beanClassName filtered by " . implode(', ', $commentArguments) . '.', null, $params);
             $docBlock->setWordWrap(false);
 
-            $body = "\$filter = [
-".$filterArrayCode."];
-return \$this->findOne(\$filter, [], \$additionalTablesFetch);
-";
+            $body = <<<EOF
+                \$filter = [
+                {$filterArrayCode}];
+                return \$this->findOne(\$filter, [], \$additionalTablesFetch);
+
+                EOF;
         } else {
             $parameters[] = (new ParameterGenerator('orderBy'))->setDefaultValue(null);
             $params[] = new ParamTag('orderBy', [ 'mixed' ], 'The order string');
@@ -1400,13 +1398,15 @@ return \$this->findOne(\$filter, [], \$additionalTablesFetch);
             $params[] = new ParamTag('mode', [ 'int', 'null' ], 'Either TDBMService::MODE_ARRAY or TDBMService::MODE_CURSOR (for large datasets). Defaults to TDBMService::MODE_ARRAY.');
             $method->setReturnType($this->resultIteratorNamespace . '\\' . $this->getResultIteratorClassName());
 
-            $docBlock = new DocBlockGenerator("Get a list of $beanClassName filtered by ".implode(', ', $commentArguments).".", null, $params);
+            $docBlock = new DocBlockGenerator("Get a list of $beanClassName filtered by " . implode(', ', $commentArguments) . ".", null, $params);
             $docBlock->setWordWrap(false);
 
-            $body = "\$filter = [
-".$filterArrayCode."];
-return \$this->find(\$filter, [], \$orderBy, \$additionalTablesFetch, \$mode);
-";
+            $body = <<<EOF
+                \$filter = [
+                {$filterArrayCode}];
+                return \$this->find(\$filter, [], \$orderBy, \$additionalTablesFetch, \$mode);
+
+                EOF;
         }
 
         $method->setParameters($parameters);
@@ -1425,10 +1425,12 @@ return \$this->find(\$filter, [], \$orderBy, \$additionalTablesFetch, \$mode);
     {
         $hasParentRelationship = $this->schemaAnalyzer->getParentRelationship($this->table->getName()) !== null;
         if ($hasParentRelationship) {
-            $code = sprintf('$tables = parent::getUsedTables();
-$tables[] = %s;
+            $code = sprintf(<<<'EOF'
+                $tables = parent::getUsedTables();
+                $tables[] = %s;
 
-return $tables;', var_export($this->table->getName(), true));
+                return $tables;
+                EOF, var_export($this->table->getName(), true));
         } else {
             $code = sprintf('        return [ %s ];', var_export($this->table->getName(), true));
         }
@@ -1499,10 +1501,10 @@ return $tables;', var_export($this->table->getName(), true));
         $parameter->setType('string');
         $method->setParameter($parameter);
 
-        $code = 'switch ($pathKey) {'."\n";
+        $code = 'switch ($pathKey) {' . "\n";
         foreach ($pivotTableMethodsDescriptors as $pivotTableMethodsDescriptor) {
-            $code .= '    case '.var_export($pivotTableMethodsDescriptor->getManyToManyRelationshipKey(), true).":\n";
-            $code .= '        return '.$pivotTableMethodsDescriptor->getManyToManyRelationshipInstantiationCode().";\n";
+            $code .= '    case ' . var_export($pivotTableMethodsDescriptor->getManyToManyRelationshipKey(), true) . ":\n";
+            $code .= '        return ' . $pivotTableMethodsDescriptor->getManyToManyRelationshipInstantiationCode() . ";\n";
         }
         $code .= "    default:\n";
         $code .= "        return parent::_getManyToManyRelationshipDescriptor(\$pathKey);\n";
@@ -1537,7 +1539,7 @@ return $tables;', var_export($this->table->getName(), true));
             $keys[] = var_export($pivotTableMethodsDescriptor->getManyToManyRelationshipKey(), true);
         }
 
-        $code = 'return array_merge(parent::_getManyToManyRelationshipDescriptorKeys(), ['.implode(', ', $keys).']);';
+        $code = 'return array_merge(parent::_getManyToManyRelationshipDescriptorKeys(), [' . implode(', ', $keys) . ']);';
 
         $method->setBody($code);
 
@@ -1559,11 +1561,11 @@ return $tables;', var_export($this->table->getName(), true));
 
         //cloning many to many relationships
         foreach ($pivotTableMethodsDescriptors as $beanMethodDescriptor) {
-            $precode .= $beanMethodDescriptor->getCloneRule()."\n";
+            $precode .= $beanMethodDescriptor->getCloneRule() . "\n";
         }
 
         $method = new MethodGenerator('__clone');
-        $method->setBody($precode."parent::__clone();\n".$postcode);
+        $method->setBody($precode . "parent::__clone();\n" . $postcode);
 
         return $method;
     }
@@ -1702,14 +1704,14 @@ return $tables;', var_export($this->table->getName(), true));
         }
 
         $code = <<<EOF
-if (\$tableName === %s) {
-    if (self::\$foreignKeys === null) {
-        self::\$foreignKeys = new ForeignKeys(%s);
-    }
-    return self::\$foreignKeys;
-}
-return parent::getForeignKeys(\$tableName);
-EOF;
+            if (\$tableName === %s) {
+                if (self::\$foreignKeys === null) {
+                    self::\$foreignKeys = new ForeignKeys(%s);
+                }
+                return self::\$foreignKeys;
+            }
+            return parent::getForeignKeys(\$tableName);
+            EOF;
         $code = sprintf($code, var_export($this->getTable()->getName(), true), $this->psr2VarExport($fkArray, '        '));
 
         $method = new MethodGenerator('getForeignKeys');

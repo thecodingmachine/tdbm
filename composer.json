@@ -18,7 +18,7 @@
         }
     ],
     "require" : {
-        "php": "^8.0",
+        "php": "^8.2",
         "mouf/magic-query": "^2.0",
         "mouf/schema-analyzer": "^2.0",
         "doctrine/dbal": "^3.6",
@@ -46,7 +46,7 @@
         "phpunit/phpunit": "^9.5",
         "php-coveralls/php-coveralls": "^2.1",
         "fig/log-test": "^1.2",
-        "friendsofphp/php-cs-fixer": "^3.11",
+        "friendsofphp/php-cs-fixer": "^3.95",
         "symfony/process": "^5 || ^6 || ^7",
         "thecodingmachine/tdbm-fluid-schema-builder": "^v2.0.0",
         "phpstan/phpstan": "^2.0",
@@ -73,8 +73,8 @@
         "phpstan": "php -d memory_limit=3G vendor/bin/phpstan analyse src -c phpstan.neon --no-progress -vvv",
         "require-checker": "composer-require-checker check --config-file=composer-require-checker.json",
         "test": "XDEBUG_MODE=coverage phpunit",
-        "csfix": "php-cs-fixer fix src/ && php-cs-fixer fix tests/",
-        "cscheck": "php-cs-fixer fix src/ --dry-run --stop-on-violation && php-cs-fixer fix tests/ --dry-run --stop-on-violation ",
+        "csfix": "php-cs-fixer fix",
+        "cscheck": "php-cs-fixer fix --dry-run --stop-on-violation",
         "ci": [
             "@cscheck",
             "@phpstan",

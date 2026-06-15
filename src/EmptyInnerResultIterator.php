@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM;
 
 use Iterator;
@@ -26,9 +28,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function next(): void
-    {
-    }
+    public function next(): void {}
 
     /**
      * Return the key of the current element
@@ -59,9 +59,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function rewind(): void
-    {
-    }
+    public function rewind(): void {}
 
     /**
      * Whether a offset exists
@@ -91,7 +89,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      */
     public function offsetGet($offset): mixed
     {
-        throw new TDBMInvalidOffsetException('Offset "'.$offset.'" does not exist in result set.');
+        throw new TDBMInvalidOffsetException('Offset "' . $offset . '" does not exist in result set.');
     }
 
     /**
