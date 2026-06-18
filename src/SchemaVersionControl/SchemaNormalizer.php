@@ -74,6 +74,9 @@ class SchemaNormalizer
         foreach ($table->getForeignKeys() as $foreignKey) {
             $tableDesc['foreign_keys'][$foreignKey->getName()] = $this->normalizeForeignKeyConstraint($foreignKey);
         }
+        if (isset($tableDesc['foreign_keys'])) {
+            ksort($tableDesc['foreign_keys']);
+        }
 
         return $tableDesc;
     }
